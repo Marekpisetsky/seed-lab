@@ -1,8 +1,20 @@
 # Forja
 
-**Mision:** construir la herramienta que construye herramientas. Le das un
-nombre y un tipo, y Forja genera un proyecto que corre y tiene tests que
-pasan de verdad -- no un template vacio.
+**Mision:** que ningun proyecto nuevo del holding nazca como una promesa sin
+probar. Convertir "tengo una idea" en "tengo algo que corre y tiene tests en
+verde" en segundos, no en horas de boilerplate.
+
+## Que NO es Forja
+
+Esto existe para no perder el foco -- si algo de esta lista empieza a
+sonar tentador, es una senal de que pertenece a otro proyecto, no a Forja:
+
+- No es un framework de build ni un gestor de dependencias.
+- No hace deploy, no hostea nada, no se mete en CI/CD.
+- No intenta cubrir todos los lenguajes ni todos los stacks -- solo lo
+  minimo para arrancar rapido y probado.
+- Su trabajo termina cuando el proyecto existe y pasa sus tests. De ahi en
+  adelante, el proyecto generado vive su propia vida, separado de Forja.
 
 ## Por que cumple el criterio de `projects/`
 
