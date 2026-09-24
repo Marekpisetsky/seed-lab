@@ -1,9 +1,21 @@
 # projects/
 
-Aca vive lo serio. Cada carpeta dentro de `projects/` es un proyecto
-importante por derecho propio: con profundidad, con una razon de ser clara
-mientras se construye, y pensado para durar -- no un experimento de una
-tarde.
+Esto es un holding, no un CV. Cada carpeta dentro de `projects/` es una
+"empresa" del portfolio de Marek en el sentido Musk: Tesla, SpaceX, The
+Boring Company -- proyectos de peso que existen porque funcionan de verdad,
+no porque quedan bien en una lista.
+
+## Criterio de admision
+
+Un proyecto entra a `projects/` solo si cumple las dos cosas:
+
+1. **Funciona de verdad.** No es una demo ni un stub -- hace algo real,
+   de punta a punta, aunque sea a pequena escala.
+2. **Tiene peso.** O resuelve un problema real (se usa de verdad), o exige
+   ambicion tecnica real (te obliga a construir algo dificil). Idealmente
+   ambas.
+
+No es un lugar para ejercicios ni para portfolio-filler.
 
 ## Que distingue a un proyecto de una celula (`cells/`)
 
