@@ -7,22 +7,30 @@ no porque quedan bien en una lista.
 
 ## Criterio de admision
 
-Un proyecto entra a `projects/` solo si cumple las dos cosas:
+Un proyecto entra a `projects/` solo si cumple las tres cosas:
 
 1. **Funciona de verdad.** No es una demo ni un stub -- hace algo real,
    de punta a punta, aunque sea a pequena escala.
 2. **Tiene peso.** O resuelve un problema real (se usa de verdad), o exige
    ambicion tecnica real (te obliga a construir algo dificil). Idealmente
    ambas.
+3. **Tiene (o apunta a tener) un cliente fuera del holding.** Si el unico
+   que lo usa es el propio holding para construirse a si mismo, no es una
+   empresa -- es infraestructura interna y pertenece a `tools/`. Este fue
+   el error con Forja: cumplia 1 y 2, pero su cliente era el holding
+   mismo, asi que se reclasifico a `tools/forja/`.
 
 No es un lugar para ejercicios ni para portfolio-filler.
 
-## Que distingue a un proyecto de una celula (`cells/`)
+## Que distingue un proyecto de una celula (`cells/`) o una herramienta (`tools/`)
 
 - Una celula es una chispa de un archivo: se ejecuta y ya.
-- Un proyecto tiene su propia carpeta, su propio README, y crece en varias
-  sesiones. Si una celula demuestra que vale la pena, se "gradua" moviendola
-  aqui y dandole estructura propia.
+- Una herramienta (`tools/`) tiene profundidad real, pero su cliente es el
+  propio holding -- existe para construir otras cosas, no para venderse.
+- Un proyecto (`projects/`) tiene profundidad real y un cliente fuera del
+  holding, real o buscado activamente. Si una celula o herramienta
+  demuestra que vale la pena y encuentra ese cliente externo, se "gradua"
+  moviendola aqui y dandole mision propia de empresa.
 
 ## Estructura minima de cada proyecto
 

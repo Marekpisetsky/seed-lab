@@ -1,13 +1,23 @@
 # Forja
 
-**Mision:** que ningun proyecto nuevo del holding nazca como una promesa sin
-probar. Convertir "tengo una idea" en "tengo algo que corre y tiene tests en
-verde" en segundos, no en horas de boilerplate.
+**Que es:** herramienta interna del holding, no una empresa de `projects/`.
+Su unico cliente hoy es el propio holding seed-lab -- eso la hace
+infraestructura, no una empresa con clientes externos. La mision del
+holding vive en el README raiz; esto es solo su proposito puntual.
+
+**Proposito:** Forja genera proyectos de software que nacen funcionando,
+con codigo real, tests que pasan y verificacion en el momento de su
+creacion, para que cada nueva empresa de seed-lab arranque en segundos
+sobre una base probada.
+
+Si en algun momento Forja se vende o se ofrece a desarrolladores externos,
+deja de ser herramienta interna y pasa a `projects/` con una mision propia
+que nombre a ese cliente externo.
 
 ## Que NO es Forja
 
 Esto existe para no perder el foco -- si algo de esta lista empieza a
-sonar tentador, es una senal de que pertenece a otro proyecto, no a Forja:
+sonar tentador, es una senal de que pertenece a otro lado, no a Forja:
 
 - No es un framework de build ni un gestor de dependencias.
 - No hace deploy, no hostea nada, no se mete en CI/CD.
@@ -16,16 +26,16 @@ sonar tentador, es una senal de que pertenece a otro proyecto, no a Forja:
 - Su trabajo termina cuando el proyecto existe y pasa sus tests. De ahi en
   adelante, el proyecto generado vive su propia vida, separado de Forja.
 
-## Por que cumple el criterio de `projects/`
+## Por que funciona de verdad
 
-- **Funciona de verdad:** cada molde se verifica automaticamente corriendo
-  sus propios tests generados en el momento de crearlo. Si los tests
-  fallan, Forja te avisa en vez de fingir que salio bien.
-- **Tiene peso:** no es un generador de carpetas vacias -- cada molde trae
-  codigo funcional real (un contador de texto, una libreria de slugs, un
-  servidor HTTP con endpoint real).
-
-Cero dependencias externas: todo corre con la libreria estandar de Python.
+- Cada molde se verifica automaticamente corriendo sus propios tests
+  generados en el momento de crearlo. Si los tests fallan, Forja avisa en
+  vez de fingir que salio bien.
+- No es un generador de carpetas vacias -- cada molde trae codigo
+  funcional real (un contador de texto, una libreria de slugs, un servidor
+  HTTP con endpoint real).
+- Cero dependencias externas: todo corre con la libreria estandar de
+  Python.
 
 ## Uso
 
