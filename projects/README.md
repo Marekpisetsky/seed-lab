@@ -22,6 +22,14 @@ Un proyecto entra a `projects/` solo si cumple las tres cosas:
 
 No es un lugar para ejercicios ni para portfolio-filler.
 
+## Antes de construir a fondo: validar
+
+Por valor del holding ("Validacion antes que construccion"), ninguna idea
+se construye a fondo sin evidencia de que un cliente externo real la
+usaria o pagaria por ella. Una idea puede vivir como celula o borrador
+mientras se busca esa evidencia; recien se gradua a carpeta propia en
+`projects/` cuando esa validacion existe.
+
 ## Que distingue un proyecto de una celula (`cells/`) o una herramienta (`tools/`)
 
 - Una celula es una chispa de un archivo: se ejecuta y ya.

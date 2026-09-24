@@ -1,8 +1,31 @@
 # seed-lab
 
-**Mision, Vision y Valores del holding:** pendientes de definir con
-precision -- ver seccion al final. Todo lo demas en este README ya esta
-en vigencia.
+**Mision:** Crear productos de software que resuelvan problemas reales de
+desarrolladores y empresas, validados por demanda real antes de
+construirse a fondo, y generar ingresos genuinos a partir de su uso.
+
+**Vision:** Consolidar una cartera de productos de software rentables,
+construidos sobre infraestructura compartida, que en conjunto generen
+ingresos sostenidos y demuestren capacidad de ingenieria aplicada a
+problemas reales del mercado.
+
+**Valores:**
+
+1. **Verificacion sobre promesa** -- nada se declara terminado sin
+   pruebas de que funciona.
+2. **Validacion antes que construccion** -- ninguna idea se construye a
+   fondo sin evidencia de un cliente externo real dispuesto a usarla o
+   pagarla.
+3. **Apalancamiento compartido** -- cada empresa nueva se apoya en la
+   infraestructura ya construida en `tools/`, no arranca de cero.
+4. **Independencia economica** -- ninguna empresa depende de capital
+   externo para nacer.
+5. **Primacia de la logica** -- el valor de cada producto reside en su
+   funcionamiento, no en su apariencia.
+6. **Proposito explicito** -- toda empresa define su mision y sus
+   limites antes de considerarse iniciada.
+7. **Autonomia de origen** -- la agenda del holding responde a
+   iniciativa propia, no a mandato externo.
 
 Un holding de tres niveles:
 
@@ -58,11 +81,3 @@ para que sirve dentro del holding, y una nota de que su cliente es interno
 
 Crear `projects/nombre-del-proyecto/` con su propio `README.md` que explique
 que es, por que importa, y el estado actual. Ver `projects/README.md`.
-
-## Mision, Vision y Valores del holding
-
-En construccion. Se estan definiendo con precision: que tipo de empresas
-incuba el holding, con que criterio entra una idea a `projects/`, que le
-aporta el holding a cada empresa, y cual es el objetivo final. Hasta que
-esto quede cerrado, ningun proyecto deberia asumir una mision de holding
-que todavia no existe por escrito.
