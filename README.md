@@ -1,8 +1,9 @@
 # seed-lab
 
-**Mision:** Crear productos de software que resuelvan problemas reales de
-desarrolladores y empresas, validados por demanda real antes de
-construirse a fondo, y generar ingresos genuinos a partir de su uso.
+**Mision:** seed-lab crea empresas de software que generan ingresos
+reales: valida cada idea con clientes externos antes de construirla y
+acelera cada lanzamiento con herramientas compartidas que se vuelven mas
+potentes con cada empresa nueva.
 
 **Vision:** Consolidar una cartera de productos de software rentables,
 construidos sobre infraestructura compartida, que en conjunto generen
