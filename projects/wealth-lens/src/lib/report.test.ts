@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseIsoDate } from "./dates";
-import { monthsToGoal } from "./finance";
+import { monthsToGoal, requiredMonthlyContribution } from "./finance";
 import { INDEXES } from "./indexes";
 import { buildReport, enoughFor, shareOf, STOP_WORKING_ID, type ReportPlan } from "./report";
 import type { Holding } from "./types";
@@ -88,11 +88,36 @@ describe("the headline", () => {
     expect(headline.meaning).toBe("already enough to live in India");
   });
 
-  it("says when it cannot get there without adding money", () => {
-    const { headline, answer } = buildReport(plan({ invested: 0, monthlyContribution: 0 }), [], today);
-    expect(answer.months).toBe(Infinity);
+  it("says when it cannot get there, and what would get there in 20 and 30 years", () => {
+    const { headline, answer } = buildReport(plan({ invested: 0, monthlyContribution: 0, pinned: "country:IN" }), [], today);
+    expect(answer).toMatchObject({ months: Infinity, reachable: false });
     expect(headline.future).toBeNull();
-    expect(headline.meaning).toBe("not enough to live in India without adding money each month");
+    expect(headline.meaning).toBe("not reachable at this pace");
+    expect(headline.instead?.map((option) => option.years)).toEqual([20, 30]);
+    const in20 = requiredMonthlyContribution(0, sp500, 240, 99_000);
+    expect(headline.instead?.[0].monthly.text).toBe(`€${Math.round(in20).toLocaleString("en-US")}/month`);
+    expect(headline.instead?.[0].monthly.explain[0]).toBe(`€0 now + €${Math.round(in20).toLocaleString("en-US")} a month for 20 years,`);
+  });
+
+  it("does not quote a date more than 60 years away", () => {
+    // EUR 1,000 + EUR 1 a month: India (EUR 99,000) takes about 62 years.
+    const { headline, answer } = buildReport(plan({ monthlyContribution: 1, pinned: "country:IN" }), [], today);
+    expect(answer.months).toBeGreaterThan(60 * 12);
+    expect(Number.isFinite(answer.months)).toBe(true);
+    expect(answer.reachable).toBe(false);
+    expect(headline.future).toBeNull();
+    expect(headline.meaning).toBe("not reachable at this pace");
+    // Each alternative really gets there on time.
+    for (const option of headline.instead ?? []) {
+      const monthly = requiredMonthlyContribution(1000, sp500, option.years * 12, 99_000);
+      expect(monthsToGoal(1000, monthly, sp500, 99_000)).toBeCloseTo(option.years * 12, 6);
+    }
+  });
+
+  it("is reachable up to exactly 60 years", () => {
+    const { answer } = buildReport(plan(), [], today);
+    expect(answer.reachable).toBe(true);
+    expect(answer.months).toBeLessThanOrEqual(60 * 12);
   });
 
   it("talks about money to spend for a purchase", () => {

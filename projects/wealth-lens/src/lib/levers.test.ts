@@ -33,9 +33,22 @@ describe("describeEffect", () => {
     });
     expect(describeEffect({ mode: "goal", months: 240 }, { mode: "goal", months: 240.2 }, "live").tone).toBe("same");
     expect(describeEffect({ mode: "goal", months: Infinity }, { mode: "goal", months: 300 }, "live").text).toBe(
-      "reached in 25 years",
+      "reachable in 25 years",
     );
-    expect(describeEffect({ mode: "goal", months: 300 }, { mode: "goal", months: Infinity }, "live").text).toBe("never reached");
+    expect(describeEffect({ mode: "goal", months: 300 }, { mode: "goal", months: Infinity }, "live").text).toBe("not reachable");
+  });
+
+  it("counts no year beyond 60: past it a goal is not reachable at this pace", () => {
+    // 67 and 75 years: both out of reach, so no "8 years earlier".
+    expect(describeEffect({ mode: "goal", months: 900 }, { mode: "goal", months: 800 }, "live")).toEqual({
+      text: "still not reachable",
+      tone: "same",
+    });
+    expect(describeEffect({ mode: "goal", months: 800 }, { mode: "goal", months: 700 }, "live")).toEqual({
+      text: "reachable in 58 years",
+      tone: "better",
+    });
+    expect(describeEffect({ mode: "goal", months: 700 }, { mode: "goal", months: 721 }, "live").text).toBe("not reachable");
   });
 
   it("speaks in euros when looking a fixed number of years ahead", () => {
@@ -98,6 +111,10 @@ describe("years", () => {
     expect(options[0].detail).toMatch(/^20\d\d$/);
     const incomes = options.slice(1).map((option) => Number(option.detail.replace(/[^\d]/g, "")));
     expect([...incomes].sort((a, b) => a - b)).toEqual(incomes);
+  });
+
+  it("says 'not at this pace' instead of a year more than 60 years away", () => {
+    expect(levers({ monthlyContribution: 1, pinned: "country:IN" }).horizon[0].detail).toBe("not at this pace");
   });
 
   it("keeps a chosen horizon in the list", () => {

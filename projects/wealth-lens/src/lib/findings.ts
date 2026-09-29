@@ -15,7 +15,7 @@ import { formatEur, formatEurRounded, formatMoney, formatPercent, formatRate, fo
 import { INDEXES } from "./indexes";
 import { dividendNote, periodText } from "./investment";
 import { INDEX_TRACKERS, instrumentForHolding, MARKET, type PricesFile } from "./market-data";
-import { answerMetric, monthsTo, valueAt, type Report, type Scenario } from "./report";
+import { answerMetric, MAX_YEARS, monthsTo, valueAt, withinReach, type Report, type Scenario } from "./report";
 import { cachedSuccessRate, wealthPercentiles } from "./simulation";
 import { BASE_CURRENCY, type Holding } from "./types";
 
@@ -56,7 +56,7 @@ export interface FindingContext {
 }
 
 export const MAX_FINDINGS = 5;
-/** The reference horizon when the goal is already reached or out of reach. */
+/** The reference horizon when the goal is already reached. */
 const DEFAULT_HORIZON_MONTHS = 240;
 
 // ---------------------------------------------------------------------------
@@ -65,13 +65,15 @@ const DEFAULT_HORIZON_MONTHS = 240;
 
 /**
  * Months ahead that euro-at-a-date findings look at: the answer's point in
- * time, or 20 years when the goal is already reached or out of reach. A goal
- * a few months away stays short, so long-run findings do not apply to it.
+ * time, or 20 years when the goal is already reached. A goal a few months
+ * away stays short, so long-run findings do not apply to it. `null` when the
+ * goal is more than MAX_YEARS away: no finding quotes a figure that far out.
  */
-export function horizonOf(report: Report): number {
+export function horizonOf(report: Report): number | null {
   const { answer } = report;
   if (answer.mode === "horizon") return answer.months;
-  return answer.months === 0 || !Number.isFinite(answer.months) ? DEFAULT_HORIZON_MONTHS : answer.months;
+  if (!answer.reachable) return null;
+  return answer.months === 0 ? DEFAULT_HORIZON_MONTHS : answer.months;
 }
 
 function yearOf(report: Report, months: number): number {
@@ -105,7 +107,7 @@ export function leverFinding({ report }: FindingContext): Finding | null {
   ] as const;
 
   if (base.mode === "goal") {
-    if (!Number.isFinite(base.months) || base.months < 24) return null;
+    if (!withinReach(base.months) || base.months < 24) return null;
     const results = options.map((option) => {
       const metric = answerMetric(option.scenario, connection);
       return { ...option, gain: metric.mode === "goal" ? base.months - metric.months : 0 };
@@ -163,7 +165,7 @@ export function leverFinding({ report }: FindingContext): Finding | null {
 export function waitingFinding({ report }: FindingContext): Finding | null {
   const { scenario, goal } = report;
   const months = horizonOf(report);
-  if (months < 24) return null;
+  if (months === null || months < 24) return null;
   const now = valueAt(scenario, months);
   // The same capital and monthly amount, invested a year later: one year less by that date.
   const later = valueAt(scenario, months - 12);
@@ -191,10 +193,11 @@ export function inflationFinding({ report }: FindingContext): Finding | null {
   // A goal already reached costs what it costs today.
   if (answer.mode === "goal" && answer.months === 0) return null;
   const months = horizonOf(report);
+  if (months === null) return null;
   const years = months / 12;
   if (years < 5 || plan.inflation <= 0) return null;
   // What the account holds then, in today's euros: the goal when it is reached, else the projection.
-  const real = answer.mode === "goal" && Number.isFinite(answer.months) ? goal.status.target : valueAt(scenario, months);
+  const real = answer.mode === "goal" ? goal.status.target : valueAt(scenario, months);
   if (real <= 0) return null;
   const factor = Math.pow(1 + plan.inflation, years);
   const nominal = real * factor;
@@ -218,7 +221,7 @@ export function inflationFinding({ report }: FindingContext): Finding | null {
 export function feesFinding({ report }: FindingContext): Finding | null {
   const { scenario, goal } = report;
   const months = horizonOf(report);
-  if (months < 60) return null;
+  if (months === null || months < 60) return null;
   const cheap: Scenario = { ...scenario, realReturn: scenario.realReturn - 0.002 };
   const dear: Scenario = { ...scenario, realReturn: scenario.realReturn - 0.01 };
   const cost = valueAt(cheap, months) - valueAt(dear, months);
@@ -235,7 +238,7 @@ export function feesFinding({ report }: FindingContext): Finding | null {
     calculation: [
       `At 0.2% a year: ${formatEur(valueAt(cheap, months))} by ${year}.`,
       `At 1% a year: ${formatEur(valueAt(dear, months))}.`,
-      ...(Number.isFinite(delay) && delay >= 1 ? [`Reaching ${formatEur(target)} takes ${formatYears(delay)} longer.`] : []),
+      ...(withinReach(monthsTo(dear, target)) && delay >= 1 ? [`Reaching ${formatEur(target)} takes ${formatYears(delay)} longer.`] : []),
     ],
     assumptions: [
       "The index returns here are before fund costs. Index funds cost about 0.1-0.3% a year; many other funds 1% or more.",
@@ -255,9 +258,10 @@ export function geographyFinding({ report }: FindingContext): Finding | null {
   const covered = countries.filter((status) => status.months === 0);
   const soonest = [...countries].sort((a, b) => a.months - b.months);
   const assumptions = ["One person, country averages, rent included where you rent (Numbeo + Wise, Sep 2026). Estimates; cities vary."];
+  const when = (months: number) => (months === 0 ? "now" : withinReach(months) ? `in ${formatYears(months)}` : `not within ${MAX_YEARS} years`);
   const listing = soonest
     .slice(0, 5)
-    .map((status) => `${place(status.connection.name)}: ${status.months === 0 ? "now" : `in ${formatYears(status.months)}`} (${formatEur(status.connection.amount)}/month).`);
+    .map((status) => `${place(status.connection.name)}: ${when(status.months)} (${formatEur(status.connection.amount)}/month).`);
 
   if (covered.length > 0) {
     const text =
@@ -270,24 +274,25 @@ export function geographyFinding({ report }: FindingContext): Finding | null {
       value: covered.length === 1 ? "Now" : `${covered.length} countries`,
       text,
       tone: "info",
-      calculation: [...listing, `${HomeName}: ${home.months === 0 ? "now" : `in ${formatYears(home.months)}`}.`],
+      calculation: [...listing, `${HomeName}: ${when(home.months)}.`],
       assumptions,
     };
   }
   const best = soonest[0];
-  if (!Number.isFinite(best.months)) return null;
+  if (!withinReach(best.months)) return null;
+  const homeReachable = withinReach(home.months);
   const gap = home.months - best.months;
-  if (Number.isFinite(home.months) && gap < 24) return null;
+  if (homeReachable && gap < 24) return null;
   const name = place(best.connection.name);
   return {
     id: "geography",
-    impact: Number.isFinite(home.months) ? Math.min(1, gap / home.months) * 0.8 : 0.6,
-    value: Number.isFinite(home.months) ? formatYears(gap) : formatYears(best.months),
-    text: Number.isFinite(home.months)
+    impact: homeReachable ? Math.min(1, gap / home.months) * 0.8 : 0.6,
+    value: homeReachable ? formatYears(gap) : formatYears(best.months),
+    text: homeReachable
       ? `Living in ${name} comes ${formatYears(gap)} before ${homeName}.`
       : `Living in ${name} is within reach in ${formatYears(best.months)}; ${homeName} is not.`,
     tone: "info",
-    calculation: [...listing, `${HomeName}: ${Number.isFinite(home.months) ? `in ${formatYears(home.months)}` : "not within reach"}.`],
+    calculation: [...listing, `${HomeName}: ${when(home.months)}.`],
     assumptions,
   };
 }
@@ -379,7 +384,7 @@ export function currencyFinding({ holdings }: FindingContext): Finding | null {
 export function sequenceFinding({ report }: FindingContext): Finding | null {
   const { scenario, investment, goal } = report;
   const months = horizonOf(report);
-  if (months < 60 || (report.answer.mode === "goal" && !Number.isFinite(report.answer.months))) return null;
+  if (months === null || months < 60) return null;
   const decade = Math.min(10, Math.floor(months / 12));
   const { p10, p50 } = wealthPercentiles({
     start: scenario.capital,
@@ -406,7 +411,8 @@ export function sequenceFinding({ report }: FindingContext): Finding | null {
     const typicalMonths = decade * 12 + monthsToGoal(typical, scenario.monthly, scenario.realReturn, target);
     const badMonths = decade * 12 + monthsToGoal(bad, scenario.monthly, scenario.realReturn, target);
     const delay = badMonths - typicalMonths;
-    if (!Number.isFinite(delay) || delay < 12) return null;
+    // A bad start that pushes the goal past MAX_YEARS would quote a date that far out.
+    if (!withinReach(badMonths) || !withinReach(typicalMonths) || delay < 12) return null;
     return {
       id: "sequence",
       impact: (delay / months) * 1.2,
@@ -457,7 +463,7 @@ export function withdrawalFinding({ report }: FindingContext): Finding | null {
 export function growthShareFinding({ report }: FindingContext): Finding | null {
   const { scenario } = report;
   const months = horizonOf(report);
-  if (months < 60) return null;
+  if (months === null || months < 60) return null;
   const total = valueAt(scenario, months);
   const saved = scenario.capital + scenario.monthly * months;
   const share = total > 0 ? (total - saved) / total : 0;

@@ -8,7 +8,7 @@ import { updatePlan } from "@/lib/app-store";
 import { costOfLiving, countryInSentence } from "@/lib/cost-of-living";
 import { formatEur, formatEurRounded, formatYears } from "@/lib/format";
 import { createId } from "@/lib/id";
-import { lowerFirst, type ConnectionStatus, type PurchaseImpact, type Report } from "@/lib/report";
+import { lowerFirst, withinReach, type ConnectionStatus, type PurchaseImpact, type Report } from "@/lib/report";
 import type { Plan } from "@/lib/types";
 
 /** Rows shown before "Show all". */
@@ -27,7 +27,7 @@ function StatusText({ months }: { months: number }) {
   }
   return (
     <span className="whitespace-nowrap text-sm text-muted">
-      {Number.isFinite(months) ? `in ${formatYears(months)}` : "not yet"}
+      {withinReach(months) ? `in ${formatYears(months)}` : "not at this pace"}
     </span>
   );
 }

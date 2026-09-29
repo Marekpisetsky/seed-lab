@@ -10,6 +10,7 @@ import {
   feesFinding,
   geographyFinding,
   growthShareFinding,
+  horizonOf,
   inflationFinding,
   leverFinding,
   sequenceFinding,
@@ -98,6 +99,25 @@ describe("waiting a year", () => {
 
   it("is not shown for a goal under two years away", () => {
     expect(waitingFinding(context({ pinned: "buy:e-bike" }))).toBeNull();
+  });
+});
+
+describe("goals more than 60 years away", () => {
+  // EUR 1,000 + EUR 1 a month, living in India: about 62 years.
+  const far = context({ monthlyContribution: 1, pinned: "country:IN" });
+
+  it("hide every finding that would quote a figure that far out", () => {
+    expect(far.report.answer.reachable).toBe(false);
+    expect(horizonOf(far.report)).toBeNull();
+    for (const rule of [leverFinding, waitingFinding, inflationFinding, feesFinding, sequenceFinding, growthShareFinding]) {
+      expect(rule(far), rule.name).toBeNull();
+    }
+    const years = allFindings(far.report, []).flatMap((finding) => [finding.text, ...finding.calculation].join(" ").match(/\b2\d{3}\b/g) ?? []);
+    expect(years.every((year) => Number(year) <= 2026 + 60)).toBe(true);
+  });
+
+  it("still say what does not depend on a date", () => {
+    expect(doublingFinding(far)).not.toBeNull();
   });
 });
 

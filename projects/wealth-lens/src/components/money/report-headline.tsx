@@ -6,7 +6,7 @@ import { useReport } from "@/hooks/use-report";
 import { updatePlan } from "@/lib/app-store";
 import type { HeadlineNumber } from "@/lib/report";
 
-type NumberKey = "today" | "when" | "value";
+type NumberKey = "today" | "when" | "value" | `instead-${number}`;
 
 /** A number in the headline: big, and a button that says where it comes from. */
 function HeadlineButton({ number, expanded, onToggle }: { number: HeadlineNumber; expanded: boolean; onToggle: () => void }) {
@@ -31,10 +31,11 @@ export function ReportHeadline() {
   const { report } = useReport();
   const { headline, goal } = report;
   const [open, setOpen] = useState<NumberKey | null>(null);
-  const numbers: Record<NumberKey, HeadlineNumber | undefined> = {
+  const numbers: Record<string, HeadlineNumber | undefined> = {
     today: headline.today,
     when: headline.future?.when,
     value: headline.future?.value,
+    ...Object.fromEntries((headline.instead ?? []).map((option) => [`instead-${option.years}`, option.monthly])),
   };
   const explained = open ? numbers[open] : undefined;
 
@@ -44,16 +45,34 @@ export function ReportHeadline() {
 
   return (
     <section aria-label="Answer" className="space-y-3">
-      <p className="text-xl leading-relaxed sm:text-2xl" aria-live="polite">
-        {headline.lead} {button("today", headline.today)}
-        {headline.future ? (
-          <>
-            . In {button("when", headline.future.when)}: {button("value", headline.future.value)} — {headline.meaning}.
-          </>
-        ) : (
-          <> — {headline.meaning}.</>
-        )}
-      </p>
+      {headline.instead ? (
+        <div className="space-y-2" aria-live="polite">
+          <p className="text-xl leading-relaxed sm:text-2xl">
+            {headline.lead} {button("today", headline.today)}.
+          </p>
+          <p className="text-2xl font-bold tracking-tight sm:text-3xl">Not reachable at this pace.</p>
+          <p className="text-lg leading-relaxed">
+            {headline.instead.map((option, index) => (
+              <span key={option.years}>
+                {index === 0 ? `To get there in ${option.years} years you'd add ` : ` In ${option.years} years, `}
+                {button(`instead-${option.years}`, option.monthly)}
+                .
+              </span>
+            ))}
+          </p>
+        </div>
+      ) : (
+        <p className="text-xl leading-relaxed sm:text-2xl" aria-live="polite">
+          {headline.lead} {button("today", headline.today)}
+          {headline.future ? (
+            <>
+              . In {button("when", headline.future.when)}: {button("value", headline.future.value)} — {headline.meaning}.
+            </>
+          ) : (
+            <> — {headline.meaning}.</>
+          )}
+        </p>
+      )}
       {explained && (
         <div id="headline-explain" className="rounded-lg border border-border bg-card p-3 text-sm">
           <ol className="space-y-1">

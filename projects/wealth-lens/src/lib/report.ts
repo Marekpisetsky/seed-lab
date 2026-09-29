@@ -14,7 +14,7 @@
 
 import { allConnections, targetCapital, type Connection } from "./connections";
 import { addMonths } from "./dates";
-import { futureValueWithContributions, monthlyWithdrawal, monthsToGoal } from "./finance";
+import { futureValueWithContributions, monthlyWithdrawal, monthsToGoal, requiredMonthlyContribution } from "./finance";
 import { formatDuration, formatEur, formatMonthYear, formatPercent, formatRate, formatYears } from "./format";
 import { dividendNote, periodText, resolveInvestment, type ResolvedInvestment } from "./investment";
 import { startingCapital, type StartingCapital } from "./plan";
@@ -22,6 +22,20 @@ import type { Holding, Plan } from "./types";
 
 /** The plan the report reads (see Plan in lib/types.ts). */
 export type ReportPlan = Plan;
+
+/**
+ * Beyond this a date is not a plan: the report says "not reachable at this
+ * pace" instead of a year in the next century, and findings stop there too.
+ */
+export const MAX_YEARS = 60;
+export const MAX_MONTHS = MAX_YEARS * 12;
+/** When a goal is out of reach: the monthly amount that would get there in these many years. */
+export const INSTEAD_YEARS = [20, 30] as const;
+
+/** Reached within MAX_YEARS (0 = now). `Infinity` (never) is not. */
+export function withinReach(months: number): boolean {
+  return months <= MAX_MONTHS;
+}
 
 /** "Stop working" is the default goal when it is reachable within this many years. */
 export const STOP_WORKING_WITHIN_YEARS = 40;
@@ -49,6 +63,8 @@ export interface Answer {
   mode: "goal" | "horizon";
   /** Goal mode: months until the goal (0 = now, Infinity = never). Horizon mode: the horizon. */
   months: number;
+  /** False when the goal is more than MAX_YEARS away (or never reached). */
+  reachable: boolean;
   date: Date | null;
   /** Capital at that point. */
   capital: number;
@@ -70,8 +86,10 @@ export interface Headline {
   today: HeadlineNumber;
   /** "In 20 years: €330/month", absent when already reached or never. */
   future: { when: HeadlineNumber; value: HeadlineNumber } | null;
-  /** "enough to live in India", "already enough to…", "58% of what you need to…". */
+  /** "enough to live in India", "already enough to…", "58% of what you need to…", "not reachable at this pace". */
   meaning: string;
+  /** Out of reach: the monthly amount that would get there in 20 and in 30 years. */
+  instead: { years: number; monthly: HeadlineNumber }[] | null;
 }
 
 export interface PurchaseImpact {
@@ -228,15 +246,32 @@ function buildHeadline(report: Omit<Report, "headline" | "purchase">): Headline 
         value: valueNumber(answer.capital),
       },
       meaning: answer.progress >= 1 ? enoughFor(connection) : shareOf(connection, answer.progress),
+      instead: null,
     };
   }
-  if (answer.months === 0) return { lead, today: todayNumber, future: null, meaning: `already ${enoughFor(connection)}` };
-  if (!Number.isFinite(answer.months)) {
+  if (answer.months === 0) return { lead, today: todayNumber, future: null, meaning: `already ${enoughFor(connection)}`, instead: null };
+  if (!answer.reachable) {
+    const target = goal.status.target;
     return {
       lead,
       today: todayNumber,
       future: null,
-      meaning: `not enough to ${live ? lowerFirst(connection.name) : `buy ${lowerFirst(connection.name)}`} without adding money each month`,
+      meaning: "not reachable at this pace",
+      instead: INSTEAD_YEARS.map((years) => {
+        const monthly = requiredMonthlyContribution(capital.amount, scenario.realReturn, years * 12, target);
+        return {
+          years,
+          monthly: {
+            text: perMonth(monthly),
+            explain: [
+              `${formatEur(capital.amount)} now + ${formatEur(monthly)} a month for ${years} years,`,
+              growth,
+              `= ${formatEur(target)}: ${connection.name} (${live ? `${perMonth(connection.amount)} at ${rate} a year` : "estimate"}).`,
+              `At ${formatEur(scenario.monthly)} a month it takes more than ${MAX_YEARS} years.`,
+            ],
+          },
+        };
+      }),
     };
   }
   const reach = addMonths(today, Math.ceil(answer.months - 1e-9));
@@ -251,6 +286,7 @@ function buildHeadline(report: Omit<Report, "headline" | "purchase">): Headline 
       value: valueNumber(goal.status.target),
     },
     meaning: enoughFor(connection),
+    instead: null,
   };
 }
 
@@ -270,7 +306,7 @@ export function purchaseImpact(
   const after = buyMonths === 0 ? scenario.capital - price : 0;
   const living = statuses.filter((status) => status.connection.kind === "live");
   const milestone = chooseGoal(living, null).status ?? null;
-  if (!milestone || !Number.isFinite(buyMonths) || !Number.isFinite(milestone.months) || milestone.months <= buyMonths) {
+  if (!milestone || !withinReach(buyMonths) || !withinReach(milestone.months) || milestone.months <= buyMonths) {
     return { buyMonths, before, after, milestone: null, delayMonths: 0, forgone: 0 };
   }
   const afterPurchase: Scenario = { ...scenario, capital: after };
@@ -317,6 +353,7 @@ export function buildReport(plan: ReportPlan, holdings: readonly Holding[], toda
     answer = {
       mode: "goal",
       months,
+      reachable: withinReach(months),
       date: Number.isFinite(months) ? addMonths(today, Math.ceil(months - 1e-9)) : null,
       capital: reached,
       income: monthlyWithdrawal(Math.max(0, reached), scenario.withdrawalRate),
@@ -327,6 +364,7 @@ export function buildReport(plan: ReportPlan, holdings: readonly Holding[], toda
     answer = {
       mode: "horizon",
       months: scenario.horizonMonths,
+      reachable: true,
       date: addMonths(today, scenario.horizonMonths),
       capital: value,
       income: monthlyWithdrawal(value, scenario.withdrawalRate),
