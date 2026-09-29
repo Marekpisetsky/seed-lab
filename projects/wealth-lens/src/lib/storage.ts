@@ -8,6 +8,7 @@
  * value read back is validated, falling back to defaults instead of crashing.
  */
 
+import { isValidStooqSymbol, type PricePoint } from "./prices";
 import type { Assumptions, FireSettings, Goal, Holding } from "./types";
 
 /** The subset of the Web Storage API this module needs (easy to fake in tests). */
@@ -27,7 +28,13 @@ export const STORAGE_KEYS = {
   goal: `${KEY_PREFIX}goal`,
   assumptions: `${KEY_PREFIX}assumptions`,
   fire: `${KEY_PREFIX}fire`,
+  chartSymbols: `${KEY_PREFIX}chart-symbols`,
 } as const;
+
+/** One key per ticker, so a large uploaded file cannot crowd out the rest. */
+export function uploadedPricesKey(ticker: string): string {
+  return `${KEY_PREFIX}uploaded-prices:${ticker}`;
+}
 
 export const DEFAULT_HOLDINGS: readonly Holding[] = [];
 
@@ -174,4 +181,28 @@ export function parseFireSettings(value: unknown): FireSettings | null {
     capitalOverride: isNonNegativeNumber(value.capitalOverride) ? value.capitalOverride : null,
     housing: value.housing === "own" ? "own" : "rent",
   };
+}
+
+/** Stooq symbol chosen per ticker; invalid entries are dropped. */
+export function parseSymbolOverrides(value: unknown): Record<string, string> | null {
+  if (!isRecord(value)) return null;
+  return Object.fromEntries(
+    Object.entries(value).filter(
+      (entry): entry is [string, string] => typeof entry[1] === "string" && isValidStooqSymbol(entry[1]),
+    ),
+  );
+}
+
+export interface UploadedPrices {
+  fileName: string;
+  points: PricePoint[];
+}
+
+export function parseUploadedPrices(value: unknown): UploadedPrices | null {
+  if (!isRecord(value) || typeof value.fileName !== "string" || !Array.isArray(value.points)) return null;
+  const points = value.points.filter(
+    (point): point is PricePoint =>
+      isRecord(point) && isIsoDate(point.time) && isFiniteNumber(point.close) && point.close > 0,
+  );
+  return points.length > 0 ? { fileName: value.fileName, points } : null;
 }

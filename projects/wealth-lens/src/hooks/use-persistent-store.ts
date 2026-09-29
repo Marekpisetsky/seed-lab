@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 import type { PersistentStore, Updater } from "@/lib/persistent-store";
 
 /** Reads a persistent store and re-renders when it changes. */
-export function usePersistentStore<T>(store: PersistentStore<T>): [T, (next: Updater<T>) => void] {
+export function usePersistentStore<T>(store: PersistentStore<T>): [T, (next: Updater<T>) => boolean] {
   const value = useSyncExternalStore(store.subscribe, store.get, store.getServerSnapshot);
   return [value, store.set];
 }

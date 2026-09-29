@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   defaultStooqSymbol,
+  includePriceInRange,
   interpretStooqResponse,
   isValidStooqSymbol,
   parsePriceCsv,
   stooqQuoteCurrency,
   stooqUrl,
+  summarizeSeries,
+  visibleRangeStart,
 } from "./prices";
 
 const STOOQ_CSV = [
@@ -116,5 +119,54 @@ describe("interpretStooqResponse", () => {
     const result = interpretStooqResponse(status, body);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe(code);
+  });
+});
+
+describe("summarizeSeries", () => {
+  const points = [
+    { time: "2026-09-25", close: 200 },
+    { time: "2026-09-26", close: 250 },
+  ];
+
+  it("compares the last close with the average cost", () => {
+    expect(summarizeSeries(points, 200)).toEqual({ last: points[1], vsAverageCost: 0.25 });
+    expect(summarizeSeries(points, 312.5)?.vsAverageCost).toBeCloseTo(-0.2, 12);
+  });
+
+  it("handles a missing cost and an empty series", () => {
+    expect(summarizeSeries(points, null)?.vsAverageCost).toBeNull();
+    expect(summarizeSeries([], 100)).toBeNull();
+  });
+});
+
+describe("visibleRangeStart", () => {
+  it("starts N years before the last point", () => {
+    const points = [
+      { time: "2010-01-04", close: 1 },
+      { time: "2026-09-25", close: 2 },
+    ];
+    expect(visibleRangeStart(points, 2)).toBe("2024-09-25");
+  });
+
+  it("is clamped to the first point for short series", () => {
+    const points = [
+      { time: "2026-01-02", close: 1 },
+      { time: "2026-09-25", close: 2 },
+    ];
+    expect(visibleRangeStart(points, 2)).toBe("2026-01-02");
+    expect(visibleRangeStart([], 2)).toBeNull();
+  });
+});
+
+describe("includePriceInRange", () => {
+  it("widens the range to include the reference price", () => {
+    expect(includePriceInRange({ minValue: 220, maxValue: 400 }, 185)).toEqual({ minValue: 185, maxValue: 400 });
+    expect(includePriceInRange({ minValue: 90, maxValue: 120 }, 150)).toEqual({ minValue: 90, maxValue: 150 });
+    expect(includePriceInRange({ minValue: 90, maxValue: 120 }, 100)).toEqual({ minValue: 90, maxValue: 120 });
+  });
+
+  it("leaves the range alone without a price or a range", () => {
+    expect(includePriceInRange({ minValue: 1, maxValue: 2 }, null)).toEqual({ minValue: 1, maxValue: 2 });
+    expect(includePriceInRange(null, 5)).toBeNull();
   });
 });

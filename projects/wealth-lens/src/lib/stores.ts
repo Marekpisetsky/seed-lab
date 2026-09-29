@@ -1,4 +1,4 @@
-import { createPersistentStore } from "./persistent-store";
+import { createPersistentStore, type PersistentStore } from "./persistent-store";
 import {
   DEFAULT_ASSUMPTIONS,
   DEFAULT_FIRE_SETTINGS,
@@ -8,7 +8,11 @@ import {
   parseFireSettings,
   parseGoal,
   parseHoldings,
+  parseSymbolOverrides,
+  parseUploadedPrices,
   STORAGE_KEYS,
+  uploadedPricesKey,
+  type UploadedPrices,
 } from "./storage";
 import type { Assumptions, FireSettings, Goal, Holding } from "./types";
 
@@ -35,3 +39,26 @@ export const fireSettingsStore = createPersistentStore<FireSettings>({
   parse: parseFireSettings,
   fallback: DEFAULT_FIRE_SETTINGS,
 });
+
+/** Stooq symbol overrides, keyed by holding ticker. */
+export const chartSymbolsStore = createPersistentStore<Readonly<Record<string, string>>>({
+  key: STORAGE_KEYS.chartSymbols,
+  parse: parseSymbolOverrides,
+  fallback: {},
+});
+
+const uploadedPricesStores = new Map<string, PersistentStore<UploadedPrices | null>>();
+
+/** Price series the user uploaded for a ticker (one store per ticker, created on demand). */
+export function uploadedPricesStore(ticker: string): PersistentStore<UploadedPrices | null> {
+  let store = uploadedPricesStores.get(ticker);
+  if (!store) {
+    store = createPersistentStore<UploadedPrices | null>({
+      key: uploadedPricesKey(ticker),
+      parse: parseUploadedPrices,
+      fallback: null,
+    });
+    uploadedPricesStores.set(ticker, store);
+  }
+  return store;
+}

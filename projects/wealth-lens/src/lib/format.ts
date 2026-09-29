@@ -52,6 +52,15 @@ export function formatNumber(value: number, maxDecimals = 4): string {
   return numberFormat(`number|${maxDecimals}`, { maximumFractionDigits: maxDecimals }).format(value);
 }
 
+/** Price per share without a currency symbol: always 2 decimals, up to 4 for small prices. */
+export function formatPrice(value: number): string {
+  const maxDecimals = Math.abs(value) < 1 ? 4 : 2;
+  return numberFormat(`price|${maxDecimals}`, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: maxDecimals,
+  }).format(value);
+}
+
 /**
  * Months → "9 years 8 months". Partial months round up, because monthly
  * contributions only reach the goal at the end of a month.

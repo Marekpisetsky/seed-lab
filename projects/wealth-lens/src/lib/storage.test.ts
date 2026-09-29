@@ -10,6 +10,8 @@ import {
   parseFireSettings,
   parseGoal,
   parseHoldings,
+  parseSymbolOverrides,
+  parseUploadedPrices,
   readValue,
   writeValue,
   type KeyValueStorage,
@@ -168,6 +170,26 @@ describe("parseFireSettings", () => {
   });
 });
 
+describe("parseSymbolOverrides", () => {
+  it("keeps valid Stooq symbols only", () => {
+    expect(parseSymbolOverrides({ AAPL: "aapl.us", BAD: "not a symbol!", NUM: 3 })).toEqual({ AAPL: "aapl.us" });
+    expect(parseSymbolOverrides([])).toBeNull();
+  });
+});
+
+describe("parseUploadedPrices", () => {
+  it("keeps valid points and rejects empty series", () => {
+    expect(
+      parseUploadedPrices({
+        fileName: "vwce.csv",
+        points: [{ time: "2026-09-25", close: 131.5 }, { time: "bad", close: 1 }, { time: "2026-09-26", close: -1 }],
+      }),
+    ).toEqual({ fileName: "vwce.csv", points: [{ time: "2026-09-25", close: 131.5 }] });
+    expect(parseUploadedPrices({ fileName: "x.csv", points: [] })).toBeNull();
+    expect(parseUploadedPrices(null)).toBeNull();
+  });
+});
+
 describe("isIsoDate", () => {
   it("accepts real calendar dates only", () => {
     expect(isIsoDate("2024-02-29")).toBe(true);
@@ -184,7 +206,7 @@ describe("createPersistentStore", () => {
     const store = createPersistentStore({ key: "n", parse: parseNumber, fallback: 0, storage: () => storage });
 
     expect(store.get()).toBe(5);
-    store.set((previous) => previous + 1);
+    expect(store.set((previous) => previous + 1)).toBe(true);
     expect(store.get()).toBe(6);
     expect(storage.getItem("n")).toBe("6");
   });
@@ -198,7 +220,7 @@ describe("createPersistentStore", () => {
     });
 
     expect(store.get()).toBe(0);
-    store.set(3);
+    expect(store.set(3)).toBe(false);
     expect(store.get()).toBe(3);
   });
 

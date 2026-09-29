@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDuration, formatMoney, formatMonthYear, formatNumber, formatPercent } from "./format";
+import { formatDuration, formatMoney, formatMonthYear, formatNumber, formatPercent, formatPrice } from "./format";
 
 describe("formatMoney", () => {
   it("formats amounts with the currency symbol", () => {
@@ -31,6 +31,14 @@ describe("formatPercent / formatNumber", () => {
     expect(formatNumber(2.5)).toBe("2.5");
     expect(formatNumber(0.123456789)).toBe("0.1235");
     expect(formatNumber(1500)).toBe("1,500");
+  });
+});
+
+describe("formatPrice", () => {
+  it("always shows cents, and more precision for prices under 1", () => {
+    expect(formatPrice(233.3)).toBe("233.30");
+    expect(formatPrice(1234.5678)).toBe("1,234.57");
+    expect(formatPrice(0.12345)).toBe("0.1235");
   });
 });
 

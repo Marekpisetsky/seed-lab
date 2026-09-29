@@ -16,7 +16,8 @@ export interface PersistentStore<T> {
   get(): T;
   /** What the server renders (and the client hydrates with): the defaults. */
   getServerSnapshot(): T;
-  set(next: Updater<T>): void;
+  /** Updates the value; returns `false` if it could not be saved (it stays in memory). */
+  set(next: Updater<T>): boolean;
   subscribe(listener: () => void): () => void;
 }
 
@@ -42,12 +43,13 @@ export function createPersistentStore<T>({
     return cache.value;
   };
 
-  const set = (next: Updater<T>): void => {
+  const set = (next: Updater<T>): boolean => {
     const value = typeof next === "function" ? (next as (previous: T) => T)(get()) : next;
     cache = { value };
     // A failed write is not fatal: the value stays in memory for this session.
-    writeValue(storage(), key, value);
+    const saved = writeValue(storage(), key, value);
     listeners.forEach((listener) => listener());
+    return saved;
   };
 
   const subscribe = (listener: () => void): (() => void) => {

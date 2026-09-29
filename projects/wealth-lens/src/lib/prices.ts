@@ -174,3 +174,48 @@ export interface PriceSeriesResponse {
 export interface PriceErrorResponse {
   error: PriceError;
 }
+
+// ---------------------------------------------------------------------------
+// Helpers for the chart
+// ---------------------------------------------------------------------------
+
+export interface SeriesSummary {
+  last: PricePoint;
+  /** (last close − average cost) ÷ average cost; `null` without a cost. */
+  vsAverageCost: number | null;
+}
+
+/** Latest close and how it compares with the user's average cost. */
+export function summarizeSeries(points: readonly PricePoint[], averageCost: number | null): SeriesSummary | null {
+  const last = points.at(-1);
+  if (!last) return null;
+  const vsAverageCost = averageCost !== null && averageCost > 0 ? (last.close - averageCost) / averageCost : null;
+  return { last, vsAverageCost };
+}
+
+/**
+ * First day of the default visible window: `years` before the last point,
+ * or the first point when the series is shorter. The chart can still be
+ * panned and zoomed to the full history.
+ */
+export function visibleRangeStart(points: readonly PricePoint[], years: number): string | null {
+  const first = points[0];
+  const last = points.at(-1);
+  if (!first || !last) return null;
+  const date = new Date(`${last.time}T00:00:00Z`);
+  date.setUTCFullYear(date.getUTCFullYear() - years);
+  const start = date.toISOString().slice(0, 10);
+  return start > first.time ? start : first.time;
+}
+
+/**
+ * Widens a chart's automatic price range so a reference price (the average
+ * cost line) is always inside it, however far the market has moved.
+ */
+export function includePriceInRange(
+  range: { minValue: number; maxValue: number } | null,
+  price: number | null,
+): { minValue: number; maxValue: number } | null {
+  if (range === null || price === null || !Number.isFinite(price)) return range;
+  return { minValue: Math.min(range.minValue, price), maxValue: Math.max(range.maxValue, price) };
+}
