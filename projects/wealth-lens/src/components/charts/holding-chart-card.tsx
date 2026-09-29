@@ -9,16 +9,15 @@ import { usePriceSeries } from "@/hooks/use-price-series";
 import { averageCost } from "@/lib/finance";
 import { formatMoney, formatPercent, formatPrice } from "@/lib/format";
 import {
-  isValidStooqSymbol,
   parsePriceCsv,
-  stooqQuoteCurrency,
   summarizeSeries,
   type PriceError,
   type PricePoint,
 } from "@/lib/prices";
 import { lastDays, periodChange } from "@/lib/sparkline";
 import { chartSymbolsStore, uploadedPricesStore } from "@/lib/stores";
-import { stooqCandidates } from "@/lib/symbols";
+import { priceSymbolCandidates } from "@/lib/symbols";
+import { normalizeYahooSymbol } from "@/lib/yahoo";
 import type { Holding } from "@/lib/types";
 import { PriceChart } from "./price-chart";
 import { Sparkline } from "./sparkline";
@@ -31,7 +30,7 @@ export function HoldingChartRow({ holding }: { holding: Holding }) {
   const panelId = useId();
   const [symbols, setSymbols] = usePersistentStore(chartSymbolsStore);
   const [uploaded, setUploaded] = usePersistentStore(uploadedPricesStore(holding.ticker));
-  const candidates = stooqCandidates(holding.ticker, holding.currency, symbols[holding.ticker]);
+  const candidates = priceSymbolCandidates(holding.ticker, holding.currency, symbols[holding.ticker]);
   const { state, retry } = usePriceSeries(uploaded ? null : candidates);
 
   const points: readonly PricePoint[] | null = uploaded
@@ -86,16 +85,14 @@ export function HoldingChartRow({ holding }: { holding: Holding }) {
           ) : (
             <div className="h-64 animate-pulse rounded-lg bg-border/40" aria-label="Loading prices" />
           )}
-          {!uploaded && <CurrencyNote symbol={symbol} holdingCurrency={holding.currency} />}
-          <p className="text-xs text-muted">
-            {uploaded
-              ? `Prices from your file ${uploaded.fileName}.`
-              : `Prices from Stooq (${symbol}), a free unofficial source; may be delayed.`}
-          </p>
+          {!uploaded && state.status === "done" && state.ok && (
+            <CurrencyNote quoteCurrency={state.data.currency} holdingCurrency={holding.currency} />
+          )}
+          <p className="text-xs text-muted">{sourceNote(state, uploaded?.fileName ?? null, symbol)}</p>
           <Disclosure summary="Change price source">
             {uploaded ? (
               <Button size="sm" onClick={() => setUploaded(null)}>
-                Use Stooq again
+                Use market prices again
               </Button>
             ) : (
               <SymbolForm
@@ -164,9 +161,14 @@ function LoadError({ error, onRetry }: { error: PriceError; onRetry: () => void 
   );
 }
 
-/** One line: the cost line only compares with prices in the same currency. */
-function CurrencyNote({ symbol, holdingCurrency }: { symbol: string; holdingCurrency: string }) {
-  const quoteCurrency = stooqQuoteCurrency(symbol);
+function sourceNote(state: ReturnType<typeof usePriceSeries>["state"], fileName: string | null, symbol: string): string {
+  if (fileName) return `Prices from your file ${fileName}.`;
+  const name = state.status === "done" && state.ok && state.data.source === "stooq" ? "Stooq" : "Yahoo Finance";
+  return `Prices from ${name} (${symbol}), a free unofficial source; may be delayed.`;
+}
+
+/** One line, using the currency the price source reports: the cost line only compares within one currency. */
+function CurrencyNote({ quoteCurrency, holdingCurrency }: { quoteCurrency: string | null; holdingCurrency: string }) {
   if (quoteCurrency === null || quoteCurrency === holdingCurrency) return null;
   return (
     <p className="text-xs text-warning-foreground">
@@ -184,9 +186,9 @@ function SymbolForm({ ticker, symbol, onChange }: { ticker: string; symbol: stri
       className="flex flex-wrap items-end gap-2"
       onSubmit={(event) => {
         event.preventDefault();
-        const next = draft.trim().toLowerCase();
-        if (!isValidStooqSymbol(next)) {
-          setError("Use a Stooq symbol such as vwce.de or aapl.us.");
+        const next = normalizeYahooSymbol(draft);
+        if (next === null) {
+          setError("Use a symbol such as VWCE.DE, ASML.AS or AAPL.");
           return;
         }
         setError(null);
@@ -195,7 +197,7 @@ function SymbolForm({ ticker, symbol, onChange }: { ticker: string; symbol: stri
     >
       <div className="space-y-1">
         <label htmlFor={id} className="block text-xs font-medium text-muted">
-          Stooq symbol for {ticker}
+          Symbol for {ticker} (Yahoo)
         </label>
         <input
           id={id}
@@ -203,12 +205,12 @@ function SymbolForm({ ticker, symbol, onChange }: { ticker: string; symbol: stri
           onChange={(event) => setDraft(event.target.value)}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${id}-error` : undefined}
-          autoCapitalize="none"
+          autoCapitalize="characters"
           spellCheck={false}
           className={`${inputClass} w-36`}
         />
       </div>
-      <Button type="submit" disabled={draft.trim().toLowerCase() === symbol}>
+      <Button type="submit" disabled={draft.trim().toUpperCase() === symbol}>
         Load
       </Button>
       {error && (

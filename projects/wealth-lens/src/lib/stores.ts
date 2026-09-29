@@ -49,7 +49,7 @@ export const fireSettingsStore = createPersistentStore<FireSettings>({
   fallback: DEFAULT_FIRE_SETTINGS,
 });
 
-/** Stooq symbol overrides, keyed by holding ticker. */
+/** Price symbol overrides (Yahoo notation), keyed by holding ticker. */
 export const chartSymbolsStore = createPersistentStore<Readonly<Record<string, string>>>({
   key: STORAGE_KEYS.chartSymbols,
   parse: parseSymbolOverrides,

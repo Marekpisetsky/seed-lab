@@ -43,10 +43,11 @@ sin validar con uso propio sostenido.
   inflación, escenarios 3/5/7/10 % y fecha objetivo en "Advanced".
 - **Charts — `/charts`:** lista con mini-gráfico y % de los últimos 12
   meses por acción; al tocar se abre el gráfico grande
-  (lightweight-charts) con la línea de lo que pagaste. Precios de Stooq
-  vía `/api/prices` (proxy propio con caché); ETFs y acciones europeas se
-  buscan primero en su cotización en EUR (Xetra). Si Stooq falla, se
-  puede subir un CSV propio de precios.
+  (lightweight-charts) con la línea de lo que pagaste. Precios de Yahoo
+  Finance (Stooq como respaldo) vía `/api/prices` (proxy propio con
+  caché); ETFs y acciones europeas se buscan primero en su cotización en
+  EUR (VWCE.DE, ASML.AS…). Si ambas fuentes fallan, se puede subir un
+  CSV propio de precios.
 - **FIRE by country — `/fire`:** una frase grande con la probabilidad de
   que el dinero dure 30 años según la tasa de retiro (3/4/5/7 %),
   calculada con 5.000 simulaciones sobre los retornos reales históricos
@@ -57,7 +58,7 @@ sin validar con uso propio sostenido.
 
 Limitaciones conocidas: no convierte entre monedas (la meta y FIRE solo
 cuentan holdings en EUR); las ganancias realizadas (ventas) no se
-muestran; Stooq es una fuente no oficial que puede fallar.
+muestran; Yahoo y Stooq son fuentes no oficiales que pueden fallar.
 
 ## Arquitectura
 
@@ -94,6 +95,9 @@ muestran; Stooq es una fuente no oficial que puede fallar.
   CSV histórico diario, sin API key) como fuente gratuita por defecto.
   Documentar en el código que es una fuente no oficial de terceros —
   aceptable para uso personal, no para un producto que se vende.
+  *(Actualización: Stooq rechaza las peticiones desde Vercel, así que la
+  fuente principal pasó a ser Yahoo Finance —endpoint público de
+  gráficos, sin key— y Stooq quedó como respaldo.)*
 
 ## Módulo 3 — Simulador FIRE / costo de vida
 
@@ -146,10 +150,13 @@ pedidos desde otro host (ver `allowedDevOrigins` en la documentación de
 Next.js). Sin backend: los datos quedan en el `localStorage` de cada
 navegador.
 
-Los gráficos piden precios a Stooq a través de `/api/prices`; hace
-falta que el servidor tenga salida a internet hacia `stooq.com`. Si no
-la tiene (o Stooq falla), cada gráfico lo explica y permite subir un CSV
-propio con columnas de fecha y cierre.
+Los gráficos y el precio automático piden precios a `/api/prices`, que
+consulta Yahoo Finance y, si falla, Stooq; hace falta que el servidor
+tenga salida a internet hacia `query1.finance.yahoo.com` (o
+`stooq.com`). Si ninguna responde, cada gráfico lo explica y permite
+subir un CSV propio con columnas de fecha y cierre. Para comprobarlo:
+abrir `/api/prices?symbol=VWCE.DE` (debe devolver JSON con
+`"source":"yahoo"`, `"currency":"EUR"` y los puntos).
 
 ## Tests y chequeos
 
@@ -165,7 +172,8 @@ matemática financiera con casos verificados a mano (€1000 al 7 % por 10
 años = €1967.15, 4 % de €1000 = €40/año, años hasta la meta contrastados
 con una simulación mes a mes), el importador de Trading 212, el parser
 de CSV, la persistencia (storage vacío, bloqueado, lleno o corrupto), el
-proxy de Stooq con `fetch` simulado, el mapeo de símbolos europeos, el
+proxy de precios (Yahoo primero, Stooq de respaldo) con `fetch`
+simulado, el parser de Yahoo contra fixtures guardados, el mapeo de símbolos europeos, el
 precio automático (nunca pisa un precio escrito a mano), la simulación
 Monte Carlo (semilla fija: con retorno constante del 7 % y retiro del
 4 % el éxito es 100 %; con 15 %, bajo) y la integridad del dataset de
@@ -186,8 +194,9 @@ src/
     monte-carlo.ts      probabilidad de que una tasa de retiro dure 30 años
     plan.ts             capital de partida, progreso, países destacados
     import/             importadores CSV (Trading 212, CSV simple)
-    prices.ts           parser de precios y lectura de respuestas de Stooq
-    symbols.ts          ticker → símbolo de Stooq (mapa europeo + moneda)
+    prices.ts           parser de precios CSV y lectura de respuestas de Stooq
+    yahoo.ts            lectura de respuestas del endpoint de gráficos de Yahoo
+    symbols.ts          ticker → símbolo de Yahoo (mapa europeo + moneda) y Stooq
     auto-price.ts       precio actual automático desde el último cierre
     price-proxy.ts      lógica del route handler /api/prices (caché, errores)
     storage.ts          localStorage con validación y valores por defecto

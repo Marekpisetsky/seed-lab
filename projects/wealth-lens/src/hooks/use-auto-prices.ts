@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { latestPriceUpdate } from "@/lib/auto-price";
 import type { Updater } from "@/lib/persistent-store";
 import { fetchFirstAvailable } from "@/lib/price-client";
-import { stooqCandidates } from "@/lib/symbols";
+import { priceSymbolCandidates } from "@/lib/symbols";
 import type { Holding } from "@/lib/types";
 
 /**
@@ -22,7 +22,7 @@ export function useAutoPrices(
     .filter((holding) => holding.priceSource === "auto")
     .map((holding) => ({
       id: holding.id,
-      candidates: stooqCandidates(holding.ticker, holding.currency, symbolOverrides[holding.ticker]),
+      candidates: priceSymbolCandidates(holding.ticker, holding.currency, symbolOverrides[holding.ticker]),
     }));
   // Refetch only when the set of automatic holdings or their symbols change,
   // not when a fetched price lands.
@@ -37,7 +37,7 @@ export function useAutoPrices(
           let changed = false;
           const next = previous.map((holding) => {
             if (holding.id !== id) return holding;
-            const patch = latestPriceUpdate(holding, result.symbol, result.data.points);
+            const patch = latestPriceUpdate(holding, result.data.currency, result.data.points);
             if (!patch) return holding;
             changed = true;
             return { ...holding, ...patch };

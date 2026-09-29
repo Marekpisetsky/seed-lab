@@ -193,8 +193,10 @@ describe("parseInvested", () => {
 });
 
 describe("parseSymbolOverrides", () => {
-  it("keeps valid Stooq symbols only", () => {
-    expect(parseSymbolOverrides({ AAPL: "aapl.us", BAD: "not a symbol!", NUM: 3 })).toEqual({ AAPL: "aapl.us" });
+  it("keeps valid symbols and converts ones saved in Stooq notation", () => {
+    expect(
+      parseSymbolOverrides({ AAPL: "aapl.us", VWCE: "vwce.de", ASML: "ASML.AS", BAD: "not a symbol!", NUM: 3 }),
+    ).toEqual({ AAPL: "AAPL", VWCE: "VWCE.DE", ASML: "ASML.AS" });
     expect(parseSymbolOverrides([])).toBeNull();
   });
 });
