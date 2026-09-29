@@ -115,7 +115,7 @@ ninguno dice "deberías"):
 | --- | --- | --- |
 | Palanca más fuerte | la meta está a 2+ años y la mejor palanca gana 6+ meses | +€100/mes vs +1 % de crecimiento vs haber empezado un año antes, en años |
 | Coste de esperar | horizonte de 2+ años y empezar un año más tarde cuesta ≥ €500 y ≥ 2 % de la meta | € de menos al horizonte |
-| Inflación | la meta está a 5+ años (y no está ya alcanzada) | lo que vale la meta en euros de hoy |
+| Inflación | la meta está a 5+ años (y no está ya alcanzada) | lo que mostrará la cuenta en euros de ese año (la app cuenta en euros de hoy) |
 | Comisiones | horizonte de 5+ años y la diferencia ≥ €1.000 | fondo al 1 % vs al 0,2 % |
 | Geografía | algún país ya se cubre, o el mejor país llega 2+ años antes que el propio | años de diferencia |
 | Concentración | una acción individual > 40 % de la cartera en EUR | su peso, su caída máxima y su cambio a 1 año |

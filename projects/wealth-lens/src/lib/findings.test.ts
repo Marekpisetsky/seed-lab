@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { priceHoldings } from "./auto-price";
-import { parseIsoDate } from "./dates";
+import { addMonths, parseIsoDate } from "./dates";
 import { futureValueWithContributions, monthsToGoal } from "./finance";
 import {
   allFindings,
@@ -23,7 +23,7 @@ import { formatEurRounded, formatYears } from "./format";
 import { INDEXES } from "./indexes";
 import { MARKET } from "./market-data";
 import { parsePricesFile } from "./market-format";
-import { buildReport, type ReportPlan } from "./report";
+import { buildReport, valueAt, type ReportPlan } from "./report";
 import type { Holding } from "./types";
 
 const today = parseIsoDate("2026-09-29");
@@ -101,11 +101,22 @@ describe("waiting a year", () => {
 });
 
 describe("inflation", () => {
-  it("gives the goal's worth in today's euros", () => {
+  it("gives what the account will show in euros of that year", () => {
     const factor = Math.pow(1.02, n / 12);
     const finding = inflationFinding(small);
-    expect(finding?.value).toBe(formatEurRounded(99_000 / factor));
-    expect(finding?.text).toMatch(/^€99,000 in 20\d\d buys what €[\d,]+ buys today\.$/);
+    const shown = formatEurRounded(99_000 * factor);
+    expect(finding?.value).toBe(`~${shown}`);
+    const year = addMonths(today, Math.ceil(n)).getUTCFullYear();
+    expect(finding?.text).toBe(`In ${year} your account will show ~${shown} — worth €99,000 of today's money.`);
+    expect(finding?.calculation[1]).toMatch(/^€99,000 × 1\.\d\d = €[\d,]+ in euros of 20\d\d\.$/);
+  });
+
+  it("uses the projected amount when looking a fixed number of years ahead", () => {
+    const ten = context({ horizonYears: 10 });
+    const real = valueAt(ten.report.scenario, 120);
+    expect(inflationFinding(ten)?.text).toBe(
+      `In 2036 your account will show ~${formatEurRounded(real * Math.pow(1.02, 10))} — worth ${formatEurRounded(real)} of today's money.`,
+    );
   });
 
   it("is not shown for a goal less than 5 years away, or already reached", () => {

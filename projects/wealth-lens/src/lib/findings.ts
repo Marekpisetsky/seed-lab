@@ -185,28 +185,30 @@ export function waitingFinding({ report }: FindingContext): Finding | null {
 
 /** What the goal's amount, in money of that year, is worth today. */
 export function inflationFinding({ report }: FindingContext): Finding | null {
-  const { plan, goal, answer } = report;
+  const { plan, goal, answer, scenario } = report;
   // A goal already reached costs what it costs today.
   if (answer.mode === "goal" && answer.months === 0) return null;
   const months = horizonOf(report);
   const years = months / 12;
   if (years < 5 || plan.inflation <= 0) return null;
+  // What the account holds then, in today's euros: the goal when it is reached, else the projection.
+  const real = answer.mode === "goal" && Number.isFinite(answer.months) ? goal.status.target : valueAt(scenario, months);
+  if (real <= 0) return null;
   const factor = Math.pow(1 + plan.inflation, years);
-  const target = goal.status.target;
+  const nominal = real * factor;
   const year = yearOf(report, months);
-  const worth = target / factor;
   return {
     id: "inflation",
     impact: (1 - 1 / factor) * 0.6,
-    value: formatEurRounded(worth),
-    text: `${formatEurRounded(target)} in ${year} buys what ${formatEurRounded(worth)} buys today.`,
+    value: `~${formatEurRounded(nominal)}`,
+    text: `In ${year} your account will show ~${formatEurRounded(nominal)} — worth ${formatEurRounded(real)} of today's money.`,
     tone: "info",
     calculation: [
       `Prices rising ${formatRate(plan.inflation)} a year for ${Math.round(years)} years: × ${factor.toFixed(2)}.`,
-      `${formatEur(target)} ÷ ${factor.toFixed(2)} = ${formatEur(worth)}.`,
-      `Wealth Lens already counts in today's euros: in money of ${year} your goal is ${formatEur(target * factor)}.`,
+      `${formatEur(real)} × ${factor.toFixed(2)} = ${formatEur(nominal)} in euros of ${year}.`,
+      `Every amount in Wealth Lens is in today's euros; your broker will show euros of ${year}.`,
     ],
-    assumptions: [`Inflation ${formatRate(plan.inflation)} a year.`],
+    assumptions: [`Inflation ${formatRate(plan.inflation)} a year.`, "Growth rates are after inflation, so they already allow for it."],
   };
 }
 
