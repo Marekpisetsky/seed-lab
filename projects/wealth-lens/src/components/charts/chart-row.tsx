@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronDown } from "lucide-react";
 import { useId, useState } from "react";
 import { formatPercent } from "@/lib/format";
 import { Sparkline } from "./sparkline";
@@ -41,9 +42,7 @@ export function ChartRow({ title, subtitle, closes, change, children }: ChartRow
           {change === null ? "—" : formatPercent(change, { signed: true })}
           <span className="block text-xs font-normal text-muted">1 year</span>
         </span>
-        <span aria-hidden="true" className={`text-muted transition-transform ${open ? "rotate-180" : ""}`}>
-          ▾
-        </span>
+        <ChevronDown aria-hidden="true" className={`size-4 shrink-0 text-muted transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
         <div id={panelId} className="space-y-3 pb-5">
