@@ -105,16 +105,18 @@ export function InvestmentPicker({ onChosen }: { onChosen?: () => void }) {
             My own rate
             <span className="block text-xs font-normal text-muted">% a year after inflation</span>
           </label>
-          <PercentInput
-            id="own-rate"
-            key={plan.investment.kind === "custom" ? plan.investment.realReturn : "none"}
-            value={plan.investment.kind === "custom" ? plan.investment.realReturn : null}
-            placeholder="5"
-            min={-5}
-            max={15}
-            onCommit={(value) => value !== null && choose({ kind: "custom", realReturn: value })}
-            className="w-20 text-right"
-          />
+          <div className="w-20 shrink-0">
+            <PercentInput
+              id="own-rate"
+              key={plan.investment.kind === "custom" ? plan.investment.realReturn : "none"}
+              value={plan.investment.kind === "custom" ? plan.investment.realReturn : null}
+              placeholder="5"
+              min={-5}
+              max={15}
+              onCommit={(value) => value !== null && choose({ kind: "custom", realReturn: value })}
+              className="text-right"
+            />
+          </div>
         </div>
       </div>
       <p className="text-xs text-muted">
