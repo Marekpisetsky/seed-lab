@@ -106,7 +106,7 @@ function HoldingsTable({ holdings, onPriceChange, onEdit, onRemove }: HoldingsTa
       <table className="w-full min-w-[20rem] text-sm">
         <thead>
           <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted">
-            <th scope="col" className="px-4 py-2 font-medium sm:px-2">
+            <th scope="col" className="py-2 pr-2 pl-4 font-medium sm:px-2">
               Holding
             </th>
             <th scope="col" className="hidden px-2 py-2 text-right font-medium md:table-cell">
@@ -118,7 +118,7 @@ function HoldingsTable({ holdings, onPriceChange, onEdit, onRemove }: HoldingsTa
             <th scope="col" className="hidden px-2 py-2 text-right font-medium md:table-cell">
               Value
             </th>
-            <th scope="col" className="px-4 py-2 text-right font-medium sm:px-2">
+            <th scope="col" className="py-2 pr-4 pl-2 text-right font-medium sm:px-2">
               Gain / loss
             </th>
           </tr>
@@ -130,7 +130,7 @@ function HoldingsTable({ holdings, onPriceChange, onEdit, onRemove }: HoldingsTa
             const gain = holdingGain(holding);
             return (
               <tr key={holding.id} className="border-b border-border align-top last:border-0">
-                <td className="px-4 py-3 sm:px-2">
+                <td className="py-3 pr-2 pl-4 sm:px-2">
                   <p className="font-semibold">{holding.ticker}</p>
                   <p className="text-xs text-muted tabular-nums">
                     {formatNumber(holding.quantity)} × avg {average === null ? "—" : formatMoney(average, holding.currency)}
@@ -157,7 +157,7 @@ function HoldingsTable({ holdings, onPriceChange, onEdit, onRemove }: HoldingsTa
                       allowEmpty
                       placeholder="Price"
                       aria-label={`Current price of ${holding.ticker} in ${holding.currency}`}
-                      className="w-24 sm:w-28"
+                      className="w-20 sm:w-28"
                     />
                     <span className="hidden text-xs text-muted sm:inline">{holding.currency}</span>
                   </div>
@@ -165,7 +165,7 @@ function HoldingsTable({ holdings, onPriceChange, onEdit, onRemove }: HoldingsTa
                 <td className="hidden px-2 py-3 text-right tabular-nums md:table-cell">
                   {value === null ? "—" : formatMoney(value, holding.currency)}
                 </td>
-                <td className="px-4 py-3 text-right sm:px-2">
+                <td className="py-3 pr-4 pl-2 text-right sm:px-2">
                   {gain === null ? (
                     <span className="text-xs text-muted">Needs a price</span>
                   ) : (
