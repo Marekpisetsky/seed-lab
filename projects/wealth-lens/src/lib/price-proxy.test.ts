@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import notFound from "./__fixtures__/yahoo-chart-not-found.json";
-import vwce from "./__fixtures__/yahoo-chart-vwce-de.json";
+import notFound from "../../scripts/lib/__fixtures__/yahoo-chart-not-found.json";
+import vwce from "../../scripts/lib/__fixtures__/yahoo-chart-vwce-de.json";
 import { createPriceProxy } from "./price-proxy";
 import type { PriceErrorResponse, PriceSeriesResponse } from "./prices";
 

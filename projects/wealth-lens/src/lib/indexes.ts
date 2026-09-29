@@ -14,9 +14,9 @@
 import msciWorld from "@/data/msci-world-real-returns.json";
 import nasdaq100 from "@/data/nasdaq100-real-returns.json";
 import sp500 from "@/data/sp500-real-returns.json";
+import type { IndexId } from "./index-ids";
 
-export const INDEX_IDS = ["sp500", "world", "nasdaq100"] as const;
-export type IndexId = (typeof INDEX_IDS)[number];
+export { INDEX_IDS, isIndexId, type IndexId } from "./index-ids";
 
 export interface AnnualReturn {
   year: number;
@@ -99,7 +99,3 @@ export const INDEXES: Readonly<Record<IndexId, IndexInfo>> = {
     nasdaq100,
   ),
 };
-
-export function isIndexId(value: unknown): value is IndexId {
-  return typeof value === "string" && (INDEX_IDS as readonly string[]).includes(value);
-}

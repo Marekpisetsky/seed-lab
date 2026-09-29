@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "update-prices": "node scripts/update-prices.mts"
   },
   "dependencies": {
     "lightweight-charts": "^5.2.1",

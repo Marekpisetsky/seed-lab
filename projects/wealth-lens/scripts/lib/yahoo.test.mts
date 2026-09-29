@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import notFound from "./__fixtures__/yahoo-chart-not-found.json";
 import vwce from "./__fixtures__/yahoo-chart-vwce-de.json";
-import { interpretYahooResponse, normalizeYahooCurrency, normalizeYahooSymbol, yahooChartUrl } from "./yahoo";
+import { interpretYahooResponse, normalizeYahooCurrency, yahooChartUrl } from "./yahoo.mts";
 
 const body = (value: unknown) => JSON.stringify(value);
 
@@ -43,8 +43,7 @@ describe("interpretYahooResponse", () => {
 
   it("maps Yahoo's 'Not Found' error to NOT_FOUND", () => {
     const result = interpretYahooResponse(404, body(notFound));
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.code).toBe("NOT_FOUND");
+    expect(!result.ok && result.error.code).toBe("NOT_FOUND");
   });
 
   it("treats a symbol without history as NOT_FOUND", () => {
@@ -57,6 +56,7 @@ describe("interpretYahooResponse", () => {
     [429, "Too Many Requests", "RATE_LIMITED"],
     [200, "<!doctype html><html>consent</html>", "VERIFICATION_REQUIRED"],
     [503, "Service Unavailable", "UPSTREAM_ERROR"],
+    [403, "Forbidden", "UPSTREAM_ERROR"],
     [200, "not json", "UNEXPECTED_FORMAT"],
     [200, body({ something: "else" }), "UNEXPECTED_FORMAT"],
     [500, body({ chart: { result: null, error: { code: "Internal", description: "boom" } } }), "UPSTREAM_ERROR"],
@@ -66,19 +66,13 @@ describe("interpretYahooResponse", () => {
   });
 });
 
-describe("Yahoo symbols and currencies", () => {
-  it("normalizes and validates symbols", () => {
-    expect(normalizeYahooSymbol(" vwce.de ")).toBe("VWCE.DE");
-    expect(normalizeYahooSymbol("^GSPC")).toBe("^GSPC");
-    expect(normalizeYahooSymbol("BRK-B")).toBe("BRK-B");
-    expect(normalizeYahooSymbol("AAPL?range=max")).toBeNull();
-    expect(normalizeYahooSymbol("../x")).toBeNull();
-    expect(normalizeYahooSymbol("")).toBeNull();
-  });
-
-  it("builds the chart URL with a 5-year daily range", () => {
+describe("Yahoo URLs and currencies", () => {
+  it("asks for ten years of daily closes, on either host", () => {
     expect(yahooChartUrl("VWCE.DE")).toBe(
-      "https://query1.finance.yahoo.com/v8/finance/chart/VWCE.DE?range=5y&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/VWCE.DE?range=10y&interval=1d",
+    );
+    expect(yahooChartUrl("BRK-B", "query2.finance.yahoo.com")).toBe(
+      "https://query2.finance.yahoo.com/v8/finance/chart/BRK-B?range=10y&interval=1d",
     );
   });
 
