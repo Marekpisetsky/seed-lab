@@ -36,7 +36,7 @@ sostenido.
   el primero es su valor) y todo se recalcula al teclear, sin botón de
   calcular:
   1. **La respuesta**, una frase con 2-3 números grandes: "Today your
-     money pays €3/month. In 20 years: €330/month — enough to live in
+     money pays €3/month. In 19 years: €330/month — enough to live in
      India." Cada número se toca para ver de dónde sale.
   2. **What you should know:** 3-5 hallazgos ordenados por impacto, cada
      uno un número y una frase; al abrirlo, el cálculo y los supuestos.
