@@ -13,7 +13,7 @@ import { formatEur, formatPercent, formatRate, formatYears } from "./format";
 import { INDEXES, INDEX_IDS } from "./indexes";
 import { portfolioMix, resolveInvestment } from "./investment";
 import { answerMetric, valueAt, type AnswerMetric, type Report, type Scenario } from "./report";
-import { cachedSuccessRate } from "./simulation";
+import { cachedSuccessRates } from "./simulation";
 import type { Holding, Investment } from "./types";
 
 export interface Effect {
@@ -144,9 +144,10 @@ export function buildLevers(report: Report, holdings: readonly Holding[]): Lever
   let withdrawal: ChoiceOption<number>[] | null = null;
   if (kind === "live") {
     const rates = [...new Set([...WITHDRAWAL_CHOICES, scenario.withdrawalRate])].sort((a, b) => a - b);
-    withdrawal = rates.map((rate) => {
+    const lastedByRate = cachedSuccessRates(investment.key, investment.returns, rates);
+    withdrawal = rates.map((rate, index) => {
       const selected = Math.abs(rate - scenario.withdrawalRate) < 1e-9;
-      const lasted = cachedSuccessRate(investment.key, investment.returns, rate);
+      const lasted = lastedByRate[index];
       return {
         value: rate,
         label: formatRate(rate),

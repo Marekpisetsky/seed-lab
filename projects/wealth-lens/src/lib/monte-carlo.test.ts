@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import sp500 from "@/data/sp500-real-returns.json";
 import { INDEXES } from "./indexes";
-import { mulberry32, successRate, survives } from "./monte-carlo";
+import { mulberry32, successRate, successRates, survives } from "./monte-carlo";
 
 const HISTORICAL_REAL_RETURNS = INDEXES.sp500.years.map((entry) => entry.realReturn);
 
@@ -93,3 +93,13 @@ describe("successRate", () => {
     expect(() => successRate({ withdrawalRate: 0.04, returns: [] })).toThrow(RangeError);
   });
 });
+
+describe("successRates", () => {
+  it("gives the same results as one simulation per rate", () => {
+    const rates = [0.03, 0.04, 0.05];
+    expect(successRates({ withdrawalRates: rates, returns: HISTORICAL_REAL_RETURNS })).toEqual(
+      rates.map((withdrawalRate) => successRate({ withdrawalRate, returns: HISTORICAL_REAL_RETURNS })),
+    );
+  });
+});
+

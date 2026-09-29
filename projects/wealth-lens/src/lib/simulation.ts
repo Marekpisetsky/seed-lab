@@ -12,7 +12,7 @@
  * first order (12 × monthly × (1 + r/2)).
  */
 
-import { mulberry32, successRate } from "./monte-carlo";
+import { mulberry32, successRates } from "./monte-carlo";
 
 export interface WealthPercentiles {
   /** Year 0 (today) to `years`. */
@@ -74,18 +74,25 @@ export function wealthPercentiles({
 
 const successCache = new Map<string, number>();
 const MAX_CACHED = 64;
+const cacheId = (key: string, rate: number) => `${key}|${rate.toFixed(4)}`;
 
 /**
- * How often a withdrawal rate lasted 30 years with this history, cached by
- * the history's key (see ResolvedInvestment.key) and the rate.
+ * How often each withdrawal rate lasted 30 years with this history, cached
+ * by the history's key (see ResolvedInvestment.key) and the rate. Missing
+ * rates are simulated together, over the same sequences.
  */
-export function cachedSuccessRate(key: string, returns: readonly number[], withdrawalRate: number): number {
-  const id = `${key}|${withdrawalRate.toFixed(4)}`;
-  let rate = successCache.get(id);
-  if (rate === undefined) {
-    rate = successRate({ withdrawalRate, returns });
-    if (successCache.size >= MAX_CACHED) successCache.delete(successCache.keys().next().value as string);
-    successCache.set(id, rate);
+export function cachedSuccessRates(key: string, returns: readonly number[], rates: readonly number[]): number[] {
+  const missing = rates.filter((rate) => !successCache.has(cacheId(key, rate)));
+  if (missing.length > 0) {
+    const computed = successRates({ withdrawalRates: missing, returns });
+    missing.forEach((rate, index) => {
+      if (successCache.size >= MAX_CACHED) successCache.delete(successCache.keys().next().value as string);
+      successCache.set(cacheId(key, rate), computed[index]);
+    });
   }
-  return rate;
+  return rates.map((rate) => successCache.get(cacheId(key, rate)) ?? NaN);
+}
+
+export function cachedSuccessRate(key: string, returns: readonly number[], withdrawalRate: number): number {
+  return cachedSuccessRates(key, returns, [withdrawalRate])[0];
 }
