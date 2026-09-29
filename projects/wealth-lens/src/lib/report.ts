@@ -195,6 +195,11 @@ export function shareOf(connection: Connection, share: number): string {
 // Headline
 // ---------------------------------------------------------------------------
 
+/** Whole euros, but "under €1" for a few cents: €1 invested pays €0.003 a month, not €0. */
+export function formatSmallEur(amount: number): string {
+  return amount > 0 && amount < 0.5 ? "under €1" : formatEur(amount);
+}
+
 function capitalLabel(capital: StartingCapital): string {
   return capital.source === "holdings" ? "in your holdings (euros only)" : "invested";
 }
@@ -206,14 +211,14 @@ function buildHeadline(report: Omit<Report, "headline" | "purchase">): Headline 
   const rate = formatRate(scenario.withdrawalRate);
   const dividends = dividendNote(investment);
   const growth = `growing ${formatRate(scenario.realReturn)} a year after inflation (${investment.name}, ${periodText(investment)} average${dividends ? `; ${dividends}` : ""})`;
-  const perMonth = (amount: number) => `${formatEur(amount)}/month`;
+  const perMonth = (amount: number) => `${formatSmallEur(amount)}/month`;
 
   const todayNumber: HeadlineNumber = live
     ? {
         text: perMonth(incomeToday),
         explain: [
           `${formatEur(capital.amount)} ${capitalLabel(capital)}`,
-          `× ${rate} taken out a year ÷ 12 = ${formatEur(incomeToday)} a month`,
+          `× ${rate} taken out a year ÷ 12 = ${formatSmallEur(incomeToday)} a month`,
           "In today's euros: the amount rises with inflation each year.",
         ],
       }
@@ -224,7 +229,7 @@ function buildHeadline(report: Omit<Report, "headline" | "purchase">): Headline 
       ? {
           text: perMonth(monthlyWithdrawal(amount, scenario.withdrawalRate)),
           explain: [
-            `${formatEur(amount)} × ${rate} ÷ 12 = ${formatEur(monthlyWithdrawal(amount, scenario.withdrawalRate))} a month`,
+            `${formatEur(amount)} × ${rate} ÷ 12 = ${formatSmallEur(monthlyWithdrawal(amount, scenario.withdrawalRate))} a month`,
             `${connection.name}: about ${perMonth(connection.amount)} (estimate).`,
             connection.source,
           ],
@@ -386,6 +391,9 @@ export function buildReport(plan: ReportPlan, holdings: readonly Holding[], toda
   return {
     ...base,
     headline: buildHeadline(base),
-    purchase: goal.pinned && goal.status.connection.kind === "buy" ? purchaseImpact(scenario, goal.status, statuses) : null,
+    purchase:
+      goal.pinned && goal.status.connection.kind === "buy" && withinReach(goal.status.months)
+        ? purchaseImpact(scenario, goal.status, statuses)
+        : null,
   };
 }

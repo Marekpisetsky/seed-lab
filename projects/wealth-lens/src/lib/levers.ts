@@ -57,6 +57,7 @@ export function describeEffect(base: AnswerMetric, alternative: AnswerMetric, ki
   if (base.mode === "goal" && alternative.mode === "goal") {
     const now = base.months;
     const then = alternative.months;
+    if (now === 0 && then === 0) return { text: "already reached", tone: "same" };
     // Beyond MAX_YEARS a goal is "not reachable at this pace": no year counts past it.
     if (!withinReach(now) && !withinReach(then)) return { text: "still not reachable", tone: "same" };
     if (!withinReach(now)) return { text: `reachable in ${formatYears(then)}`, tone: "better" };

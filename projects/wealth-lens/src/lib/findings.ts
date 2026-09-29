@@ -56,24 +56,22 @@ export interface FindingContext {
 }
 
 export const MAX_FINDINGS = 5;
-/** The reference horizon when the goal is already reached. */
-const DEFAULT_HORIZON_MONTHS = 240;
-
 // ---------------------------------------------------------------------------
 // Shared pieces
 // ---------------------------------------------------------------------------
 
 /**
  * Months ahead that euro-at-a-date findings look at: the answer's point in
- * time, or 20 years when the goal is already reached. A goal a few months
- * away stays short, so long-run findings do not apply to it. `null` when the
- * goal is more than MAX_YEARS away: no finding quotes a figure that far out.
+ * time. A goal a few months away stays short, so long-run findings do not
+ * apply to it. `null` when there is no such date: the goal is reached
+ * already (a date 20 years out would be about nothing), or it is more than
+ * MAX_YEARS away (no finding quotes a figure that far out).
  */
 export function horizonOf(report: Report): number | null {
   const { answer } = report;
   if (answer.mode === "horizon") return answer.months;
-  if (!answer.reachable) return null;
-  return answer.months === 0 ? DEFAULT_HORIZON_MONTHS : answer.months;
+  if (!answer.reachable || answer.months === 0) return null;
+  return answer.months;
 }
 
 function yearOf(report: Report, months: number): number {
@@ -425,7 +423,7 @@ export function sequenceFinding({ report }: FindingContext): Finding | null {
   }
   const after = (start: number) => valueAt({ ...scenario, capital: start }, rest);
   const shortfall = after(typical) - after(bad);
-  if (shortfall < after(typical) * 0.05) return null;
+  if (shortfall < Math.max(1000, after(typical) * 0.05)) return null;
   const year = yearOf(report, months);
   return {
     id: "sequence",
