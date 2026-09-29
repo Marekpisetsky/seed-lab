@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Changed } from "@/components/ui/changed";
 import type { HeadlineNumber, Report } from "@/lib/report";
 
 type NumberKey = "today" | "when" | "value" | `instead-${number}`;
@@ -15,7 +16,7 @@ function HeadlineButton({ number, expanded, onToggle }: { number: HeadlineNumber
       onClick={onToggle}
       className="whitespace-nowrap text-3xl font-bold tracking-tight underline decoration-border decoration-2 underline-offset-[6px] hover:decoration-accent sm:text-4xl"
     >
-      {number.text}
+      <Changed value={number.text} />
     </button>
   );
 }

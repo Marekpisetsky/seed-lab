@@ -2,6 +2,7 @@
 
 import { Check, ChevronDown, House, ShoppingBag, Target, X } from "lucide-react";
 import { useState } from "react";
+import { Changed } from "@/components/ui/changed";
 import { updatePlan } from "@/lib/app-store";
 import { formatEur, formatYears } from "@/lib/format";
 import { withinReach, type ConnectionStatus, type Report } from "@/lib/report";
@@ -22,9 +23,7 @@ function StatusText({ months }: { months: number }) {
     );
   }
   return (
-    <span className="whitespace-nowrap text-sm text-muted">
-      {withinReach(months) ? `in ${formatYears(months)}` : "not at this pace"}
-    </span>
+    <Changed value={withinReach(months) ? `in ${formatYears(months)}` : "not at this pace"} className="whitespace-nowrap text-sm text-muted" />
   );
 }
 

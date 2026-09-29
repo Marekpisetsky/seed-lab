@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Changed } from "@/components/ui/changed";
 import { useAppState } from "@/hooks/use-app";
 import { formatEur, formatEurRounded } from "@/lib/format";
 import type { MissionGoal } from "@/lib/report";
@@ -28,7 +29,11 @@ export function MissionBar({ goal }: { goal: MissionGoal }) {
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted">Mission</p>
           <h2 className="text-xl font-semibold leading-snug tracking-tight">{goal.title}</h2>
-          {cost && <p className="text-xs text-muted">{cost}</p>}
+          {cost && (
+            <p className="text-xs text-muted">
+              <Changed value={cost} />
+            </p>
+          )}
         </div>
         <button
           type="button"

@@ -1,4 +1,5 @@
 import { ChevronDown, TriangleAlert } from "lucide-react";
+import { Changed } from "@/components/ui/changed";
 import type { Finding } from "@/lib/findings";
 
 /**
@@ -26,7 +27,7 @@ export function FindingsSection({ findings }: { findings: readonly Finding[] }) 
                     {finding.tone === "warning" && (
                       <TriangleAlert aria-label="Risk" className="size-5 shrink-0 text-warning-foreground" />
                     )}
-                    {finding.value}
+                    <Changed value={finding.value} />
                   </span>
                   <span className="mt-1 block text-sm">{finding.text}</span>
                 </span>
