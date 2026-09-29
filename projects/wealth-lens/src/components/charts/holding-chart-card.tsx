@@ -10,7 +10,6 @@ import { usePriceSeries } from "@/hooks/use-price-series";
 import { averageCost } from "@/lib/finance";
 import { formatMoney, formatNumber, formatPercent, formatPrice } from "@/lib/format";
 import {
-  defaultStooqSymbol,
   isValidStooqSymbol,
   parsePriceCsv,
   stooqQuoteCurrency,
@@ -19,6 +18,7 @@ import {
   type PricePoint,
 } from "@/lib/prices";
 import { chartSymbolsStore, uploadedPricesStore } from "@/lib/stores";
+import { stooqCandidates } from "@/lib/symbols";
 import type { Holding } from "@/lib/types";
 import { PriceChart } from "./price-chart";
 
@@ -31,7 +31,7 @@ export function HoldingChartCard({ holding }: HoldingChartCardProps) {
   const [uploaded, setUploaded] = usePersistentStore(uploadedPricesStore(holding.ticker));
   const [uploadMessage, setUploadMessage] = useState<{ tone: "warning" | "info"; text: string } | null>(null);
 
-  const symbol = symbols[holding.ticker] ?? defaultStooqSymbol(holding.ticker);
+  const symbol = stooqCandidates(holding.ticker, holding.currency, symbols[holding.ticker])[0];
   const { state, retry } = usePriceSeries(uploaded ? null : symbol);
   const average = averageCost(holding);
 

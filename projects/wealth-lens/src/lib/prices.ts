@@ -90,16 +90,6 @@ export function isValidStooqSymbol(symbol: string): boolean {
   return SYMBOL_PATTERN.test(symbol);
 }
 
-/**
- * Best-guess Stooq symbol for a ticker: lower case, and US listings need a
- * ".us" suffix ("AAPL" → "aapl.us"). Tickers that already carry a market
- * suffix ("VWCE.DE") are kept as they are. The user can override the guess.
- */
-export function defaultStooqSymbol(ticker: string): string {
-  const symbol = ticker.trim().toLowerCase();
-  return symbol.includes(".") || symbol.startsWith("^") ? symbol : `${symbol}.us`;
-}
-
 const SUFFIX_CURRENCIES: Record<string, string> = {
   us: "USD",
   de: "EUR",

@@ -47,3 +47,26 @@ export function fetchPriceSeries(symbol: string): Promise<PriceFetchResult> {
 export function forgetPriceSeries(symbol: string): void {
   requests.delete(symbol);
 }
+
+export type ResolvedPriceResult = PriceFetchResult & { symbol: string };
+
+/**
+ * Tries each candidate symbol in order and returns the first with data.
+ * Only "no data for this symbol" moves on to the next candidate; any other
+ * error (rate limit, network…) is reported for the symbol that hit it.
+ */
+export async function fetchFirstAvailable(candidates: readonly string[]): Promise<ResolvedPriceResult> {
+  let last: ResolvedPriceResult | null = null;
+  for (const symbol of candidates) {
+    const result = await fetchPriceSeries(symbol);
+    last = { ...result, symbol };
+    if (result.ok || result.error.code !== "NOT_FOUND") return last;
+  }
+  return (
+    last ?? {
+      ok: false,
+      symbol: "",
+      error: { code: "INVALID_SYMBOL", message: "No symbol to look up." },
+    }
+  );
+}

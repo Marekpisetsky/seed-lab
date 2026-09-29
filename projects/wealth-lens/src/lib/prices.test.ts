@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  defaultStooqSymbol,
   includePriceInRange,
   interpretStooqResponse,
   isValidStooqSymbol,
@@ -73,12 +72,6 @@ describe("parsePriceCsv", () => {
 });
 
 describe("Stooq symbols", () => {
-  it("guesses US listings and keeps explicit suffixes", () => {
-    expect(defaultStooqSymbol("AAPL")).toBe("aapl.us");
-    expect(defaultStooqSymbol(" VWCE.DE ")).toBe("vwce.de");
-    expect(defaultStooqSymbol("^SPX")).toBe("^spx");
-  });
-
   it("validates symbols before they reach a URL", () => {
     expect(isValidStooqSymbol("aapl.us")).toBe(true);
     expect(isValidStooqSymbol("brk-b.us")).toBe(true);
