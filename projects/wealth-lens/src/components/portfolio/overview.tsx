@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Gain } from "@/components/ui/gain";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import type { CurrencySummary } from "@/lib/finance";
-import { formatApproxDuration, formatMoney, formatMonthYear, formatPercent } from "@/lib/format";
+import { formatApproxDuration, formatMoney, formatMonthYear, formatPercent, formatRate } from "@/lib/format";
 import type { GoalProjection } from "@/lib/goal-projection";
 import { goalProgress, type StartingCapital } from "@/lib/plan";
 import { BASE_CURRENCY, type Assumptions, type Goal } from "@/lib/types";
@@ -39,7 +39,7 @@ export function Overview({ capital, gain, goal, assumptions, projection, exclude
             {eur(capital.amount)} of {eur(goal.amount)} ({formatPercent(goalProgress(capital.amount, goal.amount), { decimals: 0 })})
           </p>
           <p className="text-sm">
-            Assumes <strong>{formatPercent(assumptions.realReturn)} growth after inflation</strong> and{" "}
+            Assumes <strong>{formatRate(assumptions.realReturn)} growth after inflation</strong> and{" "}
             {eur(assumptions.monthlyContribution)} a month. A rough guide, not a promise.
           </p>
           {excludedCurrencies.length > 0 && (

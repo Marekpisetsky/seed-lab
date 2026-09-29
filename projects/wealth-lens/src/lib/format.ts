@@ -97,3 +97,9 @@ export function formatApproxDuration(months: number): string {
   const years = Math.round(whole / 12);
   return `~${years} year${years === 1 ? "" : "s"}`;
 }
+
+/** A rate without needless decimals: 0.04 → "4%", 0.045 → "4.5%". */
+export function formatRate(rate: number): string {
+  const tenths = Math.round(rate * 1000);
+  return formatPercent(rate, { decimals: tenths % 10 === 0 ? 0 : 1 });
+}

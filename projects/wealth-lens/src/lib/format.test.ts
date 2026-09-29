@@ -8,7 +8,16 @@ import {
   formatNumber,
   formatPercent,
   formatPrice,
+  formatRate,
 } from "./format";
+
+describe("formatRate", () => {
+  it("drops needless decimals", () => {
+    expect(formatRate(0.04)).toBe("4%");
+    expect(formatRate(0.045)).toBe("4.5%");
+    expect(formatRate(0.07)).toBe("7%");
+  });
+});
 
 describe("formatMoney", () => {
   it("formats amounts with the currency symbol", () => {
