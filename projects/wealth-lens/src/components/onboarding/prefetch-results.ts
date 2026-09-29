@@ -10,5 +10,5 @@ export function prefetchResults(): void {
   started = true;
   void import("@/components/portfolio/portfolio-content");
   void import("@/components/fire/fire-content");
-  void import("@/components/charts/charts-content");
+  void import("@/components/stocks/stocks-content");
 }
