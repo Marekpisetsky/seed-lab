@@ -15,7 +15,7 @@ import { connectionsData, type BuyItem, type ConnectionsDataset } from "./connec
 import { costOfLiving, countryInSentence, type CountryCost } from "./cost-of-living";
 import { addMonths } from "./dates";
 import { futureValueWithContributions, monthlyWithdrawal, monthsToGoal, requiredCapital, requiredMonthlyContribution } from "./finance";
-import { formatDuration, formatEur, formatMonthYear, formatRate, formatYears } from "./format";
+import { formatDuration, formatEur, formatMonthYear, formatRate } from "./format";
 import { dividendNote, periodText, resolveInvestment, type ResolvedInvestment } from "./investment";
 import { startingCapital, type StartingCapital } from "./plan";
 import { cachedSuccessRate } from "./simulation";
@@ -53,13 +53,17 @@ export function withinReach(months: number): boolean {
 /**
  * When the plan gets somewhere, as goals, the country table and the buy
  * list say it: "now", "in 12 years" ("in 12 years (2038)" given today), or
- * past 60 years "not at this pace".
+ * past 60 years "not at this pace". Rounded up to whole months, then whole
+ * years: something not paid after 20 years never reads "in 20 years".
  */
 export function whenText(months: number, today?: Date): string {
   if (months <= 0) return "now";
   if (!withinReach(months)) return "not at this pace";
-  const year = today ? ` (${addMonths(today, Math.ceil(months - 1e-9)).getUTCFullYear()})` : "";
-  return `in ${formatYears(months)}${year}`;
+  const whole = Math.ceil(months - 1e-9);
+  const plural = (n: number, unit: string) => `${n} ${unit}${n === 1 ? "" : "s"}`;
+  const span = whole < 12 ? plural(whole, "month") : plural(Math.ceil(whole / 12), "year");
+  const year = today ? ` (${addMonths(today, whole).getUTCFullYear()})` : "";
+  return `in ${span}${year}`;
 }
 
 /** Whole euros, but "under €1" for a few cents: €1 invested pays €0.003 a month, not €0. */
@@ -134,7 +138,9 @@ export interface CountryCell {
 
 export interface CountryRow {
   code: string;
-  /** "Peru", "the Netherlands". */
+  /** "Peru", "Netherlands": as a table lists it. */
+  label: string;
+  /** "Peru", "the Netherlands": as a sentence says it. */
   name: string;
   withoutHousing: CountryCell;
   withHousing: CountryCell;
@@ -162,6 +168,7 @@ export function countryRows(
     .sort((a, b) => a.monthlyCostEur.withoutRent - b.monthlyCostEur.withoutRent || a.name.localeCompare(b.name))
     .map((country) => ({
       code: country.code,
+      label: country.name,
       name: countryInSentence(country.name),
       withoutHousing: cell(scenario, horizonMonths, country.monthlyCostEur.withoutRent),
       withHousing: cell(scenario, horizonMonths, country.monthlyCostEur.withRent),

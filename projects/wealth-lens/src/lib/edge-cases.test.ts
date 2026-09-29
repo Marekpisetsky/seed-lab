@@ -132,6 +132,12 @@ describe("no growth, or a loss, every year", () => {
 describe("whenText", () => {
   it("says now, in N years (with the year when given today), or not at this pace", () => {
     expect(whenText(0)).toBe("now");
+    expect(whenText(0.2)).toBe("in 1 month");
+    expect(whenText(10.5)).toBe("in 11 months");
+    expect(whenText(11.5)).toBe("in 1 year");
+    expect(whenText(12)).toBe("in 1 year");
+    // Rounded up: 20 years and a month is not "in 20 years".
+    expect(whenText(241)).toBe("in 21 years");
     expect(whenText(30)).toBe("in 3 years");
     expect(whenText(144, today)).toBe("in 12 years (2038)");
     expect(whenText(720, today)).toBe("in 60 years (2086)");

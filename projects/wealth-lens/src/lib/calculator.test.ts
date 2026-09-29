@@ -6,6 +6,7 @@ import {
   goalStatuses,
   itemStatuses,
   pricedItems,
+  whenText,
   type CalculatorPlan,
 } from "./calculator";
 import { parseIsoDate } from "./dates";
@@ -65,6 +66,24 @@ describe("the country table", () => {
     expect([...costs].sort((a, b) => a - b)).toEqual(costs);
     for (const row of countries) expect(row.withHousing.amount).toBeGreaterThan(row.withoutHousing.amount);
     expect(countries.find((row) => row.code === "PE")).toMatchObject({ withoutHousing: { amount: 470 }, withHousing: { amount: 700 } });
+    expect(countries.find((row) => row.code === "NL")).toMatchObject({ label: "Netherlands", name: "the Netherlands" });
+  });
+
+  it("says, per cell, ✓ or when the plan gets there, and never past 60 years", () => {
+    const tiny = calculate(plan({ invested: 1, monthlyContribution: 5 }), [], today).countries;
+    const peru = tiny.find((row) => row.code === "PE");
+    expect(peru?.withoutHousing.covered).toBe(false);
+    expect(whenText(peru?.withHousing.months ?? 0)).toBe("not at this pace");
+    const rich = calculate(plan({ invested: 2_000_000 }), [], today).countries;
+    expect(rich.every((row) => row.withoutHousing.covered && row.withHousing.covered)).toBe(true);
+    expect(whenText(countries.at(-1)?.withHousing.months ?? 0)).toMatch(/^in \d+ years$/);
+  });
+
+  it("follows the withdrawal rate: at 3% the same money pays less", () => {
+    const at3 = calculate(plan({ withdrawalRate: 0.03 }), [], today).countries;
+    const covered = (rows: typeof countries) => rows.filter((row) => row.withoutHousing.covered).length;
+    expect(covered(at3)).toBeLessThanOrEqual(covered(countries));
+    expect(at3[0].withoutHousing.target).toBeCloseTo((250 * 12) / 0.03, 6);
   });
 
   it("ticks what the income after 20 years pays, and says when the rest comes", () => {
