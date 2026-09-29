@@ -1,22 +1,27 @@
 # seed-lab
 
-**Mision:** seed-lab crea empresas de software que generan ingresos
-reales: valida cada idea con clientes externos antes de construirla y
-acelera cada lanzamiento con herramientas compartidas que se vuelven mas
-potentes con cada empresa nueva.
+**Mision:** seed-lab construye proyectos de software con peso tecnico
+real -- cada uno demuestra una capacidad de ingenieria genuina y
+resuelve un problema real (propio de Marek, o de terceros que lo
+adoptan por su cuenta), sin depender de gestionar clientes ni negociar
+ventas. Acelera cada proyecto nuevo con herramientas compartidas que se
+vuelven mas potentes con cada proyecto que se suma.
 
-**Vision:** Consolidar una cartera de productos de software rentables,
-construidos sobre infraestructura compartida, que en conjunto generen
-ingresos sostenidos y demuestren capacidad de ingenieria aplicada a
-problemas reales del mercado.
+**Vision:** Consolidar una cartera de proyectos de software con peso
+real, construidos sobre infraestructura compartida, que en conjunto
+demuestren capacidad de ingenieria aplicada a problemas reales -- el
+ingreso es un resultado posible (ej. via adopcion organica o modelos
+sin trato activo, como rev-share automatico), nunca el requisito de
+entrada.
 
 **Valores:**
 
 1. **Verificacion sobre promesa** -- nada se declara terminado sin
    pruebas de que funciona.
 2. **Validacion antes que construccion** -- ninguna idea se construye a
-   fondo sin evidencia de un cliente externo real dispuesto a usarla o
-   pagarla.
+   fondo sin evidencia de que resuelve un problema real: uso propio
+   sostenido, o adopcion de terceros que lo descubren y lo usan sin que
+   Marek tenga que venderlo o negociarlo.
 3. **Apalancamiento compartido** -- cada empresa nueva se apoya en la
    infraestructura ya construida en `tools/`, no arranca de cero.
 4. **Independencia economica** -- ninguna empresa depende de capital

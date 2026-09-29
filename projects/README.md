@@ -14,21 +14,25 @@ Un proyecto entra a `projects/` solo si cumple las tres cosas:
 2. **Tiene peso.** O resuelve un problema real (se usa de verdad), o exige
    ambicion tecnica real (te obliga a construir algo dificil). Idealmente
    ambas.
-3. **Tiene (o apunta a tener) un cliente fuera del holding.** Si el unico
-   que lo usa es el propio holding para construirse a si mismo, no es una
-   empresa -- es infraestructura interna y pertenece a `tools/`. Este fue
-   el error con Forja: cumplia 1 y 2, pero su cliente era el holding
-   mismo, asi que se reclasifico a `tools/forja/`.
+3. **Resuelve un problema real fuera de la construccion del holding
+   mismo.** Cuenta el uso propio sostenido de Marek, o la adopcion de
+   terceros que lo descubren y lo usan por su cuenta -- lo que NO cuenta
+   es que el unico consumidor sea el propio holding para construirse a
+   si mismo (ese caso es infraestructura interna y pertenece a
+   `tools/`). No hace falta venta activa ni negociacion con nadie. Este
+   fue el error con Forja: cumplia 1 y 2, pero su unico consumidor era el
+   holding mismo, asi que se reclasifico a `tools/forja/`.
 
 No es un lugar para ejercicios ni para portfolio-filler.
 
 ## Antes de construir a fondo: validar
 
 Por valor del holding ("Validacion antes que construccion"), ninguna idea
-se construye a fondo sin evidencia de que un cliente externo real la
-usaria o pagaria por ella. Una idea puede vivir como celula o borrador
-mientras se busca esa evidencia; recien se gradua a carpeta propia en
-`projects/` cuando esa validacion existe.
+se construye a fondo sin evidencia de que resuelve un problema real --
+uso propio sostenido, o adopcion de terceros que lo descubren y lo usan
+sin que Marek tenga que venderlo o negociarlo. Una idea puede vivir como
+celula o borrador mientras se busca esa evidencia; recien se gradua a
+carpeta propia en `projects/` cuando esa validacion existe.
 
 ## Que distingue un proyecto de una celula (`cells/`) o una herramienta (`tools/`)
 
