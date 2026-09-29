@@ -1,4 +1,4 @@
-/** Geometry for the small line charts in the Charts summary list. */
+/** Geometry and figures for the small line charts in the Charts summary list. */
 
 import type { PricePoint } from "./prices";
 
@@ -7,13 +7,12 @@ import type { PricePoint } from "./prices";
  * box, oldest on the left, highest price at the top. A flat series is drawn
  * through the middle.
  */
-export function sparklinePoints(points: readonly PricePoint[], width: number, height: number): string {
-  if (points.length === 0) return "";
-  const closes = points.map((point) => point.close);
+export function sparklinePoints(closes: readonly number[], width: number, height: number): string {
+  if (closes.length === 0) return "";
   const min = Math.min(...closes);
   const max = Math.max(...closes);
   const span = max - min;
-  const step = points.length > 1 ? width / (points.length - 1) : 0;
+  const step = closes.length > 1 ? width / (closes.length - 1) : 0;
   return closes
     .map((close, index) => {
       const x = index * step;

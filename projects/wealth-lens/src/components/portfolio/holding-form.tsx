@@ -65,7 +65,7 @@ export function HoldingForm({ initialValues = EMPTY_HOLDING_FORM, submitLabel, o
             </>
           )}
         </Field>
-        <Field label="Price per share" error={errors.currentPrice} hint="Optional: we look it up">
+        <Field label="Price per share" error={errors.currentPrice} hint="Optional for big ETFs and stocks">
           {(props) => <input {...props} {...bind("currentPrice")} inputMode="decimal" placeholder="118.20" className={inputClass} />}
         </Field>
       </div>

@@ -5,14 +5,14 @@ const p = (time: string, close: number) => ({ time, close });
 
 describe("sparklinePoints", () => {
   it("fits the series in the box, highest price at the top", () => {
-    expect(sparklinePoints([p("2026-01-01", 10), p("2026-01-02", 20), p("2026-01-03", 15)], 100, 40)).toBe(
+    expect(sparklinePoints([10, 20, 15], 100, 40)).toBe(
       "0,40 50,0 100,20",
     );
   });
 
   it("draws flat and single-point series through the middle", () => {
-    expect(sparklinePoints([p("2026-01-01", 5), p("2026-01-02", 5)], 10, 20)).toBe("0,10 10,10");
-    expect(sparklinePoints([p("2026-01-01", 5)], 10, 20)).toBe("0,10");
+    expect(sparklinePoints([5, 5], 10, 20)).toBe("0,10 10,10");
+    expect(sparklinePoints([5], 10, 20)).toBe("0,10");
     expect(sparklinePoints([], 10, 20)).toBe("");
   });
 });

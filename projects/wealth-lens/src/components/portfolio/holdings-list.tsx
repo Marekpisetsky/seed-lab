@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PricesUpdated } from "@/components/prices-updated";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Gain } from "@/components/ui/gain";
@@ -57,7 +58,7 @@ export function HoldingsList({ holdings, onChange }: HoldingsListProps) {
         )}
 
         {holdings.length === 0 ? (
-          <p className="text-sm text-muted">No holdings yet. Add them to see your real gain and live prices.</p>
+          <p className="text-sm text-muted">No holdings yet. Add them to see your real gain.</p>
         ) : (
           <ul className="divide-y divide-border">
             {holdings.map((holding) => (
@@ -75,6 +76,7 @@ export function HoldingsList({ holdings, onChange }: HoldingsListProps) {
             ))}
           </ul>
         )}
+        {holdings.length > 0 && <PricesUpdated />}
 
         {editor.mode === "closed" && (
           <div className="flex flex-wrap items-start gap-2">
@@ -133,7 +135,7 @@ function HoldingRow({ holding, onEdit, onUseMarketPrice, onRemove }: HoldingRowP
 }
 
 function priceNote(holding: Holding): string {
-  if (holding.currentPrice === null) return "no price yet";
+  if (holding.currentPrice === null) return "no price: add yours";
   if (holding.priceSource === "manual") return "your price";
-  return holding.priceDate ? `price from ${formatDayMonth(holding.priceDate)}` : "market price";
+  return holding.priceDate ? `price from ${formatDayMonth(holding.priceDate)}` : "daily price";
 }

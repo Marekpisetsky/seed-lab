@@ -10,7 +10,6 @@ import {
   parseGoal,
   parseHoldings,
   parseInvested,
-  parseSymbolOverrides,
   parseUploadedPrices,
   STORAGE_KEYS,
   uploadedPricesKey,
@@ -47,13 +46,6 @@ export const fireSettingsStore = createPersistentStore<FireSettings>({
   key: STORAGE_KEYS.fire,
   parse: parseFireSettings,
   fallback: DEFAULT_FIRE_SETTINGS,
-});
-
-/** Price symbol overrides (Yahoo notation), keyed by holding ticker. */
-export const chartSymbolsStore = createPersistentStore<Readonly<Record<string, string>>>({
-  key: STORAGE_KEYS.chartSymbols,
-  parse: parseSymbolOverrides,
-  fallback: {},
 });
 
 const uploadedPricesStores = new Map<string, PersistentStore<UploadedPrices | null>>();

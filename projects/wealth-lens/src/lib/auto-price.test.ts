@@ -1,11 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { latestPriceUpdate } from "./auto-price";
+import { marketPrice, priceHoldings } from "./auto-price";
+import { parsePricesFile } from "./market-format";
 import type { Holding } from "./types";
 
-const points = [
-  { time: "2026-09-24", close: 130 },
-  { time: "2026-09-25", close: 131.5 },
-];
+const entry = (currency: string, close: number) => ({
+  symbol: "X",
+  currency,
+  source: "yahoo",
+  date: "2026-09-25",
+  close,
+  change1y: null,
+  spark: [],
+  growth: null,
+});
+const market = parsePricesFile({ prices: { VWCE: entry("EUR", 131.5), NVDA: entry("USD", 180.2) } });
+
 const holding: Holding = {
   id: "1",
   ticker: "VWCE",
@@ -17,23 +26,34 @@ const holding: Holding = {
   priceDate: null,
 };
 
-describe("latestPriceUpdate", () => {
+describe("marketPrice", () => {
+  it("finds the latest close of a curated instrument in the holding's currency", () => {
+    expect(marketPrice(holding, market)).toEqual({ close: 131.5, date: "2026-09-25" });
+    expect(marketPrice({ ticker: "nvda", currency: "USD" }, market)).toEqual({ close: 180.2, date: "2026-09-25" });
+  });
+
+  it("has nothing for other currencies, unknown tickers or instruments not downloaded yet", () => {
+    expect(marketPrice({ ticker: "NVDA", currency: "EUR" }, market)).toBeNull();
+    expect(marketPrice({ ticker: "XYZ", currency: "EUR" }, market)).toBeNull();
+    expect(marketPrice({ ticker: "EQQQ", currency: "EUR" }, market)).toBeNull();
+  });
+});
+
+describe("priceHoldings", () => {
   it("fills an automatic price with the latest close and its date", () => {
-    expect(latestPriceUpdate(holding, "EUR", points)).toEqual({ currentPrice: 131.5, priceDate: "2026-09-25" });
+    expect(priceHoldings([holding], market)[0]).toMatchObject({ currentPrice: 131.5, priceDate: "2026-09-25" });
   });
 
-  it("never overwrites a price typed by the user", () => {
-    expect(latestPriceUpdate({ ...holding, currentPrice: 120, priceSource: "manual" }, "EUR", points)).toBeNull();
+  it("never replaces a price typed by the user", () => {
+    const typed = { ...holding, currentPrice: 120, priceSource: "manual" as const };
+    expect(priceHoldings([typed], market)[0]).toBe(typed);
   });
 
-  it("skips series quoted in another currency", () => {
-    expect(latestPriceUpdate(holding, "USD", points)).toBeNull();
-    expect(latestPriceUpdate({ ...holding, currency: "GBP" }, "GBX", points)).toBeNull(); // pence
-    expect(latestPriceUpdate(holding, null, points)).toBeNull(); // unknown currency
-  });
-
-  it("does nothing when already up to date or without data", () => {
-    expect(latestPriceUpdate({ ...holding, currentPrice: 131.5, priceDate: "2026-09-25" }, "EUR", points)).toBeNull();
-    expect(latestPriceUpdate(holding, "EUR", [])).toBeNull();
+  it("leaves holdings without market data, or already up to date, as they are", () => {
+    const unknown = { ...holding, ticker: "XYZ" };
+    const current = { ...holding, currentPrice: 131.5, priceDate: "2026-09-25" };
+    const [a, b] = priceHoldings([unknown, current], market);
+    expect(a).toBe(unknown);
+    expect(b).toBe(current);
   });
 });

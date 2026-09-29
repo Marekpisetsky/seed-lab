@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ModuleSkeleton } from "@/components/module-skeleton";
 import { FirstSteps } from "@/components/onboarding/first-steps";
+import { PricesUpdated } from "@/components/prices-updated";
 import { Card } from "@/components/ui/card";
 import { useHydrated, usePersistentStore } from "@/hooks/use-persistent-store";
 import { hasStarted } from "@/lib/plan";
@@ -37,7 +38,8 @@ function ChartsContent() {
 
   return (
     <Card>
-      <p className="mb-1 text-sm text-muted">Last 12 months. Tap a stock for its full chart.</p>
+      <p className="text-sm text-muted">Last 12 months. Tap a stock for its full chart.</p>
+      <PricesUpdated className="mb-1" />
       <ul className="divide-y divide-border">
         {holdings.map((holding) => (
           <HoldingChartRow key={holding.id} holding={holding} />

@@ -3,13 +3,13 @@
 import { useMemo } from "react";
 import { ModuleSkeleton } from "@/components/module-skeleton";
 import { FirstSteps } from "@/components/onboarding/first-steps";
-import { useAutoPrices } from "@/hooks/use-auto-prices";
 import { useHydrated, usePersistentStore } from "@/hooks/use-persistent-store";
+import { usePricedHoldings } from "@/hooks/use-priced-holdings";
 import { startOfUtcDay } from "@/lib/dates";
 import { summarizeByCurrency } from "@/lib/finance";
 import { projectGoal } from "@/lib/goal-projection";
 import { hasStarted, headlineGain, startingCapital } from "@/lib/plan";
-import { assumptionsStore, chartSymbolsStore, goalStore, holdingsStore, investedStore } from "@/lib/stores";
+import { assumptionsStore, goalStore, holdingsStore, investedStore } from "@/lib/stores";
 import { BASE_CURRENCY } from "@/lib/types";
 import { HoldingsList } from "./holdings-list";
 import { Overview } from "./overview";
@@ -25,12 +25,11 @@ export function PortfolioModule() {
 }
 
 function PortfolioContent() {
-  const [holdings, setHoldings] = usePersistentStore(holdingsStore);
+  const [, setHoldings] = usePersistentStore(holdingsStore);
+  const holdings = usePricedHoldings();
   const [invested, setInvested] = usePersistentStore(investedStore);
   const [goal, setGoal] = usePersistentStore(goalStore);
   const [assumptions, setAssumptions] = usePersistentStore(assumptionsStore);
-  const [symbolOverrides] = usePersistentStore(chartSymbolsStore);
-  useAutoPrices(holdings, setHoldings, symbolOverrides);
 
   const summaries = useMemo(() => summarizeByCurrency(holdings), [holdings]);
   const capital = startingCapital(holdings, invested);

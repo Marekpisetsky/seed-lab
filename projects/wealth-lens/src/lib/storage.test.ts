@@ -11,7 +11,6 @@ import {
   parseGoal,
   parseHoldings,
   parseInvested,
-  parseSymbolOverrides,
   parseUploadedPrices,
   readValue,
   writeValue,
@@ -189,15 +188,6 @@ describe("parseInvested", () => {
     expect(parseInvested(0)).toBe(0);
     expect(parseInvested(-1)).toBeNull();
     expect(parseInvested("lots")).toBeNull();
-  });
-});
-
-describe("parseSymbolOverrides", () => {
-  it("keeps valid symbols and converts ones saved in Stooq notation", () => {
-    expect(
-      parseSymbolOverrides({ AAPL: "aapl.us", VWCE: "vwce.de", ASML: "ASML.AS", BAD: "not a symbol!", NUM: 3 }),
-    ).toEqual({ AAPL: "AAPL", VWCE: "VWCE.DE", ASML: "ASML.AS" });
-    expect(parseSymbolOverrides([])).toBeNull();
   });
 });
 

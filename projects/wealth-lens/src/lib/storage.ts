@@ -9,7 +9,6 @@
  */
 
 import type { PricePoint } from "./prices";
-import { toYahooSymbol } from "./symbols";
 import type { Assumptions, FireSettings, Goal, Holding } from "./types";
 
 /** The subset of the Web Storage API this module needs (easy to fake in tests). */
@@ -29,7 +28,6 @@ export const STORAGE_KEYS = {
   goal: `${KEY_PREFIX}goal`,
   assumptions: `${KEY_PREFIX}assumptions`,
   fire: `${KEY_PREFIX}fire`,
-  chartSymbols: `${KEY_PREFIX}chart-symbols`,
   invested: `${KEY_PREFIX}invested`,
 } as const;
 
@@ -205,21 +203,6 @@ export function parseFireSettings(value: unknown): FireSettings | null {
 
 export function parseInvested(value: unknown): number | null {
   return isNonNegativeNumber(value) ? value : null;
-}
-
-/**
- * Price symbol chosen per ticker, in Yahoo notation. Symbols saved by
- * earlier versions in Stooq notation ("aapl.us") are converted; invalid
- * entries are dropped.
- */
-export function parseSymbolOverrides(value: unknown): Record<string, string> | null {
-  if (!isRecord(value)) return null;
-  const overrides: Record<string, string> = {};
-  for (const [ticker, saved] of Object.entries(value)) {
-    const symbol = typeof saved === "string" ? toYahooSymbol(saved) : null;
-    if (symbol) overrides[ticker] = symbol;
-  }
-  return overrides;
 }
 
 export interface UploadedPrices {

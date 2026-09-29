@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Disclosure } from "@/components/ui/disclosure";
 import { Field, inputClass, PercentInput } from "@/components/ui/form";
 import { useHydrated, usePersistentStore } from "@/hooks/use-persistent-store";
+import { usePricedHoldings } from "@/hooks/use-priced-holdings";
 import { costOfLiving } from "@/lib/cost-of-living";
 import { startOfUtcDay } from "@/lib/dates";
 import { coverageByCountry, requirementsByCountry } from "@/lib/fire";
@@ -36,7 +37,7 @@ export function FireModule() {
 }
 
 function FireContent() {
-  const [holdings] = usePersistentStore(holdingsStore);
+  const holdings = usePricedHoldings();
   const [invested] = usePersistentStore(investedStore);
   const [assumptions, setAssumptions] = usePersistentStore(assumptionsStore);
   const [settings, setSettings] = usePersistentStore(fireSettingsStore);
