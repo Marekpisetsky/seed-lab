@@ -178,9 +178,9 @@ export function DetailSection({ report }: { report: Report }) {
   const bands = useMemo(
     () =>
       open && years > 0
-        ? wealthPercentiles({ start: scenario.capital, monthly: scenario.monthly, returns: investment.returns, years })
+        ? wealthPercentiles({ start: scenario.capital, monthly: scenario.monthly, returns: investment.returns, years, key: investment.key })
         : null,
-    [open, years, scenario.capital, scenario.monthly, investment.returns],
+    [open, years, scenario.capital, scenario.monthly, investment.returns, investment.key],
   );
   return (
     <details className="group rounded-xl border border-border bg-card" onToggle={(event) => setOpen(event.currentTarget.open)}>

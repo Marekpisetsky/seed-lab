@@ -19,9 +19,11 @@ describe("wealthPercentiles", () => {
     const { p10, p50, p90 } = wealthPercentiles({ start: 1000, monthly: 100, returns: [0.05], years: 2 });
     const year1 = (1000 + 600) * 1.05 + 600;
     const year2 = (year1 + 600) * 1.05 + 600;
-    expect(p50).toEqual([1000, year1, year2]);
-    expect(p10).toEqual(p50);
-    expect(p90).toEqual(p50);
+    [1000, year1, year2].forEach((expected, year) => {
+      expect(p50[year]).toBeCloseTo(expected, 8);
+      expect(p10[year]).toBeCloseTo(expected, 8);
+      expect(p90[year]).toBeCloseTo(expected, 8);
+    });
   });
 
   it("spreads out with real history, low below middle below high", () => {
@@ -38,6 +40,16 @@ describe("wealthPercentiles", () => {
   it("is reproducible with the same seed", () => {
     const options = { start: 1000, monthly: 50, returns: sp500, years: 10 };
     expect(wealthPercentiles(options)).toEqual(wealthPercentiles(options));
+  });
+
+  it("gives the same answer from cached paths, for any amounts", () => {
+    for (const [start, monthly] of [[1000, 50], [50_000, 1000], [0, 300]]) {
+      const options = { start, monthly, returns: sp500, years: 10 };
+      const fresh = wealthPercentiles(options);
+      const cached = wealthPercentiles({ ...options, key: "index:sp500" });
+      fresh.p50.forEach((value, year) => expect(cached.p50[year]).toBeCloseTo(value, 6));
+      fresh.p10.forEach((value, year) => expect(cached.p10[year]).toBeCloseTo(value, 6));
+    }
   });
 });
 

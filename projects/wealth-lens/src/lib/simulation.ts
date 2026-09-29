@@ -9,7 +9,10 @@
  *
  * Yearly steps keep it fast: half of the year's contributions are added at
  * the start and half at the end, which matches monthly contributions to
- * first order (12 × monthly × (1 + r/2)).
+ * first order (12 × monthly × (1 + r/2)). Each simulated balance is linear
+ * in the starting amount and the monthly amount (start × growth + monthly
+ * × added), so the random paths are drawn once per history and reused
+ * while the amounts are typed.
  */
 
 import { mulberry32, successRates } from "./monte-carlo";
@@ -28,10 +31,53 @@ export interface WealthOptions {
   years: number;
   simulations?: number;
   seed?: number;
+  /** Identifies `returns` (ResolvedInvestment.key); with it the random paths are cached. */
+  key?: string;
+}
+
+/** Per year and simulation: what €1 at the start and €1 a month have become. */
+interface Paths {
+  growth: Float64Array[];
+  added: Float64Array[];
+}
+
+const pathCache = new Map<string, Paths>();
+/** Up to ~0.8 MB each (50 years × 1,000 simulations × 2 arrays). */
+const MAX_PATHS = 8;
+
+function drawPaths(returns: readonly number[], years: number, simulations: number, seed: number): Paths {
+  const random = mulberry32(seed);
+  const growth = Array.from({ length: years + 1 }, () => new Float64Array(simulations));
+  const added = Array.from({ length: years + 1 }, () => new Float64Array(simulations));
+  growth[0].fill(1);
+  for (let s = 0; s < simulations; s++) {
+    let g = 1;
+    let a = 0;
+    for (let y = 1; y <= years; y++) {
+      const factor = 1 + returns[Math.floor(random() * returns.length)];
+      g *= factor;
+      a = (a + 6) * factor + 6;
+      growth[y][s] = g;
+      added[y][s] = a;
+    }
+  }
+  return { growth, added };
+}
+
+function paths(returns: readonly number[], years: number, simulations: number, seed: number, key?: string): Paths {
+  if (key === undefined) return drawPaths(returns, years, simulations, seed);
+  const id = `${key}|${years}|${simulations}|${seed}`;
+  let cached = pathCache.get(id);
+  if (!cached) {
+    if (pathCache.size >= MAX_PATHS) pathCache.delete(pathCache.keys().next().value as string);
+    cached = drawPaths(returns, years, simulations, seed);
+    pathCache.set(id, cached);
+  }
+  return cached;
 }
 
 /** Percentile of a sorted array, linear between neighbours. */
-export function percentile(sorted: readonly number[], p: number): number {
+export function percentile(sorted: ArrayLike<number>, p: number): number {
   if (sorted.length === 0) return NaN;
   const position = (sorted.length - 1) * p;
   const low = Math.floor(position);
@@ -47,27 +93,19 @@ export function wealthPercentiles({
   years,
   simulations = 1000,
   seed = 20260929,
+  key,
 }: WealthOptions): WealthPercentiles {
   if (returns.length === 0) throw new RangeError("returns must not be empty");
-  const random = mulberry32(seed);
-  const half = 6 * monthly;
-  // byYear[y][s]: balance of simulation s after y years.
-  const byYear = Array.from({ length: years + 1 }, () => new Float64Array(simulations));
-  byYear[0].fill(start);
-  for (let s = 0; s < simulations; s++) {
-    let balance = start;
-    for (let y = 1; y <= years; y++) {
-      const r = returns[Math.floor(random() * returns.length)];
-      balance = (balance + half) * (1 + r) + half;
-      byYear[y][s] = balance;
-    }
-  }
+  const { growth, added } = paths(returns, years, simulations, seed, key);
   const result: WealthPercentiles = { p10: [], p50: [], p90: [] };
-  for (const values of byYear) {
-    const sorted = Array.from(values).sort((a, b) => a - b);
-    result.p10.push(percentile(sorted, 0.1));
-    result.p50.push(percentile(sorted, 0.5));
-    result.p90.push(percentile(sorted, 0.9));
+  const balances = new Float64Array(simulations);
+  for (let y = 0; y <= years; y++) {
+    for (let s = 0; s < simulations; s++) balances[s] = start * growth[y][s] + monthly * added[y][s];
+    // A typed array sorts numerically, natively: much faster than a comparator.
+    balances.sort();
+    result.p10.push(percentile(balances, 0.1));
+    result.p50.push(percentile(balances, 0.5));
+    result.p90.push(percentile(balances, 0.9));
   }
   return result;
 }

@@ -90,6 +90,7 @@ function Group({
   className: string;
   children?: React.ReactNode;
 }) {
+  const [showAll, setShowAll] = useState(false);
   const sorted = [...statuses].sort(byTime);
   // The pinned one is always in view.
   const pinned = sorted.find((status) => status.connection.id === pinnedId);
@@ -109,17 +110,24 @@ function Group({
         ))}
       </ul>
       {rest.length > 0 && (
-        <details className="group">
-          <summary className="cursor-pointer list-none px-2 py-2 text-sm font-medium text-accent [&::-webkit-details-marker]:hidden">
-            <span className="group-open:hidden">Show all {sorted.length}</span>
-            <span className="hidden group-open:inline">Show fewer</span>
-          </summary>
-          <ul>
-            {rest.map((status) => (
-              <Row key={status.connection.id} status={status} pinnedId={pinnedId} />
-            ))}
-          </ul>
-        </details>
+        <>
+          {/* Rendered only when open, so typing a number does not redraw rows nobody sees. */}
+          {showAll && (
+            <ul>
+              {rest.map((status) => (
+                <Row key={status.connection.id} status={status} pinnedId={pinnedId} />
+              ))}
+            </ul>
+          )}
+          <button
+            type="button"
+            aria-expanded={showAll}
+            onClick={() => setShowAll(!showAll)}
+            className="px-2 py-2 text-sm font-medium text-accent"
+          >
+            {showAll ? "Show fewer" : `Show all ${sorted.length}`}
+          </button>
+        </>
       )}
     </div>
   );

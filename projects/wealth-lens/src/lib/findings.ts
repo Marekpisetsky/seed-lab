@@ -377,7 +377,13 @@ export function sequenceFinding({ report }: FindingContext): Finding | null {
   const months = horizonOf(report);
   if (months < 60 || (report.answer.mode === "goal" && !Number.isFinite(report.answer.months))) return null;
   const decade = Math.min(10, Math.floor(months / 12));
-  const { p10, p50 } = wealthPercentiles({ start: scenario.capital, monthly: scenario.monthly, returns: investment.returns, years: decade });
+  const { p10, p50 } = wealthPercentiles({
+    start: scenario.capital,
+    monthly: scenario.monthly,
+    returns: investment.returns,
+    years: decade,
+    key: investment.key,
+  });
   const bad = p10[decade];
   const typical = p50[decade];
   const period = decade === 10 ? "decade" : `${decade} years`;
