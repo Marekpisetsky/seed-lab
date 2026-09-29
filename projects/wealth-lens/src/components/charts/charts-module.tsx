@@ -2,15 +2,20 @@
 
 import Link from "next/link";
 import { ModuleSkeleton } from "@/components/module-skeleton";
+import { FirstSteps } from "@/components/onboarding/first-steps";
 import { Card } from "@/components/ui/card";
 import { Notice } from "@/components/ui/notice";
 import { useHydrated, usePersistentStore } from "@/hooks/use-persistent-store";
-import { holdingsStore } from "@/lib/stores";
+import { hasStarted } from "@/lib/plan";
+import { holdingsStore, investedStore } from "@/lib/stores";
 import { HoldingChartCard } from "./holding-chart-card";
 
 export function ChartsModule() {
   const hydrated = useHydrated();
+  const [holdings] = usePersistentStore(holdingsStore);
+  const [invested] = usePersistentStore(investedStore);
   if (!hydrated) return <ModuleSkeleton />;
+  if (!hasStarted(holdings, invested)) return <FirstSteps />;
   return <ChartsContent />;
 }
 

@@ -2,12 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { ModuleSkeleton } from "@/components/module-skeleton";
+import { FirstSteps } from "@/components/onboarding/first-steps";
 import { Card } from "@/components/ui/card";
 import { useHydrated, usePersistentStore } from "@/hooks/use-persistent-store";
 import { costOfLiving } from "@/lib/cost-of-living";
 import { startOfUtcDay } from "@/lib/dates";
 import { coverageByCountry, requirementsByCountry } from "@/lib/fire";
-import { startingCapital } from "@/lib/plan";
+import { hasStarted, startingCapital } from "@/lib/plan";
 import { assumptionsStore, fireSettingsStore, holdingsStore, investedStore } from "@/lib/stores";
 import { CoverageView } from "./coverage-view";
 import { FireInputs } from "./fire-inputs";
@@ -22,7 +23,10 @@ type View = (typeof VIEWS)[number]["id"];
 
 export function FireModule() {
   const hydrated = useHydrated();
+  const [holdings] = usePersistentStore(holdingsStore);
+  const [invested] = usePersistentStore(investedStore);
   if (!hydrated) return <ModuleSkeleton />;
+  if (!hasStarted(holdings, invested)) return <FirstSteps />;
   return <FireContent />;
 }
 

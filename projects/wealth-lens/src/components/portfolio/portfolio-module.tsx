@@ -2,11 +2,13 @@
 
 import { useMemo } from "react";
 import { ModuleSkeleton } from "@/components/module-skeleton";
+import { FirstSteps } from "@/components/onboarding/first-steps";
 import { useHydrated, usePersistentStore } from "@/hooks/use-persistent-store";
 import { startOfUtcDay } from "@/lib/dates";
 import { summarizeByCurrency } from "@/lib/finance";
 import { projectGoal } from "@/lib/goal-projection";
-import { assumptionsStore, goalStore, holdingsStore } from "@/lib/stores";
+import { hasStarted } from "@/lib/plan";
+import { assumptionsStore, goalStore, holdingsStore, investedStore } from "@/lib/stores";
 import { BASE_CURRENCY } from "@/lib/types";
 import { GainsSummary } from "./gains-summary";
 import { GoalCard } from "./goal-card";
@@ -14,7 +16,10 @@ import { HoldingsCard } from "./holdings-card";
 
 export function PortfolioModule() {
   const hydrated = useHydrated();
+  const [holdings] = usePersistentStore(holdingsStore);
+  const [invested] = usePersistentStore(investedStore);
   if (!hydrated) return <ModuleSkeleton />;
+  if (!hasStarted(holdings, invested)) return <FirstSteps />;
   return <PortfolioContent />;
 }
 

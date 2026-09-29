@@ -5,6 +5,7 @@
  */
 
 import type { CountryCost } from "./cost-of-living";
+import { parseLooseNumber } from "./csv";
 import { summarizeByCurrency, type CurrencySummary } from "./finance";
 import { BASE_CURRENCY, type Holding } from "./types";
 
@@ -62,4 +63,30 @@ export function featuredCountries<T extends { country: CountryCost }>(rows: read
   const home = rows.find((row) => row.country.code === homeCode);
   if (home && !featured.includes(home)) featured.push(home);
   return featured;
+}
+
+export interface PlanAnswers {
+  invested: string;
+  monthly: string;
+  goal: string;
+}
+
+export type PlanErrors = Partial<Record<keyof PlanAnswers, string>>;
+
+/** The three first-use questions. Empty "invested" and "monthly" mean 0. */
+export function validatePlanAnswers(
+  answers: PlanAnswers,
+): { ok: true; invested: number; monthly: number; goal: number } | { ok: false; errors: PlanErrors } {
+  const read = (text: string, emptyAs: number | null) => (text.trim() === "" ? emptyAs : parseLooseNumber(text));
+  const invested = read(answers.invested, 0);
+  const monthly = read(answers.monthly, 0);
+  const goal = read(answers.goal, null);
+  const errors: PlanErrors = {};
+  if (invested === null || invested < 0) errors.invested = "Enter an amount, or 0.";
+  if (monthly === null || monthly < 0) errors.monthly = "Enter an amount, or 0.";
+  if (goal === null || goal <= 0) errors.goal = "Enter the amount you want to reach.";
+  if (invested === null || monthly === null || goal === null || Object.keys(errors).length > 0) {
+    return { ok: false, errors };
+  }
+  return { ok: true, invested, monthly, goal };
 }

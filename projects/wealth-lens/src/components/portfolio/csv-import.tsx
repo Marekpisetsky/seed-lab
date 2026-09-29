@@ -14,12 +14,13 @@ import {
 interface CsvImportProps {
   hasHoldings: boolean;
   onImport: (positions: ImportedPosition[]) => void;
+  label?: string;
 }
 
 type Preview = { fileName: string; outcome: ImportOutcome };
 
 /** File picker + preview. Nothing is replaced until the user confirms. */
-export function CsvImport({ hasHoldings, onImport }: CsvImportProps) {
+export function CsvImport({ hasHoldings, onImport, label = "Import CSV" }: CsvImportProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
 
@@ -50,10 +51,8 @@ export function CsvImport({ hasHoldings, onImport }: CsvImportProps) {
             if (file) void handleFile(file);
           }}
         />
-        <Button onClick={() => inputRef.current?.click()}>Import CSV…</Button>
-        <p className="text-xs text-muted">
-          Trading 212: History → Export CSV. Or a CSV with columns ticker, quantity, cost_basis, currency.
-        </p>
+        <Button onClick={() => inputRef.current?.click()}>{label}</Button>
+        <p className="text-xs text-muted">In Trading 212: History → Export.</p>
       </div>
 
       {preview && (

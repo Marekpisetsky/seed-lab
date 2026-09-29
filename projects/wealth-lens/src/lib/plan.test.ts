@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { CountryCost } from "./cost-of-living";
 import { summarizeByCurrency } from "./finance";
-import { featuredCountries, goalProgress, hasStarted, headlineGain, startingCapital } from "./plan";
+import { featuredCountries, goalProgress, hasStarted, headlineGain, startingCapital, validatePlanAnswers } from "./plan";
 import type { Holding } from "./types";
 
 const holding = (overrides: Partial<Holding>): Holding => ({
@@ -74,5 +74,27 @@ describe("featuredCountries", () => {
 
   it("ignores an unknown home country", () => {
     expect(featuredCountries(rows, "ZZ")).toHaveLength(5);
+  });
+});
+
+describe("validatePlanAnswers", () => {
+  it("reads loose numbers and treats empty amounts as 0", () => {
+    expect(validatePlanAnswers({ invested: "25.000,50", monthly: "", goal: "€300,000" })).toEqual({
+      ok: true,
+      invested: 25000.5,
+      monthly: 0,
+      goal: 300000,
+    });
+  });
+
+  it("requires a positive goal and valid amounts", () => {
+    expect(validatePlanAnswers({ invested: "-1", monthly: "abc", goal: "" })).toEqual({
+      ok: false,
+      errors: {
+        invested: "Enter an amount, or 0.",
+        monthly: "Enter an amount, or 0.",
+        goal: "Enter the amount you want to reach.",
+      },
+    });
   });
 });
