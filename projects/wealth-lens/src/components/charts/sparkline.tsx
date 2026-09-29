@@ -7,11 +7,10 @@ const HEIGHT = 28;
 export function Sparkline({ closes, rising }: { closes: readonly number[]; rising: boolean }) {
   return (
     <svg
-      width={WIDTH}
-      height={HEIGHT}
       viewBox={`-1 -1 ${WIDTH + 2} ${HEIGHT + 2}`}
+      preserveAspectRatio="none"
       aria-hidden="true"
-      className={rising ? "text-positive" : "text-negative"}
+      className={`h-7 w-16 shrink-0 sm:w-24 ${rising ? "text-positive" : "text-negative"}`}
     >
       <polyline
         points={sparklinePoints(closes, WIDTH, HEIGHT)}
@@ -19,6 +18,7 @@ export function Sparkline({ closes, rising }: { closes: readonly number[]; risin
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
       />
     </svg>
   );

@@ -30,7 +30,7 @@ export function ChartRow({ title, subtitle, closes, change, children }: ChartRow
       >
         <span className="min-w-0 flex-1">
           <span className="block font-semibold">{title}</span>
-          <span className="block truncate text-xs text-muted">{subtitle}</span>
+          <span className="block text-xs text-muted">{subtitle}</span>
         </span>
         {change !== null && closes.length > 1 && <Sparkline closes={closes} rising={change >= 0} />}
         <span
