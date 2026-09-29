@@ -1,7 +1,8 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { parseLooseNumber } from "@/lib/csv";
+import { createSettler, type Settler } from "@/lib/settle";
 
 export const inputClass =
   "w-full rounded-md border border-border bg-background px-3 py-2 text-sm tabular-nums outline-none " +
@@ -133,7 +134,7 @@ export function PercentInput(props: Omit<NumberInputProps, "toDisplay" | "fromDi
 
 interface LiveNumberInputProps extends NativeInputProps {
   value: number | null;
-  /** Called on every keystroke that reads as a number of 0 or more; `null` when cleared. */
+  /** Called on every keystroke that reads as a number of 0 or more; `null` when cleared. For local drafts only: fields that change the report use SettledNumberInput. */
   onValue: (value: number | null) => void;
 }
 
@@ -177,3 +178,73 @@ export function LiveNumberInput({ value, onValue, className = "", ...rest }: Liv
     />
   );
 }
+
+interface SettledNumberInputProps extends Omit<NativeInputProps, "value" | "onChange"> {
+  value: number;
+  /** Called once the user has finished typing (a 500 ms pause, blur or Enter), never per keystroke. */
+  onCommit: (value: number) => void;
+  /** Largest accepted value; more is marked invalid. */
+  max?: number;
+}
+
+/**
+ * A money field that changes the report only when the user has finished
+ * typing (lib/settle.ts): the values on the way ("1", "10", "100" while
+ * typing "1000") are never applied, so the screen does not move under the
+ * user's fingers. Accepts "1,234.5" or "1.234,5"; the typed text stays as
+ * typed until the field is left. Emptied and left, it reads 0.
+ */
+export function SettledNumberInput({ value, onCommit, max = Infinity, className = "", onBlur, onKeyDown, ...rest }: SettledNumberInputProps) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const [invalid, setInvalid] = useState(false);
+  const commit = useRef(onCommit);
+  useEffect(() => {
+    commit.current = onCommit;
+  });
+  // Made on first use, in an event handler: it reads the latest onCommit when it fires.
+  const settlerRef = useRef<Settler<number> | null>(null);
+  const settler = () => (settlerRef.current ??= createSettler<number>((next) => commit.current(next)));
+  // Leaving the page mid-pause still applies what was typed.
+  useEffect(() => () => settlerRef.current?.flush(), []);
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      autoComplete="off"
+      {...rest}
+      value={draft ?? plain.format(value)}
+      onChange={(event) => {
+        const text = event.target.value;
+        setDraft(text);
+        if (text.trim() === "") {
+          settler().cancel();
+          setInvalid(false);
+          return;
+        }
+        const parsed = parseLooseNumber(text);
+        const ok = parsed !== null && parsed >= 0 && parsed <= max;
+        setInvalid(!ok);
+        if (ok) settler().typed(parsed);
+        else settler().cancel();
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") settler().flush();
+        onKeyDown?.(event);
+      }}
+      onBlur={(event) => {
+        if (draft !== null && draft.trim() === "") {
+          settler().cancel();
+          commit.current(0);
+        } else {
+          settler().flush();
+        }
+        setDraft(null);
+        setInvalid(false);
+        onBlur?.(event);
+      }}
+      aria-invalid={invalid || undefined}
+      className={`${inputClass} ${className}`}
+    />
+  );
+}
+
