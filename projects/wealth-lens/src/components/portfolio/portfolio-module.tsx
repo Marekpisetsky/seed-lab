@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { ModuleSkeleton } from "@/components/module-skeleton";
 import { useHydrated, usePersistentStore } from "@/hooks/use-persistent-store";
 import { startOfUtcDay } from "@/lib/dates";
 import { summarizeByCurrency } from "@/lib/finance";
@@ -50,17 +51,6 @@ function PortfolioContent() {
         onGoalChange={(patch) => setGoal((previous) => ({ ...previous, ...patch }))}
         onAssumptionsChange={(patch) => setAssumptions((previous) => ({ ...previous, ...patch }))}
       />
-    </div>
-  );
-}
-
-/** Shown during the server render, before saved data is read from the browser. */
-export function ModuleSkeleton() {
-  return (
-    <div className="space-y-6" aria-busy="true" aria-label="Loading your data">
-      {[0, 1, 2].map((key) => (
-        <div key={key} className="h-40 animate-pulse rounded-xl border border-border bg-card" />
-      ))}
     </div>
   );
 }
