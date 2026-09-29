@@ -164,10 +164,10 @@
     },
     {
       "id": "flat-lima",
-      "name": "An 80 m² flat in Lima, Peru",
+      "name": "An 80 m² flat in upscale Lima, Peru",
       "amount": 131340,
       "calc": { "squareMetres": 80, "pricePerSquareMetre": 1868, "currency": "USD" },
-      "source": "BCRP (Banco Central de Reserva del Perú): average asking price of flats in Lima, USD 1,868 per m² in Q4 2025, published March 2026.",
+      "source": "BCRP (Banco Central de Reserva del Perú): average asking price of flats in the districts its housing-price index covers, well-off areas such as Miraflores, San Isidro and Santiago de Surco, not all of Lima: USD 1,868 per m² in Q4 2025, published March 2026.",
       "referenceDate": "2025-12"
     },
     {

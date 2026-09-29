@@ -28,6 +28,9 @@ describe("connections dataset", () => {
     const lima = items.get("flat-lima");
     expect(lima?.calc).toEqual({ squareMetres: 80, pricePerSquareMetre: 1868, currency: "USD" });
     expect(lima?.amount).toBe(Math.round((80 * 1868) / connectionsData.usdPerEur / 10) * 10);
+    // The BCRP index covers well-off districts only, and the entry says so.
+    expect(lima?.name).toMatch(/upscale Lima/);
+    expect(lima?.source).toMatch(/not all of Lima/);
     expect(items.get("flat-portugal")?.amount).toBe(80 * 2239);
     expect(items.get("home-deposit-nl")?.amount).toBe(0.1 * 480000);
     expect(items.get("home-nl")?.amount).toBe(480000);
