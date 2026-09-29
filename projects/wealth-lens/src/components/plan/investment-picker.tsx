@@ -34,6 +34,8 @@ export function InvestmentPicker({ onChosen }: { onChosen?: () => void }) {
   const { plan } = useAppState();
   const holdings = usePricedHoldings();
   const mix = useMemo(() => portfolioMix(holdings), [holdings]);
+  // What is really used: a portfolio with nothing priced in euros falls back to the default index.
+  const current = useMemo(() => resolveInvestment(plan.investment, holdings).investment, [plan.investment, holdings]);
 
   const options: Option[] = INDEX_IDS.map((index) => ({
     key: index,
@@ -74,7 +76,7 @@ export function InvestmentPicker({ onChosen }: { onChosen?: () => void }) {
       </p>
       <div role="radiogroup" aria-labelledby="investment-picker-label" className="space-y-1">
         {options.map((option) => {
-          const selected = sameInvestment(option.investment, plan.investment);
+          const selected = sameInvestment(option.investment, current);
           return (
             <button
               key={option.key}

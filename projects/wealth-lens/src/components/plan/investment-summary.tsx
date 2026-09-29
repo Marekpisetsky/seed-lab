@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { formatRate } from "@/lib/format";
+import { formatPercent, formatRate } from "@/lib/format";
 import { INDEXES } from "@/lib/indexes";
 import type { ResolvedInvestment } from "@/lib/investment";
+import { MARKET } from "@/lib/market-data";
 import { InvestmentPicker, mixLabel } from "./investment-picker";
 
 /** One sentence: what the plan grows like and at which rate, with a way to change it. */
@@ -42,9 +43,17 @@ function GrowthSentence({ investment }: { investment: ResolvedInvestment }) {
     );
   }
   if (proxyIndex) {
+    const own = choice.kind === "stock" ? MARKET.prices[choice.id]?.growth : null;
     return (
       <>
         Grows like <strong>{name}</strong>, projected with the {INDEXES[proxyIndex].name}: {rate} {average}.
+        {own && (
+          <>
+            {" "}
+            {name} itself grew {formatPercent(own.perYear, { signed: true })} a year since {own.from.slice(0, 4)}: past,
+            not a forecast.
+          </>
+        )}
       </>
     );
   }
