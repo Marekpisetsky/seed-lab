@@ -68,6 +68,16 @@ export type Investment =
 /** Compare living costs with rent included, or for someone who owns their home. */
 export type Housing = "rent" | "own";
 
+/** Something the user adds to "What it means in real life". */
+export interface CustomConnection {
+  id: string;
+  name: string;
+  /** "live": a monthly cost to cover; "buy": a one-off amount. */
+  kind: "live" | "buy";
+  /** Monthly cost or one-off amount, in today's euros. */
+  amount: number;
+}
+
 /**
  * The one plan every screen reads and edits. It lives in memory only: nothing
  * is saved, and reloading the page starts over (see lib/app-store.ts).
