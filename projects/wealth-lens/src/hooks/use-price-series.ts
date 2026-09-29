@@ -6,7 +6,7 @@ import { fetchFirstAvailable, forgetPriceSeries, type ResolvedPriceResult } from
 export type PriceSeriesState = { status: "idle" } | { status: "loading" } | ({ status: "done" } & ResolvedPriceResult);
 
 /**
- * Loads the daily series of a holding, trying its candidate Stooq symbols in
+ * Loads the daily series of a holding, trying its candidate price symbols in
  * order; pass `null` to skip loading (e.g. when the user uploaded prices).
  * "Loading" is derived from whether the stored result belongs to the current
  * request, so state is only set from the async callback.

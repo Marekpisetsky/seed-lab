@@ -19,20 +19,21 @@ const holding: Holding = {
 
 describe("latestPriceUpdate", () => {
   it("fills an automatic price with the latest close and its date", () => {
-    expect(latestPriceUpdate(holding, "vwce.de", points)).toEqual({ currentPrice: 131.5, priceDate: "2026-09-25" });
+    expect(latestPriceUpdate(holding, "EUR", points)).toEqual({ currentPrice: 131.5, priceDate: "2026-09-25" });
   });
 
   it("never overwrites a price typed by the user", () => {
-    expect(latestPriceUpdate({ ...holding, currentPrice: 120, priceSource: "manual" }, "vwce.de", points)).toBeNull();
+    expect(latestPriceUpdate({ ...holding, currentPrice: 120, priceSource: "manual" }, "EUR", points)).toBeNull();
   });
 
   it("skips series quoted in another currency", () => {
-    expect(latestPriceUpdate(holding, "vwce.us", points)).toBeNull();
-    expect(latestPriceUpdate({ ...holding, currency: "GBP" }, "vusa.uk", points)).toBeNull(); // pence
+    expect(latestPriceUpdate(holding, "USD", points)).toBeNull();
+    expect(latestPriceUpdate({ ...holding, currency: "GBP" }, "GBX", points)).toBeNull(); // pence
+    expect(latestPriceUpdate(holding, null, points)).toBeNull(); // unknown currency
   });
 
   it("does nothing when already up to date or without data", () => {
-    expect(latestPriceUpdate({ ...holding, currentPrice: 131.5, priceDate: "2026-09-25" }, "vwce.de", points)).toBeNull();
-    expect(latestPriceUpdate(holding, "vwce.de", [])).toBeNull();
+    expect(latestPriceUpdate({ ...holding, currentPrice: 131.5, priceDate: "2026-09-25" }, "EUR", points)).toBeNull();
+    expect(latestPriceUpdate(holding, "EUR", [])).toBeNull();
   });
 });

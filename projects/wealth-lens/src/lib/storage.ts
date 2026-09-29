@@ -8,7 +8,8 @@
  * value read back is validated, falling back to defaults instead of crashing.
  */
 
-import { isValidStooqSymbol, type PricePoint } from "./prices";
+import type { PricePoint } from "./prices";
+import { toYahooSymbol } from "./symbols";
 import type { Assumptions, FireSettings, Goal, Holding } from "./types";
 
 /** The subset of the Web Storage API this module needs (easy to fake in tests). */
@@ -206,14 +207,19 @@ export function parseInvested(value: unknown): number | null {
   return isNonNegativeNumber(value) ? value : null;
 }
 
-/** Stooq symbol chosen per ticker; invalid entries are dropped. */
+/**
+ * Price symbol chosen per ticker, in Yahoo notation. Symbols saved by
+ * earlier versions in Stooq notation ("aapl.us") are converted; invalid
+ * entries are dropped.
+ */
 export function parseSymbolOverrides(value: unknown): Record<string, string> | null {
   if (!isRecord(value)) return null;
-  return Object.fromEntries(
-    Object.entries(value).filter(
-      (entry): entry is [string, string] => typeof entry[1] === "string" && isValidStooqSymbol(entry[1]),
-    ),
-  );
+  const overrides: Record<string, string> = {};
+  for (const [ticker, saved] of Object.entries(value)) {
+    const symbol = typeof saved === "string" ? toYahooSymbol(saved) : null;
+    if (symbol) overrides[ticker] = symbol;
+  }
+  return overrides;
 }
 
 export interface UploadedPrices {

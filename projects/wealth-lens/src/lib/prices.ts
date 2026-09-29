@@ -154,9 +154,13 @@ export function interpretStooqResponse(status: number, body: string): StooqResul
 // ---------------------------------------------------------------------------
 
 export interface PriceSeriesResponse {
+  /** Yahoo notation, upper case (e.g. "VWCE.DE"). */
   symbol: string;
-  source: "stooq";
-  /** When the server fetched the data from Stooq (ISO timestamp). */
+  /** Which source answered: Yahoo first, Stooq as fallback. */
+  source: "yahoo" | "stooq";
+  /** Currency the prices are quoted in, as reported by the source; `null` if unknown. */
+  currency: string | null;
+  /** When the server fetched the data (ISO timestamp). */
   fetchedAt: string;
   points: PricePoint[];
 }

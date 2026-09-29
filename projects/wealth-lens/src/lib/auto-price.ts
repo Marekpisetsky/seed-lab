@@ -5,18 +5,19 @@
  * own currency, since the app never converts currencies.
  */
 
-import { stooqQuoteCurrency, type PricePoint } from "./prices";
+import type { PricePoint } from "./prices";
 import type { Holding } from "./types";
 
 export type PricePatch = Pick<Holding, "currentPrice" | "priceDate">;
 
 export function latestPriceUpdate(
   holding: Holding,
-  symbol: string,
+  /** Currency the series is quoted in, as reported by the price source. */
+  quoteCurrency: string | null,
   points: readonly PricePoint[],
 ): PricePatch | null {
   if (holding.priceSource !== "auto") return null;
-  if (stooqQuoteCurrency(symbol) !== holding.currency) return null;
+  if (quoteCurrency !== holding.currency) return null;
   const last = points.at(-1);
   if (!last) return null;
   if (holding.currentPrice === last.close && holding.priceDate === last.time) return null;
