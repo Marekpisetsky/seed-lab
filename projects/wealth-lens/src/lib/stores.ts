@@ -4,10 +4,12 @@ import {
   DEFAULT_FIRE_SETTINGS,
   DEFAULT_GOAL,
   DEFAULT_HOLDINGS,
+  DEFAULT_INVESTED,
   parseAssumptions,
   parseFireSettings,
   parseGoal,
   parseHoldings,
+  parseInvested,
   parseSymbolOverrides,
   parseUploadedPrices,
   STORAGE_KEYS,
@@ -32,6 +34,13 @@ export const assumptionsStore = createPersistentStore<Assumptions>({
   key: STORAGE_KEYS.assumptions,
   parse: parseAssumptions,
   fallback: DEFAULT_ASSUMPTIONS,
+});
+
+/** Amount invested, from the first-use questions (used while there are no holdings). */
+export const investedStore = createPersistentStore<number | null>({
+  key: STORAGE_KEYS.invested,
+  parse: parseInvested,
+  fallback: DEFAULT_INVESTED,
 });
 
 export const fireSettingsStore = createPersistentStore<FireSettings>({

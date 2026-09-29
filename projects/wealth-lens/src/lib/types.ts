@@ -25,11 +25,21 @@ export interface Holding {
   costBasis: number;
   currency: CurrencyCode;
   /**
-   * Latest price per share in `currency`, entered by the user.
-   * `null` means "unknown": the holding is left out of value and gain totals.
+   * Latest price per share in `currency`. `null` means "unknown": the holding
+   * is left out of value and gain totals.
    */
   currentPrice: number | null;
+  /**
+   * "auto": filled with the latest close from the price source and refreshed;
+   * "manual": typed by the user and never overwritten automatically.
+   */
+  priceSource: "auto" | "manual";
+  /** Trading day of an automatic price (`YYYY-MM-DD`); `null` otherwise. */
+  priceDate: string | null;
 }
+
+/** The fields a user or a file provides; price bookkeeping is added on top. */
+export type HoldingInput = Omit<Holding, "id" | "priceSource" | "priceDate">;
 
 /** Savings goal, in BASE_CURRENCY and in today's money. */
 export interface Goal {
@@ -52,8 +62,8 @@ export interface Assumptions {
 
 /** Settings of the FIRE simulator. */
 export interface FireSettings {
-  /** Capital typed by the user; `null` means "use my EUR portfolio value". */
-  capitalOverride: number | null;
   /** Compare costs with rent included, or for someone who owns their home. */
   housing: "rent" | "own";
+  /** ISO code of the country always shown next to the cheapest ones. */
+  homeCountry: string;
 }

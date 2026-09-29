@@ -10,6 +10,7 @@ import {
   parseFireSettings,
   parseGoal,
   parseHoldings,
+  parseInvested,
   parseSymbolOverrides,
   parseUploadedPrices,
   readValue,
@@ -121,7 +122,19 @@ describe("parseHoldings", () => {
       { ...valid, id: "missing-price", currentPrice: undefined },
       "not an object",
     ]);
-    expect(parsed).toEqual([valid]);
+    expect(parsed).toEqual([{ ...valid, priceSource: "auto", priceDate: null }]);
+  });
+
+  it("reads holdings saved before automatic prices existed", () => {
+    // A typed price stays manual; a missing one is filled automatically.
+    expect(parseHoldings([{ ...valid, currentPrice: 180 }])?.[0]).toMatchObject({ priceSource: "manual", priceDate: null });
+    expect(parseHoldings([valid])?.[0]).toMatchObject({ priceSource: "auto", priceDate: null });
+  });
+
+  it("keeps the date of an automatic price only", () => {
+    const auto = { ...valid, currentPrice: 180, priceSource: "auto", priceDate: "2026-09-25" };
+    expect(parseHoldings([auto])?.[0].priceDate).toBe("2026-09-25");
+    expect(parseHoldings([{ ...auto, priceSource: "manual" }])?.[0].priceDate).toBeNull();
   });
 
   it("rejects non-arrays", () => {
@@ -161,12 +174,21 @@ describe("parseAssumptions", () => {
 
 describe("parseFireSettings", () => {
   it("keeps valid settings and falls back per field", () => {
-    expect(parseFireSettings({ capitalOverride: 250_000, housing: "own" })).toEqual({
-      capitalOverride: 250_000,
-      housing: "own",
-    });
-    expect(parseFireSettings({ capitalOverride: -5, housing: "castle" })).toEqual(DEFAULT_FIRE_SETTINGS);
+    expect(parseFireSettings({ housing: "own", homeCountry: "PE" })).toEqual({ housing: "own", homeCountry: "PE" });
+    // Old saved settings (with capitalOverride) still load.
+    expect(parseFireSettings({ capitalOverride: 5, housing: "castle", homeCountry: "peru" })).toEqual(
+      DEFAULT_FIRE_SETTINGS,
+    );
     expect(parseFireSettings("nope")).toBeNull();
+  });
+});
+
+describe("parseInvested", () => {
+  it("accepts 0 or more, otherwise means not answered", () => {
+    expect(parseInvested(25_000)).toBe(25_000);
+    expect(parseInvested(0)).toBe(0);
+    expect(parseInvested(-1)).toBeNull();
+    expect(parseInvested("lots")).toBeNull();
   });
 });
 

@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, NumberInput, PercentInput } from "@/components/ui/form";
 import { formatMoney } from "@/lib/format";
@@ -28,31 +27,11 @@ export function FireInputs({
   onSettingsChange,
   onWithdrawalRateChange,
 }: FireInputsProps) {
-  const usingPortfolio = settings.capitalOverride === null;
   return (
     <Card title="Your numbers">
       <div className="grid gap-4 sm:grid-cols-3">
-        <Field
-          label={`Invested capital (${BASE_CURRENCY})`}
-          hint={
-            usingPortfolio ? (
-              "Your EUR holdings at current prices."
-            ) : (
-              <Button size="sm" variant="ghost" className="-ml-2" onClick={() => onSettingsChange({ capitalOverride: null })}>
-                Use portfolio value ({formatMoney(portfolioCapital, BASE_CURRENCY, { decimals: 0 })})
-              </Button>
-            )
-          }
-        >
-          {(props) => (
-            <NumberInput
-              {...props}
-              key={capital}
-              value={Math.round(capital)}
-              min={0}
-              onCommit={(value) => value !== null && onSettingsChange({ capitalOverride: value })}
-            />
-          )}
+        <Field label={`Invested capital (${BASE_CURRENCY})`} hint={`From your plan: ${formatMoney(portfolioCapital, BASE_CURRENCY, { decimals: 0 })}.`}>
+          {(props) => <NumberInput {...props} value={Math.round(capital)} readOnly onCommit={() => {}} />}
         </Field>
         <Field label="Withdrawal rate (% per year)" hint="4% is the classic rule of thumb.">
           {(props) => (

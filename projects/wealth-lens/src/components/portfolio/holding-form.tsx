@@ -9,14 +9,14 @@ import {
   type HoldingFormErrors,
   type HoldingFormValues,
 } from "@/lib/holding-form";
-import type { Holding } from "@/lib/types";
+import type { HoldingInput } from "@/lib/types";
 
 const COMMON_CURRENCIES = ["EUR", "USD", "GBP", "GBX", "CHF", "PLN", "SEK", "NOK", "DKK", "CAD", "JPY"];
 
 interface HoldingFormProps {
   initialValues?: HoldingFormValues;
   submitLabel: string;
-  onSubmit: (holding: Omit<Holding, "id">) => void;
+  onSubmit: (holding: HoldingInput) => void;
   onCancel: () => void;
 }
 

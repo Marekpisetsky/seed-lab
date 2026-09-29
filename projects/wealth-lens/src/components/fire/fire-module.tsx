@@ -6,10 +6,9 @@ import { Card } from "@/components/ui/card";
 import { useHydrated, usePersistentStore } from "@/hooks/use-persistent-store";
 import { costOfLiving } from "@/lib/cost-of-living";
 import { startOfUtcDay } from "@/lib/dates";
-import { summarizeByCurrency } from "@/lib/finance";
 import { coverageByCountry, requirementsByCountry } from "@/lib/fire";
-import { assumptionsStore, fireSettingsStore, holdingsStore } from "@/lib/stores";
-import { BASE_CURRENCY } from "@/lib/types";
+import { startingCapital } from "@/lib/plan";
+import { assumptionsStore, fireSettingsStore, holdingsStore, investedStore } from "@/lib/stores";
 import { CoverageView } from "./coverage-view";
 import { FireInputs } from "./fire-inputs";
 import { RequirementsView } from "./requirements-view";
@@ -34,11 +33,9 @@ function FireContent() {
   const [view, setView] = useState<View>("coverage");
   const today = useMemo(() => startOfUtcDay(new Date()), []);
 
-  const portfolioCapital = useMemo(
-    () => summarizeByCurrency(holdings).find((summary) => summary.currency === BASE_CURRENCY)?.value ?? 0,
-    [holdings],
-  );
-  const capital = settings.capitalOverride ?? portfolioCapital;
+  const [invested] = usePersistentStore(investedStore);
+  const portfolioCapital = startingCapital(holdings, invested).amount;
+  const capital = portfolioCapital;
   const housingLabel = settings.housing === "rent" ? "renting" : "no rent";
 
   const coverage = useMemo(

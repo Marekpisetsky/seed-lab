@@ -169,10 +169,10 @@ describe("importHoldingsCsv", () => {
 });
 
 describe("mergeImportedHoldings", () => {
-  it("assigns ids and keeps known current prices for the same ticker and currency", () => {
+  it("assigns ids and decides where each price comes from", () => {
     const existing: Holding[] = [
-      { id: "old", ticker: "AAPL", quantity: 1, costBasis: 100, currency: "USD", currentPrice: 200 },
-      { id: "old2", ticker: "VWCE", quantity: 1, costBasis: 100, currency: "EUR", currentPrice: 120 },
+      { id: "old", ticker: "AAPL", quantity: 1, costBasis: 100, currency: "USD", currentPrice: 200, priceSource: "auto", priceDate: "2026-09-25" },
+      { id: "old2", ticker: "VWCE", quantity: 1, costBasis: 100, currency: "EUR", currentPrice: 120, priceSource: "manual", priceDate: null },
     ];
     let next = 0;
     const merged = mergeImportedHoldings(
@@ -185,9 +185,12 @@ describe("mergeImportedHoldings", () => {
       () => `id-${next++}`,
     );
     expect(merged).toEqual([
-      { id: "id-0", ticker: "AAPL", quantity: 2, costBasis: 300, currency: "USD", currentPrice: 200 },
-      { id: "id-1", ticker: "VWCE", quantity: 5, costBasis: 500, currency: "EUR", currentPrice: 125 },
-      { id: "id-2", ticker: "AAPL", quantity: 1, costBasis: 150, currency: "EUR", currentPrice: null },
+      // Known ticker and currency: keeps the existing price and its origin.
+      { id: "id-0", ticker: "AAPL", quantity: 2, costBasis: 300, currency: "USD", currentPrice: 200, priceSource: "auto", priceDate: "2026-09-25" },
+      // Price in the file: treated as typed by the user.
+      { id: "id-1", ticker: "VWCE", quantity: 5, costBasis: 500, currency: "EUR", currentPrice: 125, priceSource: "manual", priceDate: null },
+      // Unknown: filled automatically later.
+      { id: "id-2", ticker: "AAPL", quantity: 1, costBasis: 150, currency: "EUR", currentPrice: null, priceSource: "auto", priceDate: null },
     ]);
   });
 });

@@ -38,6 +38,8 @@ function holding(overrides: Partial<Holding>): Holding {
     costBasis: 100,
     currency: "EUR",
     currentPrice: null,
+    priceSource: "manual",
+    priceDate: null,
     ...overrides,
   };
 }

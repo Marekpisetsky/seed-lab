@@ -29,6 +29,7 @@ export const STORAGE_KEYS = {
   assumptions: `${KEY_PREFIX}assumptions`,
   fire: `${KEY_PREFIX}fire`,
   chartSymbols: `${KEY_PREFIX}chart-symbols`,
+  invested: `${KEY_PREFIX}invested`,
 } as const;
 
 /** One key per ticker, so a large uploaded file cannot crowd out the rest. */
@@ -47,7 +48,10 @@ export const DEFAULT_ASSUMPTIONS: Assumptions = {
   inflation: 0.02,
 };
 
-export const DEFAULT_FIRE_SETTINGS: FireSettings = { capitalOverride: null, housing: "rent" };
+export const DEFAULT_FIRE_SETTINGS: FireSettings = { housing: "rent", homeCountry: "NL" };
+
+/** Amount invested, answered in the first-use questions; `null` = not answered. */
+export const DEFAULT_INVESTED: number | null = null;
 
 /** `window.localStorage`, or `null` on the server or when access is blocked. */
 export function getBrowserStorage(): KeyValueStorage | null {
@@ -135,13 +139,25 @@ export function isIsoDate(value: unknown): value is string {
 
 export function parseHolding(value: unknown): Holding | null {
   if (!isRecord(value)) return null;
-  const { id, ticker, quantity, costBasis, currency, currentPrice } = value;
+  const { id, ticker, quantity, costBasis, currency, currentPrice, priceSource, priceDate } = value;
   if (typeof id !== "string" || id === "") return null;
   if (typeof ticker !== "string" || ticker.trim() === "") return null;
   if (!isNonNegativeNumber(quantity) || !isNonNegativeNumber(costBasis)) return null;
   if (!isCurrencyCode(currency)) return null;
   if (currentPrice !== null && !isNonNegativeNumber(currentPrice)) return null;
-  return { id, ticker, quantity, costBasis, currency, currentPrice };
+  // Data saved before automatic prices existed: a typed price stays manual.
+  const source =
+    priceSource === "auto" || priceSource === "manual" ? priceSource : currentPrice === null ? "auto" : "manual";
+  return {
+    id,
+    ticker,
+    quantity,
+    costBasis,
+    currency,
+    currentPrice,
+    priceSource: source,
+    priceDate: source === "auto" && isIsoDate(priceDate) ? priceDate : null,
+  };
 }
 
 /** Keeps every valid holding and drops the ones that fail validation. */
@@ -178,9 +194,16 @@ export function parseAssumptions(value: unknown): Assumptions | null {
 export function parseFireSettings(value: unknown): FireSettings | null {
   if (!isRecord(value)) return null;
   return {
-    capitalOverride: isNonNegativeNumber(value.capitalOverride) ? value.capitalOverride : null,
     housing: value.housing === "own" ? "own" : "rent",
+    homeCountry:
+      typeof value.homeCountry === "string" && /^[A-Z]{2}$/.test(value.homeCountry)
+        ? value.homeCountry
+        : DEFAULT_FIRE_SETTINGS.homeCountry,
   };
+}
+
+export function parseInvested(value: unknown): number | null {
+  return isNonNegativeNumber(value) ? value : null;
 }
 
 /** Stooq symbol chosen per ticker; invalid entries are dropped. */

@@ -5,7 +5,7 @@
  */
 
 import { parseLooseNumber } from "./csv";
-import type { Holding } from "./types";
+import type { Holding, HoldingInput } from "./types";
 
 export interface HoldingFormValues {
   ticker: string;
@@ -18,7 +18,7 @@ export interface HoldingFormValues {
 export type HoldingFormErrors = Partial<Record<keyof HoldingFormValues, string>>;
 
 export type HoldingFormResult =
-  | { ok: true; value: Omit<Holding, "id"> }
+  | { ok: true; value: HoldingInput }
   | { ok: false; errors: HoldingFormErrors };
 
 export const EMPTY_HOLDING_FORM: HoldingFormValues = {
@@ -64,4 +64,24 @@ export function validateHoldingForm(values: HoldingFormValues): HoldingFormResul
   // The null checks are implied by `errors` being empty; they narrow the types.
   if (Object.keys(errors).length > 0 || quantity === null || costBasis === null) return { ok: false, errors };
   return { ok: true, value: { ticker, quantity, costBasis, currency, currentPrice } };
+}
+
+/**
+ * Price bookkeeping when a holding is added or edited through the form:
+ * - an unchanged price keeps its origin (automatic prices stay automatic);
+ * - a typed price becomes manual and is never overwritten automatically;
+ * - clearing the price hands it back to the automatic source;
+ * - an automatic price is dropped when the ticker or currency changes, so the
+ *   right instrument is fetched again.
+ */
+export function withPriceSource(input: HoldingInput, previous: Holding | null): Omit<Holding, "id"> {
+  if (input.currentPrice === null) return { ...input, priceSource: "auto", priceDate: null };
+  if (!previous) return { ...input, priceSource: "manual", priceDate: null };
+  const sameInstrument = previous.ticker === input.ticker && previous.currency === input.currency;
+  if (input.currentPrice === previous.currentPrice && previous.priceSource === "auto") {
+    return sameInstrument
+      ? { ...input, priceSource: "auto", priceDate: previous.priceDate }
+      : { ...input, currentPrice: null, priceSource: "auto", priceDate: null };
+  }
+  return { ...input, priceSource: "manual", priceDate: null };
 }

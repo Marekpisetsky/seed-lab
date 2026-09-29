@@ -7,7 +7,7 @@ import { NumberInput } from "@/components/ui/form";
 import { Gain } from "@/components/ui/gain";
 import { averageCost, holdingGain, holdingValue } from "@/lib/finance";
 import { formatMoney, formatNumber } from "@/lib/format";
-import { holdingToFormValues } from "@/lib/holding-form";
+import { holdingToFormValues, withPriceSource } from "@/lib/holding-form";
 import { createId } from "@/lib/id";
 import { mergeImportedHoldings } from "@/lib/import";
 import type { Holding } from "@/lib/types";
@@ -52,7 +52,7 @@ export function HoldingsCard({ holdings, onChange }: HoldingsCardProps) {
             submitLabel="Add holding"
             onCancel={() => setEditor({ mode: "closed" })}
             onSubmit={(value) => {
-              onChange((previous) => [...previous, { ...value, id: createId() }]);
+              onChange((previous) => [...previous, { ...withPriceSource(value, null), id: createId() }]);
               setEditor({ mode: "closed" });
             }}
           />
@@ -64,7 +64,7 @@ export function HoldingsCard({ holdings, onChange }: HoldingsCardProps) {
             submitLabel={`Save ${editing.ticker}`}
             onCancel={() => setEditor({ mode: "closed" })}
             onSubmit={(value) => {
-              updateHolding(editing.id, value);
+              updateHolding(editing.id, withPriceSource(value, editing));
               setEditor({ mode: "closed" });
             }}
           />
@@ -77,7 +77,7 @@ export function HoldingsCard({ holdings, onChange }: HoldingsCardProps) {
         ) : (
           <HoldingsTable
             holdings={holdings}
-            onPriceChange={(id, currentPrice) => updateHolding(id, { currentPrice })}
+            onPriceChange={(id, currentPrice) => updateHolding(id, { currentPrice, priceSource: currentPrice === null ? "auto" : "manual", priceDate: null })}
             onEdit={(id) => setEditor({ mode: "edit", id })}
             onRemove={removeHolding}
           />

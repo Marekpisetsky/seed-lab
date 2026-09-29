@@ -1,7 +1,7 @@
-import type { Holding } from "../types";
+import type { HoldingInput } from "../types";
 
 /** A position read from a file, before it gets an id. */
-export type ImportedPosition = Omit<Holding, "id">;
+export type ImportedPosition = HoldingInput;
 
 /** A row the importer could not use, with the reason in plain words. */
 export interface ImportIssue {
