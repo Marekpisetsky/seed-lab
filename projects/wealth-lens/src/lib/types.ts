@@ -4,6 +4,8 @@
  * modules.
  */
 
+import type { IndexId } from "./index-ids";
+
 /** ISO 4217 currency code, upper case (e.g. "EUR", "USD"). */
 export type CurrencyCode = string;
 
@@ -48,22 +50,54 @@ export interface Goal {
   targetDate: string | null;
 }
 
-/** All rates are decimal fractions: 0.07 means 7 %. */
+/**
+ * What the plan's money is invested in; it sets the growth used for every
+ * projection and the history used by the Monte Carlo simulation.
+ * - index: one of the three indexes (bought through its well-known ETF);
+ * - stock: a curated stock, projected with its closest index (a single
+ *   stock's past is shown, never projected);
+ * - portfolio: the user's holdings, each index weighted by holding value;
+ * - custom: a growth rate the user types.
+ */
+export type Investment =
+  | { kind: "index"; index: IndexId }
+  | { kind: "stock"; id: string }
+  | { kind: "portfolio" }
+  | { kind: "custom"; realReturn: number };
+
+/** Compare living costs with rent included, or for someone who owns their home. */
+export type Housing = "rent" | "own";
+
+/**
+ * The one plan every screen reads and edits. It lives in memory only: nothing
+ * is saved, and reloading the page starts over (see lib/app-store.ts).
+ * All rates are decimal fractions: 0.07 means 7 %.
+ */
+export interface Plan {
+  /** Amount invested, answered in the first questions; `null` until answered. Priced EUR holdings win. */
+  invested: number | null;
+  /** Added every month, in BASE_CURRENCY, constant in today's money. */
+  monthlyContribution: number;
+  /** The goal in euros (today's money). */
+  goal: Goal;
+  /** ISO code of a country whose cost of living is the active goal instead; `null` = the euro goal. */
+  goalCountry: string | null;
+  investment: Investment;
+  /** Share of the portfolio withdrawn per year once the goal is reached. */
+  withdrawalRate: number;
+  /** Expected annual inflation, used to translate real figures to nominal. */
+  inflation: number;
+  housing: Housing;
+  /** ISO code of the country always shown next to the cheapest ones. */
+  homeCountry: string;
+}
+
+/** Growth assumptions of a projection. */
 export interface Assumptions {
   /** Expected annual return AFTER inflation (real, not nominal). */
   realReturn: number;
-  /** Share of the portfolio withdrawn per year in retirement. */
-  withdrawalRate: number;
   /** Monthly contribution in BASE_CURRENCY, constant in today's money. */
   monthlyContribution: number;
   /** Expected annual inflation, used to translate real figures to nominal. */
   inflation: number;
-}
-
-/** Settings of the FIRE simulator. */
-export interface FireSettings {
-  /** Compare costs with rent included, or for someone who owns their home. */
-  housing: "rent" | "own";
-  /** ISO code of the country always shown next to the cheapest ones. */
-  homeCountry: string;
 }

@@ -1,22 +1,20 @@
 import { describe, expect, it } from "vitest";
-import {
-  HISTORICAL_REAL_RETURNS,
-  mulberry32,
-  sp500RealReturns,
-  successRate,
-  survives,
-} from "./monte-carlo";
+import sp500 from "@/data/sp500-real-returns.json";
+import { INDEXES } from "./indexes";
+import { mulberry32, successRate, survives } from "./monte-carlo";
 
-describe("sp500RealReturns dataset", () => {
+const HISTORICAL_REAL_RETURNS = INDEXES.sp500.years.map((entry) => entry.realReturn);
+
+describe("S&P 500 dataset", () => {
   it("covers 1928 onwards, one entry per year, with a source", () => {
-    const years = sp500RealReturns.years.map((entry) => entry.year);
+    const years = sp500.years.map((entry) => entry.year);
     expect(years[0]).toBe(1928);
     expect(years).toEqual(years.map((_, index) => 1928 + index));
-    expect(sp500RealReturns.source).toMatch(/Shiller/);
+    expect(sp500.source).toMatch(/Shiller/);
   });
 
   it("matches well-known years", () => {
-    const byYear = new Map(sp500RealReturns.years.map((entry) => [entry.year, entry.realReturn]));
+    const byYear = new Map(sp500.years.map((entry) => [entry.year, entry.realReturn]));
     expect(byYear.get(1931)).toBeLessThan(-0.3); // Great Depression
     expect(byYear.get(2008)).toBeLessThan(-0.3); // Financial crisis
     expect(byYear.get(2013)).toBeGreaterThan(0.2);
@@ -64,24 +62,31 @@ describe("successRate", () => {
   });
 
   it("is low with 15 % withdrawals over historical returns", () => {
-    expect(successRate({ withdrawalRate: 0.15 })).toBeLessThan(0.1);
+    expect(successRate({ withdrawalRate: 0.15, returns: HISTORICAL_REAL_RETURNS })).toBeLessThan(0.1);
   });
 
   it("is high but not certain at 4 % over historical returns", () => {
-    const rate = successRate({ withdrawalRate: 0.04 });
+    const rate = successRate({ withdrawalRate: 0.04, returns: HISTORICAL_REAL_RETURNS });
     expect(rate).toBeGreaterThan(0.85);
     expect(rate).toBeLessThan(1);
   });
 
   it("falls as the withdrawal rate rises", () => {
-    const rates = [0.03, 0.04, 0.05, 0.07].map((withdrawalRate) => successRate({ withdrawalRate }));
+    const rates = [0.03, 0.04, 0.05, 0.07].map((withdrawalRate) => successRate({ withdrawalRate, returns: HISTORICAL_REAL_RETURNS }));
     expect([...rates].sort((a, b) => b - a)).toEqual(rates);
   });
 
   it("is reproducible with the same seed and stable across seeds", () => {
-    expect(successRate({ withdrawalRate: 0.05 })).toBe(successRate({ withdrawalRate: 0.05 }));
-    const other = successRate({ withdrawalRate: 0.05, seed: 7 });
-    expect(Math.abs(other - successRate({ withdrawalRate: 0.05 }))).toBeLessThan(0.03);
+    expect(successRate({ withdrawalRate: 0.05, returns: HISTORICAL_REAL_RETURNS })).toBe(successRate({ withdrawalRate: 0.05, returns: HISTORICAL_REAL_RETURNS }));
+    const other = successRate({ withdrawalRate: 0.05, returns: HISTORICAL_REAL_RETURNS, seed: 7 });
+    expect(Math.abs(other - successRate({ withdrawalRate: 0.05, returns: HISTORICAL_REAL_RETURNS }))).toBeLessThan(0.03);
+  });
+
+  it("differs by index: the Nasdaq-100's history lasts more often than the World's", () => {
+    const returns = (id: keyof typeof INDEXES) => INDEXES[id].years.map((entry) => entry.realReturn);
+    const world = successRate({ withdrawalRate: 0.05, returns: returns("world") });
+    const nasdaq = successRate({ withdrawalRate: 0.05, returns: returns("nasdaq100") });
+    expect(nasdaq).toBeGreaterThan(world);
   });
 
   it("rejects an empty pool of returns", () => {

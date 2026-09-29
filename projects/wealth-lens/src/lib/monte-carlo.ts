@@ -1,11 +1,11 @@
 /**
  * How often does a fixed withdrawal rate survive 30 years? A Monte Carlo
- * bootstrap over historical annual real returns of the S&P 500
- * (src/data/sp500-real-returns.json).
+ * bootstrap over historical annual real returns: those of what the plan
+ * invests in (lib/investment.ts), from the index datasets in src/data/.
  *
  * Model
- * - The portfolio starts at 1 and is 100 % US stocks (S&P 500, dividends
- *   reinvested). Returns are real, so amounts are in today's money.
+ * - The portfolio starts at 1 and is 100 % stocks. Returns are real, so
+ *   amounts are in today's money.
  * - Each year the same real amount is withdrawn (withdrawalRate × starting
  *   capital: the "4 % rule" adjusted for inflation), at the start of the
  *   year, and the rest earns that year's return.
@@ -15,19 +15,6 @@
  * - A scenario succeeds if money is left after the last withdrawal.
  * - The random generator is seeded, so results are reproducible.
  */
-
-import raw from "@/data/sp500-real-returns.json";
-
-export interface ReturnsDataset {
-  description: string;
-  source: string;
-  dataThrough: string;
-  years: { year: number; realReturn: number }[];
-}
-
-export const sp500RealReturns: ReturnsDataset = raw;
-
-export const HISTORICAL_REAL_RETURNS: readonly number[] = sp500RealReturns.years.map((entry) => entry.realReturn);
 
 /** Mulberry32: a tiny, fast, seedable PRNG returning floats in [0, 1). */
 export function mulberry32(seed: number): () => number {
@@ -58,7 +45,7 @@ export function survives(returns: readonly number[], withdrawalRate: number): bo
 export interface SuccessRateOptions {
   withdrawalRate: number;
   /** Pool of annual real returns to draw from. */
-  returns?: readonly number[];
+  returns: readonly number[];
   years?: number;
   simulations?: number;
   seed?: number;
@@ -71,7 +58,7 @@ export const DEFAULT_SEED = 20260929;
 /** Share of simulated scenarios (0–1) in which the money lasts `years` years. */
 export function successRate({
   withdrawalRate,
-  returns = HISTORICAL_REAL_RETURNS,
+  returns,
   years = DEFAULT_YEARS,
   simulations = DEFAULT_SIMULATIONS,
   seed = DEFAULT_SEED,

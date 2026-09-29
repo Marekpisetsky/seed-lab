@@ -2,10 +2,9 @@ import { describe, expect, it } from "vitest";
 import { parseIsoDate, toIsoDate } from "./dates";
 import { futureValueWithContributions, requiredMonthlyContribution } from "./finance";
 import { projectGoal } from "./goal-projection";
-import { DEFAULT_ASSUMPTIONS } from "./storage";
 
 const today = parseIsoDate("2026-09-29");
-const assumptions = { ...DEFAULT_ASSUMPTIONS, realReturn: 0.07, monthlyContribution: 500, inflation: 0.02 };
+const assumptions = { realReturn: 0.07, monthlyContribution: 500, inflation: 0.02 };
 
 describe("projectGoal", () => {
   it("projects the months to the goal and the month it is reached", () => {

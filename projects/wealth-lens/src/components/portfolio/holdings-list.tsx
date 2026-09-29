@@ -11,7 +11,7 @@ import { formatDayMonth, formatMoney } from "@/lib/format";
 import { holdingToFormValues, withPriceSource } from "@/lib/holding-form";
 import { createId } from "@/lib/id";
 import { mergeImportedHoldings } from "@/lib/import";
-import type { Updater } from "@/lib/persistent-store";
+import type { Updater } from "@/lib/app-store";
 import type { Holding } from "@/lib/types";
 import { CsvImport } from "./csv-import";
 import { HoldingForm } from "./holding-form";

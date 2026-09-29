@@ -156,6 +156,15 @@ export function sustainableAnnualIncome(capital: number, withdrawalRate: number)
   return capital * withdrawalRate;
 }
 
+/**
+ * What a capital pays per month under a yearly withdrawal rate:
+ * capital × rate ÷ 12 (€300,000 at 4 % → €1,000 a month). In today's money,
+ * since the withdrawal is adjusted for inflation every year.
+ */
+export function monthlyWithdrawal(capital: number, withdrawalRate: number): number {
+  return sustainableAnnualIncome(capital, withdrawalRate) / 12;
+}
+
 /** Capital needed to fund `annualExpenses` (at 4 % this is expenses × 25). */
 export function requiredCapital(annualExpenses: number, withdrawalRate: number): number {
   assertNonNegative(annualExpenses, "annualExpenses");

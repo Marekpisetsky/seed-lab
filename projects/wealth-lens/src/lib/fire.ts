@@ -6,10 +6,9 @@
 
 import type { CountryCost } from "./cost-of-living";
 import { monthsToGoal, requiredCapital, sustainableAnnualIncome } from "./finance";
-import type { FireSettings } from "./types";
+import type { Housing } from "./types";
 
-/** Whether the cost includes paying rent or assumes a home without rent. */
-export type Housing = FireSettings["housing"];
+export type { Housing } from "./types";
 
 export function monthlyCost(country: CountryCost, housing: Housing): number {
   return housing === "rent" ? country.monthlyCostEur.withRent : country.monthlyCostEur.withoutRent;

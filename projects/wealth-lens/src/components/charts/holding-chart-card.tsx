@@ -2,14 +2,14 @@
 
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { usePersistentStore } from "@/hooks/use-persistent-store";
+import { useAppState } from "@/hooks/use-app";
 import { useHistory } from "@/hooks/use-history";
+import { setUploadedPrices } from "@/lib/app-store";
 import { averageCost } from "@/lib/finance";
 import { formatMoney, formatPercent, formatPrice } from "@/lib/format";
 import { instrumentForHolding, MARKET } from "@/lib/market-data";
 import { parsePriceCsv, summarizeSeries, type PricePoint } from "@/lib/prices";
 import { lastDays, periodChange } from "@/lib/sparkline";
-import { uploadedPricesStore } from "@/lib/stores";
 import type { Holding } from "@/lib/types";
 import { ChartRow } from "./chart-row";
 import { PriceChart } from "./price-chart";
@@ -22,7 +22,8 @@ const PERIOD_DAYS = 365;
  * uploads; the app never asks a price source.
  */
 export function HoldingChartRow({ holding }: { holding: Holding }) {
-  const [uploaded, setUploaded] = usePersistentStore(uploadedPricesStore(holding.ticker));
+  const uploaded = useAppState().uploadedPrices[holding.ticker] ?? null;
+  const setUploaded = (prices: Parameters<typeof setUploadedPrices>[1]) => setUploadedPrices(holding.ticker, prices);
   const instrument = instrumentForHolding(holding.ticker, holding.currency);
   const market = instrument ? MARKET.prices[instrument.id] : undefined;
 

@@ -1,26 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { ModuleSkeleton } from "@/components/module-skeleton";
 import { FirstSteps } from "@/components/onboarding/first-steps";
 import { PricesUpdated } from "@/components/prices-updated";
 import { Card } from "@/components/ui/card";
-import { useHydrated, usePersistentStore } from "@/hooks/use-persistent-store";
-import { hasStarted } from "@/lib/plan";
-import { holdingsStore, investedStore } from "@/lib/stores";
+import { useAppState } from "@/hooks/use-app";
+import { hasStarted } from "@/lib/app-store";
 import { HoldingChartRow } from "./holding-chart-card";
 
 export function ChartsModule() {
-  const hydrated = useHydrated();
-  const [holdings] = usePersistentStore(holdingsStore);
-  const [invested] = usePersistentStore(investedStore);
-  if (!hydrated) return <ModuleSkeleton />;
-  if (!hasStarted(holdings, invested)) return <FirstSteps />;
+  const state = useAppState();
+  if (!hasStarted(state)) return <FirstSteps />;
   return <ChartsContent />;
 }
 
 function ChartsContent() {
-  const [holdings] = usePersistentStore(holdingsStore);
+  const { holdings } = useAppState();
 
   if (holdings.length === 0) {
     return (

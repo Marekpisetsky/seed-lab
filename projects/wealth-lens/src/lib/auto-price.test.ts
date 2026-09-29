@@ -41,19 +41,27 @@ describe("marketPrice", () => {
 
 describe("priceHoldings", () => {
   it("fills an automatic price with the latest close and its date", () => {
-    expect(priceHoldings([holding], market)[0]).toMatchObject({ currentPrice: 131.5, priceDate: "2026-09-25" });
+    expect(priceHoldings([holding], {}, market)[0]).toMatchObject({ currentPrice: 131.5, priceDate: "2026-09-25" });
   });
 
   it("never replaces a price typed by the user", () => {
     const typed = { ...holding, currentPrice: 120, priceSource: "manual" as const };
-    expect(priceHoldings([typed], market)[0]).toBe(typed);
+    expect(priceHoldings([typed], {}, market)[0]).toBe(typed);
   });
 
   it("leaves holdings without market data, or already up to date, as they are", () => {
     const unknown = { ...holding, ticker: "XYZ" };
     const current = { ...holding, currentPrice: 131.5, priceDate: "2026-09-25" };
-    const [a, b] = priceHoldings([unknown, current], market);
+    const [a, b] = priceHoldings([unknown, current], {}, market);
     expect(a).toBe(unknown);
     expect(b).toBe(current);
+  });
+
+  it("uses the last close of the user's price file for a ticker without downloaded prices", () => {
+    const unknown = { ...holding, ticker: "XYZ" };
+    const uploaded = { XYZ: { fileName: "xyz.csv", points: [{ time: "2026-09-24", close: 9 }, { time: "2026-09-25", close: 10 }] } };
+    expect(priceHoldings([unknown], uploaded, market)[0]).toMatchObject({ currentPrice: 10, priceDate: "2026-09-25" });
+    // Downloaded prices win over a file.
+    expect(priceHoldings([holding], { VWCE: uploaded.XYZ }, market)[0].currentPrice).toBe(131.5);
   });
 });

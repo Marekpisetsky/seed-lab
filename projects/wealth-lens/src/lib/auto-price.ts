@@ -5,11 +5,13 @@
  *
  * Only automatic prices are filled (a price typed by the user is never
  * replaced), and only from a listing in the holding's own currency, since the
- * app never converts currencies.
+ * app never converts currencies. A ticker without downloaded prices takes the
+ * last close of a price CSV the user uploaded for it, if any.
  */
 
 import { instrumentForHolding, MARKET, type PricesFile } from "./market-data";
 import type { Holding } from "./types";
+import type { UploadedPrices } from "./validation";
 
 /** Latest downloaded close for a holding's instrument, or `null` when there is none. */
 export function marketPrice(holding: Pick<Holding, "ticker" | "currency">, market: PricesFile = MARKET) {
@@ -20,13 +22,19 @@ export function marketPrice(holding: Pick<Holding, "ticker" | "currency">, marke
 }
 
 /**
- * Holdings with their automatic price filled from the market data. Holdings
- * that do not change are returned as the same objects.
+ * Holdings with their automatic price filled from the market data, or from
+ * the user's price file. Holdings that do not change are returned as the
+ * same objects.
  */
-export function priceHoldings(holdings: readonly Holding[], market: PricesFile = MARKET): Holding[] {
+export function priceHoldings(
+  holdings: readonly Holding[],
+  uploaded: Readonly<Record<string, UploadedPrices>> = {},
+  market: PricesFile = MARKET,
+): Holding[] {
   return holdings.map((holding) => {
     if (holding.priceSource !== "auto") return holding;
-    const price = marketPrice(holding, market);
+    const last = uploaded[holding.ticker]?.points.at(-1);
+    const price = marketPrice(holding, market) ?? (last ? { close: last.close, date: last.time } : null);
     if (!price || (holding.currentPrice === price.close && holding.priceDate === price.date)) return holding;
     return { ...holding, currentPrice: price.close, priceDate: price.date };
   });

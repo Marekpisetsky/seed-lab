@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import { MainNav } from "@/components/main-nav";
-import { StorageNotice } from "@/components/storage-notice";
+import { FooterDataControls } from "@/components/data-controls";
+import { LegacyDataNotice } from "@/components/legacy-data-notice";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,12 +37,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <MainNav />
           </div>
         </header>
-        <StorageNotice />
+        <LegacyDataNotice />
         <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:py-8">{children}</main>
         <footer className="border-t border-border">
-          <p className="mx-auto max-w-5xl px-4 py-4 text-xs text-muted">
-            Not financial advice. No broker connection. Your data stays in this browser.
-          </p>
+          <div className="mx-auto max-w-5xl space-y-3 px-4 py-4">
+            <FooterDataControls />
+            <p className="text-xs text-muted">
+              Nothing is stored or sent. Your data stays on your screen. Not financial advice.
+            </p>
+          </div>
         </footer>
       </body>
     </html>
