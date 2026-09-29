@@ -16,6 +16,7 @@
  */
 
 import { mulberry32, successRates } from "./monte-carlo";
+import { PRECOMPUTED_SUCCESS } from "./success-table";
 
 export interface WealthPercentiles {
   /** Year 0 (today) to `years`. */
@@ -116,11 +117,13 @@ const cacheId = (key: string, rate: number) => `${key}|${rate.toFixed(4)}`;
 
 /**
  * How often each withdrawal rate lasted 30 years with this history, cached
- * by the history's key (see ResolvedInvestment.key) and the rate. Missing
- * rates are simulated together, over the same sequences.
+ * by the history's key (see ResolvedInvestment.key) and the rate. The
+ * indexes' 3, 4 and 5 % come from lib/success-table.ts; missing rates are
+ * simulated together, over the same sequences.
  */
 export function cachedSuccessRates(key: string, returns: readonly number[], rates: readonly number[]): number[] {
-  const missing = rates.filter((rate) => !successCache.has(cacheId(key, rate)));
+  const known = (rate: number) => PRECOMPUTED_SUCCESS[key]?.[rate.toFixed(4)];
+  const missing = rates.filter((rate) => known(rate) === undefined && !successCache.has(cacheId(key, rate)));
   if (missing.length > 0) {
     const computed = successRates({ withdrawalRates: missing, returns });
     missing.forEach((rate, index) => {
@@ -128,7 +131,7 @@ export function cachedSuccessRates(key: string, returns: readonly number[], rate
       successCache.set(cacheId(key, rate), computed[index]);
     });
   }
-  return rates.map((rate) => successCache.get(cacheId(key, rate)) ?? NaN);
+  return rates.map((rate) => known(rate) ?? successCache.get(cacheId(key, rate)) ?? NaN);
 }
 
 export function cachedSuccessRate(key: string, returns: readonly number[], withdrawalRate: number): number {
