@@ -179,8 +179,12 @@ describe("the things to buy", () => {
   });
 
   it("price months abroad with housing there", () => {
-    const japan = pricedItems().find((item) => item.id === "three-months-japan");
-    expect(japan?.amount).toBe(1060 * 3);
+    const byId = new Map(pricedItems().map((item) => [item.id, item]));
+    expect(byId.get("three-months-japan")?.amount).toBe(1060 * 3);
+    // Thailand 770, Vietnam 620, Indonesia 510, Malaysia 710, Philippines 600 → 642/month.
+    expect(byId.get("southeast-asia")?.amount).toBe(7700);
+    expect(byId.get("masters-nl")?.amount).toBe(12 * 2190 + 2601);
+    expect(byId.get("six-months-portugal")?.amount).toBe(6 * 1410);
   });
 
   it("each say now, or when the plan gets there", () => {

@@ -14,11 +14,10 @@
 import { connectionsData, type BuyItem, type ConnectionsDataset } from "./connections";
 import { costOfLiving, countryInSentence, type CountryCost } from "./cost-of-living";
 import { addMonths } from "./dates";
-import { monthlyWithdrawal, requiredCapital, requiredMonthlyContribution } from "./finance";
-import { formatDuration, formatEur, formatMonthYear, formatRate } from "./format";
+import { futureValueWithContributions, monthlyWithdrawal, monthsToGoal, requiredCapital, requiredMonthlyContribution } from "./finance";
+import { formatDuration, formatEur, formatMonthYear, formatRate, formatYears } from "./format";
 import { dividendNote, periodText, resolveInvestment, type ResolvedInvestment } from "./investment";
 import { startingCapital, type StartingCapital } from "./plan";
-import { MAX_YEARS, monthsTo, valueAt, withinReach, type Scenario } from "./report";
 import { cachedSuccessRate } from "./simulation";
 import type { Goal, Holding, Investment } from "./types";
 
@@ -35,6 +34,56 @@ export interface CalculatorPlan {
 
 /** "The monthly amount that would get there in 30 years", for goals out of reach. */
 export const NEEDED_WITHIN_YEARS = 30;
+
+/**
+ * Beyond this a date is not a plan: a goal further away is "not at this
+ * pace", and no finding quotes a figure that far out.
+ */
+export const MAX_YEARS = 60;
+export const MAX_MONTHS = MAX_YEARS * 12;
+
+/** The withdrawal rates the result offers, with how often each lasted. */
+export const WITHDRAWAL_CHOICES = [0.03, 0.04, 0.05] as const;
+
+/** Reached within MAX_YEARS (0 = now). `Infinity` (never) is not. */
+export function withinReach(months: number): boolean {
+  return months <= MAX_MONTHS;
+}
+
+/**
+ * When the plan gets somewhere, as goals, the country table and the buy
+ * list say it: "now", "in 12 years" ("in 12 years (2038)" given today), or
+ * past 60 years "not at this pace".
+ */
+export function whenText(months: number, today?: Date): string {
+  if (months <= 0) return "now";
+  if (!withinReach(months)) return "not at this pace";
+  const year = today ? ` (${addMonths(today, Math.ceil(months - 1e-9)).getUTCFullYear()})` : "";
+  return `in ${formatYears(months)}${year}`;
+}
+
+/** Whole euros, but "under €1" for a few cents: €1 invested pays €0.003 a month, not €0. */
+export function formatSmallEur(amount: number): string {
+  return amount > 0 && amount < 0.5 ? "under €1" : formatEur(amount);
+}
+
+/** The numbers every projection needs. */
+export interface Scenario {
+  capital: number;
+  monthly: number;
+  realReturn: number;
+  withdrawalRate: number;
+}
+
+/** Months until the plan reaches `target`: 0 = now, Infinity = never. */
+export function monthsTo(scenario: Scenario, target: number): number {
+  return monthsToGoal(scenario.capital, scenario.monthly, scenario.realReturn, target);
+}
+
+/** What the plan is worth after `months`. */
+export function valueAt(scenario: Scenario, months: number): number {
+  return futureValueWithContributions(scenario.capital, scenario.monthly, scenario.realReturn, Math.max(0, months) / 12);
+}
 
 // ---------------------------------------------------------------------------
 // Result
@@ -137,28 +186,21 @@ export interface PricedItem {
 
 const roundTo10 = (value: number) => Math.round(value / 10) * 10;
 
-/**
- * The "Buy it" list with its prices. Months of living somewhere are priced
- * with housing (someone living there pays for a place to stay); items
- * priced from "your own country" need a country the app no longer asks
- * for, so they are left out.
- */
+/** The "Buy it" list with its prices. Months of living somewhere are priced with housing: a stay there includes a place to stay. */
 export function pricedItems(
   data: ConnectionsDataset = connectionsData,
   countries: readonly CountryCost[] = costOfLiving.countries,
 ): PricedItem[] {
   const byCode = new Map(countries.map((country) => [country.code, country]));
-  return data.buy
-    .filter((item: BuyItem) => !item.monthsAt || item.monthsAt.countries !== "home")
-    .map((item) => {
-      let amount = item.amount ?? 0;
-      if (item.monthsAt && item.monthsAt.countries !== "home") {
-        const place = item.monthsAt.countries;
-        const monthly = place.reduce((sum, code) => sum + (byCode.get(code)?.monthlyCostEur.withRent ?? 0), 0) / place.length;
-        amount = roundTo10(monthly * item.monthsAt.months) + (item.plus ?? 0);
-      }
-      return { id: item.id, name: item.name, amount, source: item.source, referenceDate: item.referenceDate };
-    });
+  return data.buy.map((item: BuyItem) => {
+    let amount = item.amount ?? 0;
+    if (item.monthsAt) {
+      const place = item.monthsAt.countries;
+      const monthly = place.reduce((sum, code) => sum + (byCode.get(code)?.monthlyCostEur.withRent ?? 0), 0) / place.length;
+      amount = roundTo10(monthly * item.monthsAt.months) + (item.plus ?? 0);
+    }
+    return { id: item.id, name: item.name, amount, source: item.source, referenceDate: item.referenceDate };
+  });
 }
 
 export interface ItemStatus {
@@ -326,7 +368,6 @@ export function calculate(plan: CalculatorPlan, holdings: readonly Holding[], to
     monthly: plan.monthlyContribution,
     realReturn: investment.realReturn,
     withdrawalRate: plan.withdrawalRate,
-    horizonMonths: plan.years * 12,
   };
   return {
     capital,

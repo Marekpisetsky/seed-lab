@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  addGoal,
   appStore,
   createStore,
-  hasStarted,
   INITIAL_STATE,
+  removeGoal,
   replaceState,
   setHoldings,
   setUploadedPrices,
@@ -58,9 +59,9 @@ describe("createStore", () => {
 });
 
 describe("the shared app state", () => {
-  it("starts empty, with nothing answered", () => {
+  it("starts with real example numbers and no goals", () => {
     expect(appStore.get()).toBe(INITIAL_STATE);
-    expect(hasStarted(appStore.get())).toBe(false);
+    expect(INITIAL_STATE.plan).toMatchObject({ invested: 1000, monthlyContribution: 200, years: 20, investment: { kind: "index", index: "sp500" }, goals: [] });
   });
 
   it("updates one plan field and keeps the others", () => {
@@ -68,21 +69,28 @@ describe("the shared app state", () => {
     updatePlan((plan) => ({ monthlyContribution: plan.monthlyContribution + 100 }));
     const { plan } = appStore.get();
     expect(plan).toEqual({ ...INITIAL_STATE.plan, invested: 20_000, monthlyContribution: 600 });
-    // Numbers alone are not a start: the mission is.
-    expect(hasStarted(appStore.get())).toBe(false);
-    updatePlan({ mission: { kind: "stop-working" } });
-    expect(hasStarted(appStore.get())).toBe(true);
   });
 
-  it("starts with real example numbers and no mission", () => {
-    expect(INITIAL_STATE.plan).toMatchObject({ invested: 1000, monthlyContribution: 200, mission: null });
+  it("adds goals at the end and removes one without reordering the rest", () => {
+    addGoal({ kind: "amount", amount: 100_000 }, "a");
+    addGoal({ kind: "live", country: "PE", housing: true }, "b");
+    addGoal({ kind: "income", amount: 1500, name: null }, "c");
+    expect(appStore.get().plan.goals.map((goal) => goal.id)).toEqual(["a", "b", "c"]);
+    removeGoal("b");
+    expect(appStore.get().plan.goals).toEqual([
+      { id: "a", kind: "amount", amount: 100_000 },
+      { id: "c", kind: "income", amount: 1500, name: null },
+    ]);
+    addGoal({ kind: "buy", item: "used-car" }, "d");
+    expect(appStore.get().plan.goals.map((goal) => goal.id)).toEqual(["a", "c", "d"]);
   });
 
-  it("counts as started once there are holdings", () => {
+  it("keeps holdings apart from the plan", () => {
     setHoldings([holding]);
-    expect(hasStarted(appStore.get())).toBe(true);
+    expect(appStore.get().holdings).toEqual([holding]);
     setHoldings((previous) => previous.filter((item) => item.id !== "1"));
-    expect(hasStarted(appStore.get())).toBe(false);
+    expect(appStore.get().holdings).toEqual([]);
+    expect(appStore.get().plan).toBe(INITIAL_STATE.plan);
   });
 
   it("adds and removes uploaded prices per ticker", () => {

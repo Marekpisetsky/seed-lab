@@ -65,19 +65,6 @@ export type Investment =
   | { kind: "portfolio" }
   | { kind: "custom"; realReturn: number };
 
-/** Compare living costs with rent included, or for someone who owns their home. */
-export type Housing = "rent" | "own";
-
-/** Something the user adds to "What it means in real life". */
-export interface CustomConnection {
-  id: string;
-  name: string;
-  /** "live": a monthly cost to cover; "buy": a one-off amount. */
-  kind: "live" | "buy";
-  /** Monthly cost or one-off amount, in today's euros. */
-  amount: number;
-}
-
 /**
  * A goal the user adds to "My goals": optional, as many as they like, each
  * worked out on its own against the same plan. Nothing about the user's
@@ -97,21 +84,8 @@ export type Goal =
   | { id: string; kind: "amount"; amount: number }
   | { id: string; kind: "income"; amount: number; name: string | null };
 
-/**
- * What the user wants the money to do. Everything on "My money" is worked
- * out for it, and only the user sets or changes it: the app never picks one.
- * - stop-working: live off the investments in the user's own country;
- * - live-abroad: live off them in another country (ISO code);
- * - buy: one of the "Buy it" items of src/data/connections.json (its id);
- * - buy-own: something of the user's own, at the price they give;
- * - amount: reach an amount of the user's own.
- */
-export type Mission =
-  | { kind: "stop-working" }
-  | { kind: "live-abroad"; country: string }
-  | { kind: "buy"; item: string }
-  | { kind: "buy-own"; name: string; amount: number }
-  | { kind: "amount"; amount: number };
+/** A goal before it gets its id. */
+export type NewGoal = Goal extends infer G ? (G extends Goal ? Omit<G, "id"> : never) : never;
 
 /**
  * The one plan every screen reads and edits. It lives in memory only: nothing
@@ -119,24 +93,19 @@ export type Mission =
  * All rates are decimal fractions: 0.07 means 7 %.
  */
 export interface Plan {
-  /** Amount invested, typed on "My money". Priced EUR holdings win. */
+  /** Amount invested, typed in the calculator. Priced EUR holdings win. */
   invested: number;
   /** Added every month, in BASE_CURRENCY, constant in today's money. */
   monthlyContribution: number;
   investment: Investment;
-  /** Share of the portfolio withdrawn per year to live off it. */
+  /** How many years ahead the result looks: 1 to 60. */
+  years: number;
+  /** Share of the money taken out per year for "It could pay you". */
   withdrawalRate: number;
   /** Expected annual inflation, used to translate real figures to nominal. */
   inflation: number;
-  housing: Housing;
-  /** ISO code of the user's country: rent, working less and stopping work are priced there. */
-  homeCountry: string;
-  /** What the money is for; `null` until the user chooses. */
-  mission: Mission | null;
-  /** Look this many years ahead instead of "when the goal is reached"; `null` = when reached. */
-  horizonYears: number | null;
-  /** Items added to "What it means in real life" in earlier versions; still listed. */
-  customConnections: CustomConnection[];
+  /** Goals the user added, in that order; none at first. */
+  goals: Goal[];
 }
 
 /** Growth assumptions of a projection. */

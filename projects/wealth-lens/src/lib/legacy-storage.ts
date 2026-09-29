@@ -69,14 +69,13 @@ export function readLegacyData(storage: LegacyStorage | null): AppState | null {
   const holdings = parseHoldings(read(storage, `${PREFIX}holdings`)) ?? [];
   const invested = read(storage, `${PREFIX}invested`);
   const assumptions = read(storage, `${PREFIX}assumptions`);
-  const fire = read(storage, `${PREFIX}fire`);
   const goal = parseGoal(read(storage, `${PREFIX}goal`));
-  // The saved euro goal becomes the mission "reach an amount"; amounts not saved are 0, not a first visit's examples.
+  // The saved euro goal becomes the goal "reach an amount"; amounts not saved are 0, not a first visit's examples.
   const plan: Plan = {
     ...DEFAULT_PLAN,
     invested: 0,
     monthlyContribution: 0,
-    mission: goal && goal.amount > 0 ? { kind: "amount", amount: goal.amount } : null,
+    goals: goal && goal.amount > 0 ? [{ id: "g1", kind: "amount", amount: goal.amount }] : [],
   };
   const answered = typeof invested === "number" && Number.isFinite(invested) && invested >= 0;
   if (answered) plan.invested = invested;
@@ -89,10 +88,6 @@ export function readLegacyData(storage: LegacyStorage | null): AppState | null {
     if (typeof realReturn === "number" && realReturn > -1 && realReturn < 1 && Math.abs(realReturn - 0.07) > 1e-9) {
       plan.investment = { kind: "custom", realReturn };
     }
-  }
-  if (isRecord(fire)) {
-    if (fire.housing === "own") plan.housing = "own";
-    if (typeof fire.homeCountry === "string" && /^[A-Z]{2}$/.test(fire.homeCountry)) plan.homeCountry = fire.homeCountry;
   }
   const uploadedPrices: Record<string, UploadedPrices> = {};
   for (const key of legacyKeys(storage)) {
