@@ -2,13 +2,12 @@
 
 import { useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Disclosure } from "@/components/ui/disclosure";
 import { inputClass } from "@/components/ui/form";
-import { Notice } from "@/components/ui/notice";
 import { usePersistentStore } from "@/hooks/use-persistent-store";
 import { usePriceSeries } from "@/hooks/use-price-series";
 import { averageCost } from "@/lib/finance";
-import { formatMoney, formatNumber, formatPercent, formatPrice } from "@/lib/format";
+import { formatMoney, formatPercent, formatPrice } from "@/lib/format";
 import {
   isValidStooqSymbol,
   parsePriceCsv,
@@ -17,122 +16,162 @@ import {
   type PriceError,
   type PricePoint,
 } from "@/lib/prices";
+import { lastDays, periodChange } from "@/lib/sparkline";
 import { chartSymbolsStore, uploadedPricesStore } from "@/lib/stores";
 import { stooqCandidates } from "@/lib/symbols";
 import type { Holding } from "@/lib/types";
 import { PriceChart } from "./price-chart";
+import { Sparkline } from "./sparkline";
 
-interface HoldingChartCardProps {
-  holding: Holding;
-}
+const PERIOD_DAYS = 365;
 
-export function HoldingChartCard({ holding }: HoldingChartCardProps) {
+/** One row of the summary list; tapping it opens the full chart. */
+export function HoldingChartRow({ holding }: { holding: Holding }) {
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
   const [symbols, setSymbols] = usePersistentStore(chartSymbolsStore);
   const [uploaded, setUploaded] = usePersistentStore(uploadedPricesStore(holding.ticker));
-  const [uploadMessage, setUploadMessage] = useState<{ tone: "warning" | "info"; text: string } | null>(null);
-
-  const symbol = stooqCandidates(holding.ticker, holding.currency, symbols[holding.ticker])[0];
-  const { state, retry } = usePriceSeries(uploaded ? null : symbol);
-  const average = averageCost(holding);
-
-  const handleUpload = async (file: File) => {
-    let text: string;
-    try {
-      text = await file.text();
-    } catch {
-      setUploadMessage({ tone: "warning", text: `Could not read ${file.name}.` });
-      return;
-    }
-    const parsed = parsePriceCsv(text);
-    if (!parsed.ok) {
-      setUploadMessage({ tone: "warning", text: `${file.name}: ${parsed.error}` });
-      return;
-    }
-    const saved = setUploaded({ fileName: file.name, points: parsed.points });
-    const skipped =
-      parsed.skippedRows > 0 ? ` ${parsed.skippedRows} row${parsed.skippedRows === 1 ? " was" : "s were"} skipped.` : "";
-    setUploadMessage(
-      saved
-        ? skipped
-          ? { tone: "info", text: `Loaded ${parsed.points.length} days.${skipped}` }
-          : null
-        : {
-            tone: "warning",
-            text: `Loaded ${parsed.points.length} days, but the browser could not save them (storage full or blocked), so they will be gone after a reload.${skipped}`,
-          },
-    );
-  };
+  const candidates = stooqCandidates(holding.ticker, holding.currency, symbols[holding.ticker]);
+  const { state, retry } = usePriceSeries(uploaded ? null : candidates);
 
   const points: readonly PricePoint[] | null = uploaded
     ? uploaded.points
     : state.status === "done" && state.ok
       ? state.data.points
       : null;
+  const symbol = state.status === "done" ? state.symbol : candidates[0];
+  const recent = points ? lastDays(points, PERIOD_DAYS) : [];
+  const change = periodChange(recent);
 
   return (
-    <Card
-      title={holding.ticker}
-      description={
-        <>
-          {formatNumber(holding.quantity)} shares · average cost{" "}
-          {average === null ? "—" : formatMoney(average, holding.currency)}
-        </>
-      }
-    >
-      <div className="space-y-3">
-        {!uploaded && (
-          <SymbolForm
-            ticker={holding.ticker}
-            symbol={symbol}
-            onChange={(next) => setSymbols((previous) => ({ ...previous, [holding.ticker]: next }))}
-          />
-        )}
+    <li>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((value) => !value)}
+        className="flex w-full items-center gap-3 py-3 text-left"
+      >
+        <span className="min-w-0 flex-1">
+          <span className="block font-semibold">{holding.ticker}</span>
+          <span className="block text-xs text-muted">{rowStatus(state, uploaded !== null)}</span>
+        </span>
+        {change !== null && <Sparkline points={recent} rising={change >= 0} />}
+        <span
+          className={`w-20 text-right text-sm font-medium tabular-nums ${
+            change === null ? "text-muted" : change >= 0 ? "text-positive" : "text-negative"
+          }`}
+        >
+          {change === null ? "—" : formatPercent(change, { signed: true })}
+          <span className="block text-xs font-normal text-muted">1 year</span>
+        </span>
+        <span aria-hidden="true" className={`text-muted transition-transform ${open ? "rotate-180" : ""}`}>
+          ▾
+        </span>
+      </button>
 
-        {points ? (
-          <>
-            <PriceChart
-              points={points}
-              averageCost={average}
-              label={`Daily closing prices of ${holding.ticker} with a line at your average cost`}
-            />
-            <Summary points={points} average={average} currency={holding.currency} />
-          </>
-        ) : state.status === "loading" ? (
-          <div className="h-64 animate-pulse rounded-lg bg-border/40 sm:h-72" aria-label="Loading prices" />
-        ) : state.status === "done" && !state.ok ? (
-          <LoadError ticker={holding.ticker} symbol={symbol} error={state.error} onRetry={retry} />
-        ) : null}
-
-        <CurrencyCheck symbol={uploaded ? null : symbol} holdingCurrency={holding.currency} />
-
-        <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
-          {uploaded ? (
+      {open && (
+        <div id={panelId} className="space-y-3 pb-5">
+          {points ? (
             <>
-              <span>
-                Source: your file <span className="font-medium text-foreground">{uploaded.fileName}</span> (
-                {uploaded.points.length} days).
-              </span>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  setUploaded(null);
-                  setUploadMessage(null);
-                }}
-              >
-                Use Stooq instead
-              </Button>
+              <PriceChart
+                points={points}
+                averageCost={averageCost(holding)}
+                label={`Daily closing prices of ${holding.ticker} with a line at your average cost`}
+              />
+              <Summary points={points} holding={holding} />
             </>
+          ) : state.status === "done" && !state.ok ? (
+            <LoadError error={state.error} onRetry={retry} />
           ) : (
-            state.status === "done" &&
-            state.ok && <span>Source: Stooq ({state.data.symbol}), unofficial third-party data, may be delayed.</span>
+            <div className="h-64 animate-pulse rounded-lg bg-border/40" aria-label="Loading prices" />
           )}
-          <UploadButton ticker={holding.ticker} onFile={handleUpload} replacing={Boolean(uploaded)} />
+          {!uploaded && <CurrencyNote symbol={symbol} holdingCurrency={holding.currency} />}
+          <p className="text-xs text-muted">
+            {uploaded
+              ? `Prices from your file ${uploaded.fileName}.`
+              : `Prices from Stooq (${symbol}), a free unofficial source; may be delayed.`}
+          </p>
+          <Disclosure summary="Change price source">
+            {uploaded ? (
+              <Button size="sm" onClick={() => setUploaded(null)}>
+                Use Stooq again
+              </Button>
+            ) : (
+              <SymbolForm
+                ticker={holding.ticker}
+                symbol={symbol}
+                onChange={(next) => setSymbols((previous) => ({ ...previous, [holding.ticker]: next }))}
+              />
+            )}
+            <UploadPrices ticker={holding.ticker} onLoaded={(fileName, loaded) => setUploaded({ fileName, points: loaded })} />
+          </Disclosure>
         </div>
+      )}
+    </li>
+  );
+}
 
-        {uploadMessage && <Notice tone={uploadMessage.tone}>{uploadMessage.text}</Notice>}
-      </div>
-    </Card>
+function rowStatus(state: ReturnType<typeof usePriceSeries>["state"], uploaded: boolean): string {
+  if (uploaded) return "your prices";
+  if (state.status === "loading") return "loading…";
+  if (state.status === "done" && !state.ok) return "prices unavailable";
+  return "";
+}
+
+function Summary({ points, holding }: { points: readonly PricePoint[]; holding: Holding }) {
+  const average = averageCost(holding);
+  const summary = summarizeSeries(points, average);
+  if (!summary) return null;
+  const { last, vsAverageCost } = summary;
+  if (vsAverageCost === null || average === null) {
+    return <p className="text-sm">Last close {formatPrice(last.close)}.</p>;
+  }
+  return (
+    <p className="text-sm">
+      Now {formatPrice(last.close)}:{" "}
+      <strong className={vsAverageCost >= 0 ? "text-positive" : "text-negative"}>
+        {formatPercent(Math.abs(vsAverageCost))} {vsAverageCost >= 0 ? "above" : "below"}
+      </strong>{" "}
+      what you paid ({formatMoney(average, holding.currency)}, dashed line).
+    </p>
+  );
+}
+
+const ERROR_TEXT: Record<PriceError["code"], string> = {
+  INVALID_SYMBOL: "That symbol isn't valid.",
+  NOT_FOUND: "No prices found for this symbol.",
+  RATE_LIMITED: "The free price source hit its daily limit.",
+  VERIFICATION_REQUIRED: "The price source asked for a check we can't pass.",
+  UNEXPECTED_FORMAT: "The price source sent something unexpected.",
+  UPSTREAM_ERROR: "The price source can't be reached right now.",
+  TIMEOUT: "The price source took too long.",
+};
+
+function LoadError({ error, onRetry }: { error: PriceError; onRetry: () => void }) {
+  const canRetry = error.code !== "INVALID_SYMBOL" && error.code !== "NOT_FOUND";
+  return (
+    <div className="rounded-lg border border-warning-border bg-warning-bg px-3 py-2 text-sm text-warning-foreground">
+      <p>
+        {ERROR_TEXT[error.code]} Upload your own prices under “Change price source”.
+      </p>
+      {canRetry && (
+        <Button size="sm" className="mt-2" onClick={onRetry}>
+          Try again
+        </Button>
+      )}
+    </div>
+  );
+}
+
+/** One line: the cost line only compares with prices in the same currency. */
+function CurrencyNote({ symbol, holdingCurrency }: { symbol: string; holdingCurrency: string }) {
+  const quoteCurrency = stooqQuoteCurrency(symbol);
+  if (quoteCurrency === null || quoteCurrency === holdingCurrency) return null;
+  return (
+    <p className="text-xs text-warning-foreground">
+      ⚠ Prices are in {quoteCurrency}, your cost in {holdingCurrency}: the dashed line isn&apos;t comparable.
+    </p>
   );
 }
 
@@ -140,7 +179,6 @@ function SymbolForm({ ticker, symbol, onChange }: { ticker: string; symbol: stri
   const id = useId();
   const [draft, setDraft] = useState(symbol);
   const [error, setError] = useState<string | null>(null);
-
   return (
     <form
       className="flex flex-wrap items-end gap-2"
@@ -148,7 +186,7 @@ function SymbolForm({ ticker, symbol, onChange }: { ticker: string; symbol: stri
         event.preventDefault();
         const next = draft.trim().toLowerCase();
         if (!isValidStooqSymbol(next)) {
-          setError("Use a Stooq symbol such as aapl.us, vwce.de or vusa.uk.");
+          setError("Use a Stooq symbol such as vwce.de or aapl.us.");
           return;
         }
         setError(null);
@@ -167,7 +205,7 @@ function SymbolForm({ ticker, symbol, onChange }: { ticker: string; symbol: stri
           aria-describedby={error ? `${id}-error` : undefined}
           autoCapitalize="none"
           spellCheck={false}
-          className={`${inputClass} w-40`}
+          className={`${inputClass} w-36`}
         />
       </div>
       <Button type="submit" disabled={draft.trim().toLowerCase() === symbol}>
@@ -182,81 +220,30 @@ function SymbolForm({ ticker, symbol, onChange }: { ticker: string; symbol: stri
   );
 }
 
-const ERROR_TITLES: Record<PriceError["code"], string> = {
-  INVALID_SYMBOL: "Invalid symbol",
-  NOT_FOUND: "No data for this symbol",
-  RATE_LIMITED: "Stooq's daily limit was reached",
-  VERIFICATION_REQUIRED: "Stooq asked for verification",
-  UNEXPECTED_FORMAT: "Unexpected answer from Stooq",
-  UPSTREAM_ERROR: "Stooq could not be reached",
-  TIMEOUT: "Stooq did not answer in time",
-};
-
-function LoadError({
-  ticker,
-  symbol,
-  error,
-  onRetry,
-}: {
-  ticker: string;
-  symbol: string;
-  error: PriceError;
-  onRetry: () => void;
-}) {
-  return (
-    <Notice tone="warning" title={`${ERROR_TITLES[error.code]} (${ticker} → ${symbol})`}>
-      <p>{error.message}</p>
-      <p className="mt-1">
-        You can still see this chart by uploading your own CSV with a date and a close column (for example
-        exported from your broker or a spreadsheet).
-      </p>
-      {error.code !== "INVALID_SYMBOL" && error.code !== "NOT_FOUND" && (
-        <Button size="sm" className="mt-2" onClick={onRetry}>
-          Retry
-        </Button>
-      )}
-    </Notice>
-  );
-}
-
-function Summary({ points, average, currency }: { points: readonly PricePoint[]; average: number | null; currency: string }) {
-  const summary = summarizeSeries(points, average);
-  if (!summary) return null;
-  const { last, vsAverageCost } = summary;
-  return (
-    <p className="text-sm">
-      Last close <strong className="tabular-nums">{formatPrice(last.close)}</strong> on {last.time}
-      {vsAverageCost !== null && average !== null && (
-        <>
-          :{" "}
-          <strong className={vsAverageCost >= 0 ? "text-positive" : "text-negative"}>
-            {formatPercent(Math.abs(vsAverageCost))} {vsAverageCost >= 0 ? "above" : "below"}
-          </strong>{" "}
-          your average cost of {formatMoney(average, currency)} (dashed line)
-        </>
-      )}
-      .
-    </p>
-  );
-}
-
-/** The cost line only means something if prices and cost share a currency. */
-function CurrencyCheck({ symbol, holdingCurrency }: { symbol: string | null; holdingCurrency: string }) {
-  if (symbol === null) return null;
-  const quoteCurrency = stooqQuoteCurrency(symbol);
-  if (quoteCurrency === null || quoteCurrency === holdingCurrency) return null;
-  return (
-    <Notice tone="warning">
-      Stooq quotes {symbol} in {quoteCurrency}, but this holding is recorded in {holdingCurrency}, so the
-      average-cost line is not directly comparable with the prices.
-    </Notice>
-  );
-}
-
-function UploadButton({ ticker, onFile, replacing }: { ticker: string; onFile: (file: File) => void; replacing: boolean }) {
+function UploadPrices({ ticker, onLoaded }: { ticker: string; onLoaded: (fileName: string, points: PricePoint[]) => boolean }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const handle = async (file: File) => {
+    let text: string;
+    try {
+      text = await file.text();
+    } catch {
+      setMessage(`Could not read ${file.name}.`);
+      return;
+    }
+    const parsed = parsePriceCsv(text);
+    if (!parsed.ok) {
+      setMessage(`${file.name}: ${parsed.error}`);
+      return;
+    }
+    const saved = onLoaded(file.name, parsed.points);
+    const skipped = parsed.skippedRows > 0 ? ` ${parsed.skippedRows} rows skipped.` : "";
+    setMessage(saved ? (skipped ? `Loaded.${skipped}` : null) : `Loaded, but not saved (browser storage full or blocked).${skipped}`);
+  };
+
   return (
-    <>
+    <div className="space-y-1">
       <input
         ref={inputRef}
         type="file"
@@ -265,13 +252,15 @@ function UploadButton({ ticker, onFile, replacing }: { ticker: string; onFile: (
         aria-label={`Upload a price CSV for ${ticker}`}
         onChange={(event) => {
           const file = event.target.files?.[0];
-          if (file) onFile(file);
+          if (file) void handle(file);
           event.target.value = "";
         }}
       />
-      <Button size="sm" variant="ghost" onClick={() => inputRef.current?.click()}>
-        {replacing ? "Upload another CSV" : "Upload my own price CSV"}
+      <Button size="sm" onClick={() => inputRef.current?.click()}>
+        Upload prices (CSV)
       </Button>
-    </>
+      <p className="text-xs text-muted">A file with a date and a close column.</p>
+      {message && <p className="text-xs">{message}</p>}
+    </div>
   );
 }

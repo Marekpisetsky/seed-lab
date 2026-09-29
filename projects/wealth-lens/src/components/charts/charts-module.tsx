@@ -4,11 +4,10 @@ import Link from "next/link";
 import { ModuleSkeleton } from "@/components/module-skeleton";
 import { FirstSteps } from "@/components/onboarding/first-steps";
 import { Card } from "@/components/ui/card";
-import { Notice } from "@/components/ui/notice";
 import { useHydrated, usePersistentStore } from "@/hooks/use-persistent-store";
 import { hasStarted } from "@/lib/plan";
 import { holdingsStore, investedStore } from "@/lib/stores";
-import { HoldingChartCard } from "./holding-chart-card";
+import { HoldingChartRow } from "./holding-chart-card";
 
 export function ChartsModule() {
   const hydrated = useHydrated();
@@ -26,27 +25,24 @@ function ChartsContent() {
     return (
       <Card>
         <p className="text-sm text-muted">
-          No holdings yet.{" "}
+          Charts need your holdings.{" "}
           <Link href="/" className="font-medium text-accent underline-offset-2 hover:underline">
-            Add or import your holdings
-          </Link>{" "}
-          to get one chart per stock.
+            Add them on Portfolio & goal
+          </Link>
+          .
         </p>
       </Card>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <Notice>
-        Prices come from <strong>Stooq</strong>, a free, unofficial third-party source fetched through this
-        app&apos;s server. It can be delayed, change format or stop answering; each chart then tells you why and
-        lets you upload your own CSV instead. Drag to pan, scroll or pinch to zoom. Prices are in the currency of
-        the exchange (e.g. USD for .us, pence for .uk).
-      </Notice>
-      {holdings.map((holding) => (
-        <HoldingChartCard key={holding.id} holding={holding} />
-      ))}
-    </div>
+    <Card>
+      <p className="mb-1 text-sm text-muted">Last 12 months. Tap a stock for its full chart.</p>
+      <ul className="divide-y divide-border">
+        {holdings.map((holding) => (
+          <HoldingChartRow key={holding.id} holding={holding} />
+        ))}
+      </ul>
+    </Card>
   );
 }
