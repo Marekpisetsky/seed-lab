@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { formatDuration, formatMoney, formatMonthYear, formatNumber, formatPercent, formatPrice } from "./format";
+import {
+  formatApproxDuration,
+  formatDayMonth,
+  formatDuration,
+  formatMoney,
+  formatMonthYear,
+  formatNumber,
+  formatPercent,
+  formatPrice,
+} from "./format";
 
 describe("formatMoney", () => {
   it("formats amounts with the currency symbol", () => {
@@ -60,5 +69,20 @@ describe("formatDuration", () => {
 describe("formatMonthYear", () => {
   it("formats in UTC", () => {
     expect(formatMonthYear(new Date(Date.UTC(2036, 5, 1)))).toBe("Jun 2036");
+  });
+});
+
+describe("formatDayMonth / formatApproxDuration", () => {
+  it("formats a trading day as DD/MM", () => {
+    expect(formatDayMonth("2026-09-05")).toBe("05/09");
+  });
+
+  it("rounds long durations to whole years for headlines", () => {
+    expect(formatApproxDuration(115.17)).toBe("~10 years");
+    expect(formatApproxDuration(190)).toBe("~16 years");
+    expect(formatApproxDuration(12)).toBe("~1 year");
+    expect(formatApproxDuration(4.2)).toBe("~5 months");
+    expect(formatApproxDuration(1)).toBe("~1 month");
+    expect(formatApproxDuration(Infinity)).toBe("never");
   });
 });

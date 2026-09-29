@@ -1,0 +1,110 @@
+"use client";
+
+import { ReturnSlider } from "@/components/assumptions/return-slider";
+import { Disclosure } from "@/components/ui/disclosure";
+import { Field, inputClass, PercentInput } from "@/components/ui/form";
+import { toIsoDate } from "@/lib/dates";
+import { formatApproxDuration, formatDuration, formatMoney, formatMonthYear, formatPercent } from "@/lib/format";
+import type { GoalProjection, TargetDateProjection } from "@/lib/goal-projection";
+import { isIsoDate } from "@/lib/storage";
+import { BASE_CURRENCY, type Assumptions, type Goal } from "@/lib/types";
+
+interface PlanAdvancedProps {
+  goal: Goal;
+  assumptions: Assumptions;
+  projection: GoalProjection;
+  today: Date;
+  onGoalChange: (patch: Partial<Goal>) => void;
+  onAssumptionsChange: (patch: Partial<Assumptions>) => void;
+}
+
+const eur = (amount: number) => formatMoney(amount, BASE_CURRENCY, { decimals: 0 });
+
+/** Assumptions and extras, folded away from the first read. */
+export function PlanAdvanced({ goal, assumptions, projection, today, onGoalChange, onAssumptionsChange }: PlanAdvancedProps) {
+  return (
+    <Disclosure summary="Advanced">
+      <ReturnSlider
+        value={assumptions.realReturn}
+        onChange={(realReturn) => onAssumptionsChange({ realReturn })}
+        inflation={assumptions.inflation}
+        nominalEquivalent={projection.nominalReturn}
+      />
+
+      <div>
+        <p className="text-sm font-medium">Time to your goal at other growth rates</p>
+        <ul className="mt-2 grid grid-cols-4 gap-2">
+          {projection.sensitivity.map(({ rate, months }) => {
+            const current = Math.abs(rate - assumptions.realReturn) < 1e-9;
+            return (
+              <li
+                key={rate}
+                className={`rounded-md border px-1 py-1.5 text-center text-sm ${current ? "border-accent bg-accent/10" : "border-border"}`}
+              >
+                <span className="block text-xs text-muted">{formatPercent(rate, { decimals: 0 })}</span>
+                <span className="tabular-nums">{months === 0 ? "done" : formatApproxDuration(months)}</span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Inflation per year (%)">
+          {(props) => (
+            <PercentInput
+              {...props}
+              key={assumptions.inflation}
+              value={assumptions.inflation}
+              min={-5}
+              max={50}
+              onCommit={(value) => value !== null && onAssumptionsChange({ inflation: value })}
+            />
+          )}
+        </Field>
+        <Field label="Target date (optional)">
+          {(props) => (
+            <input
+              {...props}
+              type="date"
+              min={toIsoDate(today)}
+              value={goal.targetDate ?? ""}
+              onChange={(event) => onGoalChange({ targetDate: isIsoDate(event.target.value) ? event.target.value : null })}
+              className={inputClass}
+            />
+          )}
+        </Field>
+      </div>
+      {projection.target && <TargetComparison assumptions={assumptions} target={projection.target} />}
+
+      <p className="text-xs text-muted">
+        Amounts are in today&apos;s euros: growth is counted after inflation, and your monthly amount is assumed to
+        rise with prices. Real markets don&apos;t grow evenly; some decades are flat.
+      </p>
+    </Disclosure>
+  );
+}
+
+function TargetComparison({ assumptions, target }: { assumptions: Assumptions; target: TargetDateProjection }) {
+  if (target.months <= 0) {
+    return <p className="text-sm text-negative">That date ({formatMonthYear(target.date)}) has already passed.</p>;
+  }
+  const ahead = target.gap >= 0;
+  return (
+    <p className="text-sm">
+      By {formatMonthYear(target.date)} ({formatDuration(target.months)}) you&apos;d have about{" "}
+      <strong className="tabular-nums">{eur(target.projectedValue)}</strong>,{" "}
+      <span className={ahead ? "text-positive" : "text-negative"}>
+        {eur(Math.abs(target.gap))} {ahead ? "more than" : "short of"}
+      </span>{" "}
+      your goal.
+      {!ahead && (
+        <>
+          {" "}
+          To make it, add about <strong className="tabular-nums">{eur(target.requiredContribution)}/month</strong>{" "}
+          (now {eur(assumptions.monthlyContribution)}).
+        </>
+      )}
+    </p>
+  );
+}

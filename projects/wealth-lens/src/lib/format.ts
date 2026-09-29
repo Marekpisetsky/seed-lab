@@ -82,3 +82,18 @@ const monthYear = new Intl.DateTimeFormat(LOCALE, { month: "short", year: "numer
 export function formatMonthYear(date: Date): string {
   return monthYear.format(date);
 }
+
+/** "2026-09-25" → "25/09" (day/month, as in "price from 25/09"). */
+export function formatDayMonth(isoDate: string): string {
+  const [, month, day] = isoDate.split("-");
+  return `${day}/${month}`;
+}
+
+/** Months → "~16 years" or "~5 months": the rough figure for a headline. */
+export function formatApproxDuration(months: number): string {
+  if (!Number.isFinite(months)) return "never";
+  const whole = Math.max(0, Math.ceil(months - 1e-9));
+  if (whole < 12) return `~${whole} month${whole === 1 ? "" : "s"}`;
+  const years = Math.round(whole / 12);
+  return `~${years} year${years === 1 ? "" : "s"}`;
+}
