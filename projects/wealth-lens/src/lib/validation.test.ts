@@ -94,7 +94,7 @@ describe("parsePlan", () => {
     inflation: 0.025,
     housing: "own",
     homeCountry: "PE",
-    pinned: "buy:used-car",
+    mission: { kind: "buy", item: "used-car" },
     horizonYears: 10,
     customConnections: [{ id: "boat", name: "Boat", kind: "buy", amount: 15_000 }],
   };
@@ -111,32 +111,57 @@ describe("parsePlan", () => {
         withdrawalRate: 0,
         investment: { kind: "?" },
         housing: "castle",
-        pinned: "car",
+        mission: { kind: "live-abroad", country: "Portugal" },
         horizonYears: 2.5,
         customConnections: [full.customConnections[0], { id: "x", name: "", kind: "buy", amount: 1 }, { id: "y", name: "Y", kind: "live", amount: -1 }],
       }),
     ).toEqual({
       ...full,
-      invested: null,
+      // A bad amount in a file is 0, never a first visit's example value.
+      invested: 0,
       withdrawalRate: DEFAULT_PLAN.withdrawalRate,
       investment: DEFAULT_PLAN.investment,
       housing: "rent",
-      pinned: null,
+      mission: null,
       horizonYears: null,
     });
   });
 
-  it("turns a version 1 euro goal into “My goal”, pinned when it was the active goal", () => {
+  it("reads every kind of mission, and rejects broken ones", () => {
+    const mission = (value: unknown) => parsePlan({ ...full, mission: value })?.mission;
+    expect(mission({ kind: "stop-working" })).toEqual({ kind: "stop-working" });
+    expect(mission({ kind: "live-abroad", country: "PT" })).toEqual({ kind: "live-abroad", country: "PT" });
+    expect(mission({ kind: "buy-own", name: " A boat ", amount: 15_000 })).toEqual({ kind: "buy-own", name: "A boat", amount: 15_000 });
+    expect(mission({ kind: "amount", amount: 100_000 })).toEqual({ kind: "amount", amount: 100_000 });
+    expect(mission({ kind: "amount", amount: 0 })).toBeNull();
+    expect(mission({ kind: "amount", amount: 2e9 })).toBeNull();
+    expect(mission({ kind: "buy-own", name: "", amount: 10 })).toBeNull();
+    expect(mission({ kind: "buy", item: "../x" })).toBeNull();
+    expect(mission(null)).toBeNull();
+  });
+
+  it("turns a version 1 goal into a mission: the euro goal, or the goal country", () => {
     const v1 = { invested: 20_000, monthlyContribution: 500, goal: { amount: 250_000, targetDate: null }, goalCountry: null };
-    expect(parsePlan(v1)).toMatchObject({
-      pinned: "custom:goal",
-      customConnections: [{ id: "goal", name: "My goal", kind: "buy", amount: 250_000 }],
+    expect(parsePlan(v1)).toMatchObject({ mission: { kind: "amount", amount: 250_000 }, customConnections: [] });
+    expect(parsePlan({ ...v1, goalCountry: "PT" })).toMatchObject({ mission: { kind: "live-abroad", country: "PT" } });
+    expect(parsePlan({ invested: 1 })).toMatchObject({ mission: null, customConnections: [] });
+  });
+
+  it("turns a version 2 pinned connection into a mission; 'the app chose' leaves it to the user", () => {
+    const v2 = (pinned: string | null, customConnections: unknown[] = []) => parsePlan({ invested: 1, pinned, customConnections });
+    expect(v2("life:stop-working")?.mission).toEqual({ kind: "stop-working" });
+    expect(v2("country:PT")?.mission).toEqual({ kind: "live-abroad", country: "PT" });
+    expect(v2("buy:used-car")?.mission).toEqual({ kind: "buy", item: "used-car" });
+    const boat = { id: "b1", name: "Boat", kind: "buy", amount: 15_000 };
+    const keep = { id: "k1", name: "Kayak", kind: "buy", amount: 900 };
+    expect(v2("custom:b1", [boat, keep])).toMatchObject({
+      mission: { kind: "buy-own", name: "Boat", amount: 15_000 },
+      customConnections: [keep],
     });
-    expect(parsePlan({ ...v1, goalCountry: "PT" })).toMatchObject({
-      pinned: "country:PT",
-      customConnections: [{ id: "goal", name: "My goal", kind: "buy", amount: 250_000 }],
-    });
-    expect(parsePlan({ invested: 1 })).toMatchObject({ pinned: null, customConnections: [] });
+    const goal = { id: "goal", name: "My goal", kind: "buy", amount: 250_000 };
+    expect(v2("custom:goal", [goal])).toMatchObject({ mission: { kind: "amount", amount: 250_000 }, customConnections: [] });
+    expect(v2("life:four-days")?.mission).toBeNull();
+    expect(v2(null)?.mission).toBeNull();
   });
 
   it("rejects non-objects", () => {

@@ -1,25 +1,24 @@
 "use client";
 
 import { useMemo } from "react";
-import { LiveNumberInput } from "@/components/ui/form";
+import { SettledNumberInput } from "@/components/ui/form";
 import { useAppState } from "@/hooks/use-app";
 import { updatePlan } from "@/lib/app-store";
 import { priceHoldings } from "@/lib/auto-price";
 import { formatEur } from "@/lib/format";
 import { startingCapital } from "@/lib/plan";
+import { MAX_AMOUNT } from "@/lib/validation";
 
-/** A money field with a euro sign in front. */
+/** A money field with a euro sign in front; the report changes once the user has finished typing. */
 function EuroField({
   label,
   value,
-  onValue,
-  placeholder,
+  onCommit,
   onFocus,
 }: {
   label: string;
-  value: number | null;
-  onValue: (value: number | null) => void;
-  placeholder: string;
+  value: number;
+  onCommit: (value: number) => void;
   onFocus: () => void;
 }) {
   return (
@@ -29,15 +28,17 @@ function EuroField({
         <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted">
           €
         </span>
-        <LiveNumberInput value={value} onValue={onValue} placeholder={placeholder} onFocus={onFocus} className="pl-7 text-base" />
+        <SettledNumberInput value={value} onCommit={onCommit} max={MAX_AMOUNT} placeholder="0" onFocus={onFocus} className="pl-7 text-base" />
       </span>
     </label>
   );
 }
 
 /**
- * The two facts everything is worked out from. They update the whole report
- * as they are typed. With holdings, the invested amount is their value.
+ * The two facts everything is worked out from: real values from the start
+ * (EUR 1,000 and EUR 200 a month), the same the levers show. The report
+ * changes once the user has finished typing, not with each key. With
+ * holdings, the invested amount is their value.
  */
 export function YourNumbers({ onReach }: { onReach: () => void }) {
   const { plan, holdings, uploadedPrices } = useAppState();
@@ -57,16 +58,14 @@ export function YourNumbers({ onReach }: { onReach: () => void }) {
         <EuroField
           label="You have invested"
           value={plan.invested}
-          onValue={(invested) => updatePlan({ invested })}
-          placeholder="1,000"
+          onCommit={(invested) => updatePlan({ invested })}
           onFocus={onReach}
         />
       )}
       <EuroField
         label="You add each month"
-        value={plan.monthlyContribution > 0 ? plan.monthlyContribution : null}
-        onValue={(monthly) => updatePlan({ monthlyContribution: monthly ?? 0 })}
-        placeholder="200"
+        value={plan.monthlyContribution}
+        onCommit={(monthlyContribution) => updatePlan({ monthlyContribution })}
         onFocus={onReach}
       />
     </section>

@@ -3,6 +3,7 @@
 import { Minus, Plus } from "lucide-react";
 import { updatePlan } from "@/lib/app-store";
 import { formatEur } from "@/lib/format";
+import { Changed } from "@/components/ui/changed";
 import type { ChoiceOption, Effect, Levers } from "@/lib/levers";
 
 const TONE: Record<Effect["tone"], string> = {
@@ -13,7 +14,7 @@ const TONE: Record<Effect["tone"], string> = {
 
 function EffectText({ effect }: { effect: Effect | null }) {
   if (!effect) return null;
-  return <span className={`text-xs font-medium ${TONE[effect.tone]}`}>{effect.text}</span>;
+  return <Changed value={effect.text} className={`text-xs font-medium ${TONE[effect.tone]}`} />;
 }
 
 function Choices<T>({ title, options, onSelect }: { title: string; options: ChoiceOption<T>[]; onSelect: (value: T) => void }) {
@@ -32,7 +33,7 @@ function Choices<T>({ title, options, onSelect }: { title: string; options: Choi
             }`}
           >
             <span className="text-sm font-medium">{option.label}</span>
-            <span className="text-xs text-muted">{option.detail}</span>
+            <Changed value={option.detail} className="text-xs text-muted" />
             {option.note && <span className="text-[11px] leading-tight text-muted">{option.note}</span>}
             {!option.selected && <EffectText effect={option.effect} />}
           </button>
@@ -64,7 +65,7 @@ export function LeversSection({ levers }: { levers: Levers }) {
               <Minus aria-hidden="true" className="size-4" />
             </button>
             <p className="min-w-24 text-center text-2xl font-semibold" aria-live="polite">
-              {formatEur(monthly.value)}
+              <Changed value={formatEur(monthly.value)} />
             </p>
             <button
               type="button"

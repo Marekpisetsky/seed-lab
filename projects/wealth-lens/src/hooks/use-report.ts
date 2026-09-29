@@ -6,7 +6,7 @@ import { toIsoDate } from "@/lib/dates";
 import { topFindings, type Finding } from "@/lib/findings";
 import { resolveInvestment, type ResolvedInvestment } from "@/lib/investment";
 import { buildLevers, WITHDRAWAL_CHOICES, type Levers } from "@/lib/levers";
-import { buildReport, type Report } from "@/lib/report";
+import { buildReport, hasReport, type Report, type ReportPlan } from "@/lib/report";
 import { cachedSuccessRates, wealthPercentiles } from "@/lib/simulation";
 import type { Holding } from "@/lib/types";
 import { useAppState } from "./use-app";
@@ -19,18 +19,23 @@ export interface ReportBundle {
   levers: Levers;
 }
 
-let last: { state: AppState; day: string; bundle: ReportBundle } | null = null;
+let last: { state: AppState; day: string; bundle: ReportBundle | null } | null = null;
 
 /**
  * Everything "My money" shows, worked out once per change of the shared
- * state and shared by every section. The time it takes is recorded as the
- * performance measure "wealth-lens:report".
+ * state and shared by every section; `null` until the user has chosen a
+ * mission (or when theirs is no longer in the data). The time it takes is
+ * recorded as the performance measure "wealth-lens:report".
  */
-export function reportFor(state: AppState, today: Date): ReportBundle {
+export function reportFor(state: AppState, today: Date): ReportBundle | null {
   const day = toIsoDate(today);
   if (last && last.state === state && last.day === day) return last.bundle;
+  if (!hasReport(state.plan)) {
+    last = { state, day, bundle: null };
+    return null;
+  }
   const start = performance.now();
-  const bundle = compute(state, today);
+  const bundle = compute({ ...state, plan: state.plan }, today);
   try {
     performance.measure("wealth-lens:report", { start, end: performance.now() });
   } catch {
@@ -41,7 +46,7 @@ export function reportFor(state: AppState, today: Date): ReportBundle {
   return bundle;
 }
 
-function compute(state: AppState, today: Date): ReportBundle {
+function compute(state: AppState & { plan: ReportPlan }, today: Date): ReportBundle {
   const holdings = priceHoldings(state.holdings, state.uploadedPrices);
   const report = buildReport(state.plan, holdings, today);
   return { holdings, report, findings: topFindings(report, holdings), levers: buildLevers(report, holdings) };
@@ -75,15 +80,17 @@ function warm(investments: readonly ResolvedInvestment[], withdrawalRate: number
 }
 
 /**
- * Before the first report, e.g. while the first number is being typed: the
- * plan's own investment, then one report on the current state, so the code
- * that works out the answer is already compiled when the number arrives.
+ * Before the first report, e.g. while the mission is being chosen: the
+ * plan's own investment, then one throwaway report, so the code that works
+ * out the answer is already compiled when the mission arrives. The mission
+ * used for it is never shown or kept.
  */
 export function warmUp(state: AppState, today: Date): void {
   const holdings = priceHoldings(state.holdings, state.uploadedPrices);
   warm([resolveInvestment(state.plan.investment, holdings)], state.plan.withdrawalRate);
+  const plan = { ...state.plan, mission: state.plan.mission ?? { kind: "stop-working" as const } };
   // Not recorded as a measure, and not kept: only the compiled code is wanted.
-  idle(() => compute(state, today));
+  if (hasReport(plan)) idle(() => compute({ ...state, plan }, today));
 }
 
 /** After a report: the investments the user has not chosen. */
@@ -92,6 +99,6 @@ function warmOtherInvestments({ levers, holdings, report }: ReportBundle): void 
   warm(others, report.scenario.withdrawalRate);
 }
 
-export function useReport(): ReportBundle {
+export function useReport(): ReportBundle | null {
   return reportFor(useAppState(), useToday());
 }

@@ -12,7 +12,7 @@ import { monthlyWithdrawal } from "./finance";
 import { formatEur, formatPercent, formatRate, formatYears } from "./format";
 import { INDEXES, INDEX_IDS } from "./indexes";
 import { periodText, portfolioMix, resolveInvestment } from "./investment";
-import { answerMetric, valueAt, type AnswerMetric, type Report, type Scenario } from "./report";
+import { answerMetric, valueAt, withinReach, type AnswerMetric, type Report, type Scenario } from "./report";
 import { cachedSuccessRates } from "./simulation";
 import type { Holding, Investment } from "./types";
 
@@ -57,9 +57,11 @@ export function describeEffect(base: AnswerMetric, alternative: AnswerMetric, ki
   if (base.mode === "goal" && alternative.mode === "goal") {
     const now = base.months;
     const then = alternative.months;
-    if (!Number.isFinite(now) && !Number.isFinite(then)) return { text: "still never", tone: "same" };
-    if (!Number.isFinite(now)) return { text: `reached in ${formatYears(then)}`, tone: "better" };
-    if (!Number.isFinite(then)) return { text: "never reached", tone: "worse" };
+    if (now === 0 && then === 0) return { text: "already reached", tone: "same" };
+    // Beyond MAX_YEARS a goal is "not reachable at this pace": no year counts past it.
+    if (!withinReach(now) && !withinReach(then)) return { text: "still not reachable", tone: "same" };
+    if (!withinReach(now)) return { text: `reachable in ${formatYears(then)}`, tone: "better" };
+    if (!withinReach(then)) return { text: "not reachable", tone: "worse" };
     const gained = now - then;
     if (Math.abs(gained) < 0.5) return { text: "same time", tone: "same" };
     return gained > 0
@@ -130,7 +132,11 @@ export function buildLevers(report: Report, holdings: readonly Holding[]): Lever
       value: null,
       label: "When reached",
       detail:
-        reach === 0 ? "now" : Number.isFinite(reach) ? String(addMonths(report.today, Math.ceil(reach - 1e-9)).getUTCFullYear()) : "never",
+        reach === 0
+          ? "now"
+          : withinReach(reach)
+            ? String(addMonths(report.today, Math.ceil(reach - 1e-9)).getUTCFullYear())
+            : "not at this pace",
       effect: null,
       selected: plan.horizonYears === null,
     },

@@ -79,13 +79,29 @@ export interface CustomConnection {
 }
 
 /**
+ * What the user wants the money to do. Everything on "My money" is worked
+ * out for it, and only the user sets or changes it: the app never picks one.
+ * - stop-working: live off the investments in the user's own country;
+ * - live-abroad: live off them in another country (ISO code);
+ * - buy: one of the "Buy it" items of src/data/connections.json (its id);
+ * - buy-own: something of the user's own, at the price they give;
+ * - amount: reach an amount of the user's own.
+ */
+export type Mission =
+  | { kind: "stop-working" }
+  | { kind: "live-abroad"; country: string }
+  | { kind: "buy"; item: string }
+  | { kind: "buy-own"; name: string; amount: number }
+  | { kind: "amount"; amount: number };
+
+/**
  * The one plan every screen reads and edits. It lives in memory only: nothing
  * is saved, and reloading the page starts over (see lib/app-store.ts).
  * All rates are decimal fractions: 0.07 means 7 %.
  */
 export interface Plan {
-  /** Amount invested, typed on "My money"; `null` until typed. Priced EUR holdings win. */
-  invested: number | null;
+  /** Amount invested, typed on "My money". Priced EUR holdings win. */
+  invested: number;
   /** Added every month, in BASE_CURRENCY, constant in today's money. */
   monthlyContribution: number;
   investment: Investment;
@@ -96,11 +112,11 @@ export interface Plan {
   housing: Housing;
   /** ISO code of the user's country: rent, working less and stopping work are priced there. */
   homeCountry: string;
-  /** Id of the connection the report is built around ("country:IN", "buy:new-car"); `null` = the next milestone. */
-  pinned: string | null;
+  /** What the money is for; `null` until the user chooses. */
+  mission: Mission | null;
   /** Look this many years ahead instead of "when the goal is reached"; `null` = when reached. */
   horizonYears: number | null;
-  /** What the user added to "What it means in real life". */
+  /** Items added to "What it means in real life" in earlier versions; still listed. */
   customConnections: CustomConnection[];
 }
 

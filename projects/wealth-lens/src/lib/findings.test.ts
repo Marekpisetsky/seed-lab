@@ -10,8 +10,10 @@ import {
   feesFinding,
   geographyFinding,
   growthShareFinding,
+  horizonOf,
   inflationFinding,
   leverFinding,
+  MISSION_ORDER,
   sequenceFinding,
   stockPastFinding,
   topFindings,
@@ -37,7 +39,7 @@ const plan = (overrides: Partial<ReportPlan> = {}): ReportPlan => ({
   inflation: 0.02,
   housing: "rent",
   homeCountry: "NL",
-  pinned: null,
+  mission: { kind: "live-abroad", country: "IN" },
   horizonYears: null,
   customConnections: [],
   ...overrides,
@@ -75,8 +77,8 @@ describe("lever: +€100 a month vs +1% vs a year earlier", () => {
   });
 
   it("is not shown when the goal is already reached or less than two years away", () => {
-    expect(leverFinding(context({ invested: 200_000, pinned: "country:IN" }))).toBeNull();
-    expect(leverFinding(context({ pinned: "buy:e-bike" }))).toBeNull();
+    expect(leverFinding(context({ invested: 200_000, mission: { kind: "live-abroad", country: "IN" } }))).toBeNull();
+    expect(leverFinding(context({ mission: { kind: "buy", item: "e-bike" } }))).toBeNull();
   });
 
   it("speaks in euros when looking a fixed number of years ahead", () => {
@@ -97,7 +99,26 @@ describe("waiting a year", () => {
   });
 
   it("is not shown for a goal under two years away", () => {
-    expect(waitingFinding(context({ pinned: "buy:e-bike" }))).toBeNull();
+    expect(waitingFinding(context({ mission: { kind: "buy", item: "e-bike" } }))).toBeNull();
+  });
+});
+
+describe("goals more than 60 years away", () => {
+  // EUR 1,000 + EUR 1 a month, living in India: about 62 years.
+  const far = context({ monthlyContribution: 1, mission: { kind: "live-abroad", country: "IN" } });
+
+  it("hide every finding that would quote a figure that far out", () => {
+    expect(far.report.answer.reachable).toBe(false);
+    expect(horizonOf(far.report)).toBeNull();
+    for (const rule of [leverFinding, waitingFinding, inflationFinding, feesFinding, sequenceFinding, growthShareFinding]) {
+      expect(rule(far), rule.name).toBeNull();
+    }
+    const years = allFindings(far.report, []).flatMap((finding) => [finding.text, ...finding.calculation].join(" ").match(/\b2\d{3}\b/g) ?? []);
+    expect(years.every((year) => Number(year) <= 2026 + 60)).toBe(true);
+  });
+
+  it("still say what does not depend on a date", () => {
+    expect(doublingFinding(far)).not.toBeNull();
   });
 });
 
@@ -121,8 +142,8 @@ describe("inflation", () => {
   });
 
   it("is not shown for a goal less than 5 years away, or already reached", () => {
-    expect(inflationFinding(context({ pinned: "buy:e-bike" }))).toBeNull();
-    expect(inflationFinding(context({ invested: 50_000, pinned: "buy:used-car" }))).toBeNull();
+    expect(inflationFinding(context({ mission: { kind: "buy", item: "e-bike" } }))).toBeNull();
+    expect(inflationFinding(context({ invested: 50_000, mission: { kind: "buy", item: "used-car" } }))).toBeNull();
   });
 });
 
@@ -134,27 +155,45 @@ describe("fees", () => {
   });
 
   it("is not shown for a short horizon", () => {
-    expect(feesFinding(context({ pinned: "buy:e-bike" }))).toBeNull();
+    expect(feesFinding(context({ mission: { kind: "buy", item: "e-bike" } }))).toBeNull();
   });
 });
 
 describe("geography", () => {
-  it("shows how much sooner the cheapest place comes than home", () => {
-    const report = small.report;
+  const stop = { mission: { kind: "stop-working" } } as const;
+
+  it("stopping work: shows how much sooner the cheapest place comes than home", () => {
+    const report = context(stop).report;
     const home = report.statuses.find((status) => status.connection.id === "life:stop-working");
-    const finding = geographyFinding(small);
+    const finding = geographyFinding(context(stop));
     expect(finding?.value).toBe(formatYears((home?.months ?? 0) - n));
     expect(finding?.text).toMatch(/^Living in India comes \d+ years before the Netherlands\.$/);
   });
 
-  it("counts the countries already covered", () => {
+  it("stopping work: counts the countries already covered", () => {
     // EUR 120,000 pays EUR 400/month: India (330) and Egypt (370).
-    const finding = geographyFinding(context({ invested: 120_000 }));
+    const finding = geographyFinding(context({ ...stop, invested: 120_000 }));
     expect(finding).toMatchObject({ value: "2 countries", text: "Your money already covers living costs in 2 countries." });
   });
 
-  it("is not shown when home is (nearly) the cheapest", () => {
-    expect(geographyFinding(context({ homeCountry: "IN" }))).toBeNull();
+  it("stopping work: not shown when home is (nearly) the cheapest", () => {
+    expect(geographyFinding(context({ ...stop, homeCountry: "IN" }))).toBeNull();
+  });
+
+  it("living abroad: compares that country with stopping work at home", () => {
+    const report = small.report;
+    const home = report.statuses.find((status) => status.connection.id === "life:stop-working");
+    const finding = geographyFinding(small);
+    expect(finding?.value).toBe(formatYears((home?.months ?? 0) - n));
+    expect(finding?.text).toMatch(/^Living in India comes \d+ years before stopping work in the Netherlands\.$/);
+    // Switzerland costs more than the Netherlands: it comes after.
+    const swiss = geographyFinding(context({ invested: 50_000, monthlyContribution: 1000, mission: { kind: "live-abroad", country: "CH" } }));
+    expect(swiss?.text).toMatch(/^Living in Switzerland comes \d+ years after stopping work in the Netherlands\.$/);
+  });
+
+  it("is not about a purchase or an amount", () => {
+    expect(geographyFinding(context({ mission: { kind: "buy", item: "used-car" } }))).toBeNull();
+    expect(geographyFinding(context({ mission: { kind: "amount", amount: 100_000 } }))).toBeNull();
   });
 });
 
@@ -192,7 +231,7 @@ describe("a bad first decade", () => {
   });
 
   it("is not shown for a goal under 5 years away", () => {
-    expect(sequenceFinding(context({ pinned: "buy:e-bike" }))).toBeNull();
+    expect(sequenceFinding(context({ mission: { kind: "buy", item: "e-bike" } }))).toBeNull();
   });
 });
 
@@ -214,7 +253,7 @@ describe("withdrawal rate", () => {
     // S&P 500, 1988–2022: 4% lasted 30 years in 93% of histories, 3% in 98%.
     expect(withdrawalFinding(small)).toBeNull();
     expect(withdrawalFinding(context({ withdrawalRate: 0.03 }))).toBeNull();
-    expect(withdrawalFinding(context({ withdrawalRate: 0.07, pinned: "buy:new-car" }))).toBeNull();
+    expect(withdrawalFinding(context({ withdrawalRate: 0.07, mission: { kind: "buy", item: "new-car" } }))).toBeNull();
   });
 });
 
@@ -265,17 +304,48 @@ describe("the findings shown", () => {
     large: context({ invested: 50_000, monthlyContribution: 1000 }),
     concentrated,
     horizon: context({ horizonYears: 15 }),
-    purchase: context({ pinned: "buy:new-car" }),
+    purchase: context({ mission: { kind: "buy", item: "new-car" } }),
   };
 
-  it("are 3 to 5, biggest impact first", () => {
+  it("are 3 to 5, in the mission's fixed order", () => {
     for (const [name, ctx] of Object.entries(profiles)) {
       const shown = topFindings(ctx.report, ctx.holdings);
       expect(shown.length, name).toBeGreaterThanOrEqual(3);
       expect(shown.length, name).toBeLessThanOrEqual(5);
-      const impacts = shown.map((finding) => finding.impact);
-      expect([...impacts].sort((a, b) => b - a), name).toEqual(impacts);
+      const order = MISSION_ORDER[ctx.report.goal.status.connection.kind];
+      const positions = shown.map((finding) => order.indexOf(finding.id));
+      expect(positions.every((position) => position >= 0), name).toBe(true);
+      expect([...positions].sort((a, b) => a - b), name).toEqual(positions);
     }
+  });
+
+  it("are about each kind of mission", () => {
+    const missions = [
+      { kind: "stop-working" },
+      { kind: "live-abroad", country: "PT" },
+      { kind: "buy", item: "used-car" },
+      { kind: "amount", amount: 100_000 },
+    ] as const;
+    for (const mission of missions) {
+      const shown = topFindings(context({ mission }).report, []);
+      expect(shown.length, mission.kind).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it("leave out what does not apply to a purchase or an amount", () => {
+    for (const mission of [{ kind: "buy", item: "new-car" }, { kind: "amount", amount: 100_000 }] as const) {
+      const ids = allFindings(context({ mission, withdrawalRate: 0.07 }).report, []).map((finding) => finding.id);
+      expect(ids).not.toContain("withdrawal");
+      expect(ids).not.toContain("geography");
+    }
+  });
+
+  it("keep their order when the numbers change", () => {
+    const orders = [150, 200, 250, 300].map((monthlyContribution) =>
+      topFindings(context({ monthlyContribution }).report, []).map((finding) => finding.id),
+    );
+    const order = MISSION_ORDER.live;
+    for (const ids of orders) expect(ids.map((id) => order.indexOf(id))).toEqual([...ids.map((id) => order.indexOf(id))].sort((a, b) => a - b));
   });
 
   it("put the risk of a concentrated portfolio at the top", () => {

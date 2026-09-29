@@ -7,20 +7,28 @@
 
 import { isIndexId } from "./index-ids";
 import type { PricePoint } from "./prices";
-import type { CustomConnection, Goal, Holding, Investment, Plan } from "./types";
+import type { CustomConnection, Goal, Holding, Investment, Mission, Plan } from "./types";
 
-/** The euro goal of version 1 files, which becomes the custom connection "My goal". */
+/** The euro goal of version 1 files, which becomes the mission "reach an amount". */
 export const DEFAULT_GOAL: Goal = { amount: 100_000, targetDate: null };
 
+/** The largest amount accepted anywhere (invested, monthly, a price): EUR 1 billion. */
+export const MAX_AMOUNT = 1e9;
+
+/**
+ * A first visit starts with these: real, editable values (EUR 1,000 and
+ * EUR 200 a month), shown in the fields and on the levers alike. No mission:
+ * the user chooses it.
+ */
 export const DEFAULT_PLAN: Plan = {
-  invested: null,
-  monthlyContribution: 0,
+  invested: 1000,
+  monthlyContribution: 200,
   investment: { kind: "index", index: "sp500" },
   withdrawalRate: 0.04,
   inflation: 0.02,
   housing: "rent",
   homeCountry: "NL",
-  pinned: null,
+  mission: null,
   horizonYears: null,
   customConnections: [],
 };
@@ -115,7 +123,74 @@ export function parseInvestment(value: unknown): Investment | null {
   }
 }
 
-const PIN_PATTERN = /^(country|life|buy|custom):[A-Za-z0-9-]{1,40}$/;
+const ID_PATTERN = /^[A-Za-z0-9-]{1,40}$/;
+const isAmount = (value: unknown): value is number => isFiniteNumber(value) && value > 0 && value <= MAX_AMOUNT;
+const isName = (value: unknown): value is string => typeof value === "string" && value.trim() !== "" && value.length <= 60;
+
+export function parseMission(value: unknown): Mission | null {
+  if (!isRecord(value)) return null;
+  switch (value.kind) {
+    case "stop-working":
+      return { kind: "stop-working" };
+    case "live-abroad":
+      return typeof value.country === "string" && COUNTRY_PATTERN.test(value.country)
+        ? { kind: "live-abroad", country: value.country }
+        : null;
+    case "buy":
+      return typeof value.item === "string" && ID_PATTERN.test(value.item) ? { kind: "buy", item: value.item } : null;
+    case "buy-own":
+      return isName(value.name) && isAmount(value.amount) ? { kind: "buy-own", name: value.name.trim(), amount: value.amount } : null;
+    case "amount":
+      return isAmount(value.amount) ? { kind: "amount", amount: value.amount } : null;
+    default:
+      return null;
+  }
+}
+
+/**
+ * Version 2 pinned a connection ("country:PT", "buy:used-car",
+ * "custom:<id>", "life:…") or nothing (the app chose); version 1 had a euro
+ * goal and an optional country goal. Whatever can be a mission becomes one,
+ * and a pinned custom item stops being listed separately. Anything else,
+ * including "the app chose", leaves the mission to the user.
+ */
+function missionFromEarlierVersions(
+  value: Record<string, unknown>,
+  custom: CustomConnection[],
+): { mission: Mission | null; customConnections: CustomConnection[] } {
+  const none = { mission: null, customConnections: custom };
+  if (!("pinned" in value)) {
+    if (typeof value.goalCountry === "string" && COUNTRY_PATTERN.test(value.goalCountry)) {
+      return { mission: { kind: "live-abroad", country: value.goalCountry }, customConnections: custom };
+    }
+    const goal = parseGoal(value.goal);
+    return goal && isAmount(goal.amount) ? { mission: { kind: "amount", amount: goal.amount }, customConnections: custom } : none;
+  }
+  const pinned = typeof value.pinned === "string" ? value.pinned : "";
+  const [group, id] = pinned.split(":");
+  if (!id || !ID_PATTERN.test(id)) return none;
+  switch (group) {
+    case "life":
+      return id === "stop-working" ? { mission: { kind: "stop-working" }, customConnections: custom } : none;
+    case "country":
+      return COUNTRY_PATTERN.test(id) ? { mission: { kind: "live-abroad", country: id }, customConnections: custom } : none;
+    case "buy":
+      return { mission: { kind: "buy", item: id }, customConnections: custom };
+    case "custom": {
+      const item = custom.find((entry) => entry.id === id);
+      if (!item || item.kind !== "buy") return none;
+      const rest = custom.filter((entry) => entry !== item);
+      // Version 1's euro goal, carried by version 2 as "My goal".
+      const mission: Mission =
+        id === "goal" && item.name === "My goal"
+          ? { kind: "amount", amount: item.amount }
+          : { kind: "buy-own", name: item.name, amount: item.amount };
+      return { mission, customConnections: rest };
+    }
+    default:
+      return none;
+  }
+}
 
 export function parseCustomConnection(value: unknown): CustomConnection | null {
   if (!isRecord(value)) return null;
@@ -123,47 +198,35 @@ export function parseCustomConnection(value: unknown): CustomConnection | null {
   if (typeof id !== "string" || !/^[A-Za-z0-9-]{1,40}$/.test(id)) return null;
   if (typeof name !== "string" || name.trim() === "" || name.length > 60) return null;
   if (kind !== "live" && kind !== "buy") return null;
-  if (!isFiniteNumber(amount) || amount <= 0 || amount > 1e9) return null;
+  if (!isAmount(amount)) return null;
   return { id, name: name.trim(), kind, amount };
-}
-
-/** "My goal": what a version 1 euro goal becomes. */
-export function goalAsConnection(goal: Goal): CustomConnection {
-  return { id: "goal", name: "My goal", kind: "buy", amount: goal.amount };
 }
 
 /**
  * Field by field, so one bad or missing field does not reset the others.
- * Also reads version 1 plans, which had a euro goal and an optional
- * country goal instead of a pinned connection: the euro goal becomes the
- * custom connection "My goal", and whichever goal was active is pinned.
+ * Amounts missing from a file are 0, never the example values of a first
+ * visit. Also reads the plans of versions 1 and 2 (see above).
  */
 export function parsePlan(value: unknown): Plan | null {
   if (!isRecord(value)) return null;
   const pick = <K extends keyof Plan>(key: K, parse: (v: unknown) => Plan[K] | null | undefined): Plan[K] =>
     parse(value[key]) ?? DEFAULT_PLAN[key];
-  const customConnections = Array.isArray(value.customConnections)
+  const custom = Array.isArray(value.customConnections)
     ? value.customConnections.map(parseCustomConnection).filter((item): item is CustomConnection => item !== null)
     : [];
-  let pinned = typeof value.pinned === "string" && PIN_PATTERN.test(value.pinned) ? value.pinned : null;
-  if (!("pinned" in value)) {
-    const goal = parseGoal(value.goal);
-    if (goal && goal.amount > 0 && !customConnections.some((item) => item.id === "goal")) {
-      customConnections.unshift(goalAsConnection(goal));
-    }
-    if (typeof value.goalCountry === "string" && COUNTRY_PATTERN.test(value.goalCountry)) pinned = `country:${value.goalCountry}`;
-    else if (goal && goal.amount > 0) pinned = "custom:goal";
-  }
+  const { mission, customConnections } =
+    "mission" in value ? { mission: parseMission(value.mission), customConnections: custom } : missionFromEarlierVersions(value, custom);
   const horizon = value.horizonYears;
+  const amount = (v: unknown) => (isNonNegativeNumber(v) && v <= MAX_AMOUNT ? v : 0);
   return {
-    invested: isNonNegativeNumber(value.invested) ? value.invested : null,
-    monthlyContribution: pick("monthlyContribution", (v) => (isNonNegativeNumber(v) ? v : null)),
+    invested: amount(value.invested),
+    monthlyContribution: amount(value.monthlyContribution),
     investment: pick("investment", parseInvestment),
     withdrawalRate: pick("withdrawalRate", (v) => (isRate(v) && v > 0 ? v : null)),
     inflation: pick("inflation", (v) => (isRate(v) ? v : null)),
     housing: value.housing === "own" ? "own" : "rent",
     homeCountry: pick("homeCountry", (v) => (typeof v === "string" && COUNTRY_PATTERN.test(v) ? v : null)),
-    pinned,
+    mission,
     horizonYears: Number.isInteger(horizon) && (horizon as number) >= 1 && (horizon as number) <= 60 ? (horizon as number) : null,
     customConnections,
   };

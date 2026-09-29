@@ -7,9 +7,9 @@
  */
 
 import type { AppState } from "./app-store";
+import type { Plan } from "./types";
 import {
   DEFAULT_PLAN,
-  goalAsConnection,
   isRecord,
   parseGoal,
   parseHoldings,
@@ -71,8 +71,15 @@ export function readLegacyData(storage: LegacyStorage | null): AppState | null {
   const assumptions = read(storage, `${PREFIX}assumptions`);
   const fire = read(storage, `${PREFIX}fire`);
   const goal = parseGoal(read(storage, `${PREFIX}goal`));
-  const plan = { ...DEFAULT_PLAN, customConnections: goal ? [goalAsConnection(goal)] : [], pinned: goal ? "custom:goal" : null };
-  if (typeof invested === "number" && Number.isFinite(invested) && invested >= 0) plan.invested = invested;
+  // The saved euro goal becomes the mission "reach an amount"; amounts not saved are 0, not a first visit's examples.
+  const plan: Plan = {
+    ...DEFAULT_PLAN,
+    invested: 0,
+    monthlyContribution: 0,
+    mission: goal && goal.amount > 0 ? { kind: "amount", amount: goal.amount } : null,
+  };
+  const answered = typeof invested === "number" && Number.isFinite(invested) && invested >= 0;
+  if (answered) plan.invested = invested;
   if (isRecord(assumptions)) {
     const { monthlyContribution, withdrawalRate, inflation, realReturn } = assumptions;
     if (typeof monthlyContribution === "number" && monthlyContribution >= 0) plan.monthlyContribution = monthlyContribution;
@@ -93,7 +100,7 @@ export function readLegacyData(storage: LegacyStorage | null): AppState | null {
     const prices = parseUploadedPrices(read(storage, key));
     if (prices) uploadedPrices[key.slice(UPLOADED_PREFIX.length)] = prices;
   }
-  if (plan.invested === null && holdings.length === 0) return null;
+  if (!answered && holdings.length === 0) return null;
   return { plan, holdings, uploadedPrices };
 }
 

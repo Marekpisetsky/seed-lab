@@ -48,6 +48,21 @@
   --font-sans: var(--font-geist-sans);
 }
 
+/* A figure the user's last change moved: a tint that fades (components/ui/changed.tsx). */
+@theme {
+  --animate-changed: changed 1.6s ease-out;
+
+  @keyframes changed {
+    0%,
+    35% {
+      background-color: color-mix(in oklab, var(--accent) 24%, transparent);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
