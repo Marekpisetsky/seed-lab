@@ -1,30 +1,48 @@
 "use client";
 
 import { useMemo } from "react";
+import { InvestmentSummary } from "@/components/plan/investment-summary";
 import { Card } from "@/components/ui/card";
 import { Disclosure } from "@/components/ui/disclosure";
-import { formatPercent, formatRate } from "@/lib/format";
-import { DEFAULT_SIMULATIONS, DEFAULT_YEARS, sp500RealReturns, successRate } from "@/lib/monte-carlo";
+import { formatMoney, formatPercent, formatRate } from "@/lib/format";
+import { INDEXES } from "@/lib/indexes";
+import type { ResolvedInvestment } from "@/lib/investment";
+import { DEFAULT_SIMULATIONS, DEFAULT_YEARS, successRate } from "@/lib/monte-carlo";
+import { BASE_CURRENCY } from "@/lib/types";
 
 export const WITHDRAWAL_CHOICES = [0.03, 0.04, 0.05, 0.07] as const;
 
 interface SuccessCardProps {
   withdrawalRate: number;
   onWithdrawalRateChange: (rate: number) => void;
+  investment: ResolvedInvestment;
+  /** The active goal's capital and what it would pay per month at this rate. */
+  goal: { amount: number; monthlyIncome: number };
 }
 
-const firstYear = sp500RealReturns.years[0].year;
-const lastYear = sp500RealReturns.years.at(-1)?.year;
+const eur = (amount: number) => formatMoney(amount, BASE_CURRENCY, { decimals: 0 });
 
-/** One sentence: how often a withdrawal rate lasted 30 years in history-based simulations. */
-export function SuccessCard({ withdrawalRate, onWithdrawalRateChange }: SuccessCardProps) {
-  const rate = useMemo(() => successRate({ withdrawalRate }), [withdrawalRate]);
+/** Where the simulated years come from, in one phrase. */
+function historySource({ investment, name, period, proxyIndex }: ResolvedInvestment): string {
+  const years = `${period[0]}–${period[1]}`;
+  if (investment.kind === "custom") return `the S&P 500's real returns ${years}, scaled to your own rate`;
+  if (investment.kind === "portfolio") return `your portfolio's mix of index real returns ${years}`;
+  const index = INDEXES[proxyIndex ?? (investment.kind === "index" ? investment.index : "sp500")];
+  const label = proxyIndex ? `the ${index.name}'s (the closest index to ${name})` : `the ${index.name}'s`;
+  return `${label} real returns ${years} (${index.returnType}; ${index.sourceName})`;
+}
+
+/** One sentence: how often a withdrawal rate lasted 30 years, simulated with what the plan invests in. */
+export function SuccessCard({ withdrawalRate, onWithdrawalRateChange, investment, goal }: SuccessCardProps) {
+  const rate = useMemo(
+    () => successRate({ withdrawalRate, returns: investment.returns }),
+    [withdrawalRate, investment.returns],
+  );
   return (
     <Card>
       <div className="space-y-4">
         <p className="text-2xl font-semibold leading-snug tracking-tight sm:text-3xl" aria-live="polite">
-          At {formatRate(withdrawalRate)}{" "}
-          per year, your money lasts {DEFAULT_YEARS} years in{" "}
+          At {formatRate(withdrawalRate)} per year, your money lasts {DEFAULT_YEARS} years in{" "}
           <span className="text-accent">{formatPercent(rate, { decimals: 0 })}</span> of historical scenarios.
         </p>
         <div role="radiogroup" aria-label="Yearly withdrawal" className="grid grid-cols-4 gap-2">
@@ -46,7 +64,13 @@ export function SuccessCard({ withdrawalRate, onWithdrawalRateChange }: SuccessC
             );
           })}
         </div>
-        <p className="text-sm text-muted">Based on past US stock returns. The future may be worse.</p>
+        <p className="text-sm tabular-nums">
+          At your goal ({eur(goal.amount)}): <strong>≈ {eur(goal.monthlyIncome)}/month</strong> you could withdraw.
+        </p>
+        <div className="space-y-1 text-sm text-muted">
+          <InvestmentSummary investment={investment} />
+          <p>The future may be worse than the past.</p>
+        </div>
         <Disclosure summary="Why can't I withdraw more?">
           <ul className="list-disc space-y-2 pl-5 text-sm">
             <li>The more you take out each year, the more often a bad run of markets empties the account.</li>
@@ -55,8 +79,8 @@ export function SuccessCard({ withdrawalRate, onWithdrawalRateChange }: SuccessC
               same crash 20 years later.
             </li>
             <li>
-              <strong>Currency:</strong> if you live in a country with another currency, exchange rates change what your
-              money buys.
+              <strong>Currency:</strong> the histories are in US dollars; if you spend another currency, exchange rates
+              change what your money buys.
             </li>
             <li>
               <strong>Local prices</strong> may rise faster than the inflation used here.
@@ -64,9 +88,8 @@ export function SuccessCard({ withdrawalRate, onWithdrawalRateChange }: SuccessC
           </ul>
           <p className="text-xs text-muted">
             How it&apos;s calculated: {DEFAULT_SIMULATIONS.toLocaleString("en-US")} simulated {DEFAULT_YEARS}-year
-            periods, each year&apos;s return drawn at random from the S&amp;P 500&apos;s real returns {firstYear}–
-            {lastYear} (Robert Shiller, Yale). You take out the same amount each year, adjusted for inflation. All in
-            stocks, no fees, no taxes.
+            periods, each year&apos;s return drawn at random from {historySource(investment)}. You take out the same
+            amount each year, adjusted for inflation. All in stocks, no fees, no taxes.
           </p>
         </Disclosure>
       </div>

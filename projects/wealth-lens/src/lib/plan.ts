@@ -28,11 +28,6 @@ export function startingCapital(holdings: readonly Holding[], invested: number |
   return { amount: 0, source: "none" };
 }
 
-/** True once the user answered the first-use questions or added holdings. */
-export function hasStarted(holdings: readonly Holding[], invested: number | null): boolean {
-  return holdings.length > 0 || invested !== null;
-}
-
 /** Share of the goal already reached, between 0 and 1. */
 export function goalProgress(current: number, goal: number): number {
   if (goal <= 0) return 1;

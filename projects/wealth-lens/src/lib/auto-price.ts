@@ -1,25 +1,41 @@
 /**
- * Filling a holding's current price from the latest close of its price
- * series. Only automatic prices are touched (a price typed by the user is
- * never overwritten), and only when the series is quoted in the holding's
- * own currency, since the app never converts currencies.
+ * Current prices for holdings, from the daily closes the app ships with
+ * (lib/market-data.ts). Worked out when the holdings are read instead of
+ * being stored, so every screen sees the same prices without any request.
+ *
+ * Only automatic prices are filled (a price typed by the user is never
+ * replaced), and only from a listing in the holding's own currency, since the
+ * app never converts currencies. A ticker without downloaded prices takes the
+ * last close of a price CSV the user uploaded for it, if any.
  */
 
-import type { PricePoint } from "./prices";
+import { instrumentForHolding, MARKET, type PricesFile } from "./market-data";
 import type { Holding } from "./types";
+import type { UploadedPrices } from "./validation";
 
-export type PricePatch = Pick<Holding, "currentPrice" | "priceDate">;
+/** Latest downloaded close for a holding's instrument, or `null` when there is none. */
+export function marketPrice(holding: Pick<Holding, "ticker" | "currency">, market: PricesFile = MARKET) {
+  const instrument = instrumentForHolding(holding.ticker, holding.currency);
+  const entry = instrument ? market.prices[instrument.id] : undefined;
+  if (!entry || entry.currency !== holding.currency) return null;
+  return { close: entry.close, date: entry.date };
+}
 
-export function latestPriceUpdate(
-  holding: Holding,
-  /** Currency the series is quoted in, as reported by the price source. */
-  quoteCurrency: string | null,
-  points: readonly PricePoint[],
-): PricePatch | null {
-  if (holding.priceSource !== "auto") return null;
-  if (quoteCurrency !== holding.currency) return null;
-  const last = points.at(-1);
-  if (!last) return null;
-  if (holding.currentPrice === last.close && holding.priceDate === last.time) return null;
-  return { currentPrice: last.close, priceDate: last.time };
+/**
+ * Holdings with their automatic price filled from the market data, or from
+ * the user's price file. Holdings that do not change are returned as the
+ * same objects.
+ */
+export function priceHoldings(
+  holdings: readonly Holding[],
+  uploaded: Readonly<Record<string, UploadedPrices>> = {},
+  market: PricesFile = MARKET,
+): Holding[] {
+  return holdings.map((holding) => {
+    if (holding.priceSource !== "auto") return holding;
+    const last = uploaded[holding.ticker]?.points.at(-1);
+    const price = marketPrice(holding, market) ?? (last ? { close: last.close, date: last.time } : null);
+    if (!price || (holding.currentPrice === price.close && holding.priceDate === price.date)) return holding;
+    return { ...holding, currentPrice: price.close, priceDate: price.date };
+  });
 }

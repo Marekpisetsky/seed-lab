@@ -1,0 +1,168 @@
+/**
+ * From "what I invest in" to the numbers every projection uses: the yearly
+ * growth after inflation, and the series of historical yearly returns the
+ * Monte Carlo simulation draws from. Both come from the same static index
+ * datasets (lib/indexes.ts), so the time to a goal and the success rate of a
+ * withdrawal rate always tell the same story.
+ *
+ * - An index: its own history, averaged.
+ * - A single stock: its closest index. A stock's own past growth is shown
+ *   elsewhere as "past, not a forecast", never projected for decades.
+ * - My portfolio: each holding counts towards the index it tracks (or its
+ *   closest one), weighted by its value in euros; the yearly returns are
+ *   blended over the years all those indexes have data, rebalanced yearly.
+ * - A custom rate: the S&P 500's ups and downs, scaled so that they average
+ *   exactly the rate typed by the user.
+ */
+
+import { annualizedReturn, INDEXES, INDEX_IDS, type IndexId } from "./indexes";
+import { INDEX_TRACKERS, instrumentById, instrumentForHolding, type Instrument } from "./market-data";
+import { holdingValue } from "./finance";
+import { BASE_CURRENCY, type Holding, type Investment } from "./types";
+
+/** The index used for a custom rate's ups and downs, and when nothing else applies. */
+export const DEFAULT_INDEX: IndexId = "sp500";
+
+export interface IndexWeight {
+  index: IndexId;
+  /** Share of the portfolio's EUR value, between 0 and 1. */
+  weight: number;
+  /** EUR value of the holdings counted towards this index. */
+  value: number;
+}
+
+export interface PortfolioMix {
+  weights: IndexWeight[];
+  /** EUR value of all holdings in the mix. */
+  total: number;
+  /** Tickers not recognized, counted as World. */
+  assumedWorld: string[];
+}
+
+/**
+ * The index a holding counts towards: the one a curated ETF tracks, the
+ * closest one for a curated stock, a known tracker ticker (CSPX, IWDA, QQQ…),
+ * or World for anything else (`assumed: true`).
+ */
+export function indexForHolding(
+  holding: Pick<Holding, "ticker" | "currency">,
+  instruments?: readonly Instrument[],
+): { index: IndexId; assumed: boolean } {
+  const instrument = instrumentForHolding(holding.ticker, holding.currency, instruments);
+  if (instrument) return { index: instrument.index, assumed: false };
+  const ticker = holding.ticker.trim().toUpperCase().split(".")[0];
+  const tracked = INDEX_IDS.find((id) => INDEX_TRACKERS[id].includes(ticker));
+  return tracked ? { index: tracked, assumed: false } : { index: "world", assumed: true };
+}
+
+/**
+ * How the portfolio splits across the indexes, by value. Only priced holdings
+ * in euros count, as for the goal: the app never converts currencies.
+ */
+export function portfolioMix(holdings: readonly Holding[]): PortfolioMix {
+  const values = new Map<IndexId, number>();
+  const assumedWorld: string[] = [];
+  let total = 0;
+  for (const holding of holdings) {
+    const value = holdingValue(holding);
+    if (holding.currency !== BASE_CURRENCY || value === null || value <= 0) continue;
+    const { index, assumed } = indexForHolding(holding);
+    values.set(index, (values.get(index) ?? 0) + value);
+    if (assumed && !assumedWorld.includes(holding.ticker)) assumedWorld.push(holding.ticker);
+    total += value;
+  }
+  const weights = INDEX_IDS.filter((index) => values.has(index)).map((index) => {
+    const value = values.get(index) ?? 0;
+    return { index, value, weight: value / total };
+  });
+  return { weights, total, assumedWorld };
+}
+
+/**
+ * Yearly returns of a mix rebalanced every year, over the years every index
+ * in the mix has data. With a single index this is its whole history.
+ */
+export function blendedReturns(weights: readonly Pick<IndexWeight, "index" | "weight">[]): {
+  years: { year: number; realReturn: number }[];
+} {
+  if (weights.length === 0) throw new RangeError("weights must not be empty");
+  const from = Math.max(...weights.map(({ index }) => INDEXES[index].firstYear));
+  const to = Math.min(...weights.map(({ index }) => INDEXES[index].lastYear));
+  const byYear = weights.map(({ index }) => new Map(INDEXES[index].years.map((entry) => [entry.year, entry.realReturn])));
+  const years = [];
+  for (let year = from; year <= to; year++) {
+    const realReturn = weights.reduce((sum, { weight }, position) => sum + weight * (byYear[position].get(year) ?? 0), 0);
+    years.push({ year, realReturn });
+  }
+  return { years };
+}
+
+/** A series with the same ups and downs whose geometric average is exactly `target`. */
+export function scaleToAverage(returns: readonly number[], target: number): number[] {
+  const factor = (1 + target) / (1 + annualizedReturn(returns));
+  return returns.map((value) => (1 + value) * factor - 1);
+}
+
+export interface ResolvedInvestment {
+  /** What the plan says, or the default when that cannot be used (e.g. an empty portfolio). */
+  investment: Investment;
+  /** "S&P 500", "My portfolio", "NVIDIA", "Your own rate". */
+  name: string;
+  /** Expected growth per year after inflation, used for every projection. */
+  realReturn: number;
+  /** Historical yearly real returns for the Monte Carlo simulation. */
+  returns: readonly number[];
+  /** Years the returns come from, e.g. [1928, 2022]. */
+  period: [number, number];
+  /** The index a single stock is projected with. */
+  proxyIndex: IndexId | null;
+  /** The mix, when the investment is the portfolio. */
+  mix: PortfolioMix | null;
+}
+
+function fromIndex(index: IndexId, investment: Investment, name = INDEXES[index].name): ResolvedInvestment {
+  const info = INDEXES[index];
+  return {
+    investment,
+    name,
+    realReturn: info.averageReturn,
+    returns: info.years.map((entry) => entry.realReturn),
+    period: [info.firstYear, info.lastYear],
+    proxyIndex: null,
+    mix: null,
+  };
+}
+
+/** The growth and history behind a plan's investment. `holdings` must already be priced. */
+export function resolveInvestment(investment: Investment, holdings: readonly Holding[]): ResolvedInvestment {
+  switch (investment.kind) {
+    case "index":
+      return fromIndex(investment.index, investment);
+    case "stock": {
+      const instrument = instrumentById(investment.id);
+      if (!instrument || instrument.kind !== "stock") break;
+      return { ...fromIndex(instrument.index, investment, instrument.name), proxyIndex: instrument.index };
+    }
+    case "portfolio": {
+      const mix = portfolioMix(holdings);
+      if (mix.weights.length === 0) break;
+      const { years } = blendedReturns(mix.weights);
+      const returns = years.map((entry) => entry.realReturn);
+      return {
+        investment,
+        name: "My portfolio",
+        realReturn: annualizedReturn(returns),
+        returns,
+        period: [years[0].year, years[years.length - 1].year],
+        proxyIndex: null,
+        mix,
+      };
+    }
+    case "custom": {
+      const base = fromIndex(DEFAULT_INDEX, investment, "Your own rate");
+      return { ...base, realReturn: investment.realReturn, returns: scaleToAverage(base.returns, investment.realReturn) };
+    }
+  }
+  // A stock no longer on the list, or a portfolio with nothing priced in euros.
+  return fromIndex(DEFAULT_INDEX, { kind: "index", index: DEFAULT_INDEX });
+}

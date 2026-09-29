@@ -1,0 +1,25 @@
+{
+  "description": "Instruments whose daily closes the price job (scripts/update-prices.mts) downloads every day into public/data/. id is the ticker as users know it; symbol is Yahoo Finance's; stooq is the fallback source's symbol (null if Stooq has none); currency is the currency the listing trades in. index is the index an ETF tracks, or for a stock the closest index, used for projections. To add one, append an entry (see README).",
+  "instruments": [
+    { "id": "VUAA", "name": "Vanguard S&P 500", "kind": "etf", "index": "sp500", "symbol": "VUAA.DE", "stooq": "vuaa.de", "currency": "EUR" },
+    { "id": "VWCE", "name": "Vanguard FTSE All-World", "kind": "etf", "index": "world", "symbol": "VWCE.DE", "stooq": "vwce.de", "currency": "EUR" },
+    { "id": "EQQQ", "name": "Invesco Nasdaq-100", "kind": "etf", "index": "nasdaq100", "symbol": "EQQQ.DE", "stooq": "eqqq.de", "currency": "EUR" },
+    { "id": "NVDA", "name": "NVIDIA", "kind": "stock", "index": "nasdaq100", "symbol": "NVDA", "stooq": "nvda.us", "currency": "USD" },
+    { "id": "AAPL", "name": "Apple", "kind": "stock", "index": "nasdaq100", "symbol": "AAPL", "stooq": "aapl.us", "currency": "USD" },
+    { "id": "MSFT", "name": "Microsoft", "kind": "stock", "index": "nasdaq100", "symbol": "MSFT", "stooq": "msft.us", "currency": "USD" },
+    { "id": "AMZN", "name": "Amazon", "kind": "stock", "index": "nasdaq100", "symbol": "AMZN", "stooq": "amzn.us", "currency": "USD" },
+    { "id": "GOOGL", "name": "Alphabet (Google)", "kind": "stock", "index": "nasdaq100", "symbol": "GOOGL", "stooq": "googl.us", "currency": "USD" },
+    { "id": "META", "name": "Meta", "kind": "stock", "index": "nasdaq100", "symbol": "META", "stooq": "meta.us", "currency": "USD" },
+    { "id": "TSLA", "name": "Tesla", "kind": "stock", "index": "nasdaq100", "symbol": "TSLA", "stooq": "tsla.us", "currency": "USD" },
+    { "id": "AVGO", "name": "Broadcom", "kind": "stock", "index": "nasdaq100", "symbol": "AVGO", "stooq": "avgo.us", "currency": "USD" },
+    { "id": "BRK-B", "name": "Berkshire Hathaway", "kind": "stock", "index": "sp500", "symbol": "BRK-B", "stooq": "brk-b.us", "currency": "USD" },
+    { "id": "ASML", "name": "ASML", "kind": "stock", "index": "nasdaq100", "symbol": "ASML.AS", "stooq": "asme.de", "currency": "EUR" },
+    { "id": "SAP", "name": "SAP", "kind": "stock", "index": "world", "symbol": "SAP.DE", "stooq": "sap.de", "currency": "EUR" },
+    { "id": "MC", "name": "LVMH", "kind": "stock", "index": "world", "symbol": "MC.PA", "stooq": "moh.de", "currency": "EUR" }
+  ],
+  "trackers": {
+    "sp500": ["VUAA", "VUSA", "CSPX", "SXR8", "IUSA", "SPYL", "SPY", "VOO", "IVV"],
+    "world": ["VWCE", "VWRL", "VWRA", "VGWL", "IWDA", "SWDA", "EUNL", "URTH", "XDWD", "SSAC"],
+    "nasdaq100": ["EQQQ", "EQAC", "CNDX", "SXRV", "QQQ", "QQQM"]
+  }
+}

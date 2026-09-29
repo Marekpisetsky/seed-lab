@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Charts" };
 export default function ChartsPage() {
   return (
     <>
-      <PageHeader title="Charts" question="How is each stock doing?" />
+      <PageHeader title="Charts" question="How is each stock and ETF doing?" />
       <ChartsModule />
     </>
   );

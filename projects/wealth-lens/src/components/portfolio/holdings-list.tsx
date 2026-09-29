@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { PricesUpdated } from "@/components/prices-updated";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Gain } from "@/components/ui/gain";
 import { RowMenu } from "@/components/ui/row-menu";
+import { marketPrice } from "@/lib/auto-price";
 import { holdingGain, holdingValue } from "@/lib/finance";
 import { formatDayMonth, formatMoney } from "@/lib/format";
 import { holdingToFormValues, withPriceSource } from "@/lib/holding-form";
 import { createId } from "@/lib/id";
-import { mergeImportedHoldings } from "@/lib/import";
-import type { Updater } from "@/lib/persistent-store";
+import { mergeImportedHoldings } from "@/lib/import/merge";
+import type { Updater } from "@/lib/app-store";
 import type { Holding } from "@/lib/types";
 import { CsvImport } from "./csv-import";
 import { HoldingForm } from "./holding-form";
@@ -57,7 +59,7 @@ export function HoldingsList({ holdings, onChange }: HoldingsListProps) {
         )}
 
         {holdings.length === 0 ? (
-          <p className="text-sm text-muted">No holdings yet. Add them to see your real gain and live prices.</p>
+          <p className="text-sm text-muted">No holdings yet. Add them to see your real gain.</p>
         ) : (
           <ul className="divide-y divide-border">
             {holdings.map((holding) => (
@@ -65,7 +67,7 @@ export function HoldingsList({ holdings, onChange }: HoldingsListProps) {
                 key={holding.id}
                 holding={holding}
                 onEdit={() => setEditor({ mode: "edit", id: holding.id })}
-                onUseMarketPrice={() => update(holding.id, { priceSource: "auto", priceDate: null })}
+                onUseMarketPrice={() => update(holding.id, { priceSource: "auto", currentPrice: null, priceDate: null })}
                 onRemove={() => {
                   if (window.confirm(`Remove ${holding.ticker}?`)) {
                     onChange((previous) => previous.filter((item) => item.id !== holding.id));
@@ -75,6 +77,7 @@ export function HoldingsList({ holdings, onChange }: HoldingsListProps) {
             ))}
           </ul>
         )}
+        {holdings.length > 0 && <PricesUpdated />}
 
         {editor.mode === "closed" && (
           <div className="flex flex-wrap items-start gap-2">
@@ -124,7 +127,9 @@ function HoldingRow({ holding, onEdit, onUseMarketPrice, onRemove }: HoldingRowP
         label={`Actions for ${holding.ticker}`}
         items={[
           { label: "Edit", onSelect: onEdit },
-          ...(holding.priceSource === "manual" ? [{ label: "Use market price", onSelect: onUseMarketPrice }] : []),
+          ...(holding.priceSource === "manual" && marketPrice(holding)
+            ? [{ label: "Use the daily price", onSelect: onUseMarketPrice }]
+            : []),
           { label: "Remove", onSelect: onRemove, tone: "danger" as const },
         ]}
       />
@@ -133,7 +138,7 @@ function HoldingRow({ holding, onEdit, onUseMarketPrice, onRemove }: HoldingRowP
 }
 
 function priceNote(holding: Holding): string {
-  if (holding.currentPrice === null) return "no price yet";
+  if (holding.currentPrice === null) return "no price: add yours";
   if (holding.priceSource === "manual") return "your price";
-  return holding.priceDate ? `price from ${formatDayMonth(holding.priceDate)}` : "market price";
+  return holding.priceDate ? `price from ${formatDayMonth(holding.priceDate)}` : "daily price";
 }

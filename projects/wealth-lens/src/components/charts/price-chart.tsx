@@ -52,6 +52,9 @@ export function PriceChart({ points, averageCost, label }: PriceChartProps) {
         rightPriceScale: { borderVisible: false },
         timeScale: { borderVisible: false },
         crosshair: { horzLine: { labelBackgroundColor: foreground }, vertLine: { labelBackgroundColor: foreground } },
+        // The app formats everything in en-US; the browser's own tag can be one
+        // Intl rejects (e.g. "en-US@posix"), which would leave the chart blank.
+        localization: { locale: "en-US" },
       });
 
       const series = chart.addSeries(LineSeries, {

@@ -6,30 +6,78 @@ import { BASE_CURRENCY } from "@/lib/types";
 
 const eur = (amount: number) => formatMoney(amount, BASE_CURRENCY, { decimals: 0 });
 
-function CountryName({ country, monthlyCost, home }: { country: CountryCost; monthlyCost: number; home: boolean }) {
+interface SelectableProps {
+  homeCode: string;
+  /** Country that is the active goal, if any. */
+  goalCode: string | null;
+  /** Makes a country the active goal. */
+  onSelect: (code: string) => void;
+}
+
+/** A whole row is one button: tapping a country makes it the goal. */
+function CountryRow({
+  country,
+  monthlyCost,
+  home,
+  goal,
+  onSelect,
+  children,
+}: {
+  country: CountryCost;
+  monthlyCost: number;
+  home: boolean;
+  goal: boolean;
+  onSelect: () => void;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="min-w-0 flex-1">
-      <p className="font-medium">
-        {country.name}
-        {home && <span className="ml-2 rounded bg-border/60 px-1.5 py-0.5 text-xs font-normal text-muted">home</span>}
-      </p>
-      <p className="text-xs text-muted tabular-nums">{eur(monthlyCost)} a month</p>
-    </div>
+    <li>
+      <button
+        type="button"
+        aria-pressed={goal}
+        onClick={onSelect}
+        className={`-mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-md px-2 py-3 text-left hover:bg-border/40 ${
+          goal ? "bg-accent/10 ring-1 ring-accent" : ""
+        }`}
+      >
+        <span className="min-w-0 flex-1">
+          <span className="block font-medium">
+            {country.name}
+            {home && <span className="ml-2 rounded bg-border/60 px-1.5 py-0.5 text-xs font-normal text-muted">home</span>}
+            {goal && <span className="ml-2 rounded bg-accent px-1.5 py-0.5 text-xs font-normal text-accent-foreground">your goal</span>}
+          </span>
+          <span className="block text-xs text-muted tabular-nums">≈ {eur(monthlyCost)}/month</span>
+        </span>
+        {children}
+      </button>
+    </li>
   );
 }
 
-/** Capital needed per country and when you get there. */
-export function RequirementList({ rows, homeCode, today }: { rows: RequirementRow[]; homeCode: string; today: Date }) {
+/** Capital needed per country, when you get there, and what it pays each month. */
+export function RequirementList({
+  rows,
+  today,
+  homeCode,
+  goalCode,
+  onSelect,
+}: { rows: RequirementRow[]; today: Date } & SelectableProps) {
   return (
     <ul className="divide-y divide-border">
       {rows.map((row) => (
-        <li key={row.country.code} className="flex items-center gap-3 py-3">
-          <CountryName country={row.country} monthlyCost={row.monthlyCost} home={row.country.code === homeCode} />
-          <div className="text-right">
-            <p className="font-semibold tabular-nums">{eur(row.requiredCapital)}</p>
-            <p className="text-xs text-muted">{whenReached(row.monthsToReach, today)}</p>
-          </div>
-        </li>
+        <CountryRow
+          key={row.country.code}
+          country={row.country}
+          monthlyCost={row.monthlyCost}
+          home={row.country.code === homeCode}
+          goal={row.country.code === goalCode}
+          onSelect={() => onSelect(row.country.code)}
+        >
+          <span className="text-right">
+            <span className="block font-semibold tabular-nums">{eur(row.requiredCapital)}</span>
+            <span className="block text-xs text-muted">{whenReached(row.monthsToReach, today)}</span>
+          </span>
+        </CountryRow>
       ))}
     </ul>
   );
@@ -42,16 +90,22 @@ function whenReached(months: number, today: Date): string {
 }
 
 /** Whether today's sustainable income covers each country. */
-export function CoverageList({ rows, homeCode }: { rows: CoverageRow[]; homeCode: string }) {
+export function CoverageList({ rows, homeCode, goalCode, onSelect }: { rows: CoverageRow[] } & SelectableProps) {
   return (
     <ul className="divide-y divide-border">
       {rows.map((row) => (
-        <li key={row.country.code} className="flex items-center gap-3 py-3">
-          <CountryName country={row.country} monthlyCost={row.monthlyCost} home={row.country.code === homeCode} />
-          <p className={`text-right text-sm tabular-nums ${row.covered ? "text-positive" : "text-muted"}`}>
+        <CountryRow
+          key={row.country.code}
+          country={row.country}
+          monthlyCost={row.monthlyCost}
+          home={row.country.code === homeCode}
+          goal={row.country.code === goalCode}
+          onSelect={() => onSelect(row.country.code)}
+        >
+          <span className={`text-right text-sm tabular-nums ${row.covered ? "text-positive" : "text-muted"}`}>
             {row.covered ? "✓ covered" : `${eur(-row.monthlyMargin)}/mo short`}
-          </p>
-        </li>
+          </span>
+        </CountryRow>
       ))}
     </ul>
   );

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { CountryCost } from "./cost-of-living";
 import { summarizeByCurrency } from "./finance";
-import { featuredCountries, goalProgress, hasStarted, headlineGain, startingCapital, validatePlanAnswers } from "./plan";
+import { featuredCountries, goalProgress, headlineGain, startingCapital, validatePlanAnswers } from "./plan";
 import type { Holding } from "./types";
 
 const holding = (overrides: Partial<Holding>): Holding => ({
@@ -16,21 +16,18 @@ const holding = (overrides: Partial<Holding>): Holding => ({
   ...overrides,
 });
 
-describe("startingCapital / hasStarted", () => {
+describe("startingCapital", () => {
   it("uses the EUR holdings once there are holdings", () => {
     const holdings = [holding({}), holding({ id: "u", currency: "USD", currentPrice: 500 })];
     expect(startingCapital(holdings, 50_000)).toEqual({ amount: 1200, source: "holdings" });
-    expect(hasStarted(holdings, null)).toBe(true);
   });
 
   it("uses the first-use answer while there are no holdings", () => {
     expect(startingCapital([], 50_000)).toEqual({ amount: 50_000, source: "answer" });
-    expect(hasStarted([], 0)).toBe(true);
   });
 
   it("starts from nothing before any answer", () => {
     expect(startingCapital([], null)).toEqual({ amount: 0, source: "none" });
-    expect(hasStarted([], null)).toBe(false);
   });
 });
 

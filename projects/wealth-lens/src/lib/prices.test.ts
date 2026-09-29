@@ -1,14 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  includePriceInRange,
-  interpretStooqResponse,
-  isValidStooqSymbol,
-  parsePriceCsv,
-  stooqQuoteCurrency,
-  stooqUrl,
-  summarizeSeries,
-  visibleRangeStart,
-} from "./prices";
+import { includePriceInRange, parsePriceCsv, summarizeSeries, visibleRangeStart } from "./prices";
 
 const STOOQ_CSV = [
   "Date,Open,High,Low,Close,Volume",
@@ -18,7 +9,7 @@ const STOOQ_CSV = [
 ].join("\n");
 
 describe("parsePriceCsv", () => {
-  it("reads Stooq's daily CSV", () => {
+  it("reads a daily CSV with open/high/low/close columns", () => {
     expect(parsePriceCsv(STOOQ_CSV)).toEqual({
       ok: true,
       points: [
@@ -68,50 +59,6 @@ describe("parsePriceCsv", () => {
       ok: false,
       error: "No rows with a valid date and a positive close price.",
     });
-  });
-});
-
-describe("Stooq symbols", () => {
-  it("validates symbols before they reach a URL", () => {
-    expect(isValidStooqSymbol("aapl.us")).toBe(true);
-    expect(isValidStooqSymbol("brk-b.us")).toBe(true);
-    expect(isValidStooqSymbol("")).toBe(false);
-    expect(isValidStooqSymbol("aapl.us&i=w")).toBe(false);
-    expect(isValidStooqSymbol("../etc")).toBe(false);
-    expect(isValidStooqSymbol("a".repeat(21))).toBe(false);
-  });
-
-  it("builds the documented download URL", () => {
-    expect(stooqUrl("aapl.us")).toBe("https://stooq.com/q/d/l/?s=aapl.us&i=d");
-  });
-
-  it("knows the quote currency of common markets", () => {
-    expect(stooqQuoteCurrency("aapl.us")).toBe("USD");
-    expect(stooqQuoteCurrency("vwce.de")).toBe("EUR");
-    expect(stooqQuoteCurrency("vusa.uk")).toBe("GBX");
-    expect(stooqQuoteCurrency("^spx")).toBeNull();
-    expect(stooqQuoteCurrency("abc.zz")).toBeNull();
-  });
-});
-
-describe("interpretStooqResponse", () => {
-  it("returns the series for a valid CSV", () => {
-    const result = interpretStooqResponse(200, STOOQ_CSV);
-    expect(result.ok && result.points).toHaveLength(3);
-  });
-
-  it.each([
-    [200, "No data", "NOT_FOUND"],
-    [200, "", "NOT_FOUND"],
-    [200, "Exceeded the daily hits limit", "RATE_LIMITED"],
-    [200, "<!DOCTYPE html><html><body>Please verify you are human</body></html>", "VERIFICATION_REQUIRED"],
-    [200, "Get your apikey: https://stooq.com/q/d/?s=aapl.us&get_apikey", "VERIFICATION_REQUIRED"],
-    [200, "Symbol;Value\naapl;1", "UNEXPECTED_FORMAT"],
-    [503, "Service Unavailable", "UPSTREAM_ERROR"],
-  ])("classifies HTTP %i %j as %s", (status, body, code) => {
-    const result = interpretStooqResponse(status, body);
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.code).toBe(code);
   });
 });
 

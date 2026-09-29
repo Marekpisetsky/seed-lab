@@ -1,36 +1,30 @@
 "use client";
 
-import { ReturnSlider } from "@/components/assumptions/return-slider";
 import { Disclosure } from "@/components/ui/disclosure";
 import { Field, inputClass, PercentInput } from "@/components/ui/form";
 import { toIsoDate } from "@/lib/dates";
 import { formatApproxDuration, formatDuration, formatMoney, formatMonthYear, formatPercent } from "@/lib/format";
-import type { GoalProjection, TargetDateProjection } from "@/lib/goal-projection";
-import { isIsoDate } from "@/lib/storage";
-import { BASE_CURRENCY, type Assumptions, type Goal } from "@/lib/types";
+import type { TargetDateProjection } from "@/lib/goal-projection";
+import type { PlanView } from "@/lib/plan-view";
+import { BASE_CURRENCY, type Assumptions, type Goal, type Plan } from "@/lib/types";
+import { isIsoDate } from "@/lib/validation";
 
 interface PlanAdvancedProps {
-  goal: Goal;
-  assumptions: Assumptions;
-  projection: GoalProjection;
+  plan: Plan;
+  view: PlanView;
   today: Date;
   onGoalChange: (patch: Partial<Goal>) => void;
-  onAssumptionsChange: (patch: Partial<Assumptions>) => void;
+  onPlanChange: (patch: Partial<Plan>) => void;
 }
 
 const eur = (amount: number) => formatMoney(amount, BASE_CURRENCY, { decimals: 0 });
 
 /** Assumptions and extras, folded away from the first read. */
-export function PlanAdvanced({ goal, assumptions, projection, today, onGoalChange, onAssumptionsChange }: PlanAdvancedProps) {
+export function PlanAdvanced({ plan, view, today, onGoalChange, onPlanChange }: PlanAdvancedProps) {
+  const { assumptions, projection } = view;
+  const goal = plan.goal;
   return (
     <Disclosure summary="Advanced">
-      <ReturnSlider
-        value={assumptions.realReturn}
-        onChange={(realReturn) => onAssumptionsChange({ realReturn })}
-        inflation={assumptions.inflation}
-        nominalEquivalent={projection.nominalReturn}
-      />
-
       <div>
         <p className="text-sm font-medium">Time to your goal at other growth rates</p>
         <ul className="mt-2 grid grid-cols-4 gap-2">
@@ -54,11 +48,11 @@ export function PlanAdvanced({ goal, assumptions, projection, today, onGoalChang
           {(props) => (
             <PercentInput
               {...props}
-              key={assumptions.inflation}
-              value={assumptions.inflation}
+              key={plan.inflation}
+              value={plan.inflation}
               min={-5}
               max={50}
-              onCommit={(value) => value !== null && onAssumptionsChange({ inflation: value })}
+              onCommit={(value) => value !== null && onPlanChange({ inflation: value })}
             />
           )}
         </Field>
@@ -78,8 +72,9 @@ export function PlanAdvanced({ goal, assumptions, projection, today, onGoalChang
       {projection.target && <TargetComparison assumptions={assumptions} target={projection.target} />}
 
       <p className="text-xs text-muted">
-        Amounts are in today&apos;s euros: growth is counted after inflation, and your monthly amount is assumed to
-        rise with prices. Real markets don&apos;t grow evenly; some decades are flat.
+        Amounts are in today&apos;s euros: growth is counted after inflation ({formatPercent(assumptions.realReturn)}{" "}
+        is about {formatPercent(projection.nominalReturn)} before {formatPercent(plan.inflation)} inflation), and your
+        monthly amount is assumed to rise with prices. Real markets don&apos;t grow evenly; some decades are flat.
       </p>
     </Disclosure>
   );
