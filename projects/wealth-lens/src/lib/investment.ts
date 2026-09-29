@@ -108,6 +108,8 @@ export interface ResolvedInvestment {
   investment: Investment;
   /** "S&P 500", "My portfolio", "NVIDIA", "Your own rate". */
   name: string;
+  /** Identifies the history in `returns` (same key, same numbers), for caching simulations. */
+  key: string;
   /** Expected growth per year after inflation, used for every projection. */
   realReturn: number;
   /** Historical yearly real returns for the Monte Carlo simulation. */
@@ -125,6 +127,7 @@ function fromIndex(index: IndexId, investment: Investment, name = INDEXES[index]
   return {
     investment,
     name,
+    key: `index:${index}`,
     realReturn: info.averageReturn,
     returns: info.years.map((entry) => entry.realReturn),
     period: [info.firstYear, info.lastYear],
@@ -151,6 +154,7 @@ export function resolveInvestment(investment: Investment, holdings: readonly Hol
       return {
         investment,
         name: "My portfolio",
+        key: `mix:${mix.weights.map(({ index, weight }) => `${index}=${weight.toFixed(3)}`).join(",")}`,
         realReturn: annualizedReturn(returns),
         returns,
         period: [years[0].year, years[years.length - 1].year],
@@ -160,7 +164,12 @@ export function resolveInvestment(investment: Investment, holdings: readonly Hol
     }
     case "custom": {
       const base = fromIndex(DEFAULT_INDEX, investment, "Your own rate");
-      return { ...base, realReturn: investment.realReturn, returns: scaleToAverage(base.returns, investment.realReturn) };
+      return {
+        ...base,
+        key: `custom:${investment.realReturn.toFixed(4)}`,
+        realReturn: investment.realReturn,
+        returns: scaleToAverage(base.returns, investment.realReturn),
+      };
     }
   }
   // A stock no longer on the list, or a portfolio with nothing priced in euros.

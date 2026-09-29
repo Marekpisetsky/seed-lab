@@ -116,6 +116,15 @@ describe("resolveInvestment", () => {
     expect(resolved.period).toEqual([1928, 2022]);
   });
 
+  it("keys each history, so simulations can be cached", () => {
+    expect(resolveInvestment({ kind: "index", index: "world" }, []).key).toBe("index:world");
+    expect(resolveInvestment({ kind: "stock", id: "NVDA" }, []).key).toBe("index:nasdaq100");
+    expect(resolveInvestment({ kind: "custom", realReturn: 0.05 }, []).key).toBe("custom:0.0500");
+    expect(resolveInvestment({ kind: "portfolio" }, [holding("VUAA", 3000), holding("EQQQ", 1000)]).key).toBe(
+      "mix:sp500=0.750,nasdaq100=0.250",
+    );
+  });
+
   it("falls back to the S&P 500 when the choice cannot be used", () => {
     expect(resolveInvestment({ kind: "portfolio" }, []).investment).toEqual({ kind: "index", index: "sp500" });
     expect(resolveInvestment({ kind: "stock", id: "GONE" }, []).name).toBe("S&P 500");
