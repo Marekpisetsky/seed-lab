@@ -18,23 +18,10 @@ import { futureValueWithContributions, monthlyWithdrawal, monthsToGoal } from ".
 import { formatDuration, formatEur, formatMonthYear, formatPercent, formatRate, formatYears } from "./format";
 import { resolveInvestment, type ResolvedInvestment } from "./investment";
 import { startingCapital, type StartingCapital } from "./plan";
-import type { CustomConnection, Holding, Housing, Investment } from "./types";
+import type { Holding, Plan } from "./types";
 
-/** The parts of the plan the report reads. */
-export interface ReportPlan {
-  invested: number | null;
-  monthlyContribution: number;
-  investment: Investment;
-  withdrawalRate: number;
-  inflation: number;
-  housing: Housing;
-  homeCountry: string;
-  /** Id of the connection the report is built around; `null` = the next milestone. */
-  pinned: string | null;
-  /** Look this many years ahead instead of "when the goal is reached"; `null` = when reached. */
-  horizonYears: number | null;
-  customConnections: readonly CustomConnection[];
-}
+/** The plan the report reads (see Plan in lib/types.ts). */
+export type ReportPlan = Plan;
 
 /** "Stop working" is the default goal when it is reachable within this many years. */
 export const STOP_WORKING_WITHIN_YEARS = 40;
@@ -169,7 +156,7 @@ export function chooseGoal(
 }
 
 /** "A used car" → "a used car", but "NL" stays "NL". */
-const lowerFirst = (text: string) => (/^[A-Z](?![A-Z])/.test(text) ? text[0].toLowerCase() + text.slice(1) : text);
+export const lowerFirst = (text: string) => (/^[A-Z](?![A-Z])/.test(text) ? text[0].toLowerCase() + text.slice(1) : text);
 
 /** "enough to live in India", "enough for a used car", "enough for Boat". */
 export function enoughFor(connection: Connection): string {

@@ -38,7 +38,8 @@ describe("data saved by earlier versions", () => {
       plan: {
         ...DEFAULT_PLAN,
         monthlyContribution: 400,
-        goal: { amount: 250_000, targetDate: null },
+        pinned: "custom:goal",
+        customConnections: [{ id: "goal", name: "My goal", kind: "buy", amount: 250_000 }],
         investment: { kind: "custom", realReturn: 0.05 },
         withdrawalRate: 0.035,
         housing: "own",

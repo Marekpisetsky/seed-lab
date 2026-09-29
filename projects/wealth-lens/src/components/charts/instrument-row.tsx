@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useAppState } from "@/hooks/use-app";
@@ -71,10 +72,13 @@ function InstrumentPanel({ instrument }: { instrument: Instrument }) {
       </p>
 
       {chosen ? (
-        <p className="text-sm font-medium text-positive" aria-live="polite">
-          ✓ Your plan grows like {instrument.kind === "etf" ? `the ${index.name}` : instrument.name}.{" "}
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium" aria-live="polite">
+          <span className="inline-flex items-center gap-1 text-positive">
+            <Check aria-hidden="true" className="size-4" />
+            Your money grows like {instrument.kind === "etf" ? `the ${index.name}` : instrument.name}.
+          </span>
           <Link href="/" className="text-accent underline-offset-2 hover:underline">
-            See your plan →
+            See what it means
           </Link>
         </p>
       ) : (

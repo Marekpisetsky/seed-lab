@@ -1,11 +1,8 @@
 /**
- * Small pure helpers that tie the three screens together: which capital the
- * projections start from, progress towards the goal, and which countries the
- * FIRE screen shows first.
+ * Small pure helpers shared by both screens: which capital the report starts
+ * from, and which gain "My stocks" shows big.
  */
 
-import type { CountryCost } from "./cost-of-living";
-import { parseLooseNumber } from "./csv";
 import { summarizeByCurrency, type CurrencySummary } from "./finance";
 import { BASE_CURRENCY, type Holding } from "./types";
 
@@ -28,12 +25,6 @@ export function startingCapital(holdings: readonly Holding[], invested: number |
   return { amount: 0, source: "none" };
 }
 
-/** Share of the goal already reached, between 0 and 1. */
-export function goalProgress(current: number, goal: number): number {
-  if (goal <= 0) return 1;
-  return Math.min(1, Math.max(0, current / goal));
-}
-
 /**
  * The gain shown big at the top: the EUR totals when there are priced EUR
  * holdings, otherwise the first currency with prices. The rest are listed
@@ -46,42 +37,4 @@ export function headlineGain(summaries: readonly CurrencySummary[]): {
   const priced = summaries.filter((summary) => summary.pricedCount > 0);
   const main = priced.find((summary) => summary.currency === BASE_CURRENCY) ?? priced[0] ?? null;
   return { main, others: priced.filter((summary) => summary !== main) };
-}
-
-/**
- * The countries shown by default: the `count` cheapest, plus the home
- * country when it is not already among them. Input must be sorted cheapest
- * first; order is kept.
- */
-export function featuredCountries<T extends { country: CountryCost }>(rows: readonly T[], homeCode: string, count = 5): T[] {
-  const featured = rows.slice(0, count);
-  const home = rows.find((row) => row.country.code === homeCode);
-  if (home && !featured.includes(home)) featured.push(home);
-  return featured;
-}
-
-export interface PlanAnswers {
-  invested: string;
-  monthly: string;
-  goal: string;
-}
-
-export type PlanErrors = Partial<Record<keyof PlanAnswers, string>>;
-
-/** The three first-use questions. Empty "invested" and "monthly" mean 0. */
-export function validatePlanAnswers(
-  answers: PlanAnswers,
-): { ok: true; invested: number; monthly: number; goal: number } | { ok: false; errors: PlanErrors } {
-  const read = (text: string, emptyAs: number | null) => (text.trim() === "" ? emptyAs : parseLooseNumber(text));
-  const invested = read(answers.invested, 0);
-  const monthly = read(answers.monthly, 0);
-  const goal = read(answers.goal, null);
-  const errors: PlanErrors = {};
-  if (invested === null || invested < 0) errors.invested = "Enter an amount, or 0.";
-  if (monthly === null || monthly < 0) errors.monthly = "Enter an amount, or 0.";
-  if (goal === null || goal <= 0) errors.goal = "Enter the amount you want to reach.";
-  if (invested === null || monthly === null || goal === null || Object.keys(errors).length > 0) {
-    return { ok: false, errors };
-  }
-  return { ok: true, invested, monthly, goal };
 }
