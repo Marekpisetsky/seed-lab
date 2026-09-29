@@ -22,9 +22,29 @@ mostrar.
   estimaciones históricas con riesgo de secuencia, moneda e inflación
   local, y la app lo dice explícitamente en la UI, no solo acá.
 
-**Estado actual (2026-09-29):** recién scaffoldeado (Next.js 15 +
-TypeScript + Tailwind, `create-next-app`). Sin código de producto
-todavía — este README es el spec para construir los tres módulos.
+**Estado actual (2026-09-29):** los tres módulos están implementados y
+funcionan de punta a punta (Next.js 16 + TypeScript + Tailwind 4), con
+la matemática financiera en funciones puras y más de 180 tests unitarios
+(Vitest). Todavía sin desplegar y sin validar con uso propio sostenido.
+
+- **Módulo 1 — `/`:** holdings a mano o importados desde el export CSV
+  de Trading 212 (o un CSV simple), ganancia/pérdida por holding y
+  total por moneda, y tiempo hasta la meta con valor futuro + aportes
+  mensuales (despejando n). El supuesto de retorno real se muestra al
+  lado del resultado, con un slider 3–10 %.
+- **Módulo 2 — `/charts`:** un gráfico por holding (lightweight-charts)
+  con línea del costo medio, datos diarios de Stooq vía un route handler
+  propio (`/api/prices`) con caché; si Stooq falla, error claro por
+  ticker y opción de subir un CSV propio de precios.
+- **Módulo 3 — `/fire`:** ingreso sostenible con el capital actual y
+  capital necesario por país (30 países, dataset propio en
+  `src/data/cost-of-living.json`, estimaciones Numbeo + Wise de sep
+  2026), con las advertencias junto al resultado.
+
+Limitaciones conocidas: no convierte entre monedas (los totales se
+agrupan por moneda y la meta/FIRE solo cuentan holdings en EUR); el
+precio actual del módulo 1 se ingresa a mano; las ganancias realizadas
+(ventas) no se muestran.
 
 ## Arquitectura
 
@@ -89,13 +109,71 @@ Orden sugerido de implementación técnica (no de prioridad de producto):
 4. Módulo 2 (el único que depende de una fuente de datos externa,
    Stooq — dejarlo último por si hay que lidiar con CORS/rate limits).
 
-## Getting Started (dev)
+## Cómo correrlo
+
+Requisitos: Node.js 22 (o más nuevo) y npm.
 
 ```bash
-npm run dev
+cd projects/wealth-lens
+npm ci            # instala las dependencias exactas del lockfile
+npm run dev       # servidor de desarrollo en http://localhost:3000
 ```
 
-Abrir [http://localhost:3000](http://localhost:3000).
+Build de producción local:
+
+```bash
+npm run build
+npm start         # sirve el build en http://localhost:3000
+```
+
+Para probarlo en el móvil, usar el build de producción (`npm run build`
++ `npm start`) y abrir `http://<IP-de-la-máquina>:3000` desde la misma
+red; `npm run dev` bloquea por defecto los recursos de desarrollo
+pedidos desde otro host (ver `allowedDevOrigins` en la documentación de
+Next.js). Sin backend: los datos quedan en el `localStorage` de cada
+navegador.
+
+Los gráficos piden precios a Stooq a través de `/api/prices`; hace
+falta que el servidor tenga salida a internet hacia `stooq.com`. Si no
+la tiene (o Stooq falla), cada gráfico lo explica y permite subir un CSV
+propio con columnas de fecha y cierre.
+
+## Tests y chequeos
+
+```bash
+npm test          # tests unitarios (Vitest), una sola pasada
+npm run test:watch
+npm run lint      # ESLint (config de Next.js)
+npm run build     # también verifica los tipos de TypeScript
+```
+
+Los tests cubren la lógica, que vive separada de la UI en `src/lib/`:
+matemática financiera con casos verificados a mano (€1000 al 7 % por 10
+años = €1967.15, 4 % de €1000 = €40/año, años hasta la meta contrastados
+con una simulación mes a mes), el importador de Trading 212, el parser
+de CSV, la persistencia (storage vacío, bloqueado, lleno o corrupto), el
+proxy de Stooq con `fetch` simulado, y la integridad del dataset de
+costo de vida (cada cifra en EUR se recalcula desde el valor citado en
+su fuente).
+
+## Mapa del código
+
+```
+src/
+  app/                  rutas: / (módulo 1), /charts (2), /fire (3), api/prices
+  components/           UI por módulo (portfolio/, charts/, fire/) y ui/ compartido
+  hooks/                estado persistente, carga de precios, tema claro/oscuro
+  lib/
+    finance.ts          toda la matemática financiera (funciones puras)
+    goal-projection.ts  módulo 1: proyección hacia la meta
+    fire.ts             módulo 3: cobertura y capital necesario por país
+    import/             importadores CSV (Trading 212, CSV simple)
+    prices.ts           parser de precios y lectura de respuestas de Stooq
+    price-proxy.ts      lógica del route handler /api/prices (caché, errores)
+    storage.ts          localStorage con validación y valores por defecto
+  data/
+    cost-of-living.json dataset curado (30 países, EUR, con/sin alquiler)
+```
 
 **Nota para quien retome esto en una sesión nueva (incluida una sesión
 en la nube):** este Next.js es una versión reciente con cambios
