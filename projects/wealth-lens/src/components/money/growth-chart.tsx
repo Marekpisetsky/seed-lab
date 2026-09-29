@@ -12,20 +12,20 @@ const FONT = 11;
 /** The upper dashed line may leave the chart: past this multiple of the projection it would squash the areas. */
 const MAX_OVER_PROJECTION = 2.2;
 
-/** €1,234,567 → "€1.2M", €99,000 → "€99k": short labels for an axis. */
+/** €1,234,567 → "€1.2M", €1,000,000 → "€1M", €99,000 → "€99k": short labels for an axis. */
 export function compactEur(amount: number): string {
-  if (amount >= 1e6) return `€${(amount / 1e6).toFixed(amount >= 1e7 ? 0 : 1)}M`;
+  if (amount >= 1e6) return `€${(amount / 1e6).toFixed(amount >= 1e7 ? 0 : 1).replace(/\.0$/, "")}M`;
   if (amount >= 1e3) return `€${Math.round(amount / 1e3)}k`;
   return `€${Math.round(amount)}`;
 }
 
-/** Round axis ticks: 0 and up to three more at a clean step. */
+/** Round axis ticks: 0 and two to four more at a clean step. */
 function ticks(max: number): number[] {
   if (max <= 0) return [0];
-  const rough = max / 3;
+  const rough = max / 4;
   const magnitude = Math.pow(10, Math.floor(Math.log10(rough)));
   const step = [1, 2, 2.5, 5, 10].map((m) => m * magnitude).find((candidate) => candidate >= rough) ?? rough;
-  return [0, step, step * 2, step * 3].filter((value) => value <= max * 1.001);
+  return [0, step, step * 2, step * 3, step * 4].filter((value) => value <= max * 1.001);
 }
 
 /** The element's width in CSS pixels, so the chart is drawn at its real size and its text stays legible. */
