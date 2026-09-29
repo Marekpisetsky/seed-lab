@@ -7,10 +7,10 @@
 
 import { isIndexId } from "./index-ids";
 import type { PricePoint } from "./prices";
-import type { CustomConnection, Goal, Holding, Investment, Mission, Plan } from "./types";
+import type { CustomConnection, Holding, Investment, LegacyGoal, Mission, Plan } from "./types";
 
 /** The euro goal of version 1 files, which becomes the mission "reach an amount". */
-export const DEFAULT_GOAL: Goal = { amount: 100_000, targetDate: null };
+export const DEFAULT_GOAL: LegacyGoal = { amount: 100_000, targetDate: null };
 
 /** The largest amount accepted anywhere (invested, monthly, a price): EUR 1 billion. */
 export const MAX_AMOUNT = 1e9;
@@ -99,7 +99,7 @@ export function parseHoldings(value: unknown): Holding[] | null {
   return value.map(parseHolding).filter((holding): holding is Holding => holding !== null);
 }
 
-export function parseGoal(value: unknown): Goal | null {
+export function parseGoal(value: unknown): LegacyGoal | null {
   if (!isRecord(value)) return null;
   return {
     amount: isNonNegativeNumber(value.amount) ? value.amount : DEFAULT_GOAL.amount,

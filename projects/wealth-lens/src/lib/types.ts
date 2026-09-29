@@ -43,8 +43,8 @@ export interface Holding {
 /** The fields a user or a file provides; price bookkeeping is added on top. */
 export type HoldingInput = Omit<Holding, "id" | "priceSource" | "priceDate">;
 
-/** Savings goal, in BASE_CURRENCY and in today's money. */
-export interface Goal {
+/** The euro goal of version 1 plans, in BASE_CURRENCY and in today's money. */
+export interface LegacyGoal {
   amount: number;
   /** Optional target date, ISO `YYYY-MM-DD`. */
   targetDate: string | null;
@@ -77,6 +77,25 @@ export interface CustomConnection {
   /** Monthly cost or one-off amount, in today's euros. */
   amount: number;
 }
+
+/**
+ * A goal the user adds to "My goals": optional, as many as they like, each
+ * worked out on its own against the same plan. Nothing about the user's
+ * life is assumed; they say what the goal costs, or pick it from a list.
+ * - live: living in a country of the cost-of-living list, with or without
+ *   paying for housing there;
+ * - buy: an item of the "Buy it" list (src/data/connections.json, its id);
+ * - buy-own: something of the user's own, at the price they give;
+ * - amount: an amount to reach;
+ * - income: a monthly amount the money should pay (their spending, a
+ *   mortgage, anything), with an optional name.
+ */
+export type Goal =
+  | { id: string; kind: "live"; country: string; housing: boolean }
+  | { id: string; kind: "buy"; item: string }
+  | { id: string; kind: "buy-own"; name: string; amount: number }
+  | { id: string; kind: "amount"; amount: number }
+  | { id: string; kind: "income"; amount: number; name: string | null };
 
 /**
  * What the user wants the money to do. Everything on "My money" is worked
