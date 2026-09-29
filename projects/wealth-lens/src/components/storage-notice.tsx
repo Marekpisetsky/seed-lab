@@ -16,8 +16,7 @@ export function StorageNotice() {
   return (
     <div role="status" className="border-b border-warning-border bg-warning-bg text-warning-foreground">
       <p className="mx-auto max-w-5xl px-4 py-2 text-sm">
-        Your browser is blocking local storage, so nothing you enter will be saved. The app still
-        works, but your data will be lost when you close this tab.
+        Your browser blocks storage: what you enter is lost when you close this tab.
       </p>
     </div>
   );

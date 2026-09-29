@@ -6,7 +6,7 @@ export default function PortfolioPage() {
     <>
       <PageHeader
         title="Portfolio & goal"
-        question="How much have I really gained, and how long until I reach my goal?"
+        question="What have I gained, and when do I reach my goal?"
       />
       <PortfolioModule />
     </>

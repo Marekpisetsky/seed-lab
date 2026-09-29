@@ -9,7 +9,7 @@ export default function FirePage() {
     <>
       <PageHeader
         title="FIRE by country"
-        question="How much capital do I need to live off my investments in different countries?"
+        question="How much do I need to live off my investments, and where?"
       />
       <FireModule />
     </>

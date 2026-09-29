@@ -47,10 +47,10 @@ export function HoldingForm({ initialValues = EMPTY_HOLDING_FORM, submitLabel, o
             <input {...props} {...bind("ticker")} autoCapitalize="characters" placeholder="VWCE" className={inputClass} />
           )}
         </Field>
-        <Field label="Quantity" error={errors.quantity} hint="Shares or units">
+        <Field label="Shares" error={errors.quantity}>
           {(props) => <input {...props} {...bind("quantity")} inputMode="decimal" placeholder="12.5" className={inputClass} />}
         </Field>
-        <Field label="Cost basis" error={errors.costBasis} hint="Total paid, not per share">
+        <Field label="Total paid" error={errors.costBasis} hint="For all shares">
           {(props) => <input {...props} {...bind("costBasis")} inputMode="decimal" placeholder="1250.00" className={inputClass} />}
         </Field>
         <Field label="Currency" error={errors.currency}>
@@ -65,7 +65,7 @@ export function HoldingForm({ initialValues = EMPTY_HOLDING_FORM, submitLabel, o
             </>
           )}
         </Field>
-        <Field label="Current price" error={errors.currentPrice} hint="Per share, optional">
+        <Field label="Price per share" error={errors.currentPrice} hint="Optional: we look it up">
           {(props) => <input {...props} {...bind("currentPrice")} inputMode="decimal" placeholder="118.20" className={inputClass} />}
         </Field>
       </div>

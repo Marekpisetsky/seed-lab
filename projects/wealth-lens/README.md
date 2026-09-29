@@ -22,29 +22,42 @@ mostrar.
   estimaciones históricas con riesgo de secuencia, moneda e inflación
   local, y la app lo dice explícitamente en la UI, no solo acá.
 
-**Estado actual (2026-09-29):** los tres módulos están implementados y
-funcionan de punta a punta (Next.js 16 + TypeScript + Tailwind 4), con
-la matemática financiera en funciones puras y más de 180 tests unitarios
-(Vitest). Todavía sin desplegar y sin validar con uso propio sostenido.
+**Estado actual (2026-09-29):** los tres módulos funcionan de punta a
+punta (Next.js 16 + TypeScript + Tailwind 4), simplificados para que
+cada pantalla se entienda en segundos: una idea por pantalla, un número
+grande por sección y lo avanzado plegado. La matemática vive en funciones
+puras con más de 230 tests unitarios (Vitest). Todavía sin desplegar y
+sin validar con uso propio sostenido.
 
-- **Módulo 1 — `/`:** holdings a mano o importados desde el export CSV
-  de Trading 212 (o un CSV simple), ganancia/pérdida por holding y
-  total por moneda, y tiempo hasta la meta con valor futuro + aportes
-  mensuales (despejando n). El supuesto de retorno real se muestra al
-  lado del resultado, con un slider 3–10 %.
-- **Módulo 2 — `/charts`:** un gráfico por holding (lightweight-charts)
-  con línea del costo medio, datos diarios de Stooq vía un route handler
-  propio (`/api/prices`) con caché; si Stooq falla, error claro por
-  ticker y opción de subir un CSV propio de precios.
-- **Módulo 3 — `/fire`:** ingreso sostenible con el capital actual y
-  capital necesario por país (30 países, dataset propio en
-  `src/data/cost-of-living.json`, estimaciones Numbeo + Wise de sep
-  2026), con las advertencias junto al resultado.
+- **Primer uso:** sin datos guardados, cualquier pestaña muestra 3
+  preguntas (cuánto tienes invertido, cuánto añades al mes, tu meta) y
+  con eso las tres pestañas ya dan resultados. Botón secundario para
+  importar el export de Trading 212. Los holdings detallados son
+  opcionales.
+- **Portfolio & goal — `/`:** arriba, "You've gained +€X (+Y%)" y "Goal
+  reached in ~N years (mes año)", con barra de progreso hacia la meta y
+  el supuesto de crecimiento (después de inflación) al lado. Lista
+  compacta de holdings (valor y ganancia) con editar/eliminar en un menú
+  "⋯". El precio actual se rellena solo con el último cierre ("price
+  from DD/MM") salvo que lo escribas a mano. Slider de crecimiento,
+  inflación, escenarios 3/5/7/10 % y fecha objetivo en "Advanced".
+- **Charts — `/charts`:** lista con mini-gráfico y % de los últimos 12
+  meses por acción; al tocar se abre el gráfico grande
+  (lightweight-charts) con la línea de lo que pagaste. Precios de Stooq
+  vía `/api/prices` (proxy propio con caché); ETFs y acciones europeas se
+  buscan primero en su cotización en EUR (Xetra). Si Stooq falla, se
+  puede subir un CSV propio de precios.
+- **FIRE by country — `/fire`:** una frase grande con la probabilidad de
+  que el dinero dure 30 años según la tasa de retiro (3/4/5/7 %),
+  calculada con 5.000 simulaciones sobre los retornos reales históricos
+  del S&P 500 1928–2022 (Robert Shiller, `src/data/sp500-real-returns.json`).
+  Debajo, capital necesario y años para llegar en 6 países (los 5 más
+  baratos + tu país "home"), con los 30 plegados. Costo de vida propio
+  en `src/data/cost-of-living.json` (Numbeo + Wise, sep 2026).
 
-Limitaciones conocidas: no convierte entre monedas (los totales se
-agrupan por moneda y la meta/FIRE solo cuentan holdings en EUR); el
-precio actual del módulo 1 se ingresa a mano; las ganancias realizadas
-(ventas) no se muestran.
+Limitaciones conocidas: no convierte entre monedas (la meta y FIRE solo
+cuentan holdings en EUR); las ganancias realizadas (ventas) no se
+muestran; Stooq es una fuente no oficial que puede fallar.
 
 ## Arquitectura
 
@@ -115,7 +128,7 @@ Requisitos: Node.js 22 (o más nuevo) y npm.
 
 ```bash
 cd projects/wealth-lens
-npm ci            # instala las dependencias exactas del lockfile
+npm install       # o `npm ci` para instalar exactamente el lockfile
 npm run dev       # servidor de desarrollo en http://localhost:3000
 ```
 
@@ -152,7 +165,10 @@ matemática financiera con casos verificados a mano (€1000 al 7 % por 10
 años = €1967.15, 4 % de €1000 = €40/año, años hasta la meta contrastados
 con una simulación mes a mes), el importador de Trading 212, el parser
 de CSV, la persistencia (storage vacío, bloqueado, lleno o corrupto), el
-proxy de Stooq con `fetch` simulado, y la integridad del dataset de
+proxy de Stooq con `fetch` simulado, el mapeo de símbolos europeos, el
+precio automático (nunca pisa un precio escrito a mano), la simulación
+Monte Carlo (semilla fija: con retorno constante del 7 % y retiro del
+4 % el éxito es 100 %; con 15 %, bajo) y la integridad del dataset de
 costo de vida (cada cifra en EUR se recalcula desde el valor citado en
 su fuente).
 
@@ -167,12 +183,17 @@ src/
     finance.ts          toda la matemática financiera (funciones puras)
     goal-projection.ts  módulo 1: proyección hacia la meta
     fire.ts             módulo 3: cobertura y capital necesario por país
+    monte-carlo.ts      probabilidad de que una tasa de retiro dure 30 años
+    plan.ts             capital de partida, progreso, países destacados
     import/             importadores CSV (Trading 212, CSV simple)
     prices.ts           parser de precios y lectura de respuestas de Stooq
+    symbols.ts          ticker → símbolo de Stooq (mapa europeo + moneda)
+    auto-price.ts       precio actual automático desde el último cierre
     price-proxy.ts      lógica del route handler /api/prices (caché, errores)
     storage.ts          localStorage con validación y valores por defecto
   data/
     cost-of-living.json dataset curado (30 países, EUR, con/sin alquiler)
+    sp500-real-returns.json retornos reales anuales del S&P 500 (Shiller)
 ```
 
 **Nota para quien retome esto en una sesión nueva (incluida una sesión

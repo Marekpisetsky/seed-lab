@@ -40,8 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:py-8">{children}</main>
         <footer className="border-t border-border">
           <p className="mx-auto max-w-5xl px-4 py-4 text-xs text-muted">
-            Personal tool for calculations only — not financial advice. It never connects to a
-            broker or moves money. Your data stays in this browser.
+            Not financial advice. No broker connection. Your data stays in this browser.
           </p>
         </footer>
       </body>
