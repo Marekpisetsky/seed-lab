@@ -22,42 +22,46 @@ mostrar.
   estimaciones históricas con riesgo de secuencia, moneda e inflación
   local, y la app lo dice explícitamente en la UI, no solo acá.
 
-**Estado actual (2026-09-29):** los tres módulos funcionan de punta a
-punta (Next.js 16 + TypeScript + Tailwind 4), exportados como sitio
-estático. Un solo plan compartido alimenta las tres pantallas; nada se
-guarda ni se envía, y la app no llama a ningún servicio mientras se usa.
-La matemática vive en funciones puras con más de 300 tests unitarios
-(Vitest). Todavía sin validar con uso propio sostenido.
+**Estado actual (2026-09-29):** dos pantallas (Next.js 16 + TypeScript +
+Tailwind 4), exportadas como sitio estático. La principal es un "informe
+ejecutivo" sobre el dinero del usuario: la respuesta primero, lo
+importante que no sabía preguntar después, opciones cuantificadas, y el
+detalle solo si lo pide. Nada se guarda ni se envía, y la app no llama a
+ningún servicio mientras se usa. La lógica vive en funciones puras con
+más de 360 tests unitarios (Vitest). Todavía sin validar con uso propio
+sostenido.
 
-- **Primer uso (y tras cada recarga):** 3 preguntas (cuánto tienes
-  invertido, cuánto añades al mes, tu meta). Alternativas: importar el
-  export de Trading 212 o "Load my data" (un archivo descargado antes).
-- **Portfolio & goal — `/`:** "You've gained +€X", la meta activa
-  ("Goal reached in ~N years (mes año)" o "Live in India: €99,000 needed
-  · ~N years (año) · ≈ €330/month") con barra de progreso, en qué crece
-  el plan ("Grows like the S&P 500: 6.6% a year after inflation" +
-  "Change"), y el ingreso mensual: "Today your portfolio would pay ≈ €X/month"
-  / "At your goal you could withdraw ≈ €Y/month". Holdings con editar/eliminar
-  en "⋯"; el precio se rellena solo desde los precios diarios si el ticker
-  está en la lista curada ("price from DD/MM"), si no, precio a mano o CSV.
-  En "Advanced": escenarios 3/5/7/10 %, inflación y fecha objetivo.
-- **Charts — `/charts`:** tus holdings y, debajo, los 3 ETFs (VUAA,
-  VWCE, EQQQ) y 12 acciones grandes, con mini-gráfico SVG y % de 12
-  meses. Al tocar uno se abre el gráfico (lightweight-charts, cargado
-  solo entonces), su crecimiento pasado ("past, not a forecast") y
-  "Use as my investment". Una línea: "Prices updated DD/MM".
-- **FIRE by country — `/fire`:** probabilidad de que el dinero dure 30
-  años según la tasa de retiro (3/4/5/7 %), simulada con la historia de
-  lo que el plan invierte; ingreso mensual a la meta; capital necesario,
-  años y ≈ €/mes por país. Tocar un país lo convierte en la meta activa
-  (Portfolio y la barra de progreso pasan a esa meta; un botón vuelve a
-  la meta en euros).
+- **My money — `/`** (sustituye a Portfolio & goal y FIRE by country).
+  Dos números ("You have invested", "You add each month"; con holdings,
+  el primero es su valor) y todo se recalcula al teclear, sin botón de
+  calcular:
+  1. **La respuesta**, una frase con 2-3 números grandes: "Today your
+     money pays €3/month. In 19 years: €330/month — enough to live in
+     India." Cada número se toca para ver de dónde sale.
+  2. **What you should know:** 3-5 hallazgos ordenados por impacto, cada
+     uno un número y una frase; al abrirlo, el cálculo y los supuestos.
+  3. **What changes the answer:** aporte mensual (−/+), en qué invierte,
+     horizonte y tasa de retiro; cada opción muestra su efecto antes de
+     elegirla ("2 years earlier", "+€420/month").
+  4. **What it means in real life:** "Live off it" (pagar el alquiler,
+     trabajar 4 días, media jornada, dejar de trabajar, vivir en cada
+     país) y "Buy it" (21 compras con fuente). Cada una dice "now" o "in
+     N years"; tocarla la fija como meta y todo se recalcula a su
+     alrededor. Una compra fijada muestra el capital que queda y lo que
+     cuesta en tiempo. El usuario puede añadir las suyas.
+  5. **Detail**, plegado: curva de crecimiento con banda de Monte Carlo
+     (8 de cada 10 escenarios) y tabla año a año.
+- **My stocks — `/stocks`** (antes Charts): ganancia, holdings (añadir,
+  editar, importar CSV), cómo se movió cada uno, y los 3 ETFs (VUAA,
+  VWCE, EQQQ) y 12 acciones grandes con su gráfico, su pasado ("past, not
+  a forecast") y "Use as my investment". `/charts` y `/fire` redirigen.
 
 Limitaciones conocidas: no convierte entre monedas (la meta, el ingreso
 y la cartera ponderada solo cuentan holdings en EUR); las ganancias
 realizadas (ventas) no se muestran; Yahoo y Stooq son fuentes no
 oficiales que pueden fallar (el Action conserva los datos anteriores);
-los retornos de los índices están en dólares y el S&P 500 llega a 2022.
+los retornos de los índices están en dólares y se comparan en 1988–2022,
+porque el S&P 500 de Shiller llega a 2022; el Nasdaq-100 es solo precio.
 
 ## Arquitectura
 
@@ -74,21 +78,63 @@ los retornos de los índices están en dólares y el S&P 500 llega a 2022.
 - **Cero llamadas en tiempo de uso.** Los precios llegan como archivos
   estáticos del propio sitio (ver "Precios diarios"); los retornos de
   los índices y el costo de vida son JSON dentro del bundle.
-- Un solo plan: `src/lib/plan-view.ts` deriva de él capital, crecimiento,
-  meta activa, proyección e ingreso mensual, y todas las pantallas lo
-  leen, así que cambiar un dato actualiza todo a la vez.
+- Un solo plan (`Plan` en `src/lib/types.ts`): dos números, la
+  inversión, la tasa de retiro, el país, la conexión fijada como meta, el
+  horizonte y las conexiones propias. `src/lib/report.ts` deriva de él el
+  informe entero y `src/hooks/use-report.ts` lo calcula una vez por
+  cambio para todas las secciones (medido como
+  `performance.measure("wealth-lens:report")`: ~2 ms por tecla).
 - En qué crece el plan (`src/lib/investment.ts`): S&P 500, World o
-  Nasdaq-100 (su promedio real histórico), la cartera real (cada holding
+  Nasdaq-100 (su promedio real en el periodo común, ver abajo), la cartera real (cada holding
   cuenta hacia el índice que sigue —o el más cercano— ponderado por su
   valor en EUR), una acción (proyectada con su índice más cercano, nunca
   con su propio pasado) o un % propio. La misma historia alimenta el
   Monte Carlo.
-- Velocidad: la primera pantalla solo carga lo necesario para las 3
-  preguntas; el resto de cada pantalla se carga aparte (y se precarga al
-  primer toque), los parsers de CSV al elegir un archivo, y la librería
-  de gráficos y el historial de precios al abrir un gráfico.
+- Velocidad: la primera pantalla solo carga los dos campos; el informe
+  (datasets, motor, secciones) es otro chunk que se precarga al enfocar
+  un campo, junto con sus primeras simulaciones en tiempo ocioso. Los
+  parsers de CSV se cargan al elegir un archivo, y la librería de
+  gráficos y el historial de precios al abrir un gráfico. El Monte Carlo
+  guarda las trayectorias aleatorias por historia (el saldo es lineal en
+  el capital y el aporte), así que teclear no vuelve a simular.
 - Sin credenciales de bróker ni APIs de pago — respeta la regla de
   costo cero de seed-lab.
+
+## El informe: hallazgos y conexiones
+
+**Meta.** Si el usuario no fija nada, la meta es "Stop working" (vivir
+de la cartera en su país) cuando se alcanza en 40 años o menos; si no,
+la conexión "Live off it" más barata que aún no cubre. Una conexión
+fijada ("Tap one") manda sobre eso. Con un horizonte elegido ("Look at: 10
+years"), la respuesta pasa a ser cuánto habrá entonces.
+
+**Hallazgos** (`src/lib/findings.ts`, una función pura por regla, cada
+una con su regla de relevancia; se muestran los 5 de mayor impacto y
+ninguno dice "deberías"):
+
+| Hallazgo | Aparece cuando | Número |
+| --- | --- | --- |
+| Palanca más fuerte | la meta está a 2+ años y la mejor palanca gana 6+ meses | +€100/mes vs +1 % de crecimiento vs haber empezado un año antes, en años |
+| Coste de esperar | horizonte de 2+ años y empezar un año más tarde cuesta ≥ €500 y ≥ 2 % de la meta | € de menos al horizonte |
+| Inflación | la meta está a 5+ años (y no está ya alcanzada) | lo que mostrará la cuenta en euros de ese año (la app cuenta en euros de hoy) |
+| Comisiones | horizonte de 5+ años y la diferencia ≥ €1.000 | fondo al 1 % vs al 0,2 % |
+| Geografía | algún país ya se cubre, o el mejor país llega 2+ años antes que el propio | años de diferencia |
+| Concentración | una acción individual > 40 % de la cartera en EUR | su peso, su caída máxima y su cambio a 1 año |
+| Moneda | hay holdings en otra moneda (no se convierten) | el importe que queda fuera del cálculo, o cuántas monedas |
+| Riesgo de secuencia | una mala primera década (percentil 10 del Monte Carlo) retrasa la meta 1+ año | años de retraso o € de menos |
+| Tasa de retiro | la tasa elegida duró 30 años en < 90 % de las historias | "1 in N" se quedó sin dinero |
+| Crecimiento vs ahorro | el crecimiento es ≥ 30 % del total en 5+ años | % del dinero que es crecimiento |
+| Duplicación | crecimiento ≥ 2 % al año | cada cuántos años se duplica |
+| Pasado de una acción | se invierte en una acción | su crecimiento pasado vs su índice |
+
+**Conexiones** (`src/data/connections.json` + `src/lib/connections.ts`):
+4 de "Live off it" en el país propio (alquiler, 4 días, media jornada,
+dejar de trabajar), 29 países más (del dataset de costo de vida) y 21
+compras con fuente y fecha, marcadas como estimación. Las que dependen
+del costo de vida (sabático, colchón de 6 meses, un año por el sudeste
+asiático, un máster en NL) se calculan desde ese dataset, así que cambian
+con el país y la vivienda. Importes en euros de hoy; los de USD se
+convierten con el tipo guardado en el archivo.
 
 ## Módulo 1 — Tracker de ganancia + tiempo a la meta
 
@@ -213,6 +259,18 @@ y se verificaron contra los retornos anualizados a 3/5/10 años de las
 fichas de MSCI y contra los % anuales publicados; los tests recalculan
 cada retorno real desde las cifras nominales guardadas.
 
+**Periodo común.** Los tres índices se comparan sobre los mismos años, el
+periodo más largo que cubren los tres: hoy **1988–2022** (35 años;
+`COMMON_PERIOD` en `src/lib/indexes.ts`, calculado de los datos). Esas
+rentabilidades alimentan todo: palancas, proyecciones, cartera
+ponderada, % propio y Monte Carlo, y la app muestra el periodo junto a
+cada cifra. Promedio real anual en 1988–2022: S&P 500 7,5 %, World
+4,5 %, Nasdaq-100 9,9 % (solo precio: la tarjeta dice "no dividends";
+los dividendos sumarían aproximadamente un 1 % anual). Los datasets
+completos (1928–2022, 1988–2024, 1986–2024) se conservan y se validan
+igual. Para alargar el periodo hace falta el S&P 500 de 2023 en adelante
+con el mismo método (enero a enero, de los datos de Shiller).
+
 ## Cómo correrlo
 
 Requisitos: Node.js 22.18 o más nuevo (el job de precios ejecuta
@@ -246,7 +304,11 @@ npm run build     # también verifica los tipos de TypeScript
 Los tests cubren la lógica, que vive separada de la UI en `src/lib/` y
 `scripts/lib/`: matemática financiera con casos verificados a mano (€1000
 al 7 % por 10 años = €1967.15, 4 % de €1000 = €40/año, €300.000 al 4 % =
-€1000/mes), el plan compartido (un cambio actualiza todas las cifras), la
+€1000/mes), el motor de hallazgos (cada regla: cuándo aparece, cuándo no
+y su número, con los tres perfiles de ejemplo), las conexiones (importes
+por país y vivienda, compras derivadas), la meta fijada (compra: capital
+que queda y retraso del siguiente hito), las palancas (efecto de cada
+opción), el plan v2 y la lectura de archivos v1, la
 conversión país → meta (India con alquiler: €330/mes → €99.000 al 4 %),
 la ponderación de la cartera por índice, la mezcla de series y el
 crecimiento propio escalado, los datasets de índices (cada retorno real
@@ -268,14 +330,19 @@ scripts/
   lib/                         yahoo, stooq, cadena de respaldo, armado de archivos
 public/data/                   precios generados por el job (no editar a mano)
 src/
-  app/                         rutas: / (módulo 1), /charts (2), /fire (3)
-  components/                  UI por módulo (portfolio/, charts/, fire/),
-                               plan/ (inversión, meta país), onboarding/, ui/
-  hooks/                       use-app (estado), use-plan (plan derivado),
-                               use-history (historial al abrir un gráfico)
+  app/                         rutas: / (My money), /stocks (My stocks);
+                               /charts y /fire redirigen
+  components/                  money/ (el informe), stocks/, charts/,
+                               portfolio/ (holdings, CSV), ui/
+  hooks/                       use-app (estado), use-report (informe por cambio),
+                               use-plan, use-history (historial al abrir un gráfico)
   lib/
     app-store.ts        estado en memoria (plan, holdings, CSV subidos)
-    plan-view.ts        todo lo derivado del plan: meta activa, proyección, ingreso
+    report.ts           el informe: meta, respuesta, frase principal, compra fijada
+    findings.ts         "What you should know": una regla por hallazgo
+    levers.ts           "What changes the answer": opciones y su efecto
+    connections.ts      "Live off it" / "Buy it": importes y fuentes
+    simulation.ts       bandas de Monte Carlo y cachés de simulación
     investment.ts       en qué crece el plan: índice, cartera ponderada, acción, % propio
     indexes.ts          datasets de retornos reales de los 3 índices
     market-data.ts      lista curada + precios estáticos (formato en market-format.ts)
@@ -283,8 +350,6 @@ src/
     data-file.ts        "Download my data" / "Load my data"
     legacy-storage.ts   limpieza de datos que dejaron versiones anteriores
     finance.ts          matemática financiera (funciones puras)
-    goal-projection.ts  proyección hacia la meta
-    fire.ts             cobertura y capital necesario por país
     monte-carlo.ts      probabilidad de que una tasa de retiro dure 30 años
     validation.ts       validación de todo lo que se carga desde un archivo
     import/             importadores CSV (Trading 212, CSV simple)
@@ -293,6 +358,7 @@ src/
     sp500-real-returns.json     S&P 500 (Shiller)
     msci-world-real-returns.json, nasdaq100-real-returns.json
     cost-of-living.json         dataset curado (30 países, EUR, con/sin alquiler)
+    connections.json            "Live off it" y "Buy it" con fuente y fecha
 ```
 
 **Nota para quien retome esto en una sesión nueva (incluida una sesión

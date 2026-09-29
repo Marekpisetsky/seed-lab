@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { annualizedReturn, INDEXES } from "./indexes";
-import { blendedReturns, indexForHolding, portfolioMix, resolveInvestment, scaleToAverage } from "./investment";
+import { blendedReturns, dividendNote, indexForHolding, periodText, portfolioMix, resolveInvestment, scaleToAverage } from "./investment";
 import type { Holding } from "./types";
 
 const holding = (ticker: string, value: number, currency = "EUR"): Holding => ({
@@ -65,8 +65,8 @@ describe("blendedReturns", () => {
       { index: "sp500", weight: 0.5 },
       { index: "nasdaq100", weight: 0.5 },
     ]);
-    // S&P 500 data ends in 2022, Nasdaq-100 starts in 1986.
-    expect([years[0].year, years.at(-1)?.year]).toEqual([1986, 2022]);
+    // Every index is used over the years all three share.
+    expect([years[0].year, years.at(-1)?.year]).toEqual([1988, 2022]);
     const year2008 = years.find((entry) => entry.year === 2008)?.realReturn;
     const sp = INDEXES.sp500.years.find((entry) => entry.year === 2008)?.realReturn ?? NaN;
     const ndx = INDEXES.nasdaq100.years.find((entry) => entry.year === 2008)?.realReturn ?? NaN;
@@ -86,9 +86,9 @@ describe("scaleToAverage", () => {
 describe("resolveInvestment", () => {
   it("uses an index's own average and history", () => {
     const resolved = resolveInvestment({ kind: "index", index: "nasdaq100" }, []);
-    expect(resolved).toMatchObject({ name: "Nasdaq-100", period: [1986, 2024], proxyIndex: null });
+    expect(resolved).toMatchObject({ name: "Nasdaq-100", period: [1988, 2022], proxyIndex: null, withoutDividends: 1 });
     expect(resolved.realReturn).toBeCloseTo(INDEXES.nasdaq100.averageReturn, 12);
-    expect(resolved.returns).toHaveLength(39);
+    expect(resolved.returns).toHaveLength(35);
   });
 
   it("projects a single stock with its closest index, never its own past", () => {
@@ -105,20 +105,43 @@ describe("resolveInvestment", () => {
     ]);
     expect(resolved.name).toBe("My portfolio");
     expect(resolved.realReturn).toBeCloseTo(annualizedReturn(years.map((entry) => entry.realReturn)), 12);
-    expect(resolved.period).toEqual([1986, 2022]);
+    expect(resolved.period).toEqual([1988, 2022]);
     expect(resolved.mix?.weights.map((weight) => weight.weight)).toEqual([0.5, 0.5]);
+    // Half of it is the Nasdaq-100, whose figures leave dividends out.
+    expect(resolved.withoutDividends).toBe(0.5);
   });
 
   it("uses the typed rate, with the S&P 500's ups and downs scaled to it", () => {
     const resolved = resolveInvestment({ kind: "custom", realReturn: 0.05 }, []);
     expect(resolved.realReturn).toBe(0.05);
     expect(annualizedReturn(resolved.returns)).toBeCloseTo(0.05, 12);
-    expect(resolved.period).toEqual([1928, 2022]);
+    expect(resolved.period).toEqual([1988, 2022]);
+    expect(resolved.withoutDividends).toBe(0);
+  });
+
+  it("keys each history, so simulations can be cached", () => {
+    expect(resolveInvestment({ kind: "index", index: "world" }, []).key).toBe("index:world");
+    expect(resolveInvestment({ kind: "stock", id: "NVDA" }, []).key).toBe("index:nasdaq100");
+    expect(resolveInvestment({ kind: "custom", realReturn: 0.05 }, []).key).toBe("custom:0.0500");
+    expect(resolveInvestment({ kind: "portfolio" }, [holding("VUAA", 3000), holding("EQQQ", 1000)]).key).toBe(
+      "mix:sp500=0.750,nasdaq100=0.250",
+    );
   });
 
   it("falls back to the S&P 500 when the choice cannot be used", () => {
     expect(resolveInvestment({ kind: "portfolio" }, []).investment).toEqual({ kind: "index", index: "sp500" });
     expect(resolveInvestment({ kind: "stock", id: "GONE" }, []).name).toBe("S&P 500");
     expect(resolveInvestment({ kind: "stock", id: "VWCE" }, []).name).toBe("S&P 500"); // an ETF is not a stock
+  });
+});
+
+describe("periodText and dividendNote", () => {
+  it("say where a growth figure comes from", () => {
+    expect(periodText(resolveInvestment({ kind: "index", index: "world" }, []))).toBe("1988–2022");
+    expect(dividendNote(resolveInvestment({ kind: "index", index: "world" }, []))).toBeNull();
+    expect(dividendNote(resolveInvestment({ kind: "index", index: "nasdaq100" }, []))).toBe(
+      "price only: dividends (roughly 1% a year) not included",
+    );
+    expect(dividendNote({ withoutDividends: 0.3 })).toBe("the Nasdaq-100 part is price only: dividends (roughly 1% a year) not included");
   });
 });

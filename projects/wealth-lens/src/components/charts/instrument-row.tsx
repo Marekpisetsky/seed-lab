@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useAppState } from "@/hooks/use-app";
@@ -36,6 +37,8 @@ function InstrumentPanel({ instrument }: { instrument: Instrument }) {
   const prices = MARKET.prices[instrument.id];
   const history = useHistory(prices ? instrument.id : null);
   const index = INDEXES[instrument.index];
+  const period = `${index.firstYear}–${index.lastYear}`;
+  const priceOnly = index.priceOnly ? ", price only, without dividends" : "";
   const chosen = isChosen(plan.investment, instrument);
 
   return (
@@ -66,15 +69,18 @@ function InstrumentPanel({ instrument }: { instrument: Instrument }) {
 
       <p className="text-sm text-muted">
         {instrument.kind === "etf"
-          ? `Tracks the ${index.name}: ${formatRate(index.averageReturn)} a year after inflation on average, ${index.firstYear}–${index.lastYear}.`
-          : `As your investment it is projected with the ${index.name}'s history (${formatRate(index.averageReturn)} a year after inflation), not with ${instrument.name}'s own past.`}
+          ? `Tracks the ${index.name}: ${formatRate(index.averageReturn)} a year after inflation on average, ${period}${priceOnly}.`
+          : `As your investment it is projected with the ${index.name}'s history (${formatRate(index.averageReturn)} a year after inflation, ${period}${priceOnly}), not with ${instrument.name}'s own past.`}
       </p>
 
       {chosen ? (
-        <p className="text-sm font-medium text-positive" aria-live="polite">
-          ✓ Your plan grows like {instrument.kind === "etf" ? `the ${index.name}` : instrument.name}.{" "}
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium" aria-live="polite">
+          <span className="inline-flex items-center gap-1 text-positive">
+            <Check aria-hidden="true" className="size-4" />
+            Your money grows like {instrument.kind === "etf" ? `the ${index.name}` : instrument.name}.
+          </span>
           <Link href="/" className="text-accent underline-offset-2 hover:underline">
-            See your plan →
+            See what it means
           </Link>
         </p>
       ) : (

@@ -89,13 +89,14 @@ describe("parsePlan", () => {
   const full = {
     invested: 20_000,
     monthlyContribution: 500,
-    goal: { amount: 250_000, targetDate: null },
-    goalCountry: "PT",
     investment: { kind: "index", index: "nasdaq100" },
     withdrawalRate: 0.035,
     inflation: 0.025,
     housing: "own",
     homeCountry: "PE",
+    pinned: "buy:used-car",
+    horizonYears: 10,
+    customConnections: [{ id: "boat", name: "Boat", kind: "buy", amount: 15_000 }],
   };
 
   it("keeps a valid plan as it is", () => {
@@ -104,15 +105,38 @@ describe("parsePlan", () => {
 
   it("falls back field by field without resetting the valid ones", () => {
     expect(
-      parsePlan({ ...full, invested: -5, withdrawalRate: 0, investment: { kind: "?" }, goalCountry: "Portugal", housing: "castle" }),
+      parsePlan({
+        ...full,
+        invested: -5,
+        withdrawalRate: 0,
+        investment: { kind: "?" },
+        housing: "castle",
+        pinned: "car",
+        horizonYears: 2.5,
+        customConnections: [full.customConnections[0], { id: "x", name: "", kind: "buy", amount: 1 }, { id: "y", name: "Y", kind: "live", amount: -1 }],
+      }),
     ).toEqual({
       ...full,
       invested: null,
       withdrawalRate: DEFAULT_PLAN.withdrawalRate,
       investment: DEFAULT_PLAN.investment,
-      goalCountry: null,
       housing: "rent",
+      pinned: null,
+      horizonYears: null,
     });
+  });
+
+  it("turns a version 1 euro goal into “My goal”, pinned when it was the active goal", () => {
+    const v1 = { invested: 20_000, monthlyContribution: 500, goal: { amount: 250_000, targetDate: null }, goalCountry: null };
+    expect(parsePlan(v1)).toMatchObject({
+      pinned: "custom:goal",
+      customConnections: [{ id: "goal", name: "My goal", kind: "buy", amount: 250_000 }],
+    });
+    expect(parsePlan({ ...v1, goalCountry: "PT" })).toMatchObject({
+      pinned: "country:PT",
+      customConnections: [{ id: "goal", name: "My goal", kind: "buy", amount: 250_000 }],
+    });
+    expect(parsePlan({ invested: 1 })).toMatchObject({ pinned: null, customConnections: [] });
   });
 
   it("rejects non-objects", () => {

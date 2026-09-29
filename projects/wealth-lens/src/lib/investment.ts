@@ -2,15 +2,16 @@
  * From "what I invest in" to the numbers every projection uses: the yearly
  * growth after inflation, and the series of historical yearly returns the
  * Monte Carlo simulation draws from. Both come from the same static index
- * datasets (lib/indexes.ts), so the time to a goal and the success rate of a
- * withdrawal rate always tell the same story.
+ * datasets (lib/indexes.ts), over the years all three share, so the time to
+ * a goal and the success rate of a withdrawal rate always tell the same
+ * story, and the indexes are compared like for like.
  *
- * - An index: its own history, averaged.
+ * - An index: its history over the common period, averaged.
  * - A single stock: its closest index. A stock's own past growth is shown
  *   elsewhere as "past, not a forecast", never projected for decades.
  * - My portfolio: each holding counts towards the index it tracks (or its
  *   closest one), weighted by its value in euros; the yearly returns are
- *   blended over the years all those indexes have data, rebalanced yearly.
+ *   blended year by year, rebalanced yearly.
  * - A custom rate: the S&P 500's ups and downs, scaled so that they average
  *   exactly the rate typed by the user.
  */
@@ -108,6 +109,8 @@ export interface ResolvedInvestment {
   investment: Investment;
   /** "S&P 500", "My portfolio", "NVIDIA", "Your own rate". */
   name: string;
+  /** Identifies the history in `returns` (same key, same numbers), for caching simulations. */
+  key: string;
   /** Expected growth per year after inflation, used for every projection. */
   realReturn: number;
   /** Historical yearly real returns for the Monte Carlo simulation. */
@@ -118,6 +121,20 @@ export interface ResolvedInvestment {
   proxyIndex: IndexId | null;
   /** The mix, when the investment is the portfolio. */
   mix: PortfolioMix | null;
+  /** Share of it whose figures leave dividends out (the Nasdaq-100's are price only): 0, 1 or in between. */
+  withoutDividends: number;
+}
+
+/** "1988–2022". */
+export function periodText({ period }: Pick<ResolvedInvestment, "period">): string {
+  return `${period[0]}–${period[1]}`;
+}
+
+/** Said next to a growth figure that leaves dividends out; `null` when they are in. */
+export function dividendNote({ withoutDividends }: Pick<ResolvedInvestment, "withoutDividends">): string | null {
+  if (withoutDividends <= 0) return null;
+  const what = withoutDividends >= 1 ? "price only" : "the Nasdaq-100 part is price only";
+  return `${what}: dividends (roughly 1% a year) not included`;
 }
 
 function fromIndex(index: IndexId, investment: Investment, name = INDEXES[index].name): ResolvedInvestment {
@@ -125,11 +142,13 @@ function fromIndex(index: IndexId, investment: Investment, name = INDEXES[index]
   return {
     investment,
     name,
+    key: `index:${index}`,
     realReturn: info.averageReturn,
     returns: info.years.map((entry) => entry.realReturn),
     period: [info.firstYear, info.lastYear],
     proxyIndex: null,
     mix: null,
+    withoutDividends: info.priceOnly ? 1 : 0,
   };
 }
 
@@ -151,16 +170,23 @@ export function resolveInvestment(investment: Investment, holdings: readonly Hol
       return {
         investment,
         name: "My portfolio",
+        key: `mix:${mix.weights.map(({ index, weight }) => `${index}=${weight.toFixed(3)}`).join(",")}`,
         realReturn: annualizedReturn(returns),
         returns,
         period: [years[0].year, years[years.length - 1].year],
         proxyIndex: null,
         mix,
+        withoutDividends: mix.weights.reduce((sum, { index, weight }) => sum + (INDEXES[index].priceOnly ? weight : 0), 0),
       };
     }
     case "custom": {
       const base = fromIndex(DEFAULT_INDEX, investment, "Your own rate");
-      return { ...base, realReturn: investment.realReturn, returns: scaleToAverage(base.returns, investment.realReturn) };
+      return {
+        ...base,
+        key: `custom:${investment.realReturn.toFixed(4)}`,
+        realReturn: investment.realReturn,
+        returns: scaleToAverage(base.returns, investment.realReturn),
+      };
     }
   }
   // A stock no longer on the list, or a portfolio with nothing priced in euros.

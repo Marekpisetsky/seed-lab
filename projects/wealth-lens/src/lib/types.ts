@@ -68,28 +68,40 @@ export type Investment =
 /** Compare living costs with rent included, or for someone who owns their home. */
 export type Housing = "rent" | "own";
 
+/** Something the user adds to "What it means in real life". */
+export interface CustomConnection {
+  id: string;
+  name: string;
+  /** "live": a monthly cost to cover; "buy": a one-off amount. */
+  kind: "live" | "buy";
+  /** Monthly cost or one-off amount, in today's euros. */
+  amount: number;
+}
+
 /**
  * The one plan every screen reads and edits. It lives in memory only: nothing
  * is saved, and reloading the page starts over (see lib/app-store.ts).
  * All rates are decimal fractions: 0.07 means 7 %.
  */
 export interface Plan {
-  /** Amount invested, answered in the first questions; `null` until answered. Priced EUR holdings win. */
+  /** Amount invested, typed on "My money"; `null` until typed. Priced EUR holdings win. */
   invested: number | null;
   /** Added every month, in BASE_CURRENCY, constant in today's money. */
   monthlyContribution: number;
-  /** The goal in euros (today's money). */
-  goal: Goal;
-  /** ISO code of a country whose cost of living is the active goal instead; `null` = the euro goal. */
-  goalCountry: string | null;
   investment: Investment;
-  /** Share of the portfolio withdrawn per year once the goal is reached. */
+  /** Share of the portfolio withdrawn per year to live off it. */
   withdrawalRate: number;
   /** Expected annual inflation, used to translate real figures to nominal. */
   inflation: number;
   housing: Housing;
-  /** ISO code of the country always shown next to the cheapest ones. */
+  /** ISO code of the user's country: rent, working less and stopping work are priced there. */
   homeCountry: string;
+  /** Id of the connection the report is built around ("country:IN", "buy:new-car"); `null` = the next milestone. */
+  pinned: string | null;
+  /** Look this many years ahead instead of "when the goal is reached"; `null` = when reached. */
+  horizonYears: number | null;
+  /** What the user added to "What it means in real life". */
+  customConnections: CustomConnection[];
 }
 
 /** Growth assumptions of a projection. */

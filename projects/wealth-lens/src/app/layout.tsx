@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     template: "%s · Wealth Lens",
   },
   description:
-    "A personal finance lens: real gains and time to goal, per-stock price charts, and how much capital it takes to live off investments in different countries.",
+    "What your money pays today, when it is enough, and what it means in real life: where you could live off it and what it buys.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

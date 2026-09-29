@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import msciWorld from "@/data/msci-world-real-returns.json";
 import nasdaq100 from "@/data/nasdaq100-real-returns.json";
-import { annualizedReturn, INDEXES, INDEX_IDS, parseReturns } from "./indexes";
+import { annualizedReturn, COMMON_PERIOD, commonPeriod, INDEXES, INDEX_IDS, parseReturns } from "./indexes";
 
 describe("annualizedReturn", () => {
   it("is the constant yearly return that compounds to the same result", () => {
@@ -35,21 +35,49 @@ describe("parseReturns", () => {
   });
 });
 
+describe("commonPeriod", () => {
+  const run = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, index) => ({ year: from + index, realReturn: 0 }));
+
+  it("is the latest start and the earliest end", () => {
+    expect(commonPeriod([run(1928, 2022), run(1988, 2024), run(1986, 2024)])).toEqual([1988, 2022]);
+  });
+
+  it("fails loudly when the datasets share fewer than 20 years", () => {
+    expect(() => commonPeriod([run(1950, 1980), run(1970, 2020)])).toThrow(/fewer than 20 years/);
+  });
+});
+
 describe("INDEXES", () => {
   it("has the three ETFs a European investor knows best", () => {
     expect(INDEX_IDS.map((id) => INDEXES[id].etf)).toEqual(["VUAA", "VWCE", "EQQQ"]);
   });
 
-  it("covers decades of history for each index", () => {
-    expect([INDEXES.sp500.firstYear, INDEXES.sp500.lastYear]).toEqual([1928, 2022]);
-    expect([INDEXES.world.firstYear, INDEXES.world.lastYear]).toEqual([1988, 2024]);
-    expect([INDEXES.nasdaq100.firstYear, INDEXES.nasdaq100.lastYear]).toEqual([1986, 2024]);
+  it("keeps each whole dataset: decades of history", () => {
+    expect([INDEXES.sp500.dataset.firstYear, INDEXES.sp500.dataset.lastYear]).toEqual([1928, 2022]);
+    expect([INDEXES.world.dataset.firstYear, INDEXES.world.dataset.lastYear]).toEqual([1988, 2024]);
+    expect([INDEXES.nasdaq100.dataset.firstYear, INDEXES.nasdaq100.dataset.lastYear]).toEqual([1986, 2024]);
+    expect(INDEXES.sp500.dataset.averageReturn).toBeCloseTo(0.0658, 3);
+    expect(INDEXES.world.dataset.averageReturn).toBeCloseTo(0.0512, 3);
+    expect(INDEXES.nasdaq100.dataset.averageReturn).toBeCloseTo(0.1082, 3);
   });
 
-  it("gives long-run real averages in the expected ranges", () => {
-    expect(INDEXES.sp500.averageReturn).toBeCloseTo(0.0658, 3);
-    expect(INDEXES.world.averageReturn).toBeCloseTo(0.0512, 3);
-    expect(INDEXES.nasdaq100.averageReturn).toBeCloseTo(0.1082, 3);
+  it("compares all three over the longest period they share", () => {
+    expect(COMMON_PERIOD).toEqual([1988, 2022]);
+    for (const id of INDEX_IDS) {
+      expect([INDEXES[id].firstYear, INDEXES[id].lastYear], id).toEqual([1988, 2022]);
+      expect(INDEXES[id].years, id).toHaveLength(35);
+      expect(INDEXES[id].averageReturn, id).toBeCloseTo(annualizedReturn(INDEXES[id].years.map((entry) => entry.realReturn)), 12);
+    }
+  });
+
+  it("gives real averages over 1988–2022 in the expected ranges", () => {
+    expect(INDEXES.sp500.averageReturn).toBeCloseTo(0.0754, 3);
+    expect(INDEXES.world.averageReturn).toBeCloseTo(0.0445, 3);
+    expect(INDEXES.nasdaq100.averageReturn).toBeCloseTo(0.099, 3);
+  });
+
+  it("says which figures leave dividends out", () => {
+    expect(INDEX_IDS.filter((id) => INDEXES[id].priceOnly)).toEqual(["nasdaq100"]);
   });
 
   it("reflects the big crashes", () => {

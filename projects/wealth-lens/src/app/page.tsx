@@ -1,14 +1,10 @@
-import { PageHeader } from "@/components/page-header";
-import { PortfolioModule } from "@/components/portfolio/portfolio-module";
+import { MoneyModule } from "@/components/money/money-module";
 
-export default function PortfolioPage() {
+export default function MyMoneyPage() {
   return (
     <>
-      <PageHeader
-        title="Portfolio & goal"
-        question="What have I gained, and when do I reach my goal?"
-      />
-      <PortfolioModule />
+      <h1 className="sr-only">My money</h1>
+      <MoneyModule />
     </>
   );
 }

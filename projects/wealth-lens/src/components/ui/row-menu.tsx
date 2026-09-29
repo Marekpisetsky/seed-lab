@@ -1,5 +1,6 @@
 "use client";
 
+import { Ellipsis } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
 export interface RowMenuItem {
@@ -14,7 +15,7 @@ interface RowMenuProps {
   items: RowMenuItem[];
 }
 
-/** A "⋯" button with a small menu, so row actions don't clutter the list. */
+/** A "more" button with a small menu, so row actions don't clutter the list. */
 export function RowMenu({ label, items }: RowMenuProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -44,9 +45,9 @@ export function RowMenu({ label, items }: RowMenuProps) {
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
         onClick={() => setOpen((value) => !value)}
-        className="flex h-9 w-9 items-center justify-center rounded-md text-lg leading-none text-muted hover:bg-border/60 hover:text-foreground"
+        className="flex h-9 w-9 items-center justify-center rounded-md text-muted hover:bg-border/60 hover:text-foreground"
       >
-        ⋯
+        <Ellipsis aria-hidden="true" className="size-5" />
       </button>
       {open && (
         <ul

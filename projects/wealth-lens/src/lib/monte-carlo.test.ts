@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import sp500 from "@/data/sp500-real-returns.json";
 import { INDEXES } from "./indexes";
-import { mulberry32, successRate, survives } from "./monte-carlo";
+import { mulberry32, successRate, successRates, survives } from "./monte-carlo";
 
 const HISTORICAL_REAL_RETURNS = INDEXES.sp500.years.map((entry) => entry.realReturn);
 
@@ -20,8 +20,8 @@ describe("S&P 500 dataset", () => {
     expect(byYear.get(2013)).toBeGreaterThan(0.2);
   });
 
-  it("has a long-run average real return of about 6-7 % a year (geometric)", () => {
-    const logs = HISTORICAL_REAL_RETURNS.map((r) => Math.log1p(r));
+  it("has a long-run average real return of about 6-7 % a year (geometric) over 1928–2022", () => {
+    const logs = INDEXES.sp500.dataset.years.map((entry) => Math.log1p(entry.realReturn));
     const geometric = Math.expm1(logs.reduce((a, b) => a + b, 0) / logs.length);
     expect(geometric).toBeGreaterThan(0.06);
     expect(geometric).toBeLessThan(0.07);
@@ -93,3 +93,13 @@ describe("successRate", () => {
     expect(() => successRate({ withdrawalRate: 0.04, returns: [] })).toThrow(RangeError);
   });
 });
+
+describe("successRates", () => {
+  it("gives the same results as one simulation per rate", () => {
+    const rates = [0.03, 0.04, 0.05];
+    expect(successRates({ withdrawalRates: rates, returns: HISTORICAL_REAL_RETURNS })).toEqual(
+      rates.map((withdrawalRate) => successRate({ withdrawalRate, returns: HISTORICAL_REAL_RETURNS })),
+    );
+  });
+});
+

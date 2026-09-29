@@ -7,7 +7,15 @@
  */
 
 import type { AppState } from "./app-store";
-import { DEFAULT_PLAN, isRecord, parseGoal, parseHoldings, parseUploadedPrices, type UploadedPrices } from "./validation";
+import {
+  DEFAULT_PLAN,
+  goalAsConnection,
+  isRecord,
+  parseGoal,
+  parseHoldings,
+  parseUploadedPrices,
+  type UploadedPrices,
+} from "./validation";
 
 const PREFIX = "wealth-lens:v1:";
 const UPLOADED_PREFIX = `${PREFIX}uploaded-prices:`;
@@ -62,7 +70,8 @@ export function readLegacyData(storage: LegacyStorage | null): AppState | null {
   const invested = read(storage, `${PREFIX}invested`);
   const assumptions = read(storage, `${PREFIX}assumptions`);
   const fire = read(storage, `${PREFIX}fire`);
-  const plan = { ...DEFAULT_PLAN, goal: parseGoal(read(storage, `${PREFIX}goal`)) ?? DEFAULT_PLAN.goal };
+  const goal = parseGoal(read(storage, `${PREFIX}goal`));
+  const plan = { ...DEFAULT_PLAN, customConnections: goal ? [goalAsConnection(goal)] : [], pinned: goal ? "custom:goal" : null };
   if (typeof invested === "number" && Number.isFinite(invested) && invested >= 0) plan.invested = invested;
   if (isRecord(assumptions)) {
     const { monthlyContribution, withdrawalRate, inflation, realReturn } = assumptions;

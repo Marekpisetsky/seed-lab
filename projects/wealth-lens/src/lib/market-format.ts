@@ -37,6 +37,8 @@ export interface InstrumentPrices {
   spark: number[];
   /** Price growth per year over the stored history (not a forecast); `null` under a year. */
   growth: { from: string; perYear: number } | null;
+  /** Worst fall from a previous peak over the stored history (0.57 = −57 %); absent in older files. */
+  drawdown?: { from: string; max: number } | null;
 }
 
 export interface PricesFile {
@@ -100,13 +102,17 @@ export function parseCatalogue(value: unknown): { instruments: Instrument[]; tra
 
 function parseInstrumentPrices(value: unknown): InstrumentPrices | null {
   if (!isRecord(value)) return null;
-  const { symbol, currency, source, date, close, change1y, spark, growth } = value;
+  const { symbol, currency, source, date, close, change1y, spark, growth, drawdown } = value;
   if (typeof symbol !== "string" || typeof currency !== "string") return null;
   if (source !== "yahoo" && source !== "stooq") return null;
   if (!isDay(date) || !isPositive(close)) return null;
   const growthOk =
     isRecord(growth) && isDay(growth.from) && isFraction(growth.perYear)
       ? { from: growth.from, perYear: growth.perYear }
+      : null;
+  const drawdownOk =
+    isRecord(drawdown) && isDay(drawdown.from) && typeof drawdown.max === "number" && drawdown.max >= 0 && drawdown.max < 1
+      ? { from: drawdown.from, max: drawdown.max }
       : null;
   return {
     symbol,
@@ -117,6 +123,7 @@ function parseInstrumentPrices(value: unknown): InstrumentPrices | null {
     change1y: isFraction(change1y) ? change1y : null,
     spark: Array.isArray(spark) ? spark.filter(isPositive) : [],
     growth: growthOk,
+    drawdown: drawdownOk,
   };
 }
 

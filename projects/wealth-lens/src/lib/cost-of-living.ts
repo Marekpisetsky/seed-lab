@@ -89,3 +89,12 @@ export function parseDataset(value: unknown): CostOfLivingDataset {
 }
 
 export const costOfLiving: CostOfLivingDataset = parseDataset(raw);
+
+/** Country names that read with "the" in a sentence. */
+const WITH_ARTICLE = new Set(["Netherlands", "United States", "United Kingdom", "Philippines"]);
+
+/** "the Netherlands", "India": the name as it reads in a sentence. */
+export function countryInSentence(name: string): string {
+  return WITH_ARTICLE.has(name) ? `the ${name}` : name;
+}
+

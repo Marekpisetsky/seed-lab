@@ -76,3 +76,32 @@ export function successRate({
   }
   return successes / simulations;
 }
+
+/**
+ * `successRate` for several withdrawal rates at once, over the very same
+ * simulated sequences: drawing the returns is most of the work, so this
+ * costs little more than a single rate. Same seed, same results as calling
+ * `successRate` for each rate.
+ */
+export function successRates({
+  withdrawalRates,
+  returns,
+  years = DEFAULT_YEARS,
+  simulations = DEFAULT_SIMULATIONS,
+  seed = DEFAULT_SEED,
+}: Omit<SuccessRateOptions, "withdrawalRate"> & { withdrawalRates: readonly number[] }): number[] {
+  if (returns.length === 0) throw new RangeError("returns must not be empty");
+  const random = mulberry32(seed);
+  const sequence = new Array<number>(years);
+  const successes = withdrawalRates.map(() => 0);
+  for (let run = 0; run < simulations; run++) {
+    for (let year = 0; year < years; year++) {
+      sequence[year] = returns[Math.floor(random() * returns.length)];
+    }
+    withdrawalRates.forEach((rate, index) => {
+      if (survives(sequence, rate)) successes[index] += 1;
+    });
+  }
+  return successes.map((count) => count / simulations);
+}
+

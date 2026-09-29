@@ -7,20 +7,22 @@
 
 import { isIndexId } from "./index-ids";
 import type { PricePoint } from "./prices";
-import type { Goal, Holding, Investment, Plan } from "./types";
+import type { CustomConnection, Goal, Holding, Investment, Plan } from "./types";
 
+/** The euro goal of version 1 files, which becomes the custom connection "My goal". */
 export const DEFAULT_GOAL: Goal = { amount: 100_000, targetDate: null };
 
 export const DEFAULT_PLAN: Plan = {
   invested: null,
   monthlyContribution: 0,
-  goal: DEFAULT_GOAL,
-  goalCountry: null,
   investment: { kind: "index", index: "sp500" },
   withdrawalRate: 0.04,
   inflation: 0.02,
   housing: "rent",
   homeCountry: "NL",
+  pinned: null,
+  horizonYears: null,
+  customConnections: [],
 };
 
 /** Price series a user uploaded for a ticker without downloaded prices. */
@@ -113,21 +115,57 @@ export function parseInvestment(value: unknown): Investment | null {
   }
 }
 
-/** Field by field, so one bad or missing field does not reset the others. */
+const PIN_PATTERN = /^(country|life|buy|custom):[A-Za-z0-9-]{1,40}$/;
+
+export function parseCustomConnection(value: unknown): CustomConnection | null {
+  if (!isRecord(value)) return null;
+  const { id, name, kind, amount } = value;
+  if (typeof id !== "string" || !/^[A-Za-z0-9-]{1,40}$/.test(id)) return null;
+  if (typeof name !== "string" || name.trim() === "" || name.length > 60) return null;
+  if (kind !== "live" && kind !== "buy") return null;
+  if (!isFiniteNumber(amount) || amount <= 0 || amount > 1e9) return null;
+  return { id, name: name.trim(), kind, amount };
+}
+
+/** "My goal": what a version 1 euro goal becomes. */
+export function goalAsConnection(goal: Goal): CustomConnection {
+  return { id: "goal", name: "My goal", kind: "buy", amount: goal.amount };
+}
+
+/**
+ * Field by field, so one bad or missing field does not reset the others.
+ * Also reads version 1 plans, which had a euro goal and an optional
+ * country goal instead of a pinned connection: the euro goal becomes the
+ * custom connection "My goal", and whichever goal was active is pinned.
+ */
 export function parsePlan(value: unknown): Plan | null {
   if (!isRecord(value)) return null;
   const pick = <K extends keyof Plan>(key: K, parse: (v: unknown) => Plan[K] | null | undefined): Plan[K] =>
     parse(value[key]) ?? DEFAULT_PLAN[key];
+  const customConnections = Array.isArray(value.customConnections)
+    ? value.customConnections.map(parseCustomConnection).filter((item): item is CustomConnection => item !== null)
+    : [];
+  let pinned = typeof value.pinned === "string" && PIN_PATTERN.test(value.pinned) ? value.pinned : null;
+  if (!("pinned" in value)) {
+    const goal = parseGoal(value.goal);
+    if (goal && goal.amount > 0 && !customConnections.some((item) => item.id === "goal")) {
+      customConnections.unshift(goalAsConnection(goal));
+    }
+    if (typeof value.goalCountry === "string" && COUNTRY_PATTERN.test(value.goalCountry)) pinned = `country:${value.goalCountry}`;
+    else if (goal && goal.amount > 0) pinned = "custom:goal";
+  }
+  const horizon = value.horizonYears;
   return {
     invested: isNonNegativeNumber(value.invested) ? value.invested : null,
     monthlyContribution: pick("monthlyContribution", (v) => (isNonNegativeNumber(v) ? v : null)),
-    goal: pick("goal", parseGoal),
-    goalCountry: typeof value.goalCountry === "string" && COUNTRY_PATTERN.test(value.goalCountry) ? value.goalCountry : null,
     investment: pick("investment", parseInvestment),
     withdrawalRate: pick("withdrawalRate", (v) => (isRate(v) && v > 0 ? v : null)),
     inflation: pick("inflation", (v) => (isRate(v) ? v : null)),
     housing: value.housing === "own" ? "own" : "rent",
     homeCountry: pick("homeCountry", (v) => (typeof v === "string" && COUNTRY_PATTERN.test(v) ? v : null)),
+    pinned,
+    horizonYears: Number.isInteger(horizon) && (horizon as number) >= 1 && (horizon as number) <= 60 ? (horizon as number) : null,
+    customConnections,
   };
 }
 

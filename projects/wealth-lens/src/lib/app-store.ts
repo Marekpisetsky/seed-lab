@@ -52,9 +52,9 @@ export function createStore<T>(initial: T): Store<T> {
 
 export const appStore = createStore<AppState>(INITIAL_STATE);
 
-/** True once the first questions were answered, holdings added or a file loaded. */
+/** True once an amount was typed, holdings added or a file loaded. */
 export function hasStarted({ plan, holdings }: AppState): boolean {
-  return plan.invested !== null || holdings.length > 0;
+  return plan.invested !== null || plan.monthlyContribution > 0 || holdings.length > 0;
 }
 
 export function updatePlan(patch: Partial<Plan> | ((plan: Plan) => Partial<Plan>)): void {

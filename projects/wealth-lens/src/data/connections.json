@@ -1,0 +1,189 @@
+{
+  "description": "What money can pay for, in rough estimates for one person, in today's euros. 'live' items are monthly costs, derived from the home country's living costs in cost-of-living.json. 'buy' items are one-off amounts: a published average, a calculation from published figures (see calc), or months of living costs from cost-of-living.json (see monthsAt). Estimates, not live data, not advice.",
+  "compiledOn": "2026-09-29",
+  "conversion": { "note": "USD figures converted at the rate used in cost-of-living.json.", "usdPerEur": 1.1378 },
+  "live": [
+    {
+      "id": "rent",
+      "name": "Pay your rent",
+      "share": "rent",
+      "source": "Average rent of a 1-bedroom flat outside the centre in your country (Wise, via cost-of-living.json).",
+      "referenceDate": "2026-09"
+    },
+    {
+      "id": "four-days",
+      "name": "Work 4 days a week",
+      "share": 0.2,
+      "source": "One day in five of your country's monthly living costs (Numbeo + Wise, via cost-of-living.json): the income a fifth working day replaces.",
+      "referenceDate": "2026-09"
+    },
+    {
+      "id": "half-time",
+      "name": "Work half-time",
+      "share": 0.5,
+      "source": "Half of your country's monthly living costs (Numbeo + Wise, via cost-of-living.json).",
+      "referenceDate": "2026-09"
+    },
+    {
+      "id": "stop-working",
+      "name": "Stop working",
+      "share": 1,
+      "source": "All of your country's monthly living costs for one person (Numbeo + Wise, via cost-of-living.json).",
+      "referenceDate": "2026-09"
+    }
+  ],
+  "buy": [
+    {
+      "id": "e-bike",
+      "name": "An e-bike",
+      "amount": 2872,
+      "source": "RAI Vereniging and BOVAG (NielsenIQ): average price of an e-bike sold in the Netherlands in 2025, published February 2026.",
+      "referenceDate": "2025"
+    },
+    {
+      "id": "driving-licence",
+      "name": "A driving licence",
+      "amount": 3320,
+      "source": "CBR: average total cost of a Dutch B licence in 2025 (41 lessons, theory and practical exams), published March 2026.",
+      "referenceDate": "2025"
+    },
+    {
+      "id": "solar-panels",
+      "name": "Solar panels for your roof",
+      "amount": 5000,
+      "source": "Milieu Centraal: average price of 10 solar panels installed in the Netherlands.",
+      "referenceDate": "2025"
+    },
+    {
+      "id": "heat-pump",
+      "name": "A hybrid heat pump",
+      "amount": 6200,
+      "source": "Milieu Centraal: 4 kW hybrid heat pump with installation and VAT, before subsidy (about EUR 2,125 back).",
+      "referenceDate": "2025"
+    },
+    {
+      "id": "three-months-japan",
+      "name": "Three months living in Japan",
+      "monthsAt": { "countries": ["JP"], "months": 3 },
+      "source": "3 months of Japan's living costs with rent (Numbeo + Wise, via cost-of-living.json).",
+      "referenceDate": "2026-09"
+    },
+    {
+      "id": "southeast-asia",
+      "name": "A year travelling Southeast Asia",
+      "monthsAt": { "countries": ["TH", "VN", "ID", "MY", "PH"], "months": 12 },
+      "source": "12 months at the average living cost with rent of Thailand, Vietnam, Indonesia, Malaysia and the Philippines (Numbeo + Wise, via cost-of-living.json).",
+      "referenceDate": "2026-09"
+    },
+    {
+      "id": "six-months-portugal",
+      "name": "Six months living in Portugal",
+      "monthsAt": { "countries": ["PT"], "months": 6 },
+      "source": "6 months of Portugal's living costs with rent (Numbeo + Wise, via cost-of-living.json).",
+      "referenceDate": "2026-09"
+    },
+    {
+      "id": "cushion",
+      "name": "Six months of your costs set aside",
+      "monthsAt": { "countries": "home", "months": 6 },
+      "source": "6 months of your country's living costs (Numbeo + Wise, via cost-of-living.json).",
+      "referenceDate": "2026-09"
+    },
+    {
+      "id": "kitchen",
+      "name": "A new kitchen",
+      "amount": 15000,
+      "source": "Homedeal: average price of a standard kitchen with appliances and installation in the Netherlands (range EUR 7,000 to 25,000).",
+      "referenceDate": "2025"
+    },
+    {
+      "id": "student-debt",
+      "name": "Paying off an average student debt",
+      "amount": 18200,
+      "source": "DUO: average student debt in the Netherlands at the start of 2025 (median EUR 10,300).",
+      "referenceDate": "2025-01"
+    },
+    {
+      "id": "wedding",
+      "name": "A wedding",
+      "amount": 23675,
+      "source": "ThePerfectWedding.nl: average cost of a Dutch wedding without the honeymoon.",
+      "referenceDate": "2025"
+    },
+    {
+      "id": "used-car",
+      "name": "A used car",
+      "amount": 24326,
+      "source": "AutoScout24 occasion dashboard: average asking price of a used car in the Netherlands in 2025.",
+      "referenceDate": "2025"
+    },
+    {
+      "id": "sabbatical",
+      "name": "A year off",
+      "monthsAt": { "countries": "home", "months": 12 },
+      "source": "12 months of your country's living costs (Numbeo + Wise, via cost-of-living.json).",
+      "referenceDate": "2026-09"
+    },
+    {
+      "id": "masters-nl",
+      "name": "A master's year in the Netherlands",
+      "monthsAt": { "countries": ["NL"], "months": 12 },
+      "plus": 2601,
+      "source": "Statutory tuition fee 2025-2026 of EUR 2,601 (Rijksoverheid) plus 12 months of Dutch living costs with rent (Numbeo + Wise, via cost-of-living.json).",
+      "referenceDate": "2025-09"
+    },
+    {
+      "id": "used-ev",
+      "name": "A used electric car",
+      "amount": 35047,
+      "source": "AutoScout24 occasion dashboard: average asking price of a used electric car in the Netherlands in 2025.",
+      "referenceDate": "2025"
+    },
+    {
+      "id": "home-deposit-nl",
+      "name": "A 10% deposit on a Dutch home",
+      "amount": 48000,
+      "calc": { "share": 0.1, "of": 480000 },
+      "source": "10% of the average price of an existing home in the Netherlands in 2025, EUR 480,000 (CBS, published February 2026).",
+      "referenceDate": "2025"
+    },
+    {
+      "id": "new-car",
+      "name": "A new car",
+      "amount": 50026,
+      "source": "RAI Vereniging: average price of a new car sold in the Netherlands in 2025 (NL Times, August 2025).",
+      "referenceDate": "2025"
+    },
+    {
+      "id": "small-business",
+      "name": "Taking over a small business",
+      "amount": 70000,
+      "calc": { "profit": 50000, "multiple": 4, "ownShare": 0.35 },
+      "source": "Your own 35% of a EUR 200,000 price: small Dutch businesses often sell for about 4 times yearly profit (here EUR 50,000), and banks usually lend 60-70% (Brookz, Inter Actus).",
+      "referenceDate": "2025"
+    },
+    {
+      "id": "flat-lima",
+      "name": "An 80 m² flat in upscale Lima, Peru",
+      "amount": 131340,
+      "calc": { "squareMetres": 80, "pricePerSquareMetre": 1868, "currency": "USD" },
+      "source": "BCRP (Banco Central de Reserva del Perú): average asking price of flats in the districts its housing-price index covers, well-off areas such as Miraflores, San Isidro and Santiago de Surco, not all of Lima: USD 1,868 per m² in Q4 2025, published March 2026.",
+      "referenceDate": "2025-12"
+    },
+    {
+      "id": "flat-portugal",
+      "name": "An 80 m² flat in Portugal",
+      "amount": 179120,
+      "calc": { "squareMetres": 80, "pricePerSquareMetre": 2239, "currency": "EUR" },
+      "source": "INE Portugal: median bank valuation of flats in 2025, EUR 2,239 per m².",
+      "referenceDate": "2025"
+    },
+    {
+      "id": "home-nl",
+      "name": "An average Dutch home, fully paid",
+      "amount": 480000,
+      "source": "CBS: average price of an existing owner-occupied home in the Netherlands in 2025, published February 2026.",
+      "referenceDate": "2025"
+    }
+  ]
+}

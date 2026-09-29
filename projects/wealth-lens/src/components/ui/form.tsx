@@ -130,3 +130,50 @@ const fromPercent = (percent: number) => percent / 100;
 export function PercentInput(props: Omit<NumberInputProps, "toDisplay" | "fromDisplay">) {
   return <NumberInput {...props} toDisplay={toPercent} fromDisplay={fromPercent} />;
 }
+
+interface LiveNumberInputProps extends NativeInputProps {
+  value: number | null;
+  /** Called on every keystroke that reads as a number of 0 or more; `null` when cleared. */
+  onValue: (value: number | null) => void;
+}
+
+const plain = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
+
+/**
+ * A money field that updates everything as you type: no "Calculate" button.
+ * Accepts "1,234.5" or "1.234,5"; the typed text is kept while editing, and
+ * text that is not a number is marked instead of committed.
+ */
+export function LiveNumberInput({ value, onValue, className = "", ...rest }: LiveNumberInputProps) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const [invalid, setInvalid] = useState(false);
+  const shown = draft ?? (value === null ? "" : plain.format(value));
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      autoComplete="off"
+      value={shown}
+      onChange={(event) => {
+        const text = event.target.value;
+        setDraft(text);
+        if (text.trim() === "") {
+          setInvalid(false);
+          onValue(null);
+          return;
+        }
+        const parsed = parseLooseNumber(text);
+        const ok = parsed !== null && parsed >= 0;
+        setInvalid(!ok);
+        if (ok) onValue(parsed);
+      }}
+      onBlur={() => {
+        setDraft(null);
+        setInvalid(false);
+      }}
+      className={`${inputClass} ${className}`}
+      {...rest}
+      aria-invalid={invalid || rest["aria-invalid"] ? true : undefined}
+    />
+  );
+}

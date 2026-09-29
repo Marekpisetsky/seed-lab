@@ -1,14 +1,8 @@
 import type { Metadata } from "next";
-import { ChartsModule } from "@/components/charts/charts-module";
-import { PageHeader } from "@/components/page-header";
+import { Moved } from "@/components/moved";
 
-export const metadata: Metadata = { title: "Charts" };
+export const metadata: Metadata = { title: "My stocks", robots: { index: false } };
 
 export default function ChartsPage() {
-  return (
-    <>
-      <PageHeader title="Charts" question="How is each stock and ETF doing?" />
-      <ChartsModule />
-    </>
-  );
+  return <Moved to="/stocks" name="My stocks" />;
 }

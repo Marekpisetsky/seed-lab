@@ -24,7 +24,7 @@ interface HoldingsListProps {
   onChange: (next: Updater<readonly Holding[]>) => unknown;
 }
 
-/** Compact list: ticker, value, gain. Everything else sits behind "⋯". */
+/** Compact list: ticker, value, gain. Everything else sits behind the row menu. */
 export function HoldingsList({ holdings, onChange }: HoldingsListProps) {
   const [editor, setEditor] = useState<Editor>({ mode: "closed" });
   const editing = editor.mode === "edit" ? holdings.find((holding) => holding.id === editor.id) : undefined;

@@ -75,6 +75,19 @@ export function growthPerYear(points: readonly PricePoint[]): InstrumentPrices["
   return { from: first.time, perYear: round4(Math.pow(last.close / first.close, 1 / years) - 1) };
 }
 
+/** Worst fall from a previous peak, as a fraction (0.57 = −57 %); `null` without data. */
+export function maxDrawdown(points: readonly PricePoint[]): InstrumentPrices["drawdown"] {
+  const first = points[0];
+  if (!first) return null;
+  let peak = first.close;
+  let worst = 0;
+  for (const { close } of points) {
+    if (close > peak) peak = close;
+    worst = Math.max(worst, 1 - close / peak);
+  }
+  return { from: first.time, max: round4(worst) };
+}
+
 export function summarize(
   instrument: Instrument,
   points: readonly PricePoint[],
@@ -91,6 +104,7 @@ export function summarize(
     change1y: changeOverYear(points),
     spark: sparkline(points),
     growth: growthPerYear(points),
+    drawdown: maxDrawdown(points),
   };
 }
 

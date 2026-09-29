@@ -7,6 +7,7 @@ import {
   formatPricesFile,
   growthPerYear,
   lastYears,
+  maxDrawdown,
   nextPricesFile,
   sparkline,
   summarize,
@@ -45,6 +46,7 @@ const entry = (overrides: Partial<InstrumentPrices> = {}): InstrumentPrices => (
   change1y: 0.1,
   spark: [100, 110],
   growth: null,
+  drawdown: null,
   ...overrides,
 });
 
@@ -110,6 +112,16 @@ describe("summary figures", () => {
     expect(summary).toMatchObject({ symbol: "VUAA.DE", currency: "EUR", source: "stooq", date: "2026-09-25" });
     expect(summary.close).toBe(Number(tenYears.at(-1)?.close.toFixed(4)));
     expect(summary.growth?.perYear).toBeCloseTo(0.1, 3);
+  });
+});
+
+describe("maxDrawdown", () => {
+  it("is the worst fall from a previous peak", () => {
+    const points = [100, 120, 90, 60, 130, 104].map((close, index) => ({ time: `2026-01-0${index + 1}`, close }));
+    // Peak 120 → low 60: −50 %. The later fall from 130 to 104 is only −20 %.
+    expect(maxDrawdown(points)).toEqual({ from: "2026-01-01", max: 0.5 });
+    expect(maxDrawdown([{ time: "2026-01-01", close: 5 }])).toEqual({ from: "2026-01-01", max: 0 });
+    expect(maxDrawdown([])).toBeNull();
   });
 });
 
