@@ -1,0 +1,90 @@
+import { describe, expect, it } from "vitest";
+import {
+  HISTORICAL_REAL_RETURNS,
+  mulberry32,
+  sp500RealReturns,
+  successRate,
+  survives,
+} from "./monte-carlo";
+
+describe("sp500RealReturns dataset", () => {
+  it("covers 1928 onwards, one entry per year, with a source", () => {
+    const years = sp500RealReturns.years.map((entry) => entry.year);
+    expect(years[0]).toBe(1928);
+    expect(years).toEqual(years.map((_, index) => 1928 + index));
+    expect(sp500RealReturns.source).toMatch(/Shiller/);
+  });
+
+  it("matches well-known years", () => {
+    const byYear = new Map(sp500RealReturns.years.map((entry) => [entry.year, entry.realReturn]));
+    expect(byYear.get(1931)).toBeLessThan(-0.3); // Great Depression
+    expect(byYear.get(2008)).toBeLessThan(-0.3); // Financial crisis
+    expect(byYear.get(2013)).toBeGreaterThan(0.2);
+  });
+
+  it("has a long-run average real return of about 6-7 % a year (geometric)", () => {
+    const logs = HISTORICAL_REAL_RETURNS.map((r) => Math.log1p(r));
+    const geometric = Math.expm1(logs.reduce((a, b) => a + b, 0) / logs.length);
+    expect(geometric).toBeGreaterThan(0.06);
+    expect(geometric).toBeLessThan(0.07);
+  });
+});
+
+describe("mulberry32", () => {
+  it("is reproducible for a seed and stays in [0, 1)", () => {
+    const a = mulberry32(1);
+    const b = mulberry32(1);
+    const values = Array.from({ length: 1000 }, () => a());
+    expect(values).toEqual(Array.from({ length: 1000 }, () => b()));
+    expect(values.every((v) => v >= 0 && v < 1)).toBe(true);
+    expect(mulberry32(2)()).not.toBe(values[0]);
+  });
+});
+
+describe("survives", () => {
+  it("lasts forever when growth covers the withdrawal", () => {
+    // 4 % out, then +7 %: (1 − 0.04) × 1.07 = 1.0272 > 1, so the balance grows.
+    expect(survives(Array(30).fill(0.07), 0.04)).toBe(true);
+  });
+
+  it("runs out when withdrawals are too large", () => {
+    // With no growth, 4 % a year lasts exactly 25 years.
+    expect(survives(Array(25).fill(0), 0.04)).toBe(false);
+    expect(survives(Array(24).fill(0), 0.04)).toBe(true);
+  });
+});
+
+describe("successRate", () => {
+  it("is 100 % with a constant 7 % return and 4 % withdrawals", () => {
+    expect(successRate({ withdrawalRate: 0.04, returns: [0.07] })).toBe(1);
+  });
+
+  it("is 0 % with a constant 7 % return and 15 % withdrawals", () => {
+    expect(successRate({ withdrawalRate: 0.15, returns: [0.07] })).toBe(0);
+  });
+
+  it("is low with 15 % withdrawals over historical returns", () => {
+    expect(successRate({ withdrawalRate: 0.15 })).toBeLessThan(0.1);
+  });
+
+  it("is high but not certain at 4 % over historical returns", () => {
+    const rate = successRate({ withdrawalRate: 0.04 });
+    expect(rate).toBeGreaterThan(0.85);
+    expect(rate).toBeLessThan(1);
+  });
+
+  it("falls as the withdrawal rate rises", () => {
+    const rates = [0.03, 0.04, 0.05, 0.07].map((withdrawalRate) => successRate({ withdrawalRate }));
+    expect([...rates].sort((a, b) => b - a)).toEqual(rates);
+  });
+
+  it("is reproducible with the same seed and stable across seeds", () => {
+    expect(successRate({ withdrawalRate: 0.05 })).toBe(successRate({ withdrawalRate: 0.05 }));
+    const other = successRate({ withdrawalRate: 0.05, seed: 7 });
+    expect(Math.abs(other - successRate({ withdrawalRate: 0.05 }))).toBeLessThan(0.03);
+  });
+
+  it("rejects an empty pool of returns", () => {
+    expect(() => successRate({ withdrawalRate: 0.04, returns: [] })).toThrow(RangeError);
+  });
+});
