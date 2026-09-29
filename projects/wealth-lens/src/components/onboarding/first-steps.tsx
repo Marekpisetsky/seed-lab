@@ -6,8 +6,9 @@ import { Card } from "@/components/ui/card";
 import { useAppState } from "@/hooks/use-app";
 import { setHoldings, updatePlan } from "@/lib/app-store";
 import { createId } from "@/lib/id";
-import { mergeImportedHoldings } from "@/lib/import";
+import { mergeImportedHoldings } from "@/lib/import/merge";
 import { PlanForm } from "./plan-form";
+import { prefetchResults } from "./prefetch-results";
 
 /**
  * First use, and after every reload (nothing is saved): three questions on
@@ -19,7 +20,7 @@ export function FirstSteps() {
 
   return (
     <Card className="mx-auto max-w-lg">
-      <div className="space-y-5">
+      <div className="space-y-5" onFocusCapture={prefetchResults} onPointerDownCapture={prefetchResults}>
         <div className="space-y-1">
           <h2 className="text-xl font-semibold tracking-tight">Start with 3 numbers</h2>
           <p className="text-sm text-muted">Nothing is saved: you can download your data at any time.</p>

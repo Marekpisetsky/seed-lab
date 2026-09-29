@@ -4,12 +4,7 @@ import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Notice } from "@/components/ui/notice";
 import { formatNumber } from "@/lib/format";
-import {
-  IMPORT_FORMAT_LABELS,
-  importHoldingsCsv,
-  type ImportedPosition,
-  type ImportOutcome,
-} from "@/lib/import";
+import { IMPORT_FORMAT_LABELS, type ImportedPosition, type ImportOutcome } from "@/lib/import/types";
 
 interface CsvImportProps {
   hasHoldings: boolean;
@@ -26,7 +21,9 @@ export function CsvImport({ hasHoldings, onImport, label = "Import CSV" }: CsvIm
 
   const handleFile = async (file: File) => {
     try {
-      setPreview({ fileName: file.name, outcome: importHoldingsCsv(await file.text()) });
+      // The parsers load only when a file is picked, keeping them off the first screen.
+      const [{ importHoldingsCsv }, text] = await Promise.all([import("@/lib/import"), file.text()]);
+      setPreview({ fileName: file.name, outcome: importHoldingsCsv(text) });
     } catch {
       setPreview({ fileName: file.name, outcome: { ok: false, error: "The file could not be read." } });
     }
@@ -45,7 +42,7 @@ export function CsvImport({ hasHoldings, onImport, label = "Import CSV" }: CsvIm
           type="file"
           accept=".csv,text/csv"
           className="sr-only"
-          id="holdings-csv"
+          aria-label="Choose a CSV file with your holdings"
           onChange={(event) => {
             const file = event.target.files?.[0];
             if (file) void handleFile(file);

@@ -46,7 +46,6 @@
   --color-warning-border: var(--warning-border);
   --color-warning-foreground: var(--warning-foreground);
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 body {

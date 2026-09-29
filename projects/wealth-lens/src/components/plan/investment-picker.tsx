@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 import { PercentInput } from "@/components/ui/form";
-import { useAppState, usePricedHoldings } from "@/hooks/use-app";
+import { useAppState } from "@/hooks/use-app";
+import { usePricedHoldings } from "@/hooks/use-plan";
 import { updatePlan } from "@/lib/app-store";
 import { formatPercent, formatRate } from "@/lib/format";
 import { INDEXES, INDEX_IDS } from "@/lib/indexes";

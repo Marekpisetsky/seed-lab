@@ -10,7 +10,7 @@ import { holdingGain, holdingValue } from "@/lib/finance";
 import { formatDayMonth, formatMoney } from "@/lib/format";
 import { holdingToFormValues, withPriceSource } from "@/lib/holding-form";
 import { createId } from "@/lib/id";
-import { mergeImportedHoldings } from "@/lib/import";
+import { mergeImportedHoldings } from "@/lib/import/merge";
 import type { Updater } from "@/lib/app-store";
 import type { Holding } from "@/lib/types";
 import { CsvImport } from "./csv-import";

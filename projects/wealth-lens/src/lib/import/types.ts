@@ -18,6 +18,11 @@ export interface IgnoredRows {
 
 export type ImportFormat = "trading212" | "holdings";
 
+export const IMPORT_FORMAT_LABELS: Readonly<Record<ImportFormat, string>> = {
+  trading212: "Trading 212 export",
+  holdings: "Holdings CSV",
+};
+
 export type ImportOutcome =
   | {
       ok: true;
