@@ -185,7 +185,9 @@ export function waitingFinding({ report }: FindingContext): Finding | null {
 
 /** What the goal's amount, in money of that year, is worth today. */
 export function inflationFinding({ report }: FindingContext): Finding | null {
-  const { plan, goal } = report;
+  const { plan, goal, answer } = report;
+  // A goal already reached costs what it costs today.
+  if (answer.mode === "goal" && answer.months === 0) return null;
   const months = horizonOf(report);
   const years = months / 12;
   if (years < 5 || plan.inflation <= 0) return null;

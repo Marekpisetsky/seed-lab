@@ -108,8 +108,9 @@ describe("inflation", () => {
     expect(finding?.text).toMatch(/^€99,000 in 20\d\d buys what €[\d,]+ buys today\.$/);
   });
 
-  it("is not shown for a goal less than 5 years away", () => {
+  it("is not shown for a goal less than 5 years away, or already reached", () => {
     expect(inflationFinding(context({ pinned: "buy:e-bike" }))).toBeNull();
+    expect(inflationFinding(context({ invested: 50_000, pinned: "buy:used-car" }))).toBeNull();
   });
 });
 
