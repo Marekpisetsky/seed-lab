@@ -8,7 +8,7 @@
  * value read back is validated, falling back to defaults instead of crashing.
  */
 
-import type { Assumptions, Goal, Holding } from "./types";
+import type { Assumptions, FireSettings, Goal, Holding } from "./types";
 
 /** The subset of the Web Storage API this module needs (easy to fake in tests). */
 export interface KeyValueStorage {
@@ -26,6 +26,7 @@ export const STORAGE_KEYS = {
   holdings: `${KEY_PREFIX}holdings`,
   goal: `${KEY_PREFIX}goal`,
   assumptions: `${KEY_PREFIX}assumptions`,
+  fire: `${KEY_PREFIX}fire`,
 } as const;
 
 export const DEFAULT_HOLDINGS: readonly Holding[] = [];
@@ -38,6 +39,8 @@ export const DEFAULT_ASSUMPTIONS: Assumptions = {
   monthlyContribution: 0,
   inflation: 0.02,
 };
+
+export const DEFAULT_FIRE_SETTINGS: FireSettings = { capitalOverride: null, housing: "rent" };
 
 /** `window.localStorage`, or `null` on the server or when access is blocked. */
 export function getBrowserStorage(): KeyValueStorage | null {
@@ -162,5 +165,13 @@ export function parseAssumptions(value: unknown): Assumptions | null {
     withdrawalRate: pick("withdrawalRate", isPositiveRate),
     monthlyContribution: pick("monthlyContribution", isNonNegativeNumber),
     inflation: pick("inflation", isRate),
+  };
+}
+
+export function parseFireSettings(value: unknown): FireSettings | null {
+  if (!isRecord(value)) return null;
+  return {
+    capitalOverride: isNonNegativeNumber(value.capitalOverride) ? value.capitalOverride : null,
+    housing: value.housing === "own" ? "own" : "rent",
   };
 }

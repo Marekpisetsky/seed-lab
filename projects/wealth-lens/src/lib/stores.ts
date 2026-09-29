@@ -1,14 +1,16 @@
 import { createPersistentStore } from "./persistent-store";
 import {
   DEFAULT_ASSUMPTIONS,
+  DEFAULT_FIRE_SETTINGS,
   DEFAULT_GOAL,
   DEFAULT_HOLDINGS,
   parseAssumptions,
+  parseFireSettings,
   parseGoal,
   parseHoldings,
   STORAGE_KEYS,
 } from "./storage";
-import type { Assumptions, Goal, Holding } from "./types";
+import type { Assumptions, FireSettings, Goal, Holding } from "./types";
 
 export const holdingsStore = createPersistentStore<readonly Holding[]>({
   key: STORAGE_KEYS.holdings,
@@ -26,4 +28,10 @@ export const assumptionsStore = createPersistentStore<Assumptions>({
   key: STORAGE_KEYS.assumptions,
   parse: parseAssumptions,
   fallback: DEFAULT_ASSUMPTIONS,
+});
+
+export const fireSettingsStore = createPersistentStore<FireSettings>({
+  key: STORAGE_KEYS.fire,
+  parse: parseFireSettings,
+  fallback: DEFAULT_FIRE_SETTINGS,
 });

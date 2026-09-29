@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 import { createPersistentStore } from "./persistent-store";
 import {
   DEFAULT_ASSUMPTIONS,
+  DEFAULT_FIRE_SETTINGS,
   DEFAULT_GOAL,
   isIsoDate,
   isStorageWritable,
   parseAssumptions,
+  parseFireSettings,
   parseGoal,
   parseHoldings,
   readValue,
@@ -152,6 +154,17 @@ describe("parseAssumptions", () => {
   it("rejects non-objects", () => {
     expect(parseAssumptions(null)).toBeNull();
     expect(parseAssumptions([])).toBeNull();
+  });
+});
+
+describe("parseFireSettings", () => {
+  it("keeps valid settings and falls back per field", () => {
+    expect(parseFireSettings({ capitalOverride: 250_000, housing: "own" })).toEqual({
+      capitalOverride: 250_000,
+      housing: "own",
+    });
+    expect(parseFireSettings({ capitalOverride: -5, housing: "castle" })).toEqual(DEFAULT_FIRE_SETTINGS);
+    expect(parseFireSettings("nope")).toBeNull();
   });
 });
 

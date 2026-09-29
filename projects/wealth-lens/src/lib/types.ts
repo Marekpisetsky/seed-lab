@@ -49,3 +49,11 @@ export interface Assumptions {
   /** Expected annual inflation, used to translate real figures to nominal. */
   inflation: number;
 }
+
+/** Settings of the FIRE simulator. */
+export interface FireSettings {
+  /** Capital typed by the user; `null` means "use my EUR portfolio value". */
+  capitalOverride: number | null;
+  /** Compare costs with rent included, or for someone who owns their home. */
+  housing: "rent" | "own";
+}
