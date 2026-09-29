@@ -6,7 +6,7 @@ import { Field, inputClass, NumberInput, PercentInput } from "@/components/ui/fo
 import { Notice } from "@/components/ui/notice";
 import { toIsoDate } from "@/lib/dates";
 import { formatDuration, formatMoney, formatMonthYear, formatPercent } from "@/lib/format";
-import type { GoalProjection } from "@/lib/goal-projection";
+import type { GoalProjection, TargetDateProjection } from "@/lib/goal-projection";
 import { isIsoDate } from "@/lib/storage";
 import { BASE_CURRENCY, type Assumptions, type Goal } from "@/lib/types";
 
@@ -105,7 +105,9 @@ export function GoalCard({
             nominalEquivalent={projection.nominalReturn}
           />
           <Sensitivity projection={projection} current={assumptions.realReturn} />
-          {projection.target && <TargetComparison goal={goal} assumptions={assumptions} projection={projection} />}
+          {projection.target && (
+            <TargetComparison goal={goal} assumptions={assumptions} target={projection.target} />
+          )}
           <Notice tone="warning">
             This assumes the same return every single year. Real markets swing, sometimes for a decade, and past
             returns do not guarantee future ones. Treat the result as a rough range, not a date.
@@ -197,8 +199,13 @@ function Sensitivity({ projection, current }: { projection: GoalProjection; curr
   );
 }
 
-function TargetComparison({ goal, assumptions, projection }: Omit<ResultProps, "startingCapital">) {
-  const target = projection.target!;
+interface TargetComparisonProps {
+  goal: Goal;
+  assumptions: Assumptions;
+  target: TargetDateProjection;
+}
+
+function TargetComparison({ goal, assumptions, target }: TargetComparisonProps) {
   if (target.months <= 0) {
     return <Notice tone="warning">Your target date ({formatMonthYear(target.date)}) has already passed.</Notice>;
   }

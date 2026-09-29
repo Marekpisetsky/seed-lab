@@ -61,9 +61,7 @@ export function validateHoldingForm(values: HoldingFormValues): HoldingFormResul
     if (currentPrice === null || currentPrice < 0) errors.currentPrice = "Enter a price of 0 or more, or leave it empty.";
   }
 
-  if (Object.keys(errors).length > 0) return { ok: false, errors };
-  return {
-    ok: true,
-    value: { ticker, quantity: quantity!, costBasis: costBasis!, currency, currentPrice },
-  };
+  // The null checks are implied by `errors` being empty; they narrow the types.
+  if (Object.keys(errors).length > 0 || quantity === null || costBasis === null) return { ok: false, errors };
+  return { ok: true, value: { ticker, quantity, costBasis, currency, currentPrice } };
 }

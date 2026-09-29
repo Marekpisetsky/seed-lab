@@ -8,6 +8,7 @@ import { Gain } from "@/components/ui/gain";
 import { averageCost, holdingGain, holdingValue } from "@/lib/finance";
 import { formatMoney, formatNumber } from "@/lib/format";
 import { holdingToFormValues } from "@/lib/holding-form";
+import { createId } from "@/lib/id";
 import { mergeImportedHoldings } from "@/lib/import";
 import type { Holding } from "@/lib/types";
 import { CsvImport } from "./csv-import";
@@ -19,8 +20,6 @@ interface HoldingsCardProps {
   holdings: readonly Holding[];
   onChange: (update: (previous: readonly Holding[]) => readonly Holding[]) => void;
 }
-
-const newId = () => crypto.randomUUID();
 
 export function HoldingsCard({ holdings, onChange }: HoldingsCardProps) {
   const [editor, setEditor] = useState<Editor>({ mode: "closed" });
@@ -53,7 +52,7 @@ export function HoldingsCard({ holdings, onChange }: HoldingsCardProps) {
             submitLabel="Add holding"
             onCancel={() => setEditor({ mode: "closed" })}
             onSubmit={(value) => {
-              onChange((previous) => [...previous, { ...value, id: newId() }]);
+              onChange((previous) => [...previous, { ...value, id: createId() }]);
               setEditor({ mode: "closed" });
             }}
           />
@@ -86,7 +85,7 @@ export function HoldingsCard({ holdings, onChange }: HoldingsCardProps) {
 
         <CsvImport
           hasHoldings={holdings.length > 0}
-          onImport={(positions) => onChange((previous) => mergeImportedHoldings(previous, positions, newId))}
+          onImport={(positions) => onChange((previous) => mergeImportedHoldings(previous, positions, createId))}
         />
       </div>
     </Card>
@@ -166,13 +165,13 @@ function HoldingsTable({ holdings, onPriceChange, onEdit, onRemove }: HoldingsTa
                   {value === null ? "—" : formatMoney(value, holding.currency)}
                 </td>
                 <td className="py-3 pr-4 pl-2 text-right sm:px-2">
-                  {gain === null ? (
+                  {gain === null || value === null ? (
                     <span className="text-xs text-muted">Needs a price</span>
                   ) : (
                     <>
                       <Gain gain={gain} currency={holding.currency} className="block" />
                       <span className="block text-xs whitespace-nowrap text-muted tabular-nums md:hidden">
-                        Value {formatMoney(value!, holding.currency)}
+                        Value {formatMoney(value, holding.currency)}
                       </span>
                     </>
                   )}
