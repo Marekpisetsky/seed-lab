@@ -14,7 +14,7 @@
  */
 
 import raw from "@/data/connections.json";
-import { costOfLiving, type CountryCost } from "./cost-of-living";
+import { costOfLiving, countryInSentence, type CountryCost } from "./cost-of-living";
 import { requiredCapital } from "./finance";
 import type { CustomConnection, Housing } from "./types";
 
@@ -164,7 +164,7 @@ export function allConnections(
         item.share === "rent"
           ? home.monthlyCostEur.withRent - home.monthlyCostEur.withoutRent
           : roundTo10(homeCost * item.share),
-      source: `${item.source} Country: ${home.name}.`,
+      source: `${item.source} Country: ${countryInSentence(home.name)}.`,
       referenceDate: item.referenceDate,
     }));
 
@@ -174,7 +174,7 @@ export function allConnections(
       id: `country:${country.code}`,
       kind: "live",
       group: "country",
-      name: `Live in ${country.name}`,
+      name: `Live in ${countryInSentence(country.name)}`,
       amount: countryMonthlyCost(country, housing),
       source: countrySource(country),
       referenceDate: country.referenceDate,
@@ -197,7 +197,8 @@ export function allConnections(
       group: "buy",
       name: item.name,
       amount,
-      source: item.monthsAt && item.monthsAt.countries === "home" ? `${item.source} Country: ${home.name}.` : item.source,
+      source:
+        item.monthsAt && item.monthsAt.countries === "home" ? `${item.source} Country: ${countryInSentence(home.name)}.` : item.source,
       referenceDate: item.referenceDate,
     };
   });

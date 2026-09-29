@@ -124,3 +124,13 @@ export function formatYears(months: number): string {
   const years = Math.round(abs / 12);
   return `${years} year${years === 1 ? "" : "s"}`;
 }
+
+/**
+ * A euro amount rounded the way a brief would say it, for headline numbers
+ * (calculations keep the exact figure): €8,429 → "€8,400", €66,827 → "€67,000".
+ */
+export function formatEurRounded(amount: number, { signed = false }: { signed?: boolean } = {}): string {
+  const abs = Math.abs(amount);
+  const step = abs >= 10_000 ? 1000 : abs >= 1000 ? 100 : abs >= 100 ? 10 : 1;
+  return formatEur(Math.round(amount / step) * step, { signed });
+}

@@ -4,6 +4,7 @@ import {
   formatDayMonth,
   formatDuration,
   formatEur,
+  formatEurRounded,
   formatMoney,
   formatMonthYear,
   formatNumber,
@@ -114,6 +115,17 @@ describe("formatEur / formatYears", () => {
     expect(formatYears(18)).toBe("2 years");
     expect(formatYears(-30)).toBe("3 years");
     expect(formatYears(Infinity)).toBe("never");
+  });
+});
+
+describe("formatEurRounded", () => {
+  it("rounds like a brief: two or three significant figures", () => {
+    expect(formatEurRounded(66_827)).toBe("€67,000");
+    expect(formatEurRounded(443_049)).toBe("€443,000");
+    expect(formatEurRounded(8429)).toBe("€8,400");
+    expect(formatEurRounded(456)).toBe("€460");
+    expect(formatEurRounded(42)).toBe("€42");
+    expect(formatEurRounded(-5230, { signed: true })).toBe("-€5,200");
   });
 });
 
