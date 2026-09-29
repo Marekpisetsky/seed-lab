@@ -7,6 +7,7 @@ import { FindingsSection } from "./findings-section";
 import { GoalsSection } from "./goals-section";
 import { GrowthChart } from "./growth-chart";
 import { ResultSection } from "./result-section";
+import { ThingsSection } from "./things-section";
 
 /**
  * "My money": the calculator first, working on its own, then its results
@@ -24,7 +25,10 @@ export function MoneyModule() {
       </div>
       <GoalsSection goals={bundle.calc.goals} today={bundle.today} />
       <CountriesSection income={bundle.calc.result.income} rows={bundle.calc.countries} />
-      <FindingsSection bundle={bundle} />
+      <div className="space-y-3">
+        <FindingsSection bundle={bundle} />
+        <ThingsSection scenario={bundle.calc.scenario} goals={bundle.state.plan.goals} />
+      </div>
     </div>
   );
 }

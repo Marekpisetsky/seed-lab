@@ -20,6 +20,8 @@ describe("connections dataset", () => {
     const ids = connectionsData.buy.map((item) => item.id);
     expect(ids).not.toContain("cushion");
     expect(ids).not.toContain("sabbatical");
+    // Names describe the thing, not the user's life: no "your roof", "your home".
+    for (const item of connectionsData.buy) expect(item.name, item.id).not.toMatch(/\byour?\b/i);
   });
 
   it("says it is an estimate", () => {

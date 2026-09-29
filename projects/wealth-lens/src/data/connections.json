@@ -19,7 +19,7 @@
     },
     {
       "id": "solar-panels",
-      "name": "Solar panels for your roof",
+      "name": "A set of home solar panels",
       "amount": 5000,
       "source": "Milieu Centraal: average price of 10 solar panels installed in the Netherlands.",
       "referenceDate": "2025"
