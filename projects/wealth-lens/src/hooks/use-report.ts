@@ -4,7 +4,7 @@ import { type AppState } from "@/lib/app-store";
 import { priceHoldings } from "@/lib/auto-price";
 import { toIsoDate } from "@/lib/dates";
 import { topFindings, type Finding } from "@/lib/findings";
-import { resolveInvestment } from "@/lib/investment";
+import { resolveInvestment, type ResolvedInvestment } from "@/lib/investment";
 import { buildLevers, WITHDRAWAL_CHOICES, type Levers } from "@/lib/levers";
 import { buildReport, type Report } from "@/lib/report";
 import { cachedSuccessRates, wealthPercentiles } from "@/lib/simulation";
@@ -30,9 +30,7 @@ export function reportFor(state: AppState, today: Date): ReportBundle {
   const day = toIsoDate(today);
   if (last && last.state === state && last.day === day) return last.bundle;
   const start = performance.now();
-  const holdings = priceHoldings(state.holdings, state.uploadedPrices);
-  const report = buildReport(state.plan, holdings, today);
-  const bundle = { holdings, report, findings: topFindings(report, holdings), levers: buildLevers(report, holdings) };
+  const bundle = compute(state, today);
   try {
     performance.measure("wealth-lens:report", { start, end: performance.now() });
   } catch {
@@ -43,30 +41,55 @@ export function reportFor(state: AppState, today: Date): ReportBundle {
   return bundle;
 }
 
+function compute(state: AppState, today: Date): ReportBundle {
+  const holdings = priceHoldings(state.holdings, state.uploadedPrices);
+  const report = buildReport(state.plan, holdings, today);
+  return { holdings, report, findings: topFindings(report, holdings), levers: buildLevers(report, holdings) };
+}
+
 const warmed = new Set<string>();
 
+function idle(callback: () => void): void {
+  if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(callback);
+  else window.setTimeout(callback, 50);
+}
+
 /**
- * Simulates the investments the user has not chosen while the browser is
- * idle, so choosing one recomputes as fast as typing a number: the first
- * simulation of a history is the only slow step.
+ * Runs the simulations of these investments while the browser is idle. The
+ * first simulation of a history is the only slow step of the report, so
+ * afterwards choosing one recomputes as fast as typing a number.
  */
-function warmOtherInvestments({ levers, holdings, report }: ReportBundle): void {
-  const rates = [...WITHDRAWAL_CHOICES, report.scenario.withdrawalRate];
-  const todo = levers.investment
-    .filter((option) => !option.selected)
-    .map((option) => resolveInvestment(option.value, holdings))
-    .filter((investment) => !warmed.has(`${investment.key}|${report.scenario.withdrawalRate}`));
+function warm(investments: readonly ResolvedInvestment[], withdrawalRate: number): void {
+  const rates = [...WITHDRAWAL_CHOICES, withdrawalRate];
+  const todo = investments.filter((investment) => !warmed.has(`${investment.key}|${withdrawalRate}`));
   if (todo.length === 0) return;
-  const idle = window.requestIdleCallback ?? ((callback: () => void) => window.setTimeout(callback, 50));
   const step = () => {
     const investment = todo.shift();
     if (!investment) return;
-    warmed.add(`${investment.key}|${report.scenario.withdrawalRate}`);
+    warmed.add(`${investment.key}|${withdrawalRate}`);
     cachedSuccessRates(investment.key, investment.returns, rates);
     wealthPercentiles({ start: 0, monthly: 0, returns: investment.returns, years: 10, key: investment.key });
     idle(step);
   };
   idle(step);
+}
+
+/**
+ * Before the first report, e.g. while the first number is being typed: the
+ * plan's own investment, then one report on the current state, so the code
+ * that works out the answer is already compiled when the number arrives.
+ */
+export function warmUp(state: AppState, today: Date): void {
+  const holdings = priceHoldings(state.holdings, state.uploadedPrices);
+  warm([resolveInvestment(state.plan.investment, holdings)], state.plan.withdrawalRate);
+  // Not recorded as a measure, and not kept: only the compiled code is wanted.
+  idle(() => compute(state, today));
+}
+
+/** After a report: the investments the user has not chosen. */
+function warmOtherInvestments({ levers, holdings, report }: ReportBundle): void {
+  const others = levers.investment.filter((option) => !option.selected).map((option) => resolveInvestment(option.value, holdings));
+  warm(others, report.scenario.withdrawalRate);
 }
 
 export function useReport(): ReportBundle {

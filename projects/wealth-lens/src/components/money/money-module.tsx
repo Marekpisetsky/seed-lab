@@ -9,9 +9,9 @@ import { YourNumbers } from "./your-numbers";
 /** The report (datasets, engine, charts) is its own chunk, so the first screen stays small. */
 const loadReport = () => import("./report-view");
 
-/** Starts loading the report as soon as the user reaches for a number. */
+/** Starts loading the report, and its first simulations, as soon as the user reaches for a number. */
 export function prefetchReport(): void {
-  void loadReport();
+  void loadReport().then((module) => module.warmUp());
 }
 
 function HeadlineLoading() {

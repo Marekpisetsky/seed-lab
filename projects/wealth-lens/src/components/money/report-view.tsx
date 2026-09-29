@@ -1,12 +1,19 @@
 "use client";
 
-import { useReport } from "@/hooks/use-report";
+import { useReport, warmUp as warmReport } from "@/hooks/use-report";
+import { appStore } from "@/lib/app-store";
+import { startOfUtcDay } from "@/lib/dates";
 import { ConnectionsSection } from "./connections-section";
 import { DetailSection } from "./detail-section";
 import { FindingsSection } from "./findings-section";
 import { LeversSection } from "./levers-section";
 
 export { ReportHeadline } from "./report-headline";
+
+/** Runs the first simulations while the user is still typing, so the first answer appears at once. */
+export function warmUp(): void {
+  warmReport(appStore.get(), startOfUtcDay(new Date()));
+}
 
 /** Everything under the answer, in the order it matters. */
 export function ReportBody() {
