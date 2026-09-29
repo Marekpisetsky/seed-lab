@@ -74,7 +74,10 @@ describe("what it is invested in", () => {
     expect(byLabel.get("S&P 500")).toMatchObject({ selected: true, effect: null });
     expect(byLabel.get("World")?.effect?.tone).toBe("worse");
     expect(byLabel.get("Nasdaq-100")?.effect?.tone).toBe("better");
-    expect(byLabel.get("World")?.detail).toBe("VWCE · 5.1%");
+    // All three over the same years, with the period next to the rate.
+    expect(byLabel.get("World")).toMatchObject({ detail: "VWCE · 4.5%", note: "1988–2022" });
+    expect(byLabel.get("S&P 500")).toMatchObject({ detail: "VUAA · 7.5%", note: "1988–2022" });
+    expect(byLabel.get("Nasdaq-100")).toMatchObject({ detail: "EQQQ · 9.9%", note: "1988–2022 · no dividends" });
   });
 
   it("offers the portfolio once there are euro holdings, and keeps a custom choice", () => {
@@ -112,6 +115,7 @@ describe("withdrawal rate", () => {
     const lasted = options.map((option) => Number(option.detail.match(/(\d+)%$/)?.[1]));
     expect(lasted[0]).toBeGreaterThanOrEqual(lasted[1]);
     expect(lasted[1]).toBeGreaterThanOrEqual(lasted[2]);
+    expect(options.every((option) => option.note === "S&P 500, 1988–2022")).toBe(true);
   });
 
   it("does not apply to a purchase", () => {

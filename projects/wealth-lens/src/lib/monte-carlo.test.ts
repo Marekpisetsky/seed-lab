@@ -20,8 +20,8 @@ describe("S&P 500 dataset", () => {
     expect(byYear.get(2013)).toBeGreaterThan(0.2);
   });
 
-  it("has a long-run average real return of about 6-7 % a year (geometric)", () => {
-    const logs = HISTORICAL_REAL_RETURNS.map((r) => Math.log1p(r));
+  it("has a long-run average real return of about 6-7 % a year (geometric) over 1928–2022", () => {
+    const logs = INDEXES.sp500.dataset.years.map((entry) => Math.log1p(entry.realReturn));
     const geometric = Math.expm1(logs.reduce((a, b) => a + b, 0) / logs.length);
     expect(geometric).toBeGreaterThan(0.06);
     expect(geometric).toBeLessThan(0.07);

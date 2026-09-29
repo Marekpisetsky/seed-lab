@@ -2,7 +2,8 @@
 
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { formatEur, formatEurRounded } from "@/lib/format";
+import { formatEur, formatEurRounded, formatRate } from "@/lib/format";
+import { dividendNote, periodText } from "@/lib/investment";
 import { monthlyWithdrawal } from "@/lib/finance";
 import { valueAt, type Report } from "@/lib/report";
 import { wealthPercentiles, type WealthPercentiles } from "@/lib/simulation";
@@ -175,6 +176,8 @@ export function DetailSection({ report }: { report: Report }) {
   const [open, setOpen] = useState(false);
   const years = yearsShown(report);
   const { scenario, investment } = report;
+  const dividends = dividendNote(investment);
+  const basis = `${investment.name}, ${formatRate(scenario.realReturn)} a year (${periodText(investment)})${dividends ? `; ${dividends}` : ""}`;
   const bands = useMemo(
     () =>
       open && years > 0
@@ -193,8 +196,8 @@ export function DetailSection({ report }: { report: Report }) {
           <GrowthChart bands={bands} report={report} />
           <YearTable report={report} years={years} />
           <p className="text-xs text-muted">
-            Table: in today&apos;s euros, at the average growth of {investment.name} ({investment.period.join("–")}). Band:
-            1,000 simulations drawing each year&apos;s return from that history.
+            Table: in today&apos;s euros, at the average growth of {basis}. Band: 1,000 simulations drawing each year&apos;s
+            return from that history.
           </p>
         </div>
       )}

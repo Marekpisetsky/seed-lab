@@ -37,6 +37,8 @@ function InstrumentPanel({ instrument }: { instrument: Instrument }) {
   const prices = MARKET.prices[instrument.id];
   const history = useHistory(prices ? instrument.id : null);
   const index = INDEXES[instrument.index];
+  const period = `${index.firstYear}–${index.lastYear}`;
+  const priceOnly = index.priceOnly ? ", price only, without dividends" : "";
   const chosen = isChosen(plan.investment, instrument);
 
   return (
@@ -67,8 +69,8 @@ function InstrumentPanel({ instrument }: { instrument: Instrument }) {
 
       <p className="text-sm text-muted">
         {instrument.kind === "etf"
-          ? `Tracks the ${index.name}: ${formatRate(index.averageReturn)} a year after inflation on average, ${index.firstYear}–${index.lastYear}.`
-          : `As your investment it is projected with the ${index.name}'s history (${formatRate(index.averageReturn)} a year after inflation), not with ${instrument.name}'s own past.`}
+          ? `Tracks the ${index.name}: ${formatRate(index.averageReturn)} a year after inflation on average, ${period}${priceOnly}.`
+          : `As your investment it is projected with the ${index.name}'s history (${formatRate(index.averageReturn)} a year after inflation, ${period}${priceOnly}), not with ${instrument.name}'s own past.`}
       </p>
 
       {chosen ? (

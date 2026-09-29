@@ -13,6 +13,7 @@ import { addMonths } from "./dates";
 import { holdingValue, monthsToGoal } from "./finance";
 import { formatEur, formatEurRounded, formatMoney, formatPercent, formatRate, formatYears } from "./format";
 import { INDEXES } from "./indexes";
+import { dividendNote, periodText } from "./investment";
 import { INDEX_TRACKERS, instrumentForHolding, MARKET, type PricesFile } from "./market-data";
 import { answerMetric, monthsTo, valueAt, type Report, type Scenario } from "./report";
 import { cachedSuccessRate, wealthPercentiles } from "./simulation";
@@ -78,7 +79,8 @@ function yearOf(report: Report, months: number): number {
 }
 
 function growthAssumption({ investment, scenario }: Report): string {
-  return `Growth ${formatRate(scenario.realReturn)} a year after inflation: ${investment.name}, ${investment.period[0]}–${investment.period[1]} average. Past, not a promise.`;
+  const dividends = dividendNote(investment);
+  return `Growth ${formatRate(scenario.realReturn)} a year after inflation: ${investment.name}, ${periodText(investment)} average${dividends ? ` (${dividends})` : ""}. Past, not a promise.`;
 }
 
 function monthlyAssumption({ scenario }: Report): string {
@@ -394,7 +396,7 @@ export function sequenceFinding({ report }: FindingContext): Finding | null {
     "From then on, growth at the average rate.",
   ];
   const assumptions = [
-    `1,000 simulations drawing each year's return from the ${investment.name} history (${investment.period[0]}–${investment.period[1]}).`,
+    `1,000 simulations drawing each year's return from the ${investment.name} history (${periodText(investment)}).`,
     monthlyAssumption(report),
   ];
   const rest = months - decade * 12;
@@ -447,7 +449,7 @@ export function withdrawalFinding({ report }: FindingContext): Finding | null {
       `5,000 simulated 30-year retirements taking ${formatRate(scenario.withdrawalRate)} of the starting capital each year.`,
       `Lasted 30 years: ${formatPercent(lasted, { decimals: 0 })}.`,
     ],
-    assumptions: [`Each year's return drawn from the ${investment.name} history (${investment.period[0]}–${investment.period[1]}). All in stocks, no fees, no taxes.`],
+    assumptions: [`Each year's return drawn from the ${investment.name} history (${periodText(investment)}). All in stocks, no fees, no taxes.`],
   };
 }
 
@@ -501,7 +503,7 @@ export function stockPastFinding({ report, market }: FindingContext): Finding | 
     id: "stock-past",
     impact: 0.35,
     value: `${pct}/yr`,
-    text: `${investment.name} grew ${pct} a year; projections use the ${index.name}'s ${formatRate(index.averageReturn)}.`,
+    text: `${investment.name} grew ${pct} a year; projections use the ${index.name}'s ${formatRate(index.averageReturn)} (${index.firstYear}–${index.lastYear}).`,
     tone: "info",
     calculation: [
       `${investment.name}: ${pct} a year since ${growth.from.slice(0, 4)} (price, before inflation). Past, not a forecast.`,

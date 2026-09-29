@@ -60,7 +60,8 @@ Limitaciones conocidas: no convierte entre monedas (la meta, el ingreso
 y la cartera ponderada solo cuentan holdings en EUR); las ganancias
 realizadas (ventas) no se muestran; Yahoo y Stooq son fuentes no
 oficiales que pueden fallar (el Action conserva los datos anteriores);
-los retornos de los índices están en dólares y el S&P 500 llega a 2022.
+los retornos de los índices están en dólares y se comparan en 1988–2022,
+porque el S&P 500 de Shiller llega a 2022; el Nasdaq-100 es solo precio.
 
 ## Arquitectura
 
@@ -84,7 +85,7 @@ los retornos de los índices están en dólares y el S&P 500 llega a 2022.
   cambio para todas las secciones (medido como
   `performance.measure("wealth-lens:report")`: ~2 ms por tecla).
 - En qué crece el plan (`src/lib/investment.ts`): S&P 500, World o
-  Nasdaq-100 (su promedio real histórico), la cartera real (cada holding
+  Nasdaq-100 (su promedio real en el periodo común, ver abajo), la cartera real (cada holding
   cuenta hacia el índice que sigue —o el más cercano— ponderado por su
   valor en EUR), una acción (proyectada con su índice más cercano, nunca
   con su propio pasado) o un % propio. La misma historia alimenta el
@@ -257,6 +258,18 @@ MSCI World y Nasdaq-100 se introdujeron a mano desde las tablas publicadas
 y se verificaron contra los retornos anualizados a 3/5/10 años de las
 fichas de MSCI y contra los % anuales publicados; los tests recalculan
 cada retorno real desde las cifras nominales guardadas.
+
+**Periodo común.** Los tres índices se comparan sobre los mismos años, el
+periodo más largo que cubren los tres: hoy **1988–2022** (35 años;
+`COMMON_PERIOD` en `src/lib/indexes.ts`, calculado de los datos). Esas
+rentabilidades alimentan todo: palancas, proyecciones, cartera
+ponderada, % propio y Monte Carlo, y la app muestra el periodo junto a
+cada cifra. Promedio real anual en 1988–2022: S&P 500 7,5 %, World
+4,5 %, Nasdaq-100 9,9 % (solo precio: la tarjeta dice "no dividends";
+los dividendos sumarían aproximadamente un 1 % anual). Los datasets
+completos (1928–2022, 1988–2024, 1986–2024) se conservan y se validan
+igual. Para alargar el periodo hace falta el S&P 500 de 2023 en adelante
+con el mismo método (enero a enero, de los datos de Shiller).
 
 ## Cómo correrlo
 

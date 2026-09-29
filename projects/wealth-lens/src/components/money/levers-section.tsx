@@ -33,6 +33,7 @@ function Choices<T>({ title, options, onSelect }: { title: string; options: Choi
           >
             <span className="text-sm font-medium">{option.label}</span>
             <span className="text-xs text-muted">{option.detail}</span>
+            {option.note && <span className="text-[11px] leading-tight text-muted">{option.note}</span>}
             {!option.selected && <EffectText effect={option.effect} />}
           </button>
         ))}

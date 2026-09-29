@@ -6,9 +6,14 @@
  * - MSCI World: net total return in USD, 1988 onwards (MSCI factsheets).
  * - Nasdaq-100: price return in USD, 1986 onwards (Nasdaq year-end closes).
  *
- * The same numbers feed the expected return (their long-run average) and the
- * Monte Carlo simulation of the chosen index. Datasets are validated when the
- * module loads, so a bad edit fails loudly instead of rendering NaN.
+ * The three are compared over the same years: the longest period every
+ * dataset covers (COMMON_PERIOD). Those years feed the expected return
+ * (their average), the Monte Carlo simulation, the portfolio mix and every
+ * lever, so an index never looks better just because its data starts in a
+ * better decade. The whole datasets stay available as `dataset`.
+ *
+ * Datasets are validated when the module loads, so a bad edit fails loudly
+ * instead of rendering NaN.
  */
 
 import msciWorld from "@/data/msci-world-real-returns.json";
@@ -24,7 +29,15 @@ export interface AnnualReturn {
   realReturn: number;
 }
 
-export interface IndexInfo {
+export interface ReturnSeries {
+  years: readonly AnnualReturn[];
+  firstYear: number;
+  lastYear: number;
+  /** Geometric average real return per year. */
+  averageReturn: number;
+}
+
+export interface IndexInfo extends ReturnSeries {
   id: IndexId;
   /** Short name for the UI: "S&P 500". */
   name: string;
@@ -32,13 +45,12 @@ export interface IndexInfo {
   etf: string;
   /** What the returns include, in plain words. */
   returnType: string;
+  /** True when dividends are not in the figures (they understate the index). */
+  priceOnly: boolean;
   /** Who publishes the underlying figures. */
   sourceName: string;
-  years: readonly AnnualReturn[];
-  firstYear: number;
-  lastYear: number;
-  /** Geometric average real return per year over the whole dataset. */
-  averageReturn: number;
+  /** The whole dataset; `years`, `firstYear`, `lastYear` and `averageReturn` are the common period's. */
+  dataset: ReturnSeries;
 }
 
 interface Dataset {
@@ -71,13 +83,8 @@ export function annualizedReturn(returns: readonly number[]): number {
   return Math.expm1(logSum / returns.length);
 }
 
-function buildIndex(
-  info: Omit<IndexInfo, "years" | "firstYear" | "lastYear" | "averageReturn">,
-  data: Dataset,
-): IndexInfo {
-  const years = parseReturns(info.name, data);
+function series(years: readonly AnnualReturn[]): ReturnSeries {
   return {
-    ...info,
     years,
     firstYear: years[0].year,
     lastYear: years[years.length - 1].year,
@@ -85,17 +92,43 @@ function buildIndex(
   };
 }
 
-export const INDEXES: Readonly<Record<IndexId, IndexInfo>> = {
-  sp500: buildIndex(
-    { id: "sp500", name: "S&P 500", etf: "VUAA", returnType: "dividends reinvested", sourceName: "Robert Shiller, Yale" },
+type IndexDescription = Omit<IndexInfo, keyof ReturnSeries | "dataset">;
+
+const DATASETS: readonly [IndexDescription, Dataset][] = [
+  [
+    { id: "sp500", name: "S&P 500", etf: "VUAA", returnType: "dividends reinvested", priceOnly: false, sourceName: "Robert Shiller, Yale" },
     sp500,
-  ),
-  world: buildIndex(
-    { id: "world", name: "World", etf: "VWCE", returnType: "MSCI World, dividends reinvested", sourceName: "MSCI" },
+  ],
+  [
+    { id: "world", name: "World", etf: "VWCE", returnType: "MSCI World, dividends reinvested", priceOnly: false, sourceName: "MSCI" },
     msciWorld,
-  ),
-  nasdaq100: buildIndex(
-    { id: "nasdaq100", name: "Nasdaq-100", etf: "EQQQ", returnType: "price only, without dividends", sourceName: "Nasdaq" },
+  ],
+  [
+    { id: "nasdaq100", name: "Nasdaq-100", etf: "EQQQ", returnType: "price only, without dividends", priceOnly: true, sourceName: "Nasdaq" },
     nasdaq100,
-  ),
-};
+  ],
+];
+
+/** The longest run of years every dataset covers. */
+export function commonPeriod(all: readonly (readonly AnnualReturn[])[]): [number, number] {
+  const first = Math.max(...all.map((years) => years[0].year));
+  const last = Math.min(...all.map((years) => years[years.length - 1].year));
+  if (last - first + 1 < 20) throw new Error(`The datasets share only ${first}–${last}: fewer than 20 years`);
+  return [first, last];
+}
+
+const parsed = DATASETS.map(([info, data]) => [info, parseReturns(info.name, data)] as const);
+
+/** The years every index is compared over, e.g. [1988, 2022]. */
+export const COMMON_PERIOD: readonly [number, number] = commonPeriod(parsed.map(([, years]) => years));
+
+export const INDEXES = Object.fromEntries(
+  parsed.map(([info, years]) => [
+    info.id,
+    {
+      ...info,
+      ...series(years.filter(({ year }) => year >= COMMON_PERIOD[0] && year <= COMMON_PERIOD[1])),
+      dataset: series(years),
+    },
+  ]),
+) as Readonly<Record<IndexId, IndexInfo>>;

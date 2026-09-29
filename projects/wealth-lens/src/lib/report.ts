@@ -16,7 +16,7 @@ import { allConnections, targetCapital, type Connection } from "./connections";
 import { addMonths } from "./dates";
 import { futureValueWithContributions, monthlyWithdrawal, monthsToGoal } from "./finance";
 import { formatDuration, formatEur, formatMonthYear, formatPercent, formatRate, formatYears } from "./format";
-import { resolveInvestment, type ResolvedInvestment } from "./investment";
+import { dividendNote, periodText, resolveInvestment, type ResolvedInvestment } from "./investment";
 import { startingCapital, type StartingCapital } from "./plan";
 import type { Holding, Plan } from "./types";
 
@@ -186,7 +186,8 @@ function buildHeadline(report: Omit<Report, "headline" | "purchase">): Headline 
   const connection = goal.status.connection;
   const live = connection.kind === "live";
   const rate = formatRate(scenario.withdrawalRate);
-  const growth = `growing ${formatRate(scenario.realReturn)} a year after inflation (${investment.name}, ${investment.period[0]}–${investment.period[1]} average)`;
+  const dividends = dividendNote(investment);
+  const growth = `growing ${formatRate(scenario.realReturn)} a year after inflation (${investment.name}, ${periodText(investment)} average${dividends ? `; ${dividends}` : ""})`;
   const perMonth = (amount: number) => `${formatEur(amount)}/month`;
 
   const todayNumber: HeadlineNumber = live

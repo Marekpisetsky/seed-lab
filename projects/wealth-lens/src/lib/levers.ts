@@ -11,7 +11,7 @@ import { addMonths } from "./dates";
 import { monthlyWithdrawal } from "./finance";
 import { formatEur, formatPercent, formatRate, formatYears } from "./format";
 import { INDEXES, INDEX_IDS } from "./indexes";
-import { portfolioMix, resolveInvestment } from "./investment";
+import { periodText, portfolioMix, resolveInvestment } from "./investment";
 import { answerMetric, valueAt, type AnswerMetric, type Report, type Scenario } from "./report";
 import { cachedSuccessRates } from "./simulation";
 import type { Holding, Investment } from "./types";
@@ -26,6 +26,8 @@ export interface ChoiceOption<T> {
   label: string;
   /** A second line: the rate, the value at that point, how often it lasted. */
   detail: string;
+  /** A third, quieter line: where a rate comes from ("1988–2022 · no dividends"). */
+  note?: string;
   /** Against the current answer; `null` for the current choice. */
   effect: Effect | null;
   selected: boolean;
@@ -107,10 +109,12 @@ export function buildLevers(report: Report, holdings: readonly Holding[]): Lever
       choice.kind === "index" ? INDEXES[choice.index].name : choice.kind === "portfolio" ? "My portfolio" : resolved.name;
     const detail =
       choice.kind === "index" ? `${INDEXES[choice.index].etf} · ${formatRate(resolved.realReturn)}` : formatRate(resolved.realReturn);
+    const dividends = resolved.withoutDividends >= 1 ? " · no dividends" : resolved.withoutDividends > 0 ? " · partly no dividends" : "";
     return {
       value: choice,
       label,
       detail,
+      note: `${periodText(resolved)}${dividends}`,
       effect: selected ? null : effect({ ...scenario, realReturn: resolved.realReturn }),
       selected,
     };
@@ -152,6 +156,7 @@ export function buildLevers(report: Report, holdings: readonly Holding[]): Lever
         value: rate,
         label: formatRate(rate),
         detail: `lasted 30 years in ${formatPercent(lasted, { decimals: 0 })}`,
+        note: `${investment.name}, ${periodText(investment)}`,
         effect: selected ? null : effect({ ...scenario, withdrawalRate: rate }),
         selected,
       };

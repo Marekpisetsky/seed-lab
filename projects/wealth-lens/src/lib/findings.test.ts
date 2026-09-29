@@ -92,7 +92,8 @@ describe("waiting a year", () => {
     const later = futureValueWithContributions(1000, 200, r, (n - 12) / 12);
     const finding = waitingFinding(small);
     expect(finding?.value).toBe(formatEurRounded(now - later));
-    expect(finding?.text).toBe(`Starting a year later leaves you ${formatEurRounded(now - later)} less by 2046.`);
+    const year = addMonths(today, Math.ceil(n)).getUTCFullYear();
+    expect(finding?.text).toBe(`Starting a year later leaves you ${formatEurRounded(now - later)} less by ${year}.`);
   });
 
   it("is not shown for a goal under two years away", () => {
@@ -202,11 +203,16 @@ describe("withdrawal rate", () => {
     expect(finding?.text).toMatch(/^At 7% a year, the money ran out in \d+% of histories\.$/);
   });
 
-  it("shows that even 4% ran out in about 1 history in 8 with the S&P 500", () => {
-    expect(withdrawalFinding(small)).toMatchObject({ value: "1 in 8", text: "At 4% a year, the money ran out in 12% of histories." });
+  it("shows that 4% ran out in about 1 history in 4 with the World's 1988–2022", () => {
+    expect(withdrawalFinding(context({ investment: { kind: "index", index: "world" } }))).toMatchObject({
+      value: "1 in 4",
+      text: "At 4% a year, the money ran out in 23% of histories.",
+    });
   });
 
-  it("is not shown at 3%, or for a purchase", () => {
+  it("is not shown when the rate lasted in 9 histories in 10, or for a purchase", () => {
+    // S&P 500, 1988–2022: 4% lasted 30 years in 93% of histories, 3% in 98%.
+    expect(withdrawalFinding(small)).toBeNull();
     expect(withdrawalFinding(context({ withdrawalRate: 0.03 }))).toBeNull();
     expect(withdrawalFinding(context({ withdrawalRate: 0.07, pinned: "buy:new-car" }))).toBeNull();
   });
@@ -242,7 +248,10 @@ describe("a single stock as the investment", () => {
       },
     });
     const finding = stockPastFinding({ ...context({ investment: { kind: "stock", id: "NVDA" } }), market });
-    expect(finding).toMatchObject({ value: "63%/yr", text: "NVIDIA grew 63% a year; projections use the Nasdaq-100's 10.8%." });
+    expect(finding).toMatchObject({
+      value: "63%/yr",
+      text: "NVIDIA grew 63% a year; projections use the Nasdaq-100's 9.9% (1988–2022).",
+    });
   });
 
   it("is not shown for an index", () => {
