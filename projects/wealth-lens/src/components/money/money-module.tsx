@@ -5,6 +5,7 @@ import { CalculatorCard } from "./calculator-card";
 import { CountriesSection } from "./countries-section";
 import { FindingsSection } from "./findings-section";
 import { GoalsSection } from "./goals-section";
+import { GrowthChart } from "./growth-chart";
 import { ResultSection } from "./result-section";
 
 /**
@@ -17,7 +18,10 @@ export function MoneyModule() {
   return (
     <div className="space-y-6">
       <CalculatorCard />
-      <ResultSection bundle={bundle} />
+      <div className="space-y-4">
+        <ResultSection bundle={bundle} />
+        <GrowthChart bundle={bundle} />
+      </div>
       <GoalsSection goals={bundle.calc.goals} today={bundle.today} />
       <CountriesSection income={bundle.calc.result.income} rows={bundle.calc.countries} />
       <FindingsSection bundle={bundle} />

@@ -13,6 +13,9 @@
   --warning-bg: #fffbeb;
   --warning-border: #fcd34d;
   --warning-foreground: #78350f;
+  /* Chart series (validated as a pair for colour-blind separation, light and dark). */
+  --chart-put-in: #2a78d6;
+  --chart-growth: #1baf7a;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -29,6 +32,8 @@
     --warning-bg: #2a1f06;
     --warning-border: #92400e;
     --warning-foreground: #fde68a;
+    --chart-put-in: #3987e5;
+    --chart-growth: #199e70;
   }
 }
 

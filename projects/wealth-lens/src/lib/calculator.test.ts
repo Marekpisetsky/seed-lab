@@ -7,6 +7,7 @@ import {
   itemStatuses,
   pricedItems,
   whenText,
+  yearlyPath,
   type CalculatorPlan,
 } from "./calculator";
 import { parseIsoDate } from "./dates";
@@ -54,6 +55,19 @@ describe("the result", () => {
     const big = calculate(plan({ invested: 10_000_000 }), [], today).result;
     expect(big.growth).toBeGreaterThan(0);
     expect(Number.isFinite(big.income)).toBe(true);
+  });
+});
+
+describe("the chart's years", () => {
+  it("go from today to the chosen year and end on the result", () => {
+    const { scenario, result } = calculate(plan(), [], today);
+    const path = yearlyPath(scenario, 20);
+    expect(path).toHaveLength(21);
+    expect(path[0]).toEqual({ year: 0, putIn: 1000, total: 1000 });
+    expect(path[10].putIn).toBe(1000 + 200 * 120);
+    expect(path[20].total).toBeCloseTo(result.total, 6);
+    expect(path[20].putIn).toBe(result.putIn);
+    for (const point of path.slice(1)) expect(point.total).toBeGreaterThan(point.putIn);
   });
 });
 

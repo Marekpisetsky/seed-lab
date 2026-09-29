@@ -121,6 +121,25 @@ export function resultOf(scenario: Scenario, investment: ResolvedInvestment, yea
   };
 }
 
+/** One year of the chart: what was put in so far and what it is worth. */
+export interface YearPoint {
+  year: number;
+  putIn: number;
+  total: number;
+}
+
+/**
+ * Year 0 (today) to the chosen year, for the chart: the same projection as
+ * the result, so its last point is the result.
+ */
+export function yearlyPath(scenario: Scenario, years: number): YearPoint[] {
+  return Array.from({ length: years + 1 }, (_, year) => ({
+    year,
+    putIn: scenario.capital + scenario.monthly * 12 * year,
+    total: valueAt(scenario, year * 12),
+  }));
+}
+
 // ---------------------------------------------------------------------------
 // Countries and purchases: rows to read
 // ---------------------------------------------------------------------------
