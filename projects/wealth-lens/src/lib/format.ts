@@ -103,3 +103,24 @@ export function formatRate(rate: number): string {
   const tenths = Math.round(rate * 1000);
   return formatPercent(rate, { decimals: tenths % 10 === 0 ? 0 : 1 });
 }
+
+/** Whole euros: 1234.5 → "€1,235". */
+export function formatEur(amount: number, { signed = false }: { signed?: boolean } = {}): string {
+  return formatMoney(amount, "EUR", { decimals: 0, signed });
+}
+
+/**
+ * A span of time for a sentence, rounded to what a person would say:
+ * 3 → "3 months", 18 → "2 years" (from 12 months on, whole years),
+ * Infinity → "never".
+ */
+export function formatYears(months: number): string {
+  if (!Number.isFinite(months)) return "never";
+  const abs = Math.abs(months);
+  if (abs < 11.5) {
+    const whole = Math.max(1, Math.round(abs));
+    return `${whole} month${whole === 1 ? "" : "s"}`;
+  }
+  const years = Math.round(abs / 12);
+  return `${years} year${years === 1 ? "" : "s"}`;
+}

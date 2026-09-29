@@ -3,12 +3,14 @@ import {
   formatApproxDuration,
   formatDayMonth,
   formatDuration,
+  formatEur,
   formatMoney,
   formatMonthYear,
   formatNumber,
   formatPercent,
   formatPrice,
   formatRate,
+  formatYears,
 } from "./format";
 
 describe("formatRate", () => {
@@ -95,3 +97,23 @@ describe("formatDayMonth / formatApproxDuration", () => {
     expect(formatApproxDuration(Infinity)).toBe("never");
   });
 });
+
+describe("formatEur / formatYears", () => {
+  it("formats whole euros, optionally signed", () => {
+    expect(formatEur(1234.5)).toBe("€1,235");
+    expect(formatEur(-50)).toBe("-€50");
+    expect(formatEur(5400, { signed: true })).toBe("+€5,400");
+  });
+
+  it("rounds time the way people say it", () => {
+    expect(formatYears(0.2)).toBe("1 month");
+    expect(formatYears(3)).toBe("3 months");
+    expect(formatYears(11.4)).toBe("11 months");
+    expect(formatYears(12)).toBe("1 year");
+    expect(formatYears(17)).toBe("1 year");
+    expect(formatYears(18)).toBe("2 years");
+    expect(formatYears(-30)).toBe("3 years");
+    expect(formatYears(Infinity)).toBe("never");
+  });
+});
+
