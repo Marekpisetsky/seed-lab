@@ -21,7 +21,7 @@ const plan = (overrides: Partial<ReportPlan> = {}): ReportPlan => ({
   inflation: 0.02,
   housing: "rent",
   homeCountry: "NL",
-  pinned: "life:stop-working",
+  mission: { kind: "stop-working" },
   horizonYears: null,
   customConnections: [],
   ...overrides,
@@ -120,7 +120,7 @@ describe("€10,000,000 invested", () => {
   });
 
   it("buying a home leaves the rest invested", () => {
-    const home = buildReport(plan({ invested: 10_000_000, monthlyContribution: 0, pinned: "buy:home-nl" }), [], today);
+    const home = buildReport(plan({ invested: 10_000_000, monthlyContribution: 0, mission: { kind: "buy", item: "home-nl" } }), [], today);
     expect(home.headline.meaning).toBe("already enough for an average Dutch home, fully paid");
     expect(home.purchase).toMatchObject({ buyMonths: 0, before: 10_000_000, after: 9_520_000 });
     expectSensible(home);
@@ -137,7 +137,7 @@ describe("€1,000,000 added a month", () => {
 
 describe("€1 invested, a used car", () => {
   it("has no purchase note for a purchase out of reach", () => {
-    const report = buildReport(plan({ invested: 1, monthlyContribution: 0, pinned: "buy:used-car" }), [], today);
+    const report = buildReport(plan({ invested: 1, monthlyContribution: 0, mission: { kind: "buy", item: "used-car" } }), [], today);
     expect(report.answer.reachable).toBe(false);
     expect(report.purchase).toBeNull();
     expectSensible(report);

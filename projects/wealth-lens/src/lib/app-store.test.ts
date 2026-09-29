@@ -68,7 +68,14 @@ describe("the shared app state", () => {
     updatePlan((plan) => ({ monthlyContribution: plan.monthlyContribution + 100 }));
     const { plan } = appStore.get();
     expect(plan).toEqual({ ...INITIAL_STATE.plan, invested: 20_000, monthlyContribution: 600 });
+    // Numbers alone are not a start: the mission is.
+    expect(hasStarted(appStore.get())).toBe(false);
+    updatePlan({ mission: { kind: "stop-working" } });
     expect(hasStarted(appStore.get())).toBe(true);
+  });
+
+  it("starts with real example numbers and no mission", () => {
+    expect(INITIAL_STATE.plan).toMatchObject({ invested: 1000, monthlyContribution: 200, mission: null });
   });
 
   it("counts as started once there are holdings", () => {

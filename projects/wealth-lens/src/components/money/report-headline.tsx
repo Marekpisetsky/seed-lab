@@ -1,10 +1,7 @@
 "use client";
 
-import { Pin, X } from "lucide-react";
 import { useState } from "react";
-import { useReport } from "@/hooks/use-report";
-import { updatePlan } from "@/lib/app-store";
-import type { HeadlineNumber } from "@/lib/report";
+import type { HeadlineNumber, Report } from "@/lib/report";
 
 type NumberKey = "today" | "when" | "value" | `instead-${number}`;
 
@@ -24,12 +21,11 @@ function HeadlineButton({ number, expanded, onToggle }: { number: HeadlineNumber
 }
 
 /**
- * The answer in one sentence with its two or three numbers, big. Tapping a
- * number shows where it comes from.
+ * The answer to the mission in one sentence with its two or three numbers,
+ * big. Tapping a number shows where it comes from.
  */
-export function ReportHeadline() {
-  const { report } = useReport();
-  const { headline, goal } = report;
+export function ReportHeadline({ report }: { report: Report }) {
+  const { headline } = report;
   const [open, setOpen] = useState<NumberKey | null>(null);
   const numbers: Record<string, HeadlineNumber | undefined> = {
     today: headline.today,
@@ -81,18 +77,6 @@ export function ReportHeadline() {
             ))}
           </ol>
         </div>
-      )}
-      {goal.pinned && (
-        <button
-          type="button"
-          onClick={() => updatePlan({ pinned: null })}
-          className="inline-flex items-center gap-1.5 rounded-full border border-accent bg-accent/10 px-3 py-1 text-sm"
-          aria-label={`Your goal: ${goal.status.connection.name}. Remove it to see the next milestone.`}
-        >
-          <Pin aria-hidden="true" className="size-3.5" />
-          {goal.status.connection.name}
-          <X aria-hidden="true" className="size-3.5 text-muted" />
-        </button>
       )}
     </section>
   );

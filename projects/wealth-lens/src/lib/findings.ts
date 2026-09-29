@@ -1,12 +1,14 @@
 /**
- * "What you should know": short findings worked out for this user, each
+ * "What you should know": short findings about the user's mission, each
  * with one number and one sentence, and the calculation behind it.
  *
  * Every rule is a pure function that returns `null` when it does not matter
- * for this user (its relevance rule), or a finding with an `impact` score:
- * roughly the share of the answer it changes, weighted so that risks the
- * user carries come before general facts. The report shows the top 3-5.
- * Findings inform with numbers; they never say what to do.
+ * for this user (its relevance rule). Which rules apply, and in what order,
+ * depends on the kind of mission (MISSION_ORDER): risks the user carries
+ * first, then what moves the mission, general facts last. The order is
+ * fixed, so a card never jumps places when a number changes; the report
+ * shows the first five that apply. Findings inform with numbers; they never
+ * say what to do.
  */
 
 import { addMonths } from "./dates";
@@ -35,8 +37,6 @@ export type FindingId =
 
 export interface Finding {
   id: FindingId;
-  /** Relative weight of what it says; the biggest come first. */
-  impact: number;
   /** The one number the card is about: "3 years", "€5,400", "70%". */
   value: string;
   /** One short sentence (about 12 words at most). */
@@ -121,7 +121,6 @@ export function leverFinding({ report }: FindingContext): Finding | null {
           : `Having started a year ago would put you ${when} ahead.`;
     return {
       id: "lever",
-      impact: (best.gain / base.months) * 2,
       value: when,
       text,
       tone: "info",
@@ -150,7 +149,6 @@ export function leverFinding({ report }: FindingContext): Finding | null {
         : `Having started a year ago would give you ${amount} more in ${year}.`;
   return {
     id: "lever",
-    impact: (best.gain / base.value) * 2,
     value: amount,
     text,
     tone: "info",
@@ -172,7 +170,6 @@ export function waitingFinding({ report }: FindingContext): Finding | null {
   const year = yearOf(report, months);
   return {
     id: "waiting",
-    impact: (cost / goal.status.target) * 1.5,
     value: formatEurRounded(cost),
     text: `Starting a year later leaves you ${formatEurRounded(cost)} less by ${year}.`,
     tone: "info",
@@ -202,7 +199,6 @@ export function inflationFinding({ report }: FindingContext): Finding | null {
   const year = yearOf(report, months);
   return {
     id: "inflation",
-    impact: (1 - 1 / factor) * 0.6,
     value: `~${formatEurRounded(nominal)}`,
     text: `In ${year} your account will show ~${formatEurRounded(nominal)} — worth ${formatEurRounded(real)} of today's money.`,
     tone: "info",
@@ -229,7 +225,6 @@ export function feesFinding({ report }: FindingContext): Finding | null {
   const delay = monthsTo(dear, target) - monthsTo(cheap, target);
   return {
     id: "fees",
-    impact: (cost / target) * 1.2,
     value: formatEurRounded(cost),
     text: `A 1% fund instead of 0.2% costs you ${formatEurRounded(cost)} by ${year}.`,
     tone: "info",
@@ -245,13 +240,19 @@ export function feesFinding({ report }: FindingContext): Finding | null {
   };
 }
 
-/** Where the money already pays for a life, or how much sooner than at home. */
+/**
+ * Stopping work: where the money already pays for a life, or how much sooner
+ * than at home. Living abroad: that country against stopping work at home.
+ */
 export function geographyFinding({ report }: FindingContext): Finding | null {
   const countries = report.statuses.filter((status) => status.connection.group === "country");
   const home = report.statuses.find((status) => status.connection.id === "life:stop-working");
   if (countries.length === 0 || !home) return null;
   const homeName = home.connection.source.match(/Country: (.+)\.$/)?.[1] ?? "home";
   const HomeName = homeName[0].toUpperCase() + homeName.slice(1);
+  const { mission } = report.goal;
+  if (mission.kind === "live-abroad") return abroadFinding(report, home, homeName);
+  if (mission.kind !== "stop-working") return null;
   const place = (name: string) => name.replace(/^Live in /, "");
   const covered = countries.filter((status) => status.months === 0);
   const soonest = [...countries].sort((a, b) => a.months - b.months);
@@ -268,7 +269,6 @@ export function geographyFinding({ report }: FindingContext): Finding | null {
         : `Your money already covers living costs in ${covered.length} countries.`;
     return {
       id: "geography",
-      impact: 0.5,
       value: covered.length === 1 ? "Now" : `${covered.length} countries`,
       text,
       tone: "info",
@@ -284,13 +284,49 @@ export function geographyFinding({ report }: FindingContext): Finding | null {
   const name = place(best.connection.name);
   return {
     id: "geography",
-    impact: homeReachable ? Math.min(1, gap / home.months) * 0.8 : 0.6,
     value: homeReachable ? formatYears(gap) : formatYears(best.months),
     text: homeReachable
       ? `Living in ${name} comes ${formatYears(gap)} before ${homeName}.`
       : `Living in ${name} is within reach in ${formatYears(best.months)}; ${homeName} is not.`,
     tone: "info",
     calculation: [...listing, `${HomeName}: ${when(home.months)}.`],
+    assumptions,
+  };
+}
+
+/** The mission's country against stopping work at home. */
+function abroadFinding(report: Report, home: Report["statuses"][number], homeName: string): Finding | null {
+  const abroad = report.goal.status;
+  if (abroad.months === 0 || abroad.connection.amount === home.connection.amount) return null;
+  const place = abroad.connection.name.replace(/^Live in /, "");
+  const calculation = [
+    `${place}: ${formatEur(abroad.connection.amount)} a month, ${formatEur(abroad.target)} needed.`,
+    `Stopping work in ${homeName}: ${formatEur(home.connection.amount)} a month, ${formatEur(home.target)} needed.`,
+  ];
+  const assumptions = ["One person, country averages, rent included where you rent (Numbeo + Wise, Sep 2026). Estimates; cities vary."];
+  const abroadReach = withinReach(abroad.months);
+  const homeReach = withinReach(home.months);
+  if (abroadReach && homeReach) {
+    const gap = home.months - abroad.months;
+    if (Math.abs(gap) < 24) return null;
+    return {
+      id: "geography",
+      value: formatYears(Math.abs(gap)),
+      text: `Living in ${place} comes ${formatYears(Math.abs(gap))} ${gap > 0 ? "before" : "after"} stopping work in ${homeName}.`,
+      tone: "info",
+      calculation,
+      assumptions,
+    };
+  }
+  if (abroadReach === homeReach) return null;
+  return {
+    id: "geography",
+    value: abroadReach ? `${place}: yes` : `${place}: no`,
+    text: abroadReach
+      ? `${place} is within ${MAX_YEARS} years; stopping work in ${homeName} is not.`
+      : `Stopping work in ${homeName} is within ${MAX_YEARS} years; ${place} is not.`,
+    tone: "info",
+    calculation,
     assumptions,
   };
 }
@@ -319,7 +355,6 @@ export function concentrationFinding({ holdings, market }: FindingContext): Find
   const pct = formatPercent(weight, { decimals: 0 });
   return {
     id: "concentration",
-    impact: weight,
     value: pct,
     text: `${pct} of your portfolio rides on ${ticker} alone.`,
     tone: "warning",
@@ -364,7 +399,6 @@ export function currencyFinding({ holdings }: FindingContext): Finding | null {
   const single = sums.size === 1;
   return {
     id: "currency",
-    impact: counted > 0 ? 0.45 : 0.9,
     value: single ? money : `${sums.size} currencies`,
     text: single
       ? `Your ${money} in ${CURRENCY_NAMES[currency] ?? currency} isn't counted: no currency conversion.`
@@ -413,7 +447,6 @@ export function sequenceFinding({ report }: FindingContext): Finding | null {
     if (!withinReach(badMonths) || !withinReach(typicalMonths) || delay < 12) return null;
     return {
       id: "sequence",
-      impact: (delay / months) * 1.2,
       value: `+${formatYears(delay)}`,
       text: `A bad first ${period} (1 in 10) pushes it back ${formatYears(delay)}.`,
       tone: "warning",
@@ -427,7 +460,6 @@ export function sequenceFinding({ report }: FindingContext): Finding | null {
   const year = yearOf(report, months);
   return {
     id: "sequence",
-    impact: (shortfall / after(typical)) * 1.2,
     value: formatEurRounded(-shortfall),
     text: `A bad first ${period} (1 in 10) leaves ${formatEurRounded(shortfall)} less by ${year}.`,
     tone: "warning",
@@ -445,7 +477,6 @@ export function withdrawalFinding({ report }: FindingContext): Finding | null {
   const failed = 1 - lasted;
   return {
     id: "withdrawal",
-    impact: failed * 1.5,
     value: `1 in ${Math.max(2, Math.round(1 / failed))}`,
     text: `At ${formatRate(scenario.withdrawalRate)} a year, the money ran out in ${formatPercent(failed, { decimals: 0 })} of histories.`,
     tone: "warning",
@@ -470,7 +501,6 @@ export function growthShareFinding({ report }: FindingContext): Finding | null {
   const pct = formatPercent(share, { decimals: 0 });
   return {
     id: "growth-share",
-    impact: share * 0.25,
     value: pct,
     text: `By ${year}, ${pct} of your money is growth, not savings.`,
     tone: "info",
@@ -486,7 +516,6 @@ export function doublingFinding({ report }: FindingContext): Finding | null {
   const years = Math.log(2) / Math.log1p(rate);
   return {
     id: "doubling",
-    impact: 0.1,
     value: formatYears(years * 12),
     text: `At ${formatRate(rate)} after inflation, money doubles every ${formatYears(years * 12)}.`,
     tone: "info",
@@ -505,7 +534,6 @@ export function stockPastFinding({ report, market }: FindingContext): Finding | 
   const pct = formatPercent(growth.perYear, { decimals: 0 });
   return {
     id: "stock-past",
-    impact: 0.35,
     value: `${pct}/yr`,
     text: `${investment.name} grew ${pct} a year; projections use the ${index.name}'s ${formatRate(index.averageReturn)} (${index.firstYear}–${index.lastYear}).`,
     tone: "info",
@@ -517,27 +545,39 @@ export function stockPastFinding({ report, market }: FindingContext): Finding | 
   };
 }
 
-const RULES = [
-  leverFinding,
-  waitingFinding,
-  inflationFinding,
-  feesFinding,
-  geographyFinding,
-  concentrationFinding,
-  currencyFinding,
-  sequenceFinding,
-  withdrawalFinding,
-  growthShareFinding,
-  doublingFinding,
-  stockPastFinding,
-];
+const RULES: Record<FindingId, (context: FindingContext) => Finding | null> = {
+  lever: leverFinding,
+  waiting: waitingFinding,
+  inflation: inflationFinding,
+  fees: feesFinding,
+  geography: geographyFinding,
+  concentration: concentrationFinding,
+  currency: currencyFinding,
+  sequence: sequenceFinding,
+  withdrawal: withdrawalFinding,
+  "growth-share": growthShareFinding,
+  doubling: doublingFinding,
+  "stock-past": stockPastFinding,
+};
 
-/** Every finding that matters for this user, biggest impact first. */
+/**
+ * The findings that can matter for each kind of mission, in the order they
+ * are shown: risks the user carries, then what moves the mission, then
+ * general facts. Living off the money adds the withdrawal rate, a bad first
+ * decade weighs more, and where else the money goes further; a purchase or
+ * an amount does not depend on either.
+ */
+export const MISSION_ORDER: Readonly<Record<"live" | "buy", readonly FindingId[]>> = {
+  live: ["concentration", "currency", "lever", "sequence", "withdrawal", "inflation", "waiting", "fees", "geography", "stock-past", "growth-share", "doubling"],
+  buy: ["concentration", "currency", "lever", "inflation", "waiting", "fees", "sequence", "stock-past", "growth-share", "doubling"],
+};
+
+/** Every finding that matters for this user's mission, in the mission's order. */
 export function allFindings(report: Report, holdings: readonly Holding[], market: PricesFile = MARKET): Finding[] {
   const context: FindingContext = { report, holdings, market };
-  return RULES.map((rule) => rule(context))
-    .filter((finding): finding is Finding => finding !== null)
-    .sort((a, b) => b.impact - a.impact);
+  return MISSION_ORDER[report.goal.status.connection.kind]
+    .map((id) => RULES[id](context))
+    .filter((finding): finding is Finding => finding !== null);
 }
 
 /** The ones the report shows: at most five. */

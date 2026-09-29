@@ -24,7 +24,8 @@ export interface Connection {
   /** "country:IN", "life:rent", "buy:new-car" or "custom:<id>". */
   id: string;
   kind: ConnectionKind;
-  group: "country" | "life" | "buy" | "custom";
+  /** "mission": made for a mission of the user's own (an item or an amount), not listed. */
+  group: "country" | "life" | "buy" | "custom" | "mission";
   /** "Live in India", "Pay your rent", "A new car". */
   name: string;
   /** live: monthly cost; buy: one-off amount. Today's euros. */

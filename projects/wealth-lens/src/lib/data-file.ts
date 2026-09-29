@@ -9,7 +9,7 @@ import { toIsoDate } from "./dates";
 import { isRecord, parseHoldings, parsePlan, parseUploadedPrices, type UploadedPrices } from "./validation";
 
 export const DATA_FILE_KIND = "wealth-lens-data";
-export const DATA_FILE_VERSION = 2;
+export const DATA_FILE_VERSION = 3;
 
 export function dataFileName(savedAt: Date): string {
   return `wealth-lens-${toIsoDate(savedAt)}.json`;
@@ -30,7 +30,7 @@ export function serializeState(state: AppState, savedAt: Date): string {
 export type DataFileResult = { ok: true; state: AppState } | { ok: false; error: string };
 
 /**
- * Reads a file made by "Download my data" (version 1 or 2); anything invalid
+ * Reads a file made by "Download my data" (versions 1 to 3); anything invalid
  * inside falls back field by field.
  */
 export function parseDataFile(text: string): DataFileResult {

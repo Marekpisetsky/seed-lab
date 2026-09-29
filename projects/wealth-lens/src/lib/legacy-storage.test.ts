@@ -37,9 +37,10 @@ describe("data saved by earlier versions", () => {
     expect(readLegacyData(storage)).toEqual({
       plan: {
         ...DEFAULT_PLAN,
+        // Not saved: 0, not the example numbers of a first visit.
+        invested: 0,
         monthlyContribution: 400,
-        pinned: "custom:goal",
-        customConnections: [{ id: "goal", name: "My goal", kind: "buy", amount: 250_000 }],
+        mission: { kind: "amount", amount: 250_000 },
         investment: { kind: "custom", realReturn: 0.05 },
         withdrawalRate: 0.035,
         housing: "own",

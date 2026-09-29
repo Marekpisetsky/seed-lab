@@ -13,7 +13,7 @@ const plan = (overrides: Partial<ReportPlan> = {}): ReportPlan => ({
   inflation: 0.02,
   housing: "rent",
   homeCountry: "NL",
-  pinned: null,
+  mission: { kind: "live-abroad", country: "IN" },
   horizonYears: null,
   customConnections: [],
   ...overrides,
@@ -114,7 +114,7 @@ describe("years", () => {
   });
 
   it("says 'not at this pace' instead of a year more than 60 years away", () => {
-    expect(levers({ monthlyContribution: 1, pinned: "country:IN" }).horizon[0].detail).toBe("not at this pace");
+    expect(levers({ monthlyContribution: 1, mission: { kind: "live-abroad", country: "IN" } }).horizon[0].detail).toBe("not at this pace");
   });
 
   it("keeps a chosen horizon in the list", () => {
@@ -136,7 +136,7 @@ describe("withdrawal rate", () => {
   });
 
   it("does not apply to a purchase", () => {
-    expect(levers({ pinned: "buy:new-car" }).withdrawal).toBeNull();
+    expect(levers({ mission: { kind: "buy", item: "new-car" } }).withdrawal).toBeNull();
   });
 
   it("speaks in euros per month when looking ahead", () => {

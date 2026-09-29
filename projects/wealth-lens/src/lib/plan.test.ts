@@ -25,9 +25,6 @@ describe("startingCapital", () => {
     expect(startingCapital([], 50_000)).toEqual({ amount: 50_000, source: "answer" });
   });
 
-  it("starts from nothing before any answer", () => {
-    expect(startingCapital([], null)).toEqual({ amount: 0, source: "none" });
-  });
 });
 
 describe("headlineGain", () => {

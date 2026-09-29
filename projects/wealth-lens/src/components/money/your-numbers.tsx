@@ -57,16 +57,16 @@ export function YourNumbers({ onReach }: { onReach: () => void }) {
         <EuroField
           label="You have invested"
           value={plan.invested}
-          onValue={(invested) => updatePlan({ invested })}
-          placeholder="1,000"
+          onValue={(invested) => updatePlan({ invested: invested ?? 0 })}
+          placeholder="0"
           onFocus={onReach}
         />
       )}
       <EuroField
         label="You add each month"
-        value={plan.monthlyContribution > 0 ? plan.monthlyContribution : null}
+        value={plan.monthlyContribution}
         onValue={(monthly) => updatePlan({ monthlyContribution: monthly ?? 0 })}
-        placeholder="200"
+        placeholder="0"
         onFocus={onReach}
       />
     </section>

@@ -8,21 +8,20 @@ import { BASE_CURRENCY, type Holding } from "./types";
 
 export interface StartingCapital {
   amount: number;
-  /** Holdings (valued at current prices), the first-use answer, or nothing yet. */
-  source: "holdings" | "answer" | "none";
+  /** Holdings (valued at current prices), or the amount typed on "My money". */
+  source: "holdings" | "answer";
 }
 
 /**
  * Holdings win once there are any: their EUR value at current prices. Before
- * that, the amount answered in the first-use questions.
+ * that, the amount typed on "My money".
  */
-export function startingCapital(holdings: readonly Holding[], invested: number | null): StartingCapital {
+export function startingCapital(holdings: readonly Holding[], invested: number): StartingCapital {
   if (holdings.length > 0) {
     const eur = summarizeByCurrency(holdings).find((summary) => summary.currency === BASE_CURRENCY);
     return { amount: eur?.value ?? 0, source: "holdings" };
   }
-  if (invested !== null) return { amount: invested, source: "answer" };
-  return { amount: 0, source: "none" };
+  return { amount: invested, source: "answer" };
 }
 
 /**

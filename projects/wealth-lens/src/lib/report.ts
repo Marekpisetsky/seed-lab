@@ -2,10 +2,10 @@
  * "My money", the daily brief: the answer first, worked out from the plan.
  *
  * Everything here is a pure function of the plan, the priced holdings and
- * today's date: which goal the report is about (the one the user pinned, or
- * the next milestone), when it is reached (or what the money pays after a
- * chosen number of years), the headline with where each number comes from,
- * the status of every connection, and what a pinned purchase costs later.
+ * today's date: the user's mission (never one the app picks), when it is
+ * reached (or what the money pays after a chosen number of years), the
+ * headline with where each number comes from, the status of every other
+ * connection, and what a purchase costs later.
  * Levers (lib/levers.ts) and findings (lib/findings.ts) build on it.
  *
  * All amounts are in today's euros: growth is after inflation and the
@@ -13,15 +13,16 @@
  */
 
 import { allConnections, targetCapital, type Connection } from "./connections";
+import { costOfLiving, countryInSentence } from "./cost-of-living";
 import { addMonths } from "./dates";
 import { futureValueWithContributions, monthlyWithdrawal, monthsToGoal, requiredMonthlyContribution } from "./finance";
 import { formatDuration, formatEur, formatMonthYear, formatPercent, formatRate, formatYears } from "./format";
 import { dividendNote, periodText, resolveInvestment, type ResolvedInvestment } from "./investment";
 import { startingCapital, type StartingCapital } from "./plan";
-import type { Holding, Plan } from "./types";
+import type { Holding, Mission, Plan } from "./types";
 
-/** The plan the report reads (see Plan in lib/types.ts). */
-export type ReportPlan = Plan;
+/** The plan the report reads (see Plan in lib/types.ts), once the user has chosen a mission. */
+export type ReportPlan = Plan & { mission: Mission };
 
 /**
  * Beyond this a date is not a plan: the report says "not reachable at this
@@ -37,8 +38,6 @@ export function withinReach(months: number): boolean {
   return months <= MAX_MONTHS;
 }
 
-/** "Stop working" is the default goal when it is reachable within this many years. */
-export const STOP_WORKING_WITHIN_YEARS = 40;
 export const STOP_WORKING_ID = "life:stop-working";
 
 /** The numbers every projection needs. */
@@ -106,6 +105,14 @@ export interface PurchaseImpact {
   forgone: number;
 }
 
+/** The mission, with what it costs and how far away it is. */
+export interface MissionGoal {
+  mission: Mission;
+  status: ConnectionStatus;
+  /** "Stop working in the Netherlands", "Live in Portugal", "A used car", "Reach €100,000". */
+  title: string;
+}
+
 export interface Report {
   plan: ReportPlan;
   today: Date;
@@ -115,7 +122,7 @@ export interface Report {
   /** What today's capital pays per month. */
   incomeToday: number;
   statuses: ConnectionStatus[];
-  goal: { status: ConnectionStatus; pinned: boolean };
+  goal: MissionGoal;
   answer: Answer;
   headline: Headline;
   purchase: PurchaseImpact | null;
@@ -154,38 +161,82 @@ export function answerMetric(scenario: Scenario, goal: Pick<Connection, "kind" |
 // Goal
 // ---------------------------------------------------------------------------
 
+/** The user's country, as a sentence says it: "the Netherlands". */
+function homeName(plan: Pick<Plan, "homeCountry">): string {
+  const home = costOfLiving.countries.find((country) => country.code === plan.homeCountry) ?? costOfLiving.countries[0];
+  return countryInSentence(home.name);
+}
+
 /**
- * The pinned connection, or else the next milestone: stopping work when it
- * is within reach (40 years), otherwise the cheapest way to live off the
- * money that is not covered yet.
+ * The connection a mission is about, and its title; `null` when the mission
+ * names something the data no longer has (a country or an item removed).
  */
-export function chooseGoal(
-  statuses: readonly ConnectionStatus[],
-  pinned: string | null,
-): { status: ConnectionStatus; pinned: boolean } {
-  const chosen = pinned ? statuses.find((status) => status.connection.id === pinned) : undefined;
-  if (chosen) return { status: chosen, pinned: true };
-  const stop = statuses.find((status) => status.connection.id === STOP_WORKING_ID);
-  if (stop && stop.months <= STOP_WORKING_WITHIN_YEARS * 12) return { status: stop, pinned: false };
-  const next = statuses
-    .filter((status) => status.connection.kind === "live" && status.months > 0)
-    .sort((a, b) => a.target - b.target || a.months - b.months)[0];
-  return { status: next ?? stop ?? statuses[0], pinned: false };
+export function missionConnection(
+  mission: Mission,
+  plan: Pick<Plan, "homeCountry">,
+  connections: readonly Connection[],
+): { connection: Connection; title: string } | null {
+  const find = (id: string) => connections.find((connection) => connection.id === id);
+  switch (mission.kind) {
+    case "stop-working": {
+      const connection = find(STOP_WORKING_ID);
+      return connection ? { connection, title: `Stop working in ${homeName(plan)}` } : null;
+    }
+    case "live-abroad": {
+      if (mission.country === plan.homeCountry) {
+        // "Abroad" in the user's own country is stopping work there.
+        const stop = find(STOP_WORKING_ID);
+        if (!stop) return null;
+        const title = `Live in ${homeName(plan)}`;
+        return { connection: { ...stop, id: `country:${mission.country}`, group: "country", name: title }, title };
+      }
+      const connection = find(`country:${mission.country}`);
+      return connection ? { connection, title: connection.name } : null;
+    }
+    case "buy": {
+      const connection = find(`buy:${mission.item}`);
+      return connection ? { connection, title: connection.name } : null;
+    }
+    case "buy-own":
+      return {
+        connection: { id: "mission:own", kind: "buy", group: "mission", name: mission.name, amount: mission.amount, source: "Your own price.", referenceDate: "" },
+        title: mission.name,
+      };
+    case "amount": {
+      const title = `Reach ${formatEur(mission.amount)}`;
+      return {
+        connection: { id: "mission:amount", kind: "buy", group: "mission", name: title, amount: mission.amount, source: "Your own amount.", referenceDate: "" },
+        title,
+      };
+    }
+  }
+}
+
+/** Every connection "My money" lists, priced for this plan. */
+function connectionsFor(plan: Plan): Connection[] {
+  return allConnections({ homeCountry: plan.homeCountry, housing: plan.housing, custom: plan.customConnections });
+}
+
+/** True when there is a mission the report can be built around. */
+export function hasReport(plan: Plan): plan is ReportPlan {
+  return plan.mission !== null && missionConnection(plan.mission, plan, connectionsFor(plan)) !== null;
 }
 
 /** "A used car" → "a used car", but "NL" stays "NL". */
 export const lowerFirst = (text: string) => (/^[A-Z](?![A-Z])/.test(text) ? text[0].toLowerCase() + text.slice(1) : text);
 
-/** "enough to live in India", "enough for a used car", "enough for Boat". */
+/** "enough to live in India", "enough for a used car", "enough for Boat", "your target". */
 export function enoughFor(connection: Connection): string {
-  if (connection.group === "custom") return `enough for ${connection.name}`;
+  if (connection.id === "mission:amount") return "your target";
+  if (connection.group === "custom" || connection.group === "mission") return `enough for ${connection.name}`;
   return connection.kind === "live" ? `enough to ${lowerFirst(connection.name)}` : `enough for ${lowerFirst(connection.name)}`;
 }
 
 /** "58% of what you need to live in India", "58% of the price of a used car". */
 export function shareOf(connection: Connection, share: number): string {
   const pct = formatPercent(Math.max(0, share), { decimals: 0 });
-  if (connection.group === "custom") return `${pct} of ${connection.name}`;
+  if (connection.id === "mission:amount") return `${pct} of your ${formatEur(connection.amount)} target`;
+  if (connection.group === "custom" || connection.group === "mission") return `${pct} of ${connection.name}`;
   return connection.kind === "live"
     ? `${pct} of what you need to ${lowerFirst(connection.name)}`
     : `${pct} of the price of ${lowerFirst(connection.name)}`;
@@ -299,7 +350,7 @@ function buildHeadline(report: Omit<Report, "headline" | "purchase">): Headline 
 // Purchase
 // ---------------------------------------------------------------------------
 
-/** What buying a pinned item does: money left, and the living milestone it pushes back. */
+/** What buying the mission's item does: money left, and how much later stopping work comes. */
 export function purchaseImpact(
   scenario: Scenario,
   item: ConnectionStatus,
@@ -309,8 +360,7 @@ export function purchaseImpact(
   const buyMonths = item.months;
   const before = buyMonths === 0 ? scenario.capital : price;
   const after = buyMonths === 0 ? scenario.capital - price : 0;
-  const living = statuses.filter((status) => status.connection.kind === "live");
-  const milestone = chooseGoal(living, null).status ?? null;
+  const milestone = statuses.find((status) => status.connection.id === STOP_WORKING_ID) ?? null;
   if (!milestone || !withinReach(buyMonths) || !withinReach(milestone.months) || milestone.months <= buyMonths) {
     return { buyMonths, before, after, milestone: null, delayMonths: 0, forgone: 0 };
   }
@@ -342,13 +392,15 @@ export function buildReport(plan: ReportPlan, holdings: readonly Holding[], toda
     withdrawalRate: plan.withdrawalRate,
     horizonMonths: plan.horizonYears === null ? null : plan.horizonYears * 12,
   };
-  const statuses = allConnections({ homeCountry: plan.homeCountry, housing: plan.housing, custom: plan.customConnections }).map(
-    (connection) => {
-      const target = targetFor(scenario, connection);
-      return { connection, target, months: monthsTo(scenario, target) };
-    },
-  );
-  const goal = chooseGoal(statuses, plan.pinned);
+  const connections = connectionsFor(plan);
+  const statusOf = (connection: Connection): ConnectionStatus => {
+    const target = targetFor(scenario, connection);
+    return { connection, target, months: monthsTo(scenario, target) };
+  };
+  const statuses = connections.map(statusOf);
+  const resolved = missionConnection(plan.mission, plan, connections);
+  if (!resolved) throw new RangeError("The mission names something the data no longer has; check hasReport first");
+  const goal: MissionGoal = { mission: plan.mission, status: statusOf(resolved.connection), title: resolved.title };
   const { target } = goal.status;
 
   let answer: Answer;
@@ -392,7 +444,7 @@ export function buildReport(plan: ReportPlan, holdings: readonly Holding[], toda
     ...base,
     headline: buildHeadline(base),
     purchase:
-      goal.pinned && goal.status.connection.kind === "buy" && withinReach(goal.status.months)
+      (goal.mission.kind === "buy" || goal.mission.kind === "buy-own") && withinReach(goal.status.months)
         ? purchaseImpact(scenario, goal.status, statuses)
         : null,
   };
