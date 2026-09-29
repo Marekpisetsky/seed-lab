@@ -28,29 +28,41 @@ ejecutivo" sobre el dinero del usuario: la respuesta primero, lo
 importante que no sabía preguntar después, opciones cuantificadas, y el
 detalle solo si lo pide. Nada se guarda ni se envía, y la app no llama a
 ningún servicio mientras se usa. La lógica vive en funciones puras con
-más de 360 tests unitarios (Vitest). Todavía sin validar con uso propio
+más de 400 tests unitarios (Vitest). Todavía sin validar con uso propio
 sostenido.
 
-- **My money — `/`** (sustituye a Portfolio & goal y FIRE by country).
-  Dos números ("You have invested", "You add each month"; con holdings,
-  el primero es su valor) y todo se recalcula al teclear, sin botón de
-  calcular:
-  1. **La respuesta**, una frase con 2-3 números grandes: "Today your
-     money pays €3/month. In 19 years: €330/month — enough to live in
-     India." Cada número se toca para ver de dónde sale.
-  2. **What you should know:** 3-5 hallazgos ordenados por impacto, cada
-     uno un número y una frase; al abrirlo, el cálculo y los supuestos.
-  3. **What changes the answer:** aporte mensual (−/+), en qué invierte,
-     horizonte y tasa de retiro; cada opción muestra su efecto antes de
-     elegirla ("2 years earlier", "+€420/month").
-  4. **What it means in real life:** "Live off it" (pagar el alquiler,
-     trabajar 4 días, media jornada, dejar de trabajar, vivir en cada
-     país) y "Buy it" (21 compras con fuente). Cada una dice "now" o "in
-     N years"; tocarla la fija como meta y todo se recalcula a su
-     alrededor. Una compra fijada muestra el capital que queda y lo que
-     cuesta en tiempo. El usuario puede añadir las suyas.
-  5. **Detail**, plegado: curva de crecimiento con banda de Monte Carlo
-     (8 de cada 10 escenarios) y tabla año a año.
+- **My money — `/`**. Todo gira alrededor de **una misión que elige el
+  usuario**; la app nunca la elige ni la cambia por su cuenta.
+  1. **La misión va primero.** Una pregunta: "What do you want your money
+     to do?", con cuatro opciones grandes: *Stop working* (vivir de las
+     inversiones en tu país), *Live somewhere else* (elegir país), *Buy
+     something* (una de las 21 compras o una propia con su precio) o
+     *Reach an amount* (cifra propia). Queda arriba como título
+     ("Mission: Live in Portugal", con lo que cuesta) y un "Change"
+     pequeño para cambiarla.
+  2. **Los números**: "You have invested" y "You add each month", con
+     valores reales de partida (€1.000 y €200/mes) que se editan; la
+     palanca muestra el mismo número. Con holdings, el primero es su
+     valor. El informe se recalcula cuando el usuario termina de escribir
+     (500 ms sin teclear, al salir del campo o con Enter), nunca con cada
+     tecla; los botones +/− y las opciones, al instante. Tras un cambio se
+     marcan un momento solo las cifras que cambiaron.
+  3. **La respuesta a la misión**, una frase con 2-3 números grandes:
+     "Today your money pays €3/month. In 36 years: €1,410/month — enough
+     to live in Portugal." Cada número se toca para ver de dónde sale. Si
+     tarda más de 60 años: "Not reachable at this pace" y, en su lugar, el
+     aporte mensual que la lograría en 20 y en 30 años.
+  4. **What you should know:** 3-5 hallazgos de esa misión, en un orden
+     fijo por tipo de misión (primero los riesgos, luego lo que la mueve,
+     al final datos generales), así que una tarjeta nunca cambia de sitio
+     al cambiar un número. Ninguno cita una cifra a más de 60 años.
+  5. **What changes the answer:** aporte mensual (−/+), en qué invierte,
+     horizonte y tasa de retiro; cada opción muestra su efecto sobre la
+     misión antes de elegirla ("2 years earlier", "reachable in 53 years").
+  6. Plegados: **Detail** (curva con banda de Monte Carlo y tabla año a
+     año) y **Other things your money could do** (vivir en cada país,
+     alquiler, 4 días, media jornada, las 21 compras: cada una "now", "in
+     N years" o "not at this pace"; solo para leer).
 - **My stocks — `/stocks`** (antes Charts): ganancia, holdings (añadir,
   editar, importar CSV), cómo se movió cada uno, y los 3 ETFs (VUAA,
   VWCE, EQQQ) y 12 acciones grandes con su gráfico, su pasado ("past, not
@@ -71,19 +83,22 @@ porque el S&P 500 de Shiller llega a 2022; el Nasdaq-100 es solo precio.
 - **Sin backend, sin base de datos, sin almacenamiento.** El estado (el
   plan, los holdings y los CSV de precios subidos) vive en memoria
   (`src/lib/app-store.ts`): nada va a `localStorage`, cookies ni a un
-  servidor, y recargar vuelve a las 3 preguntas. "Download my data"
+  servidor, y recargar vuelve a la pregunta de la misión. "Download my data"
   genera un JSON local y "Load my data" lo lee en el navegador, sin
   subirlo. Si una versión anterior dejó datos en `localStorage`, la app
   ofrece una vez cargarlos o borrarlos, y los borra en ambos casos.
 - **Cero llamadas en tiempo de uso.** Los precios llegan como archivos
   estáticos del propio sitio (ver "Precios diarios"); los retornos de
   los índices y el costo de vida son JSON dentro del bundle.
-- Un solo plan (`Plan` en `src/lib/types.ts`): dos números, la
-  inversión, la tasa de retiro, el país, la conexión fijada como meta, el
-  horizonte y las conexiones propias. `src/lib/report.ts` deriva de él el
-  informe entero y `src/hooks/use-report.ts` lo calcula una vez por
-  cambio para todas las secciones (medido como
-  `performance.measure("wealth-lens:report")`: ~2 ms por tecla).
+- Un solo plan (`Plan` en `src/lib/types.ts`): la misión (`null` hasta
+  que el usuario la elige), dos números, la inversión, la tasa de retiro,
+  el país y el horizonte. `src/lib/report.ts` deriva de él el informe
+  entero y `src/hooks/use-report.ts` lo calcula una vez por cambio para
+  todas las secciones (medido como `performance.measure("wealth-lens:report")`:
+  1-2 ms por cambio, hasta 9 ms con la CPU ×4). El archivo de datos va
+  por la versión 3; las versiones 1 y 2 se leen: la meta en euros pasa a
+  "Reach an amount", un país o una compra fijada pasa a esa misión, y "la
+  app elegía" deja la misión al usuario.
 - En qué crece el plan (`src/lib/investment.ts`): S&P 500, World o
   Nasdaq-100 (su promedio real en el periodo común, ver abajo), la cartera real (cada holding
   cuenta hacia el índice que sigue —o el más cercano— ponderado por su
@@ -102,15 +117,22 @@ porque el S&P 500 de Shiller llega a 2022; el Nasdaq-100 es solo precio.
 
 ## El informe: hallazgos y conexiones
 
-**Meta.** Si el usuario no fija nada, la meta es "Stop working" (vivir
-de la cartera en su país) cuando se alcanza en 40 años o menos; si no,
-la conexión "Live off it" más barata que aún no cubre. Una conexión
-fijada ("Tap one") manda sobre eso. Con un horizonte elegido ("Look at: 10
-years"), la respuesta pasa a ser cuánto habrá entonces.
+**Misión.** La elige el usuario y solo él la cambia (`Mission` en
+`src/lib/types.ts`). Con un horizonte elegido ("Look at: 10 years"), la
+respuesta pasa a ser cuánto habrá entonces y qué parte de la misión es.
+**Tope de 60 años** (`MAX_YEARS` en `src/lib/report.ts`): más allá, "Not
+reachable at this pace" con el aporte necesario para 20 y 30 años, las
+palancas dicen "still not reachable" / "reachable in N years" y ningún
+hallazgo cita una fecha más lejana. Las entradas extremas (€1, €0, €0 al
+mes, €10.000.000, €1.000.000 al mes, 0 % o −2 % de crecimiento) tienen
+sus tests en `src/lib/edge-cases.test.ts`: "under €1/month" en vez de
+€0, sin hallazgos fechados para una misión ya cumplida, sin tarjetas de
+"-€0", sin "comprarlo dentro de 139 años".
 
 **Hallazgos** (`src/lib/findings.ts`, una función pura por regla, cada
-una con su regla de relevancia; se muestran los 5 de mayor impacto y
-ninguno dice "deberías"):
+una con su regla de relevancia; se muestran los 5 primeros que aplican,
+en el orden fijo de `MISSION_ORDER` para el tipo de misión, y ninguno
+dice "deberías"):
 
 | Hallazgo | Aparece cuando | Número |
 | --- | --- | --- |
@@ -118,11 +140,11 @@ ninguno dice "deberías"):
 | Coste de esperar | horizonte de 2+ años y empezar un año más tarde cuesta ≥ €500 y ≥ 2 % de la meta | € de menos al horizonte |
 | Inflación | la meta está a 5+ años (y no está ya alcanzada) | lo que mostrará la cuenta en euros de ese año (la app cuenta en euros de hoy) |
 | Comisiones | horizonte de 5+ años y la diferencia ≥ €1.000 | fondo al 1 % vs al 0,2 % |
-| Geografía | algún país ya se cubre, o el mejor país llega 2+ años antes que el propio | años de diferencia |
+| Geografía | *Stop working:* algún país ya se cubre, o el mejor llega 2+ años antes; *Live somewhere else:* ese país frente a dejar de trabajar en casa (2+ años de diferencia). No aplica a compras ni importes | años de diferencia |
 | Concentración | una acción individual > 40 % de la cartera en EUR | su peso, su caída máxima y su cambio a 1 año |
 | Moneda | hay holdings en otra moneda (no se convierten) | el importe que queda fuera del cálculo, o cuántas monedas |
 | Riesgo de secuencia | una mala primera década (percentil 10 del Monte Carlo) retrasa la meta 1+ año | años de retraso o € de menos |
-| Tasa de retiro | la tasa elegida duró 30 años en < 90 % de las historias | "1 in N" se quedó sin dinero |
+| Tasa de retiro | misiones de vivir de la cartera, cuando la tasa elegida duró 30 años en < 90 % de las historias | "1 in N" se quedó sin dinero |
 | Crecimiento vs ahorro | el crecimiento es ≥ 30 % del total en 5+ años | % del dinero que es crecimiento |
 | Duplicación | crecimiento ≥ 2 % al año | cada cuántos años se duplica |
 | Pasado de una acción | se invierte en una acción | su crecimiento pasado vs su índice |
@@ -332,13 +354,15 @@ public/data/                   precios generados por el job (no editar a mano)
 src/
   app/                         rutas: / (My money), /stocks (My stocks);
                                /charts y /fire redirigen
-  components/                  money/ (el informe), stocks/, charts/,
-                               portfolio/ (holdings, CSV), ui/
+  components/                  money/ (misión, informe), stocks/, charts/,
+                               portfolio/ (holdings, CSV), ui/ (changed: marca
+                               lo que cambió)
   hooks/                       use-app (estado), use-report (informe por cambio),
                                use-plan, use-history (historial al abrir un gráfico)
   lib/
     app-store.ts        estado en memoria (plan, holdings, CSV subidos)
-    report.ts           el informe: meta, respuesta, frase principal, compra fijada
+    report.ts           el informe: misión, respuesta, tope de 60 años, compra
+    settle.ts           aplica un número cuando se termina de escribir (500 ms)
     findings.ts         "What you should know": una regla por hallazgo
     levers.ts           "What changes the answer": opciones y su efecto
     connections.ts      "Live off it" / "Buy it": importes y fuentes
