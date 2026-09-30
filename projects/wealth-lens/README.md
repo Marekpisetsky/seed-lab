@@ -29,11 +29,13 @@ son resultados en posiciones fijas, y las metas son opcionales. La app no
 supone nada sobre la vida del usuario: no pregunta país, ni si alquila o
 es propietario, ni qué quiere hacer con su dinero. Nada se guarda ni se
 envía, y la app no llama a ningún servicio mientras se usa. La lógica
-vive en funciones puras con unos 470 tests unitarios (Vitest). Todavía
+vive en funciones puras con unos 500 tests unitarios (Vitest). Todavía
 sin validar con uso propio sostenido. Solo se proyecta lo que tiene una
 historia larga y un rango conocido; nada se presenta como predecible, y
 todo supuesto viene relleno con un valor estándar documentado y se puede
-cambiar.
+cambiar. Todo lo visible está en palabras simples: "real", "nominal",
+"volatility", "swings" y "percentile" solo aparecen en los "i" plegados
+(un test lo comprueba).
 
 - **My money — `/`**, de arriba abajo:
   1. **La calculadora**: una tarjeta con cuatro campos: *You have* (€),
@@ -42,7 +44,7 @@ cambiar.
      instante). *Invested in* abre la lista, agrupada y con buscador por
      nombre o ticker de fondo: Indexes (S&P 500, World, Nasdaq-100), Bonds
      (bonos gubernamentales de la zona euro), Gold ("Low long-term growth,
-     big swings: protection, not growth"), Savings (cuenta de ahorro),
+     big ups and downs: protection, not growth"), Savings (cuenta de ahorro),
      Custom growth, My portfolio (si hay holdings) y "A mix…" (con
      plantillas 100% stocks, 80/20 y 60/40). Las acciones sueltas no se
      proyectan. Arranca con valores reales editables (€1.000, €200, S&P
@@ -50,21 +52,40 @@ cambiar.
      recalcula cuando el usuario termina de escribir (500 ms sin teclear,
      al salir del campo o con Enter), nunca con cada tecla; tras un cambio
      se marcan un momento solo las cifras que cambiaron y nada cambia de
-     sitio. Debajo, los supuestos en una línea ("7.5% a year after
-     inflation · swings ±16% · 1988–2022") con **Edit**: crecimiento anual
-     (con conmutador *After inflation (real)* / *Before inflation
-     (nominal)*), oscilación e inflación, cada uno con su estándar al
-     lado, y *Prices of* (país, Países Bajos por defecto), que rellena la
-     inflación. Un cambio marca la línea como **Custom** y aparece *Reset to
-     standard*; un "i" plegado explica cómo usan las simulaciones esas
-     cifras.
+     sitio. Debajo, los supuestos en una línea ("Grows 7.5% a year after
+     rising prices · can move ±16% in a year · data 1988–2022") con
+     **Edit**: *How much it grows a year* (con conmutador *After rising
+     prices* / *Before rising prices* y la ayuda "After rising prices =
+     what your money can really buy."), *How much it can go up or down in
+     a normal year* (con un ejemplo que cambia con la cifra: "e.g. a
+     €10,000 year could end between €9,200 and €10,800"), *Rising prices
+     in* (país, Países Bajos por defecto) y *Prices rise per year*, cada
+     uno con su estándar al lado. Un cambio marca la línea como **Custom**
+     y aparece *Reset to standard*; un "i" plegado explica cómo usan las
+     simulaciones esas cifras, con sus nombres técnicos.
   2. **El resultado**, siempre en el mismo sitio: "In 20 years you'll have
-     €112,288" (grande); "It could pay you €374/month" con un selector
-     pequeño de retiro (3/4/5 %) y cuántas historias aguantó 30 años
-     ("93% of S&P 500 histories"); "You put in €49,000 · growth added
-     €63,288"; y un gráfico anual: lo aportado y el crecimiento como
-     áreas apiladas, con dos líneas discontinuas donde terminaron 8 de
-     cada 10 historias del Monte Carlo (tooltip y tabla año a año).
+     €112,288" (grande) y justo debajo, también grande, "Grows about 7.5%
+     a year" con "(≈9.7% before inflation)" al lado; "Your money: ×2.3 ·
+     growth added +€63,288 (+129%) · put in €49,000" (×Z = total final ÷
+     lo aportado; P % = crecimiento ÷ lo aportado); "It could pay you
+     €374/month" con un selector pequeño de retiro (3/4/5 %) y cuántas
+     historias aguantó 30 años ("93% of S&P 500 histories").
+     **What if…?**: cinco escenarios rápidos en fila fija, cada uno con su
+     efecto en euros sobre el plan tal como está: *Grows 1% more* / *Grows
+     1% less*, *+€50 a month*, *5 more years* y *A bad first decade* (los
+     diez primeros años siguen el percentil 10 del Monte Carlo, con los
+     supuestos Custom también; luego crece a la media). Tocar uno lo aplica
+     a toda la pantalla (resultado, gráfico, metas y países) con "What if:
+     5 more years ×" junto al total para quitarlo; otro lo cambia y el
+     mismo lo quita. Los efectos se recalculan con el plan; la fila nunca
+     cambia de orden ni de tamaño (en el móvil se desliza de lado), y un
+     escenario que no aplica lo dice ("60 years at most", "No ups and
+     downs here"). No se guarda en el archivo de datos. Y un gráfico
+     anual: lo aportado y el crecimiento como áreas apiladas, con el % ganado
+     al final de la curva ("+129%") y dos líneas discontinuas donde
+     terminaron 8 de cada 10 historias del Monte Carlo; al pasar el ratón
+     o tocar un año, "Year 2036: €48,200 · +37% so far" (y tabla año a
+     año).
   3. **My goals** (opcional, ninguna al empezar): solo un botón discreto
      "+ Add a goal". Cuatro tipos combinables, tantas como se quiera:
      *Live somewhere* (un país, con o sin vivienda), *Buy something* (de
@@ -119,15 +140,17 @@ mano desde las cifras publicadas (ver "Retornos").
   estáticos del propio sitio (ver "Precios diarios"); los retornos de
   los índices y el costo de vida son JSON dentro del bundle.
 - Un solo plan (`Plan` en `src/lib/types.ts`): dos importes, la
-  inversión, los años, la tasa de retiro, *Prices of*, lo que el usuario
+  inversión, los años, la tasa de retiro, *Rising prices in* (`pricesOf`), lo que el usuario
   cambió de los supuestos (crecimiento real o nominal, oscilación,
   inflación; `null` = estándar) y las metas (una lista, vacía al empezar). `src/lib/calculator.ts` deriva de él todo lo
   que se ve (resultado, metas, tabla de países, compras) y
   `src/hooks/use-calculation.ts` lo calcula una vez por cambio para todas
   las secciones (medido como `performance.measure("wealth-lens:report")`:
-  0,2-0,3 ms por cambio con un activo; 2-10 ms con una mezcla, cifras
-  propias o la cartera, ver "Velocidad"). El archivo de datos va por la
-  versión 6: lleva *Prices of*, los supuestos cambiados y, en cada holding,
+  por debajo de 16 ms al escribir, usar − / +, cambiar la inversión o
+  tocar un *What if…?*, con los efectos de los cinco incluidos; cargar un
+  archivo con cartera tras una sesión larga llegó a 23-34 ms; ver
+  "Velocidad"). El archivo de datos va por la
+  versión 6: lleva *Rising prices in*, los supuestos cambiados y, en cada holding,
   a qué activo se asignó si el usuario lo cambió. Lee las anteriores: un
   índice (v1-v5) es ese activo; una acción proyectada sola (v5) pasa a My
   portfolio si el archivo la tiene, si no a su índice, y las acciones de
@@ -150,7 +173,7 @@ mano desde las cifras publicadas (ver "Retornos").
   - **Cuenta de ahorro**: un tipo típico de 1,5 % (cifra redonda para
     cuentas de ahorro a la vista en euros en 2025–2026, por debajo del 2 %
     de depósito del BCE desde junio de 2025; editable) menos la inflación
-    de *Prices of*: −0,5 % al año con la de Países Bajos. Sin oscilación:
+    de *Rising prices in*: −0,5 % al año con la de Países Bajos. Sin oscilación:
     el resultado dice cuántos años dura el retiro ("it runs out after 23
     years") y el gráfico no dibuja banda.
   - **Una mezcla** (`src/lib/mix.ts`, documentado arriba del archivo y en
@@ -182,6 +205,25 @@ mano desde las cifras publicadas (ver "Retornos").
     crece exactamente g; `src/lib/normal.ts`, 2.000 cuantiles
     equiespaciados); con oscilación 0, todos los años iguales. Cambiar solo
     la inflación no toca las simulaciones: solo convierte nominal ↔ real.
+- **What if…?** (`src/lib/what-if.ts`; `calculate(plan, holdings, today,
+  whatIf)` y `whatIfEffects` en `src/lib/calculator.ts`). Cada escenario
+  cambia una sola entrada: el crecimiento ±1 % al año después de
+  inflación (cada año simulado se multiplica por (1 + g ± 1 %) / (1 + g),
+  así que las simulaciones y las tasas de éxito se mueven con él), el
+  aporte + €50, los años + 5 (hasta 60) o un arranque fijo de diez años
+  (el percentil 10 de las bandas del plan, año a año) seguido del
+  crecimiento medio. El efecto de cada ficha y el escenario aplicado usan
+  las mismas funciones, así que "+€64,000" es exactamente la diferencia
+  que se ve al tocarla. El escenario activo vive en el estado en memoria,
+  sigue puesto mientras cambia el plan y nunca se guarda. Los hallazgos
+  siempre hablan del plan sin escenario.
+- **Palabras simples**: los "i" plegados viven en
+  `src/components/money/explainers.tsx`, el único sitio donde pueden
+  aparecer "real", "nominal", "volatility", "swings" o "percentile";
+  `src/components/plain-language.test.ts` lee todos los componentes y el
+  código que escribe sus textos con el parser de TypeScript (texto JSX,
+  atributos de texto y cadenas con espacios) y falla si aparecen en
+  cualquier otro sitio.
 - **Inflación por país**: cada país de `cost-of-living.json` lleva una
   inflación de referencia con su base y fecha (septiembre de 2026): el
   objetivo de su banco central (el 2 % del BCE para los países del euro;
@@ -199,6 +241,11 @@ mano desde las cifras publicadas (ver "Retornos").
   ratos libres y en pasos de menos de 50 ms, se precalculan los sorteos,
   los años simulados de cada activo y una primera pasada de una mezcla,
   de una cartera con una acción y de cifras propias (`src/lib/warm.ts`).
+  Con los cinco *What if…?* (sus efectos se calculan en cada cambio, con
+  fórmulas cerradas salvo *A bad first decade*, que lee las bandas ya
+  calculadas) el recálculo medido en el navegador al tocar cada uno, con
+  un activo y con una mezcla 60/40, se quedó por debajo de 15 ms; el más lento es la primera vez que se aplica
+  *Grows 1% more / less*, porque sus simulaciones son nuevas.
   Los hallazgos y las compras se calculan al abrirlos; los parsers de CSV,
   la librería de gráficos y el historial de precios, al usarlos.
 - Sin credenciales de bróker ni APIs de pago — respeta la regla de
@@ -449,6 +496,13 @@ Los tests cubren la lógica, que vive separada de la UI en `src/lib/` y
 al 7 % por 10 años = €1967.15, 4 % de €1000 = €40/año, €300.000 al 4 % =
 €1000/mes), la calculadora (resultado de €1.000 + €200/mes a 20 años, lo
 aportado y el crecimiento, el gráfico que termina en el resultado), la
+línea de crecimiento (×Z y P % para el plan por defecto: ×2.3 y +129 %),
+el tooltip del gráfico ("Year 2046: €112,xxx · +129% so far") y su
+etiqueta final, los cinco *What if…?* (cada efecto igual a aplicarlo;
+activar, cambiar y quitar; sigue con el plan; no se guarda; ±1 % mueve
+también las mezclas; *A bad first decade* sigue el percentil 10, retrasa
+metas y países, usa la oscilación escrita y no existe sin altibajos), la
+ausencia de jerga en los textos visibles, la
 tabla de países (30 filas ordenadas, dos columnas, ✓ si y solo si el
 ingreso lo paga, filas por defecto), las metas (cada tipo, varias,
 independientes, orden estable al añadir y quitar, tope de 60 años con el
@@ -489,7 +543,8 @@ src/
                                cartera, resultado, gráfico, metas, países,
                                hallazgos, compras), stocks/, charts/,
                                portfolio/ (holdings, CSV), ui/ (changed: marca
-                               lo que cambió)
+                               lo que cambió); money/explainers.tsx (los "i"
+                               plegados) y plain-language.test.ts (sin jerga)
   hooks/                       use-app (estado), use-calculation (todo por cambio),
                                use-plan, use-history (historial al abrir un gráfico)
   lib/
@@ -503,6 +558,8 @@ src/
     assets.ts           lo que se puede proyectar: índices, bonos, oro, ahorro
     investment.ts       supuestos estándar y cambiados: crecimiento, oscilación, simulación
     assumptions.ts      la línea de supuestos y lo que muestra el panel Edit
+    growth.ts           "Grows about 7.5% a year", ×Z y +P %, etiqueta y tooltip del gráfico
+    what-if.ts          los cinco "What if…?": qué cambia cada uno
     normal.ts           años sorteados de una normal para cifras propias
     portfolio.ts        a qué activo crece cada holding, ponderado por valor
     mix.ts              mezclas con pesos: modelo conjunto, deriva/reequilibrio, peor año
