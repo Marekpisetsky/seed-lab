@@ -643,6 +643,9 @@ export const es: Messages = {
     },
     growth: "Cuánto crece al año (como lo dan bancos y noticias)",
     afterPrices: (rate: string) => `= ${rate} tras subir los precios: lo que tu dinero puede comprar de verdad`,
+    veryRare: (years: number, best: string, name: string, span: string) =>
+      `Muy raro: ningún índice amplio lo mantuvo ${years} años. El mejor fue ${best} (${name}, ${span}).`,
+    historically: (growth: string, moves: string) => `Históricamente, lo que creció un ${growth} se movió unos ±${moves} al año.`,
     hintCustom: "Tu propio número, sin ningún activo detrás.",
     hintSavings: (rate: string) => `Estándar: ${rate} al año, una cuenta de ahorro típica en euros. La de tu banco puede variar.`,
     hintStandard: (rate: string, period: string, inflation: string) => `Estándar: ${rate}, la media de ${period} más ${inflation} de subida de precios.`,

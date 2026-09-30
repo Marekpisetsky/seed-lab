@@ -647,6 +647,9 @@ export const en = {
     },
     growth: "How much it grows a year (as banks and news quote it)",
     afterPrices: (rate: string) => `= ${rate} after rising prices: what your money can really buy`,
+    veryRare: (years: number, best: string, name: string, span: string) =>
+      `Very rare: no broad index kept this for ${years} years. The best was ${best} (${name}, ${span}).`,
+    historically: (growth: string, moves: string) => `Historically, assets growing about ${growth} moved about ±${moves} a year.`,
     hintCustom: "Your own number, with no asset behind it.",
     hintSavings: (rate: string) => `Standard: ${rate} a year, a typical euro savings account. Your bank's may differ.`,
     hintStandard: (rate: string, period: string, inflation: string) => `Standard: ${rate}, the ${period} average plus ${inflation} rising prices.`,

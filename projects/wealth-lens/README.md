@@ -58,9 +58,16 @@ cambiar. Todo lo visible está en palabras simples: "real", "nominal",
      solo campo con el % antes de inflación, y debajo, fijo y de solo
      lectura, "= 7.5% after rising prices: what your money can really
      buy" (el conmutador antes/después se quitó: solo traducía la misma
-     cifra y parecía elegir entre dos cosas), *How much it can go up or down in
+     cifra y parecía elegir entre dos cosas). Si ese crecimiento, después
+     de inflación, supera el mejor promedio de 20 años seguidos de
+     cualquier activo de los datos (calculado de los datasets en
+     `src/lib/realism.ts`: hoy el S&P 500 en 1980–1999, 13 %), debajo:
+     "Very rare: no broad index kept this for 20 years. The best was 13%
+     (S&P 500, 1980–1999)." *How much it can go up or down in
      a normal year* (con un ejemplo que cambia con la cifra: "e.g. a
-     €10,000 year could end between €9,200 and €10,800"), *Rising prices
+     €10,000 year could end between €9,200 and €10,800" y, sin tocar la
+     cifra, "Historically, assets growing about 7.5% moved about ±16% a
+     year" con el activo de crecimiento medio más cercano), *Rising prices
      in* (país, Países Bajos por defecto) y *Prices rise per year*, cada
      uno con su estándar al lado. Un cambio marca la línea como **Custom**
      y aparece *Reset to standard*; un "i" plegado explica cómo usan las
@@ -671,7 +678,9 @@ independientes, orden estable al añadir y quitar, tope de 60 años con el
 aporte para 30), las compras, el motor de hallazgos (cada regla: cuándo
 aparece, cuándo no y su número, con y sin metas), las tasas de éxito
 precalculadas (recalculadas exactas), el plan v7, el crecimiento de la v6
-(antes o después de inflación, mismo resultado tras cargarlo) y la conversión de
+(antes o después de inflación, mismo resultado tras cargarlo), el aviso de
+realismo (el mejor promedio de 20 años recalculado a mano, solo por encima
+de él, comparado después de inflación) y la conversión de
 archivos v1 a v5 (metas; una acción proyectada sola que pasa a My
 portfolio o a su índice con su aviso; un % propio y una inflación), los
 datasets (cada retorno real recalculado desde las cifras de origen: MSCI
@@ -721,6 +730,7 @@ src/
     investment.ts       supuestos estándar y cambiados: crecimiento, oscilación, simulación
     assumptions.ts      la línea de supuestos y lo que muestra el panel Edit
     growth.ts           "Grows about 7.5% a year", ×Z y +P %, etiqueta y tooltip del gráfico
+    realism.ts          el mejor promedio de 20 años de los datos y el activo de crecimiento más cercano
     what-if.ts          los cinco "What if…?": qué cambia cada uno
     normal.ts           años sorteados de una normal para cifras propias
     portfolio.ts        a qué activo crece cada holding, ponderado por valor

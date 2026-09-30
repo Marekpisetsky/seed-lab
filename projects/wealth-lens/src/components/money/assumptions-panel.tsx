@@ -6,7 +6,7 @@ import { useI18n } from "@/components/i18n";
 import { Changed } from "@/components/ui/changed";
 import { SettledNumberInput } from "@/components/ui/form";
 import { resetAssumptions, setAssumptions, setPricesOf } from "@/lib/app-store";
-import { afterPricesText, assumptionsLine, assumptionsNote, quotedGrowth, upsAndDownsExample } from "@/lib/assumptions";
+import { afterPricesText, assumptionsLine, assumptionsNote, historicalRiskText, quotedGrowth, realismWarning, upsAndDownsExample } from "@/lib/assumptions";
 import { costOfLiving, referenceInflation } from "@/lib/cost-of-living";
 import { byCountryName, countryName } from "@/i18n/countries";
 import { COMMON_PERIOD } from "@/lib/indexes";
@@ -103,6 +103,8 @@ export function AssumptionsPanel({
   const standardGrowth = toNominal(standard.realReturn, inflation);
   const isSavings = investment.investment.kind === "asset" && investment.investment.asset === "savings";
   const isCustomGrowth = investment.investment.kind === "custom";
+  const warning = realismWarning(investment, i18n);
+  const historically = historicalRiskText(investment, i18n);
 
   return (
     <div className="col-span-2 space-y-1 sm:col-span-4">
@@ -141,6 +143,11 @@ export function AssumptionsPanel({
                     <p className="text-sm font-medium tabular-nums text-foreground">
                       <Changed value={afterPricesText(investment, i18n)} />
                     </p>
+                    {warning && (
+                      <p role="status" className="rounded-md border border-warning-border bg-warning-bg px-2 py-1 text-warning-foreground">
+                        {warning}
+                      </p>
+                    )}
                     <p>
                       {isCustomGrowth
                         ? t.hintCustom
@@ -162,12 +169,19 @@ export function AssumptionsPanel({
                 onCommit={(volatility) => setAssumptions({ volatility: same(volatility, standard.volatility) && !isCustomGrowth ? null : volatility })}
                 hint={
                   <>
-                    <Changed value={upsAndDownsExample(investment.volatility, i18n)} />{" "}
-                    {isCustomGrowth
-                      ? t.hintVolCustom(f.percent(standard.volatility, { decimals: 0 }))
-                      : standard.volatility > 0
-                        ? t.hintVol(f.percent(standard.volatility, { decimals: 1 }))
-                        : t.hintVolNone}
+                    <p>
+                      <Changed value={upsAndDownsExample(investment.volatility, i18n)} />{" "}
+                      {isCustomGrowth
+                        ? t.hintVolCustom(f.percent(standard.volatility, { decimals: 0 }))
+                        : standard.volatility > 0
+                          ? t.hintVol(f.percent(standard.volatility, { decimals: 1 }))
+                          : t.hintVolNone}
+                    </p>
+                    {historically && (
+                      <p>
+                        <Changed value={historically} />
+                      </p>
+                    )}
                   </>
                 }
               />

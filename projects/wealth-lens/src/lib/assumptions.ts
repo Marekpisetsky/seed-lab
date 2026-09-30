@@ -11,6 +11,7 @@ import type { I18n } from "@/i18n";
 import { dividendNote } from "@/i18n/investment-text";
 import { SAVINGS_RATE } from "./assets";
 import { periodText, toNominal, type ResolvedInvestment } from "./investment";
+import { BEST_20_YEARS, beyondHistory, closestHistory, type BestRun } from "./realism";
 
 /** The growth a year as banks and news quote it: before rising prices. */
 export function quotedGrowth(investment: Pick<ResolvedInvestment, "realReturn" | "inflation">): number {
@@ -27,6 +28,28 @@ export function growthText(investment: Pick<ResolvedInvestment, "realReturn">, {
 /** "= 7.5% after rising prices: what your money can really buy", under the growth typed as quoted. */
 export function afterPricesText(investment: Pick<ResolvedInvestment, "realReturn">, { m, f }: I18n): string {
   return m.assumptions.afterPrices(f.rate(investment.realReturn));
+}
+
+/**
+ * "Very rare: no broad index kept this for 20 years. The best was 13%
+ * (S&P 500, 1980–1999).", under a growth beyond the best 20 years in the
+ * data; `null` otherwise.
+ */
+export function realismWarning(investment: Pick<ResolvedInvestment, "realReturn">, { m, f }: I18n, best: BestRun = BEST_20_YEARS): string | null {
+  if (!beyondHistory(investment.realReturn, best)) return null;
+  return m.assumptions.veryRare(best.to - best.from + 1, f.rate(best.growth), m.assets.name[best.asset], `${best.from}–${best.to}`);
+}
+
+/**
+ * "Historically, assets growing about 7.5% moved about ±16% a year.": the
+ * asset whose growth is closest, beside the ups and downs, which stay the
+ * user's to set. `null` for a savings account, which has none.
+ */
+export function historicalRiskText(investment: Pick<ResolvedInvestment, "realReturn" | "investment">, { m, f }: I18n): string | null {
+  const chosen = investment.investment;
+  if (chosen.kind === "asset" && chosen.asset === "savings") return null;
+  const near = closestHistory(investment.realReturn);
+  return m.assumptions.historically(f.rate(near.growth), f.percent(near.volatility, { decimals: 0 }));
 }
 
 /** "can move ±17% in a year", or "the same every year" with no ups and downs. */
