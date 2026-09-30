@@ -10,7 +10,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "update-prices": "node scripts/update-prices.mts"
+    "update-prices": "node scripts/update-prices.mts",
+    "update-stats": "node scripts/update-prices.mts --stats-only"
   },
   "dependencies": {
     "lightweight-charts": "^5.2.1",
