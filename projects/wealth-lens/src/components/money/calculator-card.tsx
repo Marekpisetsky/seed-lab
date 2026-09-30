@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Minus, Plus } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Changed } from "@/components/ui/changed";
 import { SettledNumberInput } from "@/components/ui/form";
@@ -11,6 +11,7 @@ import { formatEur } from "@/lib/format";
 import { assumptionLines, portfolioMix, resolveInvestment } from "@/lib/investment";
 import { indexRef, stockRef } from "@/lib/mix";
 import { startingCapital } from "@/lib/plan";
+import { MONTHLY_STEP, stepValue, YEARS_STEP } from "@/lib/step";
 import type { Investment } from "@/lib/types";
 import { InvestmentPicker, type PickChoice } from "./investment-picker";
 import { MixEditor } from "./mix-editor";
@@ -38,6 +39,47 @@ function EuroInput({ label, value, onCommit }: { label: string; value: number; o
         <SettledNumberInput value={value} onCommit={onCommit} max={MAX_AMOUNT} placeholder="0" className="pl-7 text-base" />
       </span>
     </Field>
+  );
+}
+
+const stepButton =
+  "flex size-10 shrink-0 items-center justify-center rounded-md border border-border bg-background text-muted hover:text-foreground disabled:opacity-40";
+
+/** A field with − and + on its sides: one step at once, no typing pause. */
+function Stepped({
+  label,
+  less,
+  more,
+  onLess,
+  onMore,
+  atMin,
+  atMax,
+  children,
+}: {
+  label: string;
+  less: string;
+  more: string;
+  onLess: () => void;
+  onMore: () => void;
+  atMin: boolean;
+  atMax: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-w-0 space-y-1">
+      <span aria-hidden="true" className={labelClass}>
+        {label}
+      </span>
+      <div className="flex items-center gap-1">
+        <button type="button" aria-label={less} disabled={atMin} onClick={onLess} className={stepButton}>
+          <Minus aria-hidden="true" className="size-4" />
+        </button>
+        <span className="relative block min-w-0 flex-1">{children}</span>
+        <button type="button" aria-label={more} disabled={atMax} onClick={onMore} className={stepButton}>
+          <Plus aria-hidden="true" className="size-4" />
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -72,6 +114,7 @@ function investmentFor(choice: PickChoice, current: Investment): Investment {
 }
 
 const EMPTY: readonly string[] = [];
+const monthlyStep = { ...MONTHLY_STEP, max: MAX_AMOUNT };
 
 /**
  * The calculator, first and on its own: what you have, what you add each
@@ -104,7 +147,27 @@ export function CalculatorCard() {
       ) : (
         <EuroInput label="You have" value={plan.invested} onCommit={(invested) => updatePlan({ invested })} />
       )}
-      <EuroInput label="You add each month" value={plan.monthlyContribution} onCommit={(monthlyContribution) => updatePlan({ monthlyContribution })} />
+      <Stepped
+        label="You add each month"
+        less="€50 less a month"
+        more="€50 more a month"
+        atMin={plan.monthlyContribution <= 0}
+        atMax={plan.monthlyContribution >= MAX_AMOUNT}
+        onLess={() => updatePlan({ monthlyContribution: stepValue(plan.monthlyContribution, -1, monthlyStep) })}
+        onMore={() => updatePlan({ monthlyContribution: stepValue(plan.monthlyContribution, 1, monthlyStep) })}
+      >
+        <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-muted">
+          €
+        </span>
+        <SettledNumberInput
+          aria-label="You add each month, in euros"
+          value={plan.monthlyContribution}
+          onCommit={(monthlyContribution) => updatePlan({ monthlyContribution })}
+          max={MAX_AMOUNT}
+          placeholder="0"
+          className="px-2 pl-6 text-base"
+        />
+      </Stepped>
       <div className="min-w-0 space-y-1">
         <span id="invested-in-label" className={labelClass}>
           Invested in
@@ -125,20 +188,24 @@ export function CalculatorCard() {
           <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted" />
         </button>
       </div>
-      <Field label="For">
-        <span className="relative block">
-          <SettledNumberInput
-            value={plan.years}
-            onCommit={(years) => updatePlan({ years: Math.min(MAX_YEARS_AHEAD, Math.max(MIN_YEARS, Math.round(years))) })}
-            max={MAX_YEARS_AHEAD}
-            placeholder="20"
-            className="pr-14 text-base"
-          />
-          <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted">
-            years
-          </span>
-        </span>
-      </Field>
+      <Stepped
+        label="For (years)"
+        less="One year less"
+        more="One year more"
+        atMin={plan.years <= MIN_YEARS}
+        atMax={plan.years >= MAX_YEARS_AHEAD}
+        onLess={() => updatePlan({ years: stepValue(plan.years, -1, YEARS_STEP) })}
+        onMore={() => updatePlan({ years: stepValue(plan.years, 1, YEARS_STEP) })}
+      >
+        <SettledNumberInput
+          aria-label="For how many years"
+          value={plan.years}
+          onCommit={(years) => updatePlan({ years: Math.min(MAX_YEARS_AHEAD, Math.max(MIN_YEARS, Math.round(years))) })}
+          max={MAX_YEARS_AHEAD}
+          placeholder="20"
+          className="px-2 text-center text-base"
+        />
+      </Stepped>
       {mix && <MixEditor mix={mix} onAddPart={(anchor) => open("add", anchor)} />}
       {picker && (
         <InvestmentPicker
