@@ -96,7 +96,8 @@ export function InvestmentPicker({
   onlyAssets?: boolean;
   label: string;
   onPick: (choice: PickChoice) => void;
-  onClose: () => void;
+  /** `true` when closed from the keyboard (Escape): the opener takes the focus back. */
+  onClose: (fromKeyboard?: boolean) => void;
 }) {
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
@@ -107,7 +108,7 @@ export function InvestmentPicker({
   useEffect(() => {
     input.current?.focus();
     const outside = (event: PointerEvent) => {
-      if (panel.current && !panel.current.contains(event.target as Node)) onClose();
+      if (panel.current && !panel.current.contains(event.target as Node)) onClose(false);
     };
     // Registered on the next frame, so the click that opened the list does not close it.
     const frame = requestAnimationFrame(() => document.addEventListener("pointerdown", outside));
@@ -168,7 +169,7 @@ export function InvestmentPicker({
       onKeyDown={(event) => {
         if (event.key === "Escape") {
           event.stopPropagation();
-          onClose();
+          onClose(true);
         }
       }}
     >
@@ -185,7 +186,7 @@ export function InvestmentPicker({
           value={query}
           placeholder="Search by name or fund ticker"
           autoComplete="off"
-          className="w-full rounded-md bg-background py-2 pl-8 pr-3 text-base outline-none focus:ring-2 focus:ring-accent/30"
+          className="min-h-11 w-full rounded-md bg-background py-2 pl-8 pr-3 text-base outline-none focus:ring-2 focus:ring-accent/30"
           onChange={(event) => {
             setQuery(event.target.value);
             setActive(0);
@@ -217,7 +218,7 @@ export function InvestmentPicker({
               aria-selected={option.key === selected}
               onPointerMove={() => setActive(index)}
               onClick={() => choose(option)}
-              className={`cursor-pointer rounded-md px-3 py-2 ${index === current ? "bg-accent/10" : ""} ${option.key === selected ? "font-semibold" : ""}`}
+              className={`min-h-11 cursor-pointer rounded-md px-3 py-2 ${index === current ? "bg-accent/10" : ""} ${option.key === selected ? "font-semibold" : ""}`}
             >
               <span className="block text-sm">{option.label}</span>
               <span className="block text-xs text-muted">{option.detail}</span>

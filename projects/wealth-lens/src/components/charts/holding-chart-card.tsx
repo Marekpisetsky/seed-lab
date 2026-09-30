@@ -137,6 +137,8 @@ function UploadPrices({ ticker, onLoaded }: { ticker: string; onLoaded: (fileNam
         type="file"
         accept=".csv,text/csv,text/plain"
         className="sr-only"
+        // Opened by the visible button next to it: one stop for Tab, not two.
+        tabIndex={-1}
         aria-label={`Upload a price CSV for ${ticker}`}
         onChange={(event) => {
           const file = event.target.files?.[0];

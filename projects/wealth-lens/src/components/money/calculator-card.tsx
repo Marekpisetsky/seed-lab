@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown, Minus, Plus } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Changed } from "@/components/ui/changed";
 import { SettledNumberInput } from "@/components/ui/form";
 import { useAppState } from "@/hooks/use-app";
@@ -48,7 +48,7 @@ function EuroInput({ label, value, onCommit, className }: { label: string; value
 }
 
 const stepButton =
-  "flex size-8 shrink-0 items-center justify-center rounded-md border border-border bg-background text-muted hover:text-foreground disabled:opacity-40 sm:size-10";
+  "flex size-11 shrink-0 items-center justify-center rounded-md border border-border bg-background text-muted hover:text-foreground disabled:opacity-40";
 
 /** A field with − and + on its sides: one step at once, no typing pause. */
 function Stepped({
@@ -125,6 +125,8 @@ export function CalculatorCard() {
   const hasPortfolio = portfolioAllocation(priced).entries.length > 0;
   const current = resolveInvestment(plan.investment, priced, plan);
   const [picker, setPicker] = useState<{ mode: "choose" | "add"; top: number } | null>(null);
+  // What opened the list gets the focus back when it closes by a choice or Escape, so the keyboard never ends up nowhere.
+  const opener = useRef<HTMLElement | null>(null);
   const [editing, setEditing] = useState(false);
   // Once the user starts using the page, idle moments work out ahead what the next choice will need
   // (not before: a page only looked at does no extra work).
@@ -135,16 +137,24 @@ export function CalculatorCard() {
     return () => events.forEach((name) => window.removeEventListener(name, start));
   }, [plan.withdrawalRate]);
   const [basis, setBasis] = useState<Basis>(plan.assumptions.growth?.basis ?? "real");
-  const close = useCallback(() => setPicker(null), []);
-  const open = (mode: "choose" | "add", anchor: HTMLElement) => setPicker({ mode, top: anchor.offsetTop + anchor.offsetHeight + 4 });
+  const close = useCallback((refocus = false) => {
+    setPicker(null);
+    const element = opener.current;
+    if (refocus && element) requestAnimationFrame(() => element.isConnected && element.focus());
+  }, []);
+  const open = (mode: "choose" | "add", anchor: HTMLElement) => {
+    opener.current = anchor;
+    setPicker({ mode, top: anchor.offsetTop + anchor.offsetHeight + 4 });
+  };
   const mix = plan.investment.kind === "mix" ? plan.investment : null;
 
   return (
     <section aria-label="Calculator" className="relative grid grid-cols-2 gap-x-3 gap-y-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-4">
-      {/* On a phone: "You have" and "Invested in" side by side, then the two steppers in a row of their
-          own (they need the width); on a wider screen the four fields in one row, in reading order. */}
+      {/* The same order everywhere, so Tab follows what the eye reads: on a phone "You have" and "Invested
+          in" side by side, then the two steppers in a row of their own (they need the width); on a wider
+          screen the four fields in one row. */}
       {capital.source === "holdings" ? (
-        <div className="order-1 min-w-0 space-y-1">
+        <div className="min-w-0 space-y-1">
           <p className={labelClass}>You have</p>
           <p className="py-1.5 text-base font-semibold">
             <Changed value={formatEur(capital.amount)} />
@@ -152,11 +162,30 @@ export function CalculatorCard() {
           <p className="text-xs text-muted">Euro holdings, on My stocks</p>
         </div>
       ) : (
-        <EuroInput label="You have" value={plan.invested} onCommit={(invested) => updatePlan({ invested })} className="order-1" />
+        <EuroInput label="You have" value={plan.invested} onCommit={(invested) => updatePlan({ invested })} />
       )}
-      <div className="order-3 col-span-2 grid grid-cols-2 gap-x-2 sm:contents">
+      <div className="min-w-0 space-y-1">
+        <span id="invested-in-label" className={labelClass}>
+          Invested in
+        </span>
+        <button
+          type="button"
+          aria-haspopup="listbox"
+          aria-expanded={picker?.mode === "choose"}
+          aria-labelledby="invested-in-label invested-in-value"
+          // The list closes on a press outside it; this button toggles it instead.
+          onPointerDown={(event) => event.nativeEvent.stopPropagation()}
+          onClick={(event) => (picker ? close() : open("choose", event.currentTarget))}
+          className="flex min-h-11 w-full items-center justify-between gap-1 rounded-md border border-border bg-background px-2.5 py-2 text-left text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 sm:px-3"
+        >
+          <span id="invested-in-value" className="min-w-0 truncate">
+            <Changed value={current.name} />
+          </span>
+          <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted" />
+        </button>
+      </div>
+      <div className="col-span-2 grid grid-cols-2 gap-x-2 sm:contents">
       <Stepped
-        className="sm:order-2"
         label="You add each month (€)"
         less="€50 less a month"
         more="€50 more a month"
@@ -175,7 +204,6 @@ export function CalculatorCard() {
         />
       </Stepped>
       <Stepped
-        className="sm:order-4"
         label="For (years)"
         less="One year less"
         more="One year more"
@@ -193,26 +221,6 @@ export function CalculatorCard() {
           className="px-1 text-center text-base"
         />
       </Stepped>
-      </div>
-      <div className="order-2 min-w-0 space-y-1 sm:order-3">
-        <span id="invested-in-label" className={labelClass}>
-          Invested in
-        </span>
-        <button
-          type="button"
-          aria-haspopup="listbox"
-          aria-expanded={picker?.mode === "choose"}
-          aria-labelledby="invested-in-label invested-in-value"
-          // The list closes on a press outside it; this button toggles it instead.
-          onPointerDown={(event) => event.nativeEvent.stopPropagation()}
-          onClick={(event) => (picker ? close() : open("choose", event.currentTarget))}
-          className="flex w-full items-center justify-between gap-1 rounded-md border border-border bg-background px-2.5 py-2 text-left text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 sm:px-3"
-        >
-          <span id="invested-in-value" className="min-w-0 truncate">
-            <Changed value={current.name} />
-          </span>
-          <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted" />
-        </button>
       </div>
       {mix && <MixEditor mix={mix} onAddPart={(anchor) => open("add", anchor)} />}
       {current.investment.kind === "portfolio" && current.allocation && <PortfolioEditor allocation={current.allocation} model={current.model} />}
@@ -234,7 +242,7 @@ export function CalculatorCard() {
               // Custom growth is only its figures: open them to be typed.
               if (choice.kind === "custom") setEditing(true);
             }
-            close();
+            close(true);
           }}
         />
       )}

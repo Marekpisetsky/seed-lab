@@ -42,6 +42,8 @@ export function CsvImport({ hasHoldings, onImport, label = "Import CSV" }: CsvIm
           type="file"
           accept=".csv,text/csv"
           className="sr-only"
+          // Opened by the visible button next to it: one stop for Tab, not two.
+          tabIndex={-1}
           aria-label="Choose a CSV file with your holdings"
           onChange={(event) => {
             const file = event.target.files?.[0];

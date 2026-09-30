@@ -10,6 +10,7 @@ import { beforeInflationText, growsText, moneyLine } from "@/lib/growth";
 import { toNominal } from "@/lib/investment";
 import type { MixFigures } from "@/lib/projections";
 import type { WorstYear } from "@/lib/mix";
+import { WHAT_IF_LABELS } from "@/lib/what-if";
 import { WhatIfIndicator, WhatIfRow } from "./what-if-row";
 
 const range = ([low, high]: [number, number]) => `${formatEur(low)} – ${formatEur(high)}`;
@@ -68,7 +69,11 @@ export function ResultSection({ bundle }: { bundle: CalculationBundle }) {
   const years = `${result.years} year${result.years === 1 ? "" : "s"}`;
   const money = moneyLine(result, investment.volatility > 0);
   return (
-    <section aria-label="Result" className="space-y-3" aria-live="polite">
+    <section aria-label="Result" className="space-y-3">
+      {/* What a screen reader says after a change: one short sentence, not the whole section. */}
+      <p className="sr-only" aria-live="polite" aria-atomic="true">
+        {`In ${years} you'll have ${formatEur(result.total)}. ${growsText(result.growthRate)}.${calc.whatIf ? ` What if: ${WHAT_IF_LABELS[calc.whatIf].applied}.` : ""}`}
+      </p>
       <div>
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           <p className="text-base text-muted">
@@ -113,7 +118,7 @@ export function ResultSection({ bundle }: { bundle: CalculationBundle }) {
                   role="radio"
                   aria-checked={checked}
                   onClick={() => updatePlan({ withdrawalRate: rate })}
-                  className={`rounded px-2 py-1 font-medium tabular-nums ${checked ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
+                  className={`min-h-11 min-w-11 rounded px-2 py-1 font-medium tabular-nums ${checked ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
                 >
                   {formatRate(rate)}
                 </button>

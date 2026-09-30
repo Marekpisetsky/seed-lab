@@ -69,6 +69,8 @@ export function LoadDataButton({ variant = "secondary" }: { variant?: "secondary
         type="file"
         accept=".json,application/json"
         className="sr-only"
+        // Opened by the visible button next to it: one stop for Tab, not two.
+        tabIndex={-1}
         aria-label="Load a Wealth Lens data file"
         onChange={(event) => {
           const file = event.target.files?.[0];
