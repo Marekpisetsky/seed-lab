@@ -6,8 +6,12 @@ import { FooterDataControls } from "@/components/data-controls";
 import { useI18n } from "@/components/i18n";
 import { LegacyDataNotice } from "@/components/legacy-data-notice";
 import { MainNav } from "@/components/main-nav";
-import { localePath } from "@/i18n/locales";
+import { localePath, PAGES } from "@/i18n/locales";
+import { SEED_LAB_HUB_URL } from "@/lib/seed-lab";
+import { PROJECT_URL } from "@/lib/site";
 import { LanguageSwitch } from "./language-switch";
+
+const footerLink = "flex min-h-11 items-center px-2 text-muted underline-offset-2 hover:text-foreground hover:underline";
 
 /** Header, main and footer around every page, in the page's language. */
 export function SiteShell({ children }: { children: React.ReactNode }) {
@@ -45,6 +49,27 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto max-w-5xl space-y-3 px-4 py-4">
           <FooterDataControls />
           <p className="text-xs text-muted">{m.site.footerNote}</p>
+          <nav aria-label={m.site.footer}>
+            <ul className="-mx-2 flex flex-wrap items-center text-sm">
+              {(["about", "howItWorks", "privacy", "terms"] as const).map((page) => (
+                <li key={page}>
+                  <Link href={localePath(PAGES[page], locale)} className={footerLink}>
+                    {m[page].title}
+                  </Link>
+                </li>
+              ))}
+              <li>
+                <a href={PROJECT_URL} rel="noopener" className={footerLink}>
+                  {m.site.github}
+                </a>
+              </li>
+              <li>
+                <a href={SEED_LAB_HUB_URL} rel="noopener" className={footerLink}>
+                  {m.site.partOf}
+                </a>
+              </li>
+            </ul>
+          </nav>
         </div>
       </footer>
     </>

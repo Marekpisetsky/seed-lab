@@ -164,6 +164,9 @@ export const costOfLiving: CostOfLivingDataset = parseDataset(raw, estimatedRaw)
 /** The estimates' method and fit, as the script wrote them. */
 export const ESTIMATE_METHOD: EstimateMethod = estimatedRaw.method;
 
+/** Countries with World Bank price data that are left out, and why (not enough data, or prices rising over 30% a year). */
+export const ESTIMATE_EXCLUDED: readonly { code: string; reason: string }[] = estimatedRaw.excluded;
+
 /** The country "Prices of" starts with. */
 export const DEFAULT_PRICES_OF = "NL";
 

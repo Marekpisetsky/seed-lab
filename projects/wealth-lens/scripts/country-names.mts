@@ -26,8 +26,11 @@ const OVERRIDES: Record<string, Partial<Record<(typeof LOCALES)[number], string>
   CI: { en: "Côte d’Ivoire", es: "Costa de Marfil" },
 };
 
-const read = async (file: string) => (JSON.parse(await readFile(new URL(file, root), "utf8")) as { countries: { code: string }[] }).countries;
-const listed = [...(await read("src/data/cost-of-living.json")), ...(await read("src/data/estimated-countries.json"))];
+const read = async (file: string) => JSON.parse(await readFile(new URL(file, root), "utf8")) as { countries: { code: string }[]; excluded?: { code: string }[] };
+const detailed = await read("src/data/cost-of-living.json");
+const estimated = await read("src/data/estimated-countries.json");
+// The countries left out are named too: How it works lists them.
+const listed = [...detailed.countries, ...estimated.countries, ...(estimated.excluded ?? [])];
 const codes = [...new Set(listed.map((country) => country.code))].sort();
 const displays = Object.fromEntries(LOCALES.map((locale) => [locale, new Intl.DisplayNames([locale], { type: "region" })]));
 

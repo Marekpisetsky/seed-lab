@@ -341,6 +341,44 @@ meses en Portugal, un máster en NL) se calculan con el costo de vida de
 ese país, con vivienda. Importes en euros de hoy; los de USD se
 convierten con el tipo guardado en el archivo.
 
+## Páginas del sitio
+
+About, How it works, Privacy y Terms (`/about`, `/how-it-works`,
+`/privacy`, `/terms` y sus versiones `/es/…`), más una 404 en los dos
+idiomas (`src/app/not-found.tsx`). Sus textos viven en los diccionarios
+(`about`, `howItWorks`, `privacy`, `terms`, `notFound`), con frases de hasta
+unas 22 palabras; *How it works* cita cifras sacadas de los datos (países,
+errores de la estimación, países excluidos, inflación alta), así que no se
+desactualiza. El pie enlaza las cuatro, GitHub y "Part of seed-lab".
+Contacto: solo GitHub Issues, sin correo publicado. Código con licencia
+MIT (`LICENSE`). Icono propio (`src/app/icon.svg`, y `favicon.ico` y
+`apple-icon.png` dibujados a partir de él) e imagen para compartir de
+1200×630 generada en el build (`src/app/og.png/route.tsx`, estática, la
+misma para todas las páginas y los dos idiomas).
+
+## Licencias de los datos
+
+Revisión fuente por fuente (las páginas de condiciones de cada una no se
+pudieron abrir desde el entorno que compiló esto; la conclusión se basa en
+sus condiciones publicadas conocidas y se aplica la opción más prudente):
+
+| Fuente | Condiciones | Qué se publica |
+| --- | --- | --- |
+| Yahoo Finance, Stooq | No permiten redistribuir sus datos | Solo cifras derivadas en `prices.json` (último cierre por fondo, cambio a 1 año, crecimiento anual, peor caída, cambio de cada año, volatilidad, correlaciones); nunca el historial de cierres |
+| Numbeo, Wise | No permiten copiar sus datos | Solo el coste mensual en euros, combinado y redondeado a 10, con atribución; se quitaron las cifras originales que citaba `cost-of-living.json` |
+| MSCI, Nasdaq, LBMA | Datos propietarios | Solo la rentabilidad anual real derivada y la inflación usada; se quitaron las rentabilidades nominales de MSCI, los cierres del Nasdaq-100 y los precios del oro |
+| Robert Shiller (Yale) | Libre con atribución | Rentabilidad real anual derivada del S&P 500 |
+| OCDE, Bundesbank, Destatis | CC BY 4.0 / uso libre con atribución / dl-de/by-2-0 | Rendimientos del Bund y precios alemanes, con atribución |
+| US BLS | Dominio público | IPC de EE. UU. 2023–2024 |
+| Banco Mundial (WDI) | CC BY 4.0 | Ratios de nivel de precios e inflación, derivados y con atribución |
+| Unicode CLDR | Licencia Unicode | Nombres de países |
+
+Riesgo residual: el último cierre de cada fondo es una cotización tal cual
+(como la de cualquier web de noticias); hace falta para valorar las
+posiciones. Si una fuente lo objetara, el job puede dejar de publicarlo y
+pedir el precio al usuario. *How it works* explica todo esto en lenguaje
+llano.
+
 ## Test my plan (`/test`, `/es/test`)
 
 El plan tal cual está en My money (mismo activo o mezcla, mismos importes,

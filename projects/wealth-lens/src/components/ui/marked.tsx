@@ -1,19 +1,56 @@
+"use client";
+
+import Link from "next/link";
+import { useI18n } from "@/components/i18n";
+import { localePath } from "@/i18n/locales";
+import { SEED_LAB_HUB_URL } from "@/lib/seed-lab";
+import { ISSUES_URL, LICENSE_URL, PROJECT_URL } from "@/lib/site";
+
+/** Link names a dictionary may use instead of an address: "[Open an issue](issues)". */
+const NAMED_LINKS: Readonly<Record<string, string>> = {
+  issues: ISSUES_URL,
+  repo: PROJECT_URL,
+  license: LICENSE_URL,
+  hub: SEED_LAB_HUB_URL,
+};
+
+const linkClass = "font-medium text-accent underline underline-offset-2";
+
 /**
- * A dictionary sentence with its key figure marked "**like this**": the
- * marked part is bold, so each language places it where its words need it.
+ * A dictionary sentence with its key figure marked "**like this**" (bold,
+ * so each language places it where its words need it) and links written
+ * "[words](/page)", "[words](https://…)" or "[words](issues)". A page of
+ * the site ("/privacy") opens in the page's language.
  */
 export function Marked({ text, strongClassName = "font-medium text-foreground tabular-nums" }: { text: string; strongClassName?: string }) {
+  const { locale } = useI18n();
   return (
     <>
-      {text.split(/\*\*(.+?)\*\*/).map((part, index) =>
-        index % 2 === 1 ? (
-          <strong key={index} className={strongClassName}>
-            {part}
-          </strong>
-        ) : (
-          part
-        ),
-      )}
+      {text.split(/(\*\*.+?\*\*|\[[^\]]+\]\([^)]+\))/).map((part, index) => {
+        const bold = /^\*\*(.+)\*\*$/.exec(part);
+        if (bold) {
+          return (
+            <strong key={index} className={strongClassName}>
+              {bold[1]}
+            </strong>
+          );
+        }
+        const link = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(part);
+        if (!link) return part;
+        const [, words, target] = link;
+        if (target.startsWith("/")) {
+          return (
+            <Link key={index} href={localePath(target, locale)} className={linkClass}>
+              {words}
+            </Link>
+          );
+        }
+        return (
+          <a key={index} href={NAMED_LINKS[target] ?? target} className={linkClass} rel="noopener">
+            {words}
+          </a>
+        );
+      })}
     </>
   );
 }

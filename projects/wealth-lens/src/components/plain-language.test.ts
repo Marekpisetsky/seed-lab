@@ -186,6 +186,7 @@ const HIDDEN_ATTRIBUTES = new Set([
   "aria-orientation",
   "placeholder",
   "scope",
+  "page",
   "paintOrder",
   "color",
 ]);
