@@ -1,42 +1,52 @@
 /**
- * The assumptions as the calculator shows them: one compact line
- * ("7.5% a year after inflation · swings ±17% · 1988–2022"), a short note,
- * and the figures the Edit panel shows, before or after inflation.
+ * The assumptions as the calculator shows them, in plain words: one compact
+ * line ("Grows 7.5% a year after rising prices · can move ±17% in a year ·
+ * data 1988–2022"), a short note, and the figures the Edit panel shows,
+ * after or before rising prices.
  */
 
 import { GOLD_NOTE, SAVINGS_RATE } from "./assets";
-import { formatPercent, formatRate } from "./format";
+import { formatEur, formatPercent, formatRate } from "./format";
 import { dividendNote, periodText, toNominal, type ResolvedInvestment } from "./investment";
 
 export type Basis = "real" | "nominal";
 
-/** The growth a year in the basis shown: after inflation (real) or before it (nominal). */
+/** The growth a year as shown: after rising prices ("real") or before them ("nominal"). */
 export function growthIn(investment: Pick<ResolvedInvestment, "realReturn" | "inflation">, basis: Basis): number {
   return basis === "real" ? investment.realReturn : toNominal(investment.realReturn, investment.inflation);
 }
 
-/** "7.5% a year after inflation". */
+/** "Grows 7.5% a year after rising prices"; "Shrinks 0.5% a year …" below zero. */
 export function growthText(investment: Pick<ResolvedInvestment, "realReturn" | "inflation">, basis: Basis): string {
-  return `${formatRate(growthIn(investment, basis))} a year ${basis === "real" ? "after" : "before"} inflation`;
+  const rate = growthIn(investment, basis);
+  return `${rate < 0 ? "Shrinks" : "Grows"} ${formatRate(Math.abs(rate))} a year ${basis === "real" ? "after" : "before"} rising prices`;
 }
 
-/** "swings ±17%", or "no swings". */
-export function swingsText(volatility: number): string {
-  return volatility > 0 ? `swings ±${formatPercent(volatility, { decimals: 0 })}` : "no swings";
+/** "can move ±17% in a year", or "the same every year" with no ups and downs. */
+export function upsAndDownsText(volatility: number): string {
+  return volatility > 0 ? `can move ±${formatPercent(volatility, { decimals: 0 })} in a year` : "the same every year";
 }
 
-/** Where the figures come from: "1988–2022", "1.5% interest, 2% inflation", "your figures". */
+/** "e.g. a €10,000 year could end between €9,200 and €10,800": a normal year's ups and downs, in euros. */
+export function upsAndDownsExample(volatility: number): string {
+  if (volatility <= 0) return "0: it grows the same every year.";
+  const low = formatEur(Math.max(0, 10_000 * (1 - volatility)));
+  return `e.g. a €10,000 year could end between ${low} and ${formatEur(10_000 * (1 + volatility))}.`;
+}
+
+/** Where the figures come from: "data 1988–2022", "1.5% interest, prices rise 2%", "your figures". */
 export function sourceText(investment: ResolvedInvestment): string {
   if (investment.custom) return investment.investment.kind === "custom" ? "your figures" : "your figures, not the data";
   if (investment.investment.kind === "asset" && investment.investment.asset === "savings") {
-    return `${formatRate(SAVINGS_RATE)} interest, ${formatRate(investment.inflation)} inflation`;
+    return `${formatRate(SAVINGS_RATE)} interest, prices rise ${formatRate(investment.inflation)}`;
   }
-  return periodText(investment);
+  const period = periodText(investment);
+  return period && `data ${period}`;
 }
 
-/** The compact line: growth · swings · where from. */
+/** The compact line: growth · ups and downs · where from. */
 export function assumptionsLine(investment: ResolvedInvestment, basis: Basis): string {
-  return [growthText(investment, basis), swingsText(investment.volatility), sourceText(investment)].filter(Boolean).join(" · ");
+  return [growthText(investment, basis), upsAndDownsText(investment.volatility), sourceText(investment)].filter(Boolean).join(" · ");
 }
 
 /** The short note under the line: what matters about this choice (My portfolio's label sits over its holdings). */

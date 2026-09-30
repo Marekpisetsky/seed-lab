@@ -58,4 +58,4 @@ export function seriesVolatility(asset: SeriesId): number {
 }
 
 /** Said with gold wherever it can be chosen: it protects, it does not grow much. */
-export const GOLD_NOTE = "Low long-term growth, big swings";
+export const GOLD_NOTE = "Low long-term growth, big ups and downs";

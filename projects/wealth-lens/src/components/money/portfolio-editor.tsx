@@ -4,49 +4,9 @@ import { setHoldingReference } from "@/lib/app-store";
 import { ASSET_IDS, assetShortName, type AssetId } from "@/lib/assets";
 import { formatEur, formatPercent } from "@/lib/format";
 import { instrumentForHolding } from "@/lib/market-data";
-import { stockTerms, usesFallback, type MixModel } from "@/lib/mix";
+import type { MixModel } from "@/lib/mix";
 import { defaultReference, PORTFOLIO_LABEL, type Allocation } from "@/lib/portfolio";
-import { FALLBACK_FACTOR, MIN_DATA_YEARS } from "@/lib/volatility";
-
-/** How My portfolio is simulated, with each stock's figures. */
-function HowItWorks({ model }: { model: MixModel | null }) {
-  const stocks = model ? stockTerms(model) : [];
-  return (
-    <details className="text-xs text-muted">
-      <summary className="cursor-pointer list-none font-medium text-foreground [&::-webkit-details-marker]:hidden">
-        <span aria-hidden="true" className="mr-1 inline-flex size-4 items-center justify-center rounded-full border border-current text-[10px]">
-          i
-        </span>
-        How My portfolio is worked out
-      </summary>
-      <div className="mt-2 space-y-2">
-        <p>
-          Each holding grows like the asset beside it, weighted by its value in euros (holdings in other currencies are left out: no conversion). A stock
-          grows at its index&apos;s average: one company&apos;s own past is never projected.
-        </p>
-        <p>
-          A stock of the list keeps its own ups and downs: it swings as much as its daily closes show and follows its index as much as its weekly prices
-          did.{" "}
-          {model && usesFallback(model) && (
-            <>
-              With under {MIN_DATA_YEARS} years of prices it is taken to swing {FALLBACK_FACTOR} times as much as its index.
-            </>
-          )}
-        </p>
-        {stocks.length > 0 && (
-          <ul className="space-y-0.5">
-            {stocks.map((term) => (
-              <li key={term.name}>
-                {term.name}: swings {formatPercent(term.volatility, { decimals: 0 })} a year, correlation {term.correlation.toFixed(2)} with its index.
-              </li>
-            ))}
-          </ul>
-        )}
-        <p>The holdings are simulated together and left to drift, as holdings do.</p>
-      </div>
-    </details>
-  );
-}
+import { HowMyPortfolioWorks } from "./explainers";
 
 /**
  * My portfolio's holdings, each with what it grows like: worked out from
@@ -72,7 +32,7 @@ export function PortfolioEditor({ allocation, model }: { allocation: Allocation;
                 </span>
                 <span className="block text-xs text-muted tabular-nums">
                   {formatPercent(entry.weight, { decimals: 0 })} · {formatEur(entry.value)}
-                  {entry.stock ? " · its own swings" : ""}
+                  {entry.stock ? " · its own ups and downs" : ""}
                   {entry.assumed ? " · a guess: change it" : ""}
                 </span>
               </span>
@@ -105,7 +65,7 @@ export function PortfolioEditor({ allocation, model }: { allocation: Allocation;
           . The app does not convert currencies.
         </p>
       )}
-      <HowItWorks model={model} />
+      <HowMyPortfolioWorks model={model} />
     </div>
   );
 }
