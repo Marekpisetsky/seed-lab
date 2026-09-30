@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { CalculationBundle } from "@/hooks/use-calculation";
 import { yearlyPath, type YearPoint } from "@/lib/calculator";
 import { formatEur } from "@/lib/format";
+import { endLabel, yearTooltip } from "@/lib/growth";
 import { bandsFor } from "@/lib/projections";
 import type { WealthPercentiles } from "@/lib/simulation";
 
@@ -93,11 +94,29 @@ function Plot({ points, band, startYear, swings }: { points: YearPoint[]; band: 
   const growthEnd = end.total - Math.min(end.putIn, end.total);
   const labelYears = years <= 1 ? [0, years] : [0, Math.round(years / 2), years];
   const shown = hover === null ? null : points[hover];
+  // The year under the mouse or the finger.
+  const showYearAt = (event: React.PointerEvent<SVGSVGElement>) => {
+    const box = event.currentTarget.getBoundingClientRect();
+    const year = Math.round(((event.clientX - box.left - PAD.left) / (plotRight - PAD.left)) * years);
+    setHover(Math.min(years, Math.max(0, year)));
+  };
+  // The tooltip sits beside the hovered year, on the side with more room, and never leaves the chart.
+  const tip = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const node = tip.current;
+    if (!node || hover === null) return;
+    const tipWidth = node.offsetWidth;
+    const wanted = hover > years / 2 ? x(hover) - 8 - tipWidth : x(hover) + 8;
+    node.style.left = `${Math.min(Math.max(0, wanted), Math.max(0, width - tipWidth))}px`;
+  });
 
   // Direct labels at the right end, in the middle of each area when it is tall enough.
   const putInLabelY = (y(0) + y(putInTop[years])) / 2;
   const growthLabelY = (y(putInTop[years]) + y(end.total)) / 2;
   const labelsFit = Math.abs(putInLabelY - growthLabelY) >= FONT + 2;
+  // What growth added in all, at the end of the curve: just above it, inside the plot.
+  const gained = endLabel(end);
+  const gainedY = Math.max(PAD.top + FONT, y(end.total) - 7);
 
   return (
     <div ref={frame} className="relative">
@@ -108,12 +127,10 @@ function Plot({ points, band, startYear, swings }: { points: YearPoint[]; band: 
         className="block touch-pan-y select-none"
         role="img"
         aria-label={`Year by year to ${startYear + years}: ${formatEur(end.putIn)} put in, ${formatEur(growthEnd)} of growth.${swings ? ` 8 in 10 simulations ended between ${formatEur(band.p10[years])} and ${formatEur(band.p90[years])}.` : ""}`}
-        onPointerMove={(event) => {
-          const box = event.currentTarget.getBoundingClientRect();
-          const year = Math.round(((event.clientX - box.left - PAD.left) / (plotRight - PAD.left)) * years);
-          setHover(Math.min(years, Math.max(0, year)));
-        }}
-        onPointerLeave={() => setHover(null)}
+        onPointerDown={showYearAt}
+        onPointerMove={showYearAt}
+        // A finger lifted leaves the year shown; a mouse that leaves hides it.
+        onPointerLeave={(event) => event.pointerType === "mouse" && setHover(null)}
       >
         <defs>
           <clipPath id={clip}>
@@ -140,6 +157,14 @@ function Plot({ points, band, startYear, swings }: { points: YearPoint[]; band: 
             <path d={line(band.p90)} />
           </g>
         )}
+        {gained && (
+          <g>
+            <circle cx={x(years)} cy={y(end.total)} r={3} fill="var(--foreground)" />
+            <text x={x(years) - 6} y={gainedY} fontSize={FONT + 1} fontWeight={600} textAnchor="end" fill="var(--foreground)" stroke="var(--card)" strokeWidth={3} paintOrder="stroke">
+              {gained}
+            </text>
+          </g>
+        )}
         {labelsFit && (
           <>
             <text x={plotRight + 6} y={growthLabelY + FONT / 3} fontSize={FONT} fill="var(--foreground)">
@@ -163,13 +188,8 @@ function Plot({ points, band, startYear, swings }: { points: YearPoint[]; band: 
         )}
       </svg>
       {shown && (
-        <div
-          className="pointer-events-none absolute top-0 z-10 whitespace-nowrap rounded-md border border-border bg-card px-2 py-1 text-xs shadow-sm tabular-nums"
-          style={{ left: x(shown.year), transform: shown.year > years / 2 ? "translateX(calc(-100% - 8px))" : "translateX(8px)" }}
-        >
-          <p className="font-medium">
-            {startYear + shown.year}: {formatEur(shown.total)}
-          </p>
+        <div ref={tip} className="pointer-events-none absolute top-0 left-0 z-10 whitespace-nowrap rounded-md border border-border bg-card px-2 py-1 text-xs shadow-sm tabular-nums">
+          <p className="font-medium">{yearTooltip(shown, startYear)}</p>
           <p>
             <Swatch color="var(--chart-put-in)" /> Put in {formatEur(shown.putIn)}
           </p>
@@ -277,7 +297,7 @@ export function GrowthChart({ bundle }: { bundle: CalculationBundle }) {
             <Swatch color="var(--foreground)" dashed /> 8 in 10 {investment.modelShort} ended between the lines
           </span>
         ) : (
-          <span>No swings: every year grows the same</span>
+          <span>No ups and downs: every year grows the same</span>
         )}
       </figcaption>
       {band ? <Plot points={points} band={band} startYear={startYear} swings={investment.volatility > 0} /> : <div style={{ height: HEIGHT }} aria-hidden="true" />}

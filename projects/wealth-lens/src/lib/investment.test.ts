@@ -158,7 +158,7 @@ describe("Custom growth", () => {
   it("uses the growth and swings typed", () => {
     const resolved = resolveInvestment({ kind: "custom" }, [], settings({ growth: { rate: 0.06, basis: "real" }, volatility: 0.1 }));
     expect(resolved).toMatchObject({ realReturn: 0.06, volatility: 0.1 });
-    expect(resolved.modelText).toBe("simulations with 6% a year after inflation and swings of ±10%");
+    expect(resolved.modelText).toBe("simulations with 6% a year after rising prices and ups and downs of ±10%");
     expect(annualizedReturn(resolved.returns)).toBeCloseTo(0.06, 4);
   });
 });

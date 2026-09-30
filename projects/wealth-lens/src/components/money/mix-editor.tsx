@@ -6,16 +6,17 @@ import { SettledNumberInput } from "@/components/ui/form";
 import { setInvestment } from "@/lib/app-store";
 import { assetName, GOLD_NOTE, SAVINGS_RATE, type AssetId } from "@/lib/assets";
 import { formatRate } from "@/lib/format";
-import { COMMON_PERIOD, SERIES } from "@/lib/indexes";
+import { SERIES } from "@/lib/indexes";
 import { MAX_PARTS, splitEvenly, sumsTo100, TEMPLATES, templateOf } from "@/lib/mix";
 import type { MixPart } from "@/lib/types";
+import { HowThisMixWorks } from "./explainers";
 
 type Mix = { kind: "mix"; parts: MixPart[]; rebalance: boolean };
 
 function partDetail(asset: AssetId): string {
-  if (asset === "savings") return `${formatRate(SAVINGS_RATE)} interest less inflation, no swings`;
+  if (asset === "savings") return `${formatRate(SAVINGS_RATE)} interest minus rising prices, no ups and downs`;
   if (asset === "gold") return `${GOLD_NOTE}, e.g. ${SERIES.gold.etf}`;
-  return `${formatRate(SERIES[asset].averageReturn)} a year after inflation, e.g. ${SERIES[asset].etf}`;
+  return `${formatRate(SERIES[asset].averageReturn)} a year after rising prices, e.g. ${SERIES[asset].etf}`;
 }
 
 function Total({ parts }: { parts: readonly MixPart[] }) {
@@ -29,40 +30,6 @@ function Total({ parts }: { parts: readonly MixPart[] }) {
       Total {Number(total.toFixed(2))}%
       {!ok && <span className="font-normal"> — {total < 100 ? `${amount} left to place` : `${amount} too much`}; the result uses the last mix that added up to 100%</span>}
     </p>
-  );
-}
-
-/** How the mix is simulated, in plain words. */
-function HowItWorks() {
-  return (
-    <details className="group rounded-md text-xs text-muted">
-      <summary className="cursor-pointer list-none font-medium text-foreground [&::-webkit-details-marker]:hidden">
-        <span aria-hidden="true" className="mr-1 inline-flex size-4 items-center justify-center rounded-full border border-current text-[10px]">
-          i
-        </span>
-        How this mix is worked out
-      </summary>
-      <div className="mt-2 space-y-2">
-        <p>
-          <strong className="font-medium text-foreground">Growth:</strong> the weighted average of each part&apos;s growth after inflation (
-          {COMMON_PERIOD[0]}–{COMMON_PERIOD[1]}; a savings part, its rate less inflation).
-        </p>
-        <p>
-          <strong className="font-medium text-foreground">Ups and downs:</strong> 1,000 simulated paths. Each year, one historical year of {COMMON_PERIOD[0]}–
-          {COMMON_PERIOD[1]} is drawn for every part at once, so stocks, bonds and gold rise and fall together as they did (2022 hit stocks and bonds
-          alike). A savings part earns its rate every year.
-        </p>
-        <p>
-          <strong className="font-medium text-foreground">Weights:</strong> “Let weights drift” lets each part grow on its own (money added each month is
-          split by the weights); “Rebalance every year” goes back to the weights every year.
-        </p>
-        <p>
-          <strong className="font-medium text-foreground">Worst year in the data:</strong> the mix&apos;s worst calendar year, back at its weights each
-          January, over the years every part has data. Past, not a promise.
-        </p>
-        <p>The quick mixes are textbook starting points (world stocks and euro government bonds), not advice: the app shows what any weights do.</p>
-      </div>
-    </details>
   );
 }
 
@@ -166,7 +133,7 @@ export function MixEditor({ mix, onAddPart }: { mix: Mix; onAddPart: (anchor: HT
           </button>
         ))}
       </div>
-      <HowItWorks />
+      <HowThisMixWorks />
     </div>
   );
 }

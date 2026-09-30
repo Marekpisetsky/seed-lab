@@ -427,14 +427,16 @@ export function mixPercentiles(
   model: MixModel,
   { start, monthly, years }: { start: number; monthly: number; years: number },
   market: PricesFile = MARKET,
+  /** Every year's growth factor times this ("What if: grows 1% more"). */
+  growth = 1,
 ): WealthPercentiles {
   const returns = partReturns(model, market);
   const span = Math.min(years, MIX_YEARS);
   const totals = Array.from({ length: span + 1 }, () => new Float64Array(MIX_SIMULATIONS));
   const weights = Float64Array.from(model.parts, (part) => part.weight);
   // Each way of holding the weights has its own loop, so each stays fast whichever ran last.
-  if (model.rebalance) balancesRebalanced(returns, weights, start, monthly, totals);
-  else balancesDrifting(returns, weights, start, monthly, totals);
+  if (model.rebalance) balancesRebalanced(returns, weights, start, monthly, totals, growth);
+  else balancesDrifting(returns, weights, start, monthly, totals, growth);
   const result: WealthPercentiles = { p10: [], p50: [], p90: [] };
   for (const column of totals) {
     column.sort();
@@ -445,7 +447,7 @@ export function mixPercentiles(
   return result;
 }
 
-function balancesRebalanced(returns: readonly Float64Array[], weights: Float64Array, start: number, monthly: number, totals: Float64Array[]): void {
+function balancesRebalanced(returns: readonly Float64Array[], weights: Float64Array, start: number, monthly: number, totals: Float64Array[], growth: number): void {
   const span = totals.length - 1;
   for (let s = 0; s < MIX_SIMULATIONS; s++) {
     const offset = s * MIX_YEARS;
@@ -454,13 +456,13 @@ function balancesRebalanced(returns: readonly Float64Array[], weights: Float64Ar
     for (let y = 1; y <= span; y++) {
       let r = 0;
       for (let j = 0; j < weights.length; j++) r += weights[j] * returns[j][offset + y - 1];
-      balance = (balance + 6 * monthly) * (1 + r) + 6 * monthly;
+      balance = (balance + 6 * monthly) * (1 + r) * growth + 6 * monthly;
       totals[y][s] = balance;
     }
   }
 }
 
-function balancesDrifting(returns: readonly Float64Array[], weights: Float64Array, start: number, monthly: number, totals: Float64Array[]): void {
+function balancesDrifting(returns: readonly Float64Array[], weights: Float64Array, start: number, monthly: number, totals: Float64Array[], growth: number): void {
   const span = totals.length - 1;
   const balances = new Float64Array(weights.length);
   for (let s = 0; s < MIX_SIMULATIONS; s++) {
@@ -471,7 +473,7 @@ function balancesDrifting(returns: readonly Float64Array[], weights: Float64Arra
       let total = 0;
       for (let j = 0; j < weights.length; j++) {
         const added = 6 * monthly * weights[j];
-        balances[j] = (balances[j] + added) * (1 + returns[j][offset + y - 1]) + added;
+        balances[j] = (balances[j] + added) * (1 + returns[j][offset + y - 1]) * growth + added;
         total += balances[j];
       }
       totals[y][s] = total;
@@ -480,15 +482,17 @@ function balancesDrifting(returns: readonly Float64Array[], weights: Float64Arra
 }
 
 /** How often each withdrawal rate lasted 30 years (withdrawals taken from the parts in proportion). */
-export function mixSuccessRates(model: MixModel, rates: readonly number[], market: PricesFile = MARKET, years = 30): number[] {
+export function mixSuccessRates(model: MixModel, rates: readonly number[], market: PricesFile = MARKET, years = 30, growth = 1): number[] {
   const returns = partReturns(model, market);
   const weights = Float64Array.from(model.parts, (part) => part.weight);
-  const counts = model.rebalance ? lastedRebalanced(returns, weights, Float64Array.from(rates), years) : lastedDrifting(returns, weights, Float64Array.from(rates), years);
+  const counts = model.rebalance
+    ? lastedRebalanced(returns, weights, Float64Array.from(rates), years, growth)
+    : lastedDrifting(returns, weights, Float64Array.from(rates), years, growth);
   return Array.from(counts, (count) => count / MIX_SIMULATIONS);
 }
 
 /** Back at the weights every year: one return a year, the rates played over it. */
-function lastedRebalanced(returns: readonly Float64Array[], weights: Float64Array, rates: Float64Array, years: number): Float64Array {
+function lastedRebalanced(returns: readonly Float64Array[], weights: Float64Array, rates: Float64Array, years: number, growth: number): Float64Array {
   const successes = new Float64Array(rates.length);
   const sequence = new Array<number>(years);
   for (let s = 0; s < MIX_SIMULATIONS; s++) {
@@ -496,7 +500,7 @@ function lastedRebalanced(returns: readonly Float64Array[], weights: Float64Arra
     for (let y = 0; y < years; y++) {
       let r = 0;
       for (let j = 0; j < weights.length; j++) r += weights[j] * returns[j][offset + y];
-      sequence[y] = r;
+      sequence[y] = (1 + r) * growth - 1;
     }
     for (let index = 0; index < rates.length; index++) if (survives(sequence, rates[index])) successes[index] += 1;
   }
@@ -504,7 +508,7 @@ function lastedRebalanced(returns: readonly Float64Array[], weights: Float64Arra
 }
 
 /** Weights drifting: each part earns its own return, withdrawals taken from the parts in proportion. */
-function lastedDrifting(returns: readonly Float64Array[], weights: Float64Array, rates: Float64Array, years: number): Float64Array {
+function lastedDrifting(returns: readonly Float64Array[], weights: Float64Array, rates: Float64Array, years: number, growth: number): Float64Array {
   const parts = weights.length;
   const successes = new Float64Array(rates.length);
   const balances = new Float64Array(parts);
@@ -528,7 +532,7 @@ function lastedDrifting(returns: readonly Float64Array[], weights: Float64Array,
           break;
         }
         const keep = 1 - rate / total;
-        for (let j = 0; j < parts; j++) balances[j] *= keep * (1 + path[j * years + y]);
+        for (let j = 0; j < parts; j++) balances[j] *= keep * (1 + path[j * years + y]) * growth;
       }
       successes[index] += lasted;
     }

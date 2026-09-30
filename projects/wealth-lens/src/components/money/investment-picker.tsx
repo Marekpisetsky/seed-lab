@@ -33,7 +33,7 @@ function assetOptions(): Option[] {
       group: "Indexes",
       choice: { kind: "asset", asset: index },
       label: info.name,
-      detail: `${formatRate(info.averageReturn)} a year after inflation · e.g. ${info.etf}`,
+      detail: `${formatRate(info.averageReturn)} a year after rising prices · e.g. ${info.etf}`,
       haystack: `${info.name} ${info.returnType} stocks index ${tickers(index)}`.toLowerCase(),
     };
   });
@@ -44,7 +44,7 @@ function assetOptions(): Option[] {
       group: "Bonds",
       choice: { kind: "asset", asset: "bonds" },
       label: SERIES.bonds.name,
-      detail: `${formatRate(SERIES.bonds.averageReturn)} a year after inflation · 10-year German Bund · e.g. ${SERIES.bonds.etf}`,
+      detail: `${formatRate(SERIES.bonds.averageReturn)} a year after rising prices · 10-year German Bund · e.g. ${SERIES.bonds.etf}`,
       haystack: `euro government bonds bund germany ${tickers("bonds")}`.toLowerCase(),
     },
     {
@@ -52,7 +52,7 @@ function assetOptions(): Option[] {
       group: "Gold",
       choice: { kind: "asset", asset: "gold" },
       label: SERIES.gold.name,
-      detail: `${GOLD_NOTE}: protection, not growth · ${formatRate(SERIES.gold.averageReturn)} a year after inflation`,
+      detail: `${GOLD_NOTE}: protection, not growth · ${formatRate(SERIES.gold.averageReturn)} a year after rising prices`,
       haystack: `gold ${tickers("gold")}`.toLowerCase(),
     },
     {
@@ -60,7 +60,7 @@ function assetOptions(): Option[] {
       group: "Savings",
       choice: { kind: "asset", asset: "savings" },
       label: "Savings account",
-      detail: `${formatRate(SAVINGS_RATE)} interest less inflation, no swings · your bank's rate can be typed in`,
+      detail: `${formatRate(SAVINGS_RATE)} interest minus rising prices, no ups and downs · your bank's rate can be typed in`,
       haystack: "savings account bank deposit cash interest",
     },
   ];
@@ -125,7 +125,7 @@ export function InvestmentPicker({
         group: "Your own figures",
         choice: { kind: "custom" },
         label: "Custom growth",
-        detail: "Type your own % a year and swings, without choosing an asset",
+        detail: "Type your own growth and ups and downs, without choosing an asset",
         haystack: "custom growth own rate figures",
       });
       if (hasPortfolio) {

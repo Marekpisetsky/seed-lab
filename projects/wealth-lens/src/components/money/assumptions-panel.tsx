@@ -5,15 +5,15 @@ import { useId } from "react";
 import { Changed } from "@/components/ui/changed";
 import { SettledNumberInput } from "@/components/ui/form";
 import { resetAssumptions, setAssumptions, setPricesOf } from "@/lib/app-store";
-import { assumptionsLine, assumptionsNote, growthIn, type Basis } from "@/lib/assumptions";
+import { assumptionsLine, assumptionsNote, growthIn, upsAndDownsExample, type Basis } from "@/lib/assumptions";
 import { SAVINGS_RATE_NOTE } from "@/lib/assets";
 import { costOfLiving, referenceInflation } from "@/lib/cost-of-living";
 import { formatPercent, formatRate } from "@/lib/format";
 import { COMMON_PERIOD } from "@/lib/indexes";
 import { toNominal, type ResolvedInvestment } from "@/lib/investment";
-import { POOL_SIZE } from "@/lib/normal";
 import type { AssumptionOverrides } from "@/lib/types";
 import { MAX_VOLATILITY } from "@/lib/validation";
+import { HowTheSimulationsWork } from "./explainers";
 
 const COUNTRIES = [...costOfLiving.countries].sort((a, b) => a.name.localeCompare(b.name));
 const labelClass = "block text-xs font-medium text-muted";
@@ -24,6 +24,7 @@ const same = (a: number, b: number) => Math.abs(a - b) < 0.00005;
 
 function PercentField({
   label,
+  prefix,
   value,
   min,
   max,
@@ -31,6 +32,8 @@ function PercentField({
   hint,
 }: {
   label: string;
+  /** Shown before the figure, e.g. "±". */
+  prefix?: string;
   value: number;
   min: number;
   max: number;
@@ -51,8 +54,13 @@ function PercentField({
           max={max * 100}
           onCommit={(percent) => onCommit(percent / 100)}
           aria-describedby={hint ? `${id}-hint` : undefined}
-          className="pr-7 text-base"
+          className={`pr-7 text-base ${prefix ? "pl-7" : ""}`}
         />
+        {prefix && (
+          <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted">
+            {prefix}
+          </span>
+        )}
         <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted">
           %
         </span>
@@ -66,46 +74,13 @@ function PercentField({
   );
 }
 
-/** How the simulations use the figures, folded. */
-function HowTheSimulationsWork() {
-  return (
-    <details className="text-xs text-muted">
-      <summary className="cursor-pointer list-none font-medium text-foreground [&::-webkit-details-marker]:hidden">
-        <span aria-hidden="true" className="mr-1 inline-flex size-4 items-center justify-center rounded-full border border-current text-[10px]">
-          i
-        </span>
-        How the simulations use these figures
-      </summary>
-      <div className="mt-2 space-y-2">
-        <p>
-          <strong className="font-medium text-foreground">Standard figures:</strong> the growth is the average after inflation over {COMMON_PERIOD[0]}–
-          {COMMON_PERIOD[1]}, the swings the spread of its yearly returns. Each simulated year is one of those historical years, drawn at random (a mix
-          draws the same year for all its parts), so the ups and downs are the ones that happened.
-        </p>
-        <p>
-          <strong className="font-medium text-foreground">Your own figures (Custom):</strong> no history describes them, so each year&apos;s growth is drawn
-          from a normal distribution in log terms: the typical year grows exactly your figure, two years in three stay within ± your swings of it, one in
-          twenty goes beyond twice that. The draws come from {POOL_SIZE.toLocaleString("en-US")} evenly spaced points of it.
-        </p>
-        <p>
-          <strong className="font-medium text-foreground">No swings:</strong> every year grows the same, as in a savings account; how long withdrawals last
-          is then certain.
-        </p>
-        <p>
-          <strong className="font-medium text-foreground">Inflation</strong> only turns growth before inflation into growth after it. Every amount is in
-          today&apos;s euros.
-        </p>
-      </div>
-    </details>
-  );
-}
-
 /**
- * The assumptions under the calculator: one compact line, filled in with
- * the standard figures of what the money is in, and an "Edit" panel where
- * the growth (before or after inflation), the swings and the inflation can
- * be changed. A changed figure marks the line "Custom"; "Reset to standard"
- * brings the standard ones back.
+ * The assumptions under the calculator, in plain words: one compact line,
+ * filled in with the standard figures of what the money is in, and an
+ * "Edit" panel where how much it grows (after or before rising prices), how
+ * much it can go up or down and how fast prices rise can be changed. A
+ * changed figure marks the line "Custom"; "Reset to standard" brings the
+ * standard ones back.
  */
 export function AssumptionsPanel({
   investment,
@@ -157,7 +132,7 @@ export function AssumptionsPanel({
           <div className="grid grid-cols-2 gap-x-3 gap-y-3 sm:grid-cols-4">
             <div className="col-span-2 space-y-1">
               <PercentField
-                label={`Growth a year, ${basis === "real" ? "after" : "before"} inflation`}
+                label="How much it grows a year"
                 value={growthIn(investment, basis)}
                 min={-0.5}
                 max={0.5}
@@ -166,10 +141,10 @@ export function AssumptionsPanel({
                   isCustomGrowth
                     ? "Your own figure, with no asset behind it."
                     : isSavings
-                      ? `Standard: ${formatRate(standard.nominalRate ?? 0)} before inflation, ${SAVINGS_RATE_NOTE}.`
+                      ? `Standard: ${formatRate(standard.nominalRate ?? 0)} before rising prices, ${SAVINGS_RATE_NOTE}.`
                       : basis === "real"
                         ? `Standard: ${formatRate(standardGrowth)}, the ${COMMON_PERIOD[0]}–${COMMON_PERIOD[1]} average.`
-                        : `Standard: ${formatRate(standardGrowth)}: the ${COMMON_PERIOD[0]}–${COMMON_PERIOD[1]} average of ${formatRate(standard.realReturn)} after inflation, with ${formatRate(inflation)} inflation.`
+                        : `Standard: ${formatRate(standardGrowth)}: the ${COMMON_PERIOD[0]}–${COMMON_PERIOD[1]} average of ${formatRate(standard.realReturn)} after rising prices, with prices rising ${formatRate(inflation)} a year.`
                 }
               />
               <div role="radiogroup" aria-label="Growth shown" className="inline-flex rounded-md border border-border p-0.5 text-xs">
@@ -182,27 +157,32 @@ export function AssumptionsPanel({
                     onClick={() => onBasis(option)}
                     className={`rounded px-2 py-1 font-medium ${basis === option ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
                   >
-                    {option === "real" ? "After inflation (real)" : "Before inflation (nominal)"}
+                    {option === "real" ? "After rising prices" : "Before rising prices"}
                   </button>
                 ))}
               </div>
+              <p className="text-xs text-muted">After rising prices = what your money can really buy.</p>
             </div>
             <div className="col-span-2 sm:col-span-2">
               <PercentField
-                label="Swings a year (±)"
+                label="How much it can go up or down in a normal year"
+                prefix="±"
                 value={investment.volatility}
                 min={0}
                 max={MAX_VOLATILITY}
                 onCommit={(volatility) => setAssumptions({ volatility: same(volatility, standard.volatility) && !isCustomGrowth ? null : volatility })}
                 hint={
-                  isCustomGrowth
-                    ? `Starts at the S&P 500's: ${formatPercent(standard.volatility, { decimals: 0 })}. 0 means no swings.`
-                    : `Standard: ${standard.volatility > 0 ? formatPercent(standard.volatility, { decimals: 1 }) : "none"}. 0 means no swings.`
+                  <>
+                    <Changed value={upsAndDownsExample(investment.volatility)} />{" "}
+                    {isCustomGrowth
+                      ? `Starts at the S&P 500's: ±${formatPercent(standard.volatility, { decimals: 0 })}.`
+                      : `Standard: ${standard.volatility > 0 ? `±${formatPercent(standard.volatility, { decimals: 1 })}` : "0, the same every year"}.`}
+                  </>
                 }
               />
             </div>
             <label className="col-span-2 min-w-0 space-y-1">
-              <span className={labelClass}>Prices of</span>
+              <span className={labelClass}>Rising prices in</span>
               <select
                 value={investment.pricesOf}
                 onChange={(event) => setPricesOf(event.target.value)}
@@ -217,7 +197,7 @@ export function AssumptionsPanel({
             </label>
             <div className="col-span-2">
               <PercentField
-                label="Inflation a year"
+                label="Prices rise per year"
                 value={inflation}
                 min={-0.1}
                 max={0.5}

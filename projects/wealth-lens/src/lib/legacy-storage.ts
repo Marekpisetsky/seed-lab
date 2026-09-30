@@ -99,7 +99,7 @@ export function readLegacyData(storage: LegacyStorage | null): AppState | null {
     if (prices) uploadedPrices[key.slice(UPLOADED_PREFIX.length)] = prices;
   }
   if (!answered && holdings.length === 0) return null;
-  return { plan, holdings, uploadedPrices };
+  return { plan, holdings, uploadedPrices, whatIf: null };
 }
 
 /** Removes everything earlier versions saved. */

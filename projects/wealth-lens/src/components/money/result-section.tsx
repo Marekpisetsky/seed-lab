@@ -6,8 +6,11 @@ import { updatePlan } from "@/lib/app-store";
 import { formatSmallEur } from "@/lib/calculator";
 import { yearsLasting } from "@/lib/monte-carlo";
 import { formatEur, formatPercent, formatRate } from "@/lib/format";
+import { beforeInflationText, growsText, moneyLine } from "@/lib/growth";
+import { toNominal } from "@/lib/investment";
 import type { MixFigures } from "@/lib/projections";
 import type { WorstYear } from "@/lib/mix";
+import { WhatIfIndicator, WhatIfRow } from "./what-if-row";
 
 const range = ([low, high]: [number, number]) => `${formatEur(low)} – ${formatEur(high)}`;
 const worst = (year: WorstYear | null) => (year ? `${formatPercent(year.change, { decimals: 0 })} (${year.year})` : "no shared data");
@@ -31,7 +34,7 @@ function MixFiguresView({ figures, years }: { figures: MixFigures; years: number
         </dd>
       </div>
       <div>
-        <dt className="text-xs text-muted">Worst year in the data{span && ` (${span}, after inflation)`}</dt>
+        <dt className="text-xs text-muted">Worst year in the data{span && ` (${span}, after rising prices)`}</dt>
         <dd className="text-base font-semibold">
           <Changed value={worst(figures.worst)} />
         </dd>
@@ -43,34 +46,54 @@ function MixFiguresView({ figures, years }: { figures: MixFigures; years: number
   );
 }
 
-/** With no swings the answer is certain: how long the withdrawals last at this growth. */
-function noSwingsText(rate: number, realReturn: number): string {
+/** With no ups and downs the answer is certain: how long the withdrawals last at this growth. */
+function sameEveryYearText(rate: number, realReturn: number): string {
   const years = yearsLasting(rate, realReturn);
-  if (!Number.isFinite(years)) return `with no swings and ${formatRate(realReturn)} a year after inflation, it never runs out`;
+  const pace = `${realReturn < 0 ? "shrinking" : "growing"} ${formatRate(Math.abs(realReturn))} every year after rising prices`;
+  if (!Number.isFinite(years)) return `${pace}, it never runs out`;
   const whole = Math.floor(years);
-  return `with no swings and ${formatRate(realReturn)} a year after inflation, it runs out after ${whole} year${whole === 1 ? "" : "s"}`;
+  return `${pace}, it runs out after ${whole} year${whole === 1 ? "" : "s"}`;
 }
 
 /**
  * The result, in places that never move: what the money is worth after the
- * chosen years, what it could pay a month (at a withdrawal rate the user
- * picks, with how often it lasted in history), and how much of it was put
- * in versus added by growth.
+ * chosen years and how much it grows, in plain words; what it could pay a
+ * month (at a withdrawal rate the user picks, with how often it lasted in
+ * history); and "What if…?", quick scenarios applied to the whole screen.
  */
 export function ResultSection({ bundle }: { bundle: CalculationBundle }) {
   const { calc, rates, state } = bundle;
   const { result, investment } = calc;
   const selected = rates.find((entry) => Math.abs(entry.rate - state.plan.withdrawalRate) < 1e-9) ?? rates[0];
   const years = `${result.years} year${result.years === 1 ? "" : "s"}`;
+  const money = moneyLine(result, investment.volatility > 0);
   return (
     <section aria-label="Result" className="space-y-3" aria-live="polite">
       <div>
-        <p className="text-base text-muted">
-          In <Changed value={years} /> you&apos;ll have
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+          <p className="text-base text-muted">
+            In <Changed value={years} /> you&apos;ll have
+          </p>
+          <WhatIfIndicator applied={calc.whatIf} />
+        </div>
         <p className="text-4xl font-bold tracking-tight tabular-nums sm:text-5xl">
           <Changed value={formatEur(result.total)} />
         </p>
+        <p className="mt-1 text-xl font-semibold tabular-nums sm:text-2xl">
+          <Changed value={growsText(investment.realReturn)} />{" "}
+          <span className="whitespace-nowrap text-sm font-normal text-muted">
+            <Changed value={beforeInflationText(toNominal(investment.realReturn, investment.inflation))} />
+          </span>
+        </p>
+        {money && (
+          <p className="mt-1 text-sm tabular-nums">
+            <Changed value={money} />
+            <span className="text-muted">
+              {" "}
+              · put in <Changed value={formatEur(result.putIn)} />
+            </span>
+          </p>
+        )}
       </div>
       <div className="space-y-2">
         <p className="text-lg">
@@ -104,16 +127,12 @@ export function ResultSection({ bundle }: { bundle: CalculationBundle }) {
                 lasted 30 years in <Changed value={formatPercent(selected.lasted, { decimals: 0 })} /> of <Changed value={investment.modelText} />
               </>
             ) : (
-              <Changed value={noSwingsText(selected.rate, investment.realReturn)} />
+              <Changed value={sameEveryYearText(selected.rate, investment.realReturn)} />
             )}
           </span>
         </div>
       </div>
-      <p className="text-sm text-muted tabular-nums">
-        You put in <Changed value={formatEur(result.putIn)} className="text-foreground" /> ·{" "}
-        {result.growth >= 0 ? "growth added " : investment.volatility > 0 ? "the market took " : "inflation took "}
-        <Changed value={formatEur(Math.abs(result.growth))} className="text-foreground" />
-      </p>
+      <WhatIfRow effects={bundle.whatIfs} applied={calc.whatIf} />
       {bundle.mix && <MixFiguresView figures={bundle.mix} years={result.years} />}
     </section>
   );

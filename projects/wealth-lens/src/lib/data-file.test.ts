@@ -42,6 +42,7 @@ const state: AppState = {
     },
   ],
   uploadedPrices: { XYZ: { fileName: "xyz.csv", points: [{ time: "2026-09-25", close: 12.5 }] } },
+  whatIf: null,
 };
 
 describe("data file", () => {
