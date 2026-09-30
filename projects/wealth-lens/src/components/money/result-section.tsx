@@ -4,10 +4,10 @@ import { Changed } from "@/components/ui/changed";
 import { RadioGroup } from "@/components/ui/radio-group";
 import type { CalculationBundle } from "@/hooks/use-calculation";
 import { updatePlan } from "@/lib/app-store";
-import { formatSmallEur } from "@/lib/calculator";
+import { formatSmallEur, type Result } from "@/lib/calculator";
 import { yearsLasting } from "@/lib/monte-carlo";
 import { formatEur, formatPercent, formatRate } from "@/lib/format";
-import { beforeInflationText, growsText, moneyLine } from "@/lib/growth";
+import { beforeInflationText, formatShare, gainedShareOf, growsText, moneyLine } from "@/lib/growth";
 import { toNominal } from "@/lib/investment";
 import type { MixFigures } from "@/lib/projections";
 import type { WorstYear } from "@/lib/mix";
@@ -57,6 +57,24 @@ function sameEveryYearText(rate: number, realReturn: number): string {
   return `${pace}, it runs out after ${whole} year${whole === 1 ? "" : "s"}`;
 }
 
+/** "+129%" over "7.5% a year": read in a second, quieter than the total. Nothing when nothing was put in. */
+function GrowthBadge({ result }: { result: Result }) {
+  const share = gainedShareOf(result);
+  if (share === null) return null;
+  const tone = share >= 0 ? "bg-positive/10 text-positive" : "bg-negative/10 text-negative";
+  return (
+    <p className={`inline-flex flex-col items-start rounded-lg px-2.5 py-1 leading-tight tabular-nums ${tone}`}>
+      <span className="sr-only">Growth: </span>
+      <span className="text-lg font-semibold">
+        <Changed value={formatShare(share)} />
+      </span>
+      <span className="text-xs font-medium">
+        <Changed value={`${formatRate(result.growthRate)} a year`} />
+      </span>
+    </p>
+  );
+}
+
 /**
  * The result, in places that never move: what the money is worth after the
  * chosen years and how much it grows, in plain words; what it could pay a
@@ -82,9 +100,13 @@ export function ResultSection({ bundle }: { bundle: CalculationBundle }) {
           </p>
           <WhatIfIndicator applied={calc.whatIf} />
         </div>
-        <p className="text-4xl font-bold tracking-tight tabular-nums sm:text-5xl">
-          <Changed value={formatEur(result.total)} />
-        </p>
+        {/* The total, and beside it (below it when there is no room) what growth added in all and a year. */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <p className="text-4xl font-bold tracking-tight tabular-nums sm:text-5xl">
+            <Changed value={formatEur(result.total)} />
+          </p>
+          <GrowthBadge result={result} />
+        </div>
         <p className="mt-1 text-xl font-semibold tabular-nums sm:text-2xl">
           <Changed value={growsText(result.growthRate)} />{" "}
           <span className="whitespace-nowrap text-sm font-normal text-muted">
