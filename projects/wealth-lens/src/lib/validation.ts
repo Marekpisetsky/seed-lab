@@ -8,6 +8,7 @@
 import { isAssetId, type AssetId } from "./assets";
 import { countryByCode, DEFAULT_PRICES_OF, referenceInflation } from "./cost-of-living";
 import { isIndexId, type IndexId } from "./indexes";
+import { toNominal } from "./investment";
 import { instrumentById, instrumentForHolding } from "./market-data";
 import { MAX_PARTS } from "./mix";
 import { problem, type Problem } from "./problems";
@@ -189,14 +190,35 @@ export function parseInvestment(value: unknown, holdings: readonly Holding[] = [
   }
 }
 
-/** The user's changes to the standard assumptions; a bad field keeps the standard one. */
-export function parseAssumptions(value: unknown): AssumptionOverrides {
+/**
+ * Growth typed after rising prices, as the growth banks and news quote
+ * (before them) that gives the very same growth after them with this
+ * inflation: a file's result does not change.
+ */
+function quotedFromAfterPrices(rate: number, inflation: number): number | null {
+  const quoted = toNominal(rate, inflation);
+  return isRate(quoted) ? quoted : null;
+}
+
+/**
+ * The user's changes to the standard assumptions; a bad field keeps the
+ * standard one. The growth is the one banks and news quote (version 7).
+ * Version 6 stored it as typed, before or after rising prices ({ rate,
+ * basis }); growth after them becomes the quoted growth that gives it with
+ * the file's inflation (its own, or `pricesOf`'s), so the result is the
+ * same.
+ */
+export function parseAssumptions(value: unknown, pricesOf: string = DEFAULT_PRICES_OF): AssumptionOverrides {
   if (!isRecord(value)) return STANDARD_ASSUMPTIONS;
-  const typed = isRecord(value.growth) ? value.growth : {};
-  const basis = typed.basis === "real" || typed.basis === "nominal" ? typed.basis : null;
-  const growth: AssumptionOverrides["growth"] = basis && isRate(typed.rate) ? { rate: typed.rate, basis } : null;
   const volatility = isFiniteNumber(value.volatility) && value.volatility >= 0 && value.volatility <= MAX_VOLATILITY ? value.volatility : null;
   const inflation = isRate(value.inflation) ? value.inflation : null;
+  let growth: AssumptionOverrides["growth"] = null;
+  if (isRate(value.growth)) growth = value.growth;
+  else if (isRecord(value.growth) && isRate(value.growth.rate)) {
+    const { rate, basis } = value.growth;
+    if (basis === "nominal") growth = rate;
+    if (basis === "real") growth = quotedFromAfterPrices(rate, inflation ?? referenceInflation(pricesOf).rate);
+  }
   return { growth, volatility, inflation };
 }
 
@@ -332,11 +354,14 @@ export function parsePlan(value: unknown, holdings: readonly Holding[] = [], not
     parse(value[key]) ?? DEFAULT_PLAN[key];
   const amount = (v: unknown) => (isNonNegativeNumber(v) && v <= MAX_AMOUNT ? v : 0);
   const pricesOf = typeof value.pricesOf === "string" && countryByCode(value.pricesOf) ? value.pricesOf : DEFAULT_PRICES_OF;
-  let assumptions = parseAssumptions(value.assumptions);
+  let assumptions = parseAssumptions(value.assumptions, pricesOf);
   if (!("assumptions" in value)) {
     const inflation = isRate(value.inflation) && Math.abs(value.inflation - referenceInflation(pricesOf).rate) > 1e-9 ? value.inflation : null;
     const investment = isRecord(value.investment) ? value.investment : {};
-    const growth = investment.kind === "custom" && isRate(investment.realReturn) ? { rate: investment.realReturn, basis: "real" as const } : null;
+    const growth =
+      investment.kind === "custom" && isRate(investment.realReturn)
+        ? quotedFromAfterPrices(investment.realReturn, inflation ?? referenceInflation(pricesOf).rate)
+        : null;
     assumptions = { growth, volatility: null, inflation };
   }
   return {

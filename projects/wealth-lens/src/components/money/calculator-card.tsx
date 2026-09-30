@@ -8,7 +8,6 @@ import { SettledNumberInput } from "@/components/ui/form";
 import { useAppState } from "@/hooks/use-app";
 import { offeredRates } from "@/hooks/use-calculation";
 import { setInvestment, updatePlan } from "@/lib/app-store";
-import type { Basis } from "@/lib/assumptions";
 import { priceHoldings } from "@/lib/auto-price";
 import { resolveInvestment } from "@/lib/investment";
 import { startingCapital } from "@/lib/plan";
@@ -143,7 +142,6 @@ export function CalculatorCard() {
     events.forEach((name) => window.addEventListener(name, start, { once: true, passive: true }));
     return () => events.forEach((name) => window.removeEventListener(name, start));
   }, [plan.withdrawalRate]);
-  const [basis, setBasis] = useState<Basis>(plan.assumptions.growth?.basis ?? "real");
   const close = useCallback((refocus = false) => {
     setPicker(null);
     const element = opener.current;
@@ -253,7 +251,7 @@ export function CalculatorCard() {
           }}
         />
       )}
-      <AssumptionsPanel investment={current} assumptions={plan.assumptions} basis={basis} onBasis={setBasis} open={editing} onOpen={setEditing} />
+      <AssumptionsPanel investment={current} assumptions={plan.assumptions} open={editing} onOpen={setEditing} />
     </section>
   );
 }

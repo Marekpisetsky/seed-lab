@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EN } from "@/i18n";
-import { assumptionsLine, assumptionsNote, growthIn, upsAndDownsExample, upsAndDownsText } from "./assumptions";
-import { resolveInvestment } from "./investment";
+import { afterPricesText, assumptionsLine, assumptionsNote, quotedGrowth, upsAndDownsExample, upsAndDownsText } from "./assumptions";
+import { resolveInvestment, toNominal } from "./investment";
 import { STANDARD_ASSUMPTIONS, type Holding } from "./types";
 
 const holding: Holding = {
@@ -18,25 +18,27 @@ const holding: Holding = {
 describe("the compact line under the calculator", () => {
   it("says in plain words how much it grows, how much it can move and the years of data", () => {
     const sp500 = resolveInvestment({ kind: "asset", asset: "sp500" }, []);
-    expect(assumptionsLine(sp500, "real", EN)).toMatch(/^Grows 7\.5% a year after rising prices · can move ±1\d% in a year · data 1988–2022$/);
+    expect(assumptionsLine(sp500, EN)).toMatch(/^Grows 7\.5% a year after rising prices · can move ±1\d% in a year · data 1988–2022$/);
   });
 
-  it("can show the growth before rising prices, with the country's inflation", () => {
+  it("gives the growth as banks and news quote it, with the country's inflation, and what that is after rising prices", () => {
     const sp500 = resolveInvestment({ kind: "asset", asset: "sp500" }, []);
-    expect(growthIn(sp500, "nominal")).toBeCloseTo((1 + sp500.realReturn) * 1.02 - 1, 12);
-    expect(assumptionsLine(sp500, "nominal", EN)).toMatch(/^Grows 9\.\d% a year before rising prices · /);
+    expect(quotedGrowth(sp500)).toBeCloseTo((1 + sp500.realReturn) * 1.02 - 1, 12);
+    expect(afterPricesText(sp500, EN)).toBe("= 7.5% after rising prices: what your money can really buy");
+    const brazil = resolveInvestment({ kind: "asset", asset: "sp500" }, [], { pricesOf: "BR", assumptions: STANDARD_ASSUMPTIONS });
+    expect(quotedGrowth(brazil)).toBeCloseTo((1 + sp500.realReturn) * 1.03 - 1, 12);
   });
 
   it("gives a savings account its interest and rising prices, the same every year", () => {
     const savings = resolveInvestment({ kind: "asset", asset: "savings" }, []);
-    expect(assumptionsLine(savings, "real", EN)).toBe("Shrinks 0.5% a year after rising prices · the same every year · 1.5% interest, prices rise 2%");
-    expect(assumptionsLine(savings, "nominal", EN)).toBe("Grows 1.5% a year before rising prices · the same every year · 1.5% interest, prices rise 2%");
+    expect(assumptionsLine(savings, EN)).toBe("Shrinks 0.5% a year after rising prices · the same every year · 1.5% interest, prices rise 2%");
+    expect(quotedGrowth(savings)).toBeCloseTo(0.015, 12);
   });
 
   it("says when the figures are the user's", () => {
-    const changed = resolveInvestment({ kind: "asset", asset: "world" }, [], { pricesOf: "NL", assumptions: { ...STANDARD_ASSUMPTIONS, growth: { rate: 0.04, basis: "real" } } });
-    expect(assumptionsLine(changed, "real", EN)).toMatch(/^Grows 4% a year after rising prices · can move ±\d+% in a year · your numbers, not the data$/);
-    expect(assumptionsLine(resolveInvestment({ kind: "custom" }, []), "real", EN)).toMatch(/ · your numbers$/);
+    const changed = resolveInvestment({ kind: "asset", asset: "world" }, [], { pricesOf: "NL", assumptions: { ...STANDARD_ASSUMPTIONS, growth: toNominal(0.04, 0.02) } });
+    expect(assumptionsLine(changed, EN)).toMatch(/^Grows 4% a year after rising prices · can move ±\d+% in a year · your numbers, not the data$/);
+    expect(assumptionsLine(resolveInvestment({ kind: "custom" }, []), EN)).toMatch(/ · your numbers$/);
   });
 
   it("writes the ups and downs as how much it can move in a year", () => {

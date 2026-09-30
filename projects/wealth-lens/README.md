@@ -54,9 +54,11 @@ cambiar. Todo lo visible está en palabras simples: "real", "nominal",
      se marcan un momento solo las cifras que cambiaron y nada cambia de
      sitio. Debajo, los supuestos en una línea ("Grows 7.5% a year after
      rising prices · can move ±16% in a year · data 1988–2022") con
-     **Edit**: *How much it grows a year* (con conmutador *After rising
-     prices* / *Before rising prices* y la ayuda "After rising prices =
-     what your money can really buy."), *How much it can go up or down in
+     **Edit**: *How much it grows a year (as banks and news quote it)*, un
+     solo campo con el % antes de inflación, y debajo, fijo y de solo
+     lectura, "= 7.5% after rising prices: what your money can really
+     buy" (el conmutador antes/después se quitó: solo traducía la misma
+     cifra y parecía elegir entre dos cosas), *How much it can go up or down in
      a normal year* (con un ejemplo que cambia con la cifra: "e.g. a
      €10,000 year could end between €9,200 and €10,800"), *Rising prices
      in* (país, Países Bajos por defecto) y *Prices rise per year*, cada
@@ -142,7 +144,9 @@ mano desde las cifras publicadas (ver "Retornos").
 - Un solo plan (`Plan` en `src/lib/types.ts`): dos importes, la
   inversión, los años, la tasa de retiro, *Rising prices in* (`pricesOf`), lo que el usuario
   cambió de los supuestos (crecimiento real o nominal, oscilación,
-  inflación; `null` = estándar) y las metas (una lista, vacía al empezar). `src/lib/calculator.ts` deriva de él todo lo
+  inflación; `null` = estándar; el crecimiento se guarda como lo dan bancos
+y noticias, antes de inflación, y todo el cálculo lo pasa a después de
+inflación) y las metas (una lista, vacía al empezar). `src/lib/calculator.ts` deriva de él todo lo
   que se ve (resultado, metas, tabla de países, compras) y
   `src/hooks/use-calculation.ts` lo calcula una vez por cambio para todas
   las secciones (medido como `performance.measure("wealth-lens:report")`:
@@ -150,8 +154,13 @@ mano desde las cifras publicadas (ver "Retornos").
   tocar un *What if…?*, con los efectos de los cinco incluidos; cargar un
   archivo con cartera tras una sesión larga llegó a 23-34 ms; ver
   "Velocidad"). El archivo de datos va por la
-  versión 6: lleva *Rising prices in*, los supuestos cambiados y, en cada holding,
-  a qué activo se asignó si el usuario lo cambió. Lee las anteriores: un
+  versión 7: lleva *Rising prices in*, los supuestos cambiados (el
+  crecimiento como un solo % antes de inflación) y, en cada holding,
+  a qué activo se asignó si el usuario lo cambió. Lee las anteriores: el
+  crecimiento de la v6, escrito antes o después de inflación, pasa al %
+  antes de inflación que da exactamente el mismo crecimiento después de
+  ella con la inflación del archivo (la suya o la de su país), así que el
+  resultado no cambia; un
   índice (v1-v5) es ese activo; una acción proyectada sola (v5) pasa a My
   portfolio si el archivo la tiene, si no a su índice, y las acciones de
   una mezcla cuentan como su índice, cada cambio con un aviso de una línea
@@ -661,13 +670,14 @@ ingreso lo paga, filas por defecto), las metas (cada tipo, varias,
 independientes, orden estable al añadir y quitar, tope de 60 años con el
 aporte para 30), las compras, el motor de hallazgos (cada regla: cuándo
 aparece, cuándo no y su número, con y sin metas), las tasas de éxito
-precalculadas (recalculadas exactas), el plan v6 y la conversión de
+precalculadas (recalculadas exactas), el plan v7, el crecimiento de la v6
+(antes o después de inflación, mismo resultado tras cargarlo) y la conversión de
 archivos v1 a v5 (metas; una acción proyectada sola que pasa a My
 portfolio o a su índice con su aviso; un % propio y una inflación), los
 datasets (cada retorno real recalculado desde las cifras de origen: MSCI
 contra sus fichas, bonos desde los rendimientos y el IPC, oro desde los
 precios LBMA; la inflación de referencia de cada país), los supuestos
-editables (real/nominal con la inflación de cada país, oscilación, solo
+editables (el % antes de inflación pasado a después con la inflación de cada país, oscilación, solo
 inflación, reset, Custom growth, la normal: mediana y dispersión), las
 plantillas 60/40 y 80/20, las mezclas con bonos, oro y ahorro (el mismo
 año sorteado para todos, peor año 2022 para 60/40, efecto de

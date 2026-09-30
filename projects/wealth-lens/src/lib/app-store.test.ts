@@ -108,7 +108,7 @@ describe("the shared app state", () => {
   });
 
   it("fills in the standard figures of a new choice, keeping a typed inflation", () => {
-    setAssumptions({ growth: { rate: 0.05, basis: "nominal" }, volatility: 0.1, inflation: 0.03 });
+    setAssumptions({ growth: 0.05, volatility: 0.1, inflation: 0.03 });
     setInvestment({ kind: "asset", asset: "gold" });
     expect(appStore.get().plan).toMatchObject({
       investment: { kind: "asset", asset: "gold" },
@@ -117,9 +117,9 @@ describe("the shared app state", () => {
   });
 
   it("resets every changed assumption to the standard one", () => {
-    setAssumptions({ growth: { rate: 0.05, basis: "real" } });
+    setAssumptions({ growth: 0.05 });
     setAssumptions({ volatility: 0.2 });
-    expect(appStore.get().plan.assumptions).toEqual({ growth: { rate: 0.05, basis: "real" }, volatility: 0.2, inflation: null });
+    expect(appStore.get().plan.assumptions).toEqual({ growth: 0.05, volatility: 0.2, inflation: null });
     resetAssumptions();
     expect(appStore.get().plan.assumptions).toEqual(INITIAL_STATE.plan.assumptions);
   });

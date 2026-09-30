@@ -44,7 +44,7 @@ export function warmUp(rates: readonly number[]): void {
       }
     },
     () => {
-      const own = resolveInvestment({ kind: "custom" }, [], { pricesOf: "NL", assumptions: { ...STANDARD_ASSUMPTIONS, growth: { rate: 0.05, basis: "real" } } });
+      const own = resolveInvestment({ kind: "custom" }, [], { pricesOf: "NL", assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.07 } });
       successRatesFor(own, rates);
     },
   ];
