@@ -25,10 +25,10 @@ export function bandsFor(investment: ResolvedInvestment, { start, monthly, years
   if (kept) return kept.bands;
   const bands =
     investment.simulation === "joint" && investment.model
-      ? mixPercentiles(investment.model, { start, monthly, years })
+      ? mixPercentiles(investment.model, { start, monthly, years }, undefined, investment.growthFactor)
       : wealthPercentiles({ start, monthly, returns: investment.returns, years, key: investment.key });
   lastBands.unshift({ id, bands });
-  lastBands.length = Math.min(lastBands.length, 4);
+  lastBands.length = Math.min(lastBands.length, 6);
   return bands;
 }
 
@@ -42,7 +42,7 @@ export function successRatesFor(investment: ResolvedInvestment, rates: readonly 
   const missing = rates.filter((rate) => !mixRates.has(id(rate)));
   if (missing.length > 0) {
     if (mixRates.size > 256) mixRates.clear();
-    mixSuccessRates(model, missing).forEach((value, index) => mixRates.set(id(missing[index]), value));
+    mixSuccessRates(model, missing, undefined, undefined, investment.growthFactor).forEach((value, index) => mixRates.set(id(missing[index]), value));
   }
   return rates.map((rate) => mixRates.get(id(rate)) ?? NaN);
 }

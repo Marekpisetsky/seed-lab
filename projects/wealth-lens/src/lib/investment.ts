@@ -103,6 +103,8 @@ export interface ResolvedInvestment {
   growthText: string;
   /** Share of it whose figures leave dividends out (the Nasdaq-100's are price only): 0, 1 or in between. */
   withoutDividends: number;
+  /** Every simulated year's growth factor is multiplied by this ("What if: grows 1% more"); 1 otherwise. */
+  growthFactor: number;
 }
 
 /** "1988–2022", or "" without history. */
@@ -263,6 +265,7 @@ export function resolveInvestment(
   const volatility = typedVolatility ?? base.standard.volatility;
   const custom = base.investment.kind === "custom" || growth !== null || typedVolatility !== null;
   const shared = {
+    growthFactor: 1,
     investment: base.investment,
     name: base.name,
     realReturn,
@@ -299,6 +302,26 @@ export function resolveInvestment(
     modelText: fixed ? "your figures, with no swings" : `simulations with ${formatRate(realReturn)} a year after inflation and ${swings}`,
     modelShort: fixed ? "your figures" : "simulations with your figures",
     growthText: "your own figure",
+  };
+}
+
+/**
+ * The same investment growing `delta` a year more (or less) after rising
+ * prices, with the same ups and downs: every simulated year's growth factor
+ * is multiplied by (1 + g + delta) / (1 + g), so the typical year grows
+ * exactly g + delta. Used by "What if: grows 1% more / less".
+ */
+export function shiftGrowth(investment: ResolvedInvestment, delta: number): ResolvedInvestment {
+  const factor = (1 + investment.realReturn + delta) / (1 + investment.realReturn);
+  const change = `${delta >= 0 ? "+" : "−"}${formatRate(Math.abs(delta))} a year`;
+  return {
+    ...investment,
+    realReturn: investment.realReturn + delta,
+    growthFactor: investment.growthFactor * factor,
+    key: `${investment.key}|x${factor.toFixed(6)}`,
+    returns: investment.returns.map((value) => (1 + value) * factor - 1),
+    modelText: `${investment.modelText}, ${change}`,
+    modelShort: `${investment.modelShort}, ${change}`,
   };
 }
 

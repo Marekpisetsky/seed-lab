@@ -16,10 +16,11 @@ import { costOfLiving, countryInSentence, type CountryCost } from "./cost-of-liv
 import { addMonths } from "./dates";
 import { futureValueWithContributions, monthlyWithdrawal, monthsToGoal, requiredCapital, requiredMonthlyContribution } from "./finance";
 import { formatDuration, formatEur, formatMonthYear, formatRate } from "./format";
-import { dividendNote, resolveInvestment, type ResolvedInvestment } from "./investment";
+import { dividendNote, resolveInvestment, shiftGrowth, type ResolvedInvestment } from "./investment";
 import { startingCapital, type StartingCapital } from "./plan";
 import { successRatesFor } from "./projections";
 import type { AssumptionOverrides, Goal, Holding, Investment } from "./types";
+import { WHAT_IF_IDS, whatIfAvailable, whatIfInputs, withBadStart, type WhatIfEffect, type WhatIfId } from "./what-if";
 
 /** What the calculator reads from the plan. */
 export interface CalculatorPlan {
@@ -79,16 +80,40 @@ export interface Scenario {
   monthly: number;
   realReturn: number;
   withdrawalRate: number;
+  /**
+   * A set start ("What if: a bad first decade"): what the money is worth
+   * after 0, 1, 2… years, the first being the capital; after the last one it
+   * grows at `realReturn` again. Absent: it grows at `realReturn` from today.
+   */
+  head?: readonly number[];
 }
 
 /** Months until the plan reaches `target`: 0 = now, Infinity = never. */
 export function monthsTo(scenario: Scenario, target: number): number {
-  return monthsToGoal(scenario.capital, scenario.monthly, scenario.realReturn, target);
+  const { head } = scenario;
+  if (!head || head.length < 2) return monthsToGoal(scenario.capital, scenario.monthly, scenario.realReturn, target);
+  if (head[0] >= target) return 0;
+  for (let year = 1; year < head.length; year++) {
+    if (head[year] >= target) {
+      // Within that year, as if it went up evenly.
+      const share = (target - head[year - 1]) / (head[year] - head[year - 1]);
+      return (year - 1) * 12 + Math.max(0, Math.min(1, share)) * 12;
+    }
+  }
+  const last = head.length - 1;
+  return last * 12 + monthsToGoal(head[last], scenario.monthly, scenario.realReturn, target);
 }
 
 /** What the plan is worth after `months`. */
 export function valueAt(scenario: Scenario, months: number): number {
-  return futureValueWithContributions(scenario.capital, scenario.monthly, scenario.realReturn, Math.max(0, months) / 12);
+  const { head } = scenario;
+  const at = Math.max(0, months);
+  if (!head || head.length < 2) return futureValueWithContributions(scenario.capital, scenario.monthly, scenario.realReturn, at / 12);
+  const last = head.length - 1;
+  if (at >= last * 12) return futureValueWithContributions(head[last], scenario.monthly, scenario.realReturn, (at - last * 12) / 12);
+  const year = Math.floor(at / 12);
+  const share = at / 12 - year;
+  return head[year] + (head[year + 1] - head[year]) * share;
 }
 
 // ---------------------------------------------------------------------------
@@ -384,29 +409,58 @@ export interface Calculation {
   capital: StartingCapital;
   investment: ResolvedInvestment;
   scenario: Scenario;
+  /** The "What if…?" applied, if any (lib/what-if.ts). */
+  whatIf: WhatIfId | null;
   result: Result;
   goals: GoalStatus[];
   countries: CountryRow[];
 }
 
-/** `holdings` must already carry their prices (lib/auto-price.ts). */
-export function calculate(plan: CalculatorPlan, holdings: readonly Holding[], today: Date): Calculation {
+/**
+ * `holdings` must already carry their prices (lib/auto-price.ts). With a
+ * "What if…?" (lib/what-if.ts), everything is worked out with it: a
+ * scenario that cannot apply to this plan (five more years past 60, a bad
+ * decade with no ups and downs) is left out.
+ */
+export function calculate(plan: CalculatorPlan, holdings: readonly Holding[], today: Date, whatIf: WhatIfId | null = null): Calculation {
   const capital = startingCapital(holdings, plan.invested);
-  const investment = resolveInvestment(plan.investment, holdings, plan);
-  const scenario: Scenario = {
+  const resolved = resolveInvestment(plan.investment, holdings, plan);
+  const applied = whatIf !== null && whatIfAvailable(whatIf, plan.years, resolved) ? whatIf : null;
+  const inputs = whatIfInputs(applied, plan.monthlyContribution, plan.years);
+  const investment = inputs.growth !== 0 ? shiftGrowth(resolved, inputs.growth) : resolved;
+  const plain: Scenario = {
     capital: capital.amount,
-    monthly: plan.monthlyContribution,
+    monthly: inputs.monthly,
     realReturn: investment.realReturn,
     withdrawalRate: plan.withdrawalRate,
   };
+  const scenario = inputs.badStart ? withBadStart(plain, investment, inputs.years) : plain;
   return {
     capital,
     investment,
     scenario,
-    result: resultOf(scenario, investment, plan.years),
+    whatIf: applied,
+    result: resultOf(scenario, investment, inputs.years),
     goals: goalStatuses(plan.goals, scenario, investment, today),
-    countries: countryRows(scenario, plan.years * 12),
+    countries: countryRows(scenario, inputs.years * 12),
   };
+}
+
+/**
+ * What each "What if…?" would change, in euros at the end of the plan's
+ * years (five more years: at the end of those), worked out on a
+ * calculation without one: the same projection `calculate` makes with it.
+ */
+export function whatIfEffects(base: Calculation): WhatIfEffect[] {
+  const { scenario, investment, result } = base;
+  return WHAT_IF_IDS.map((id) => {
+    const available = whatIfAvailable(id, result.years, investment);
+    if (!available) return { id, change: 0, available };
+    const inputs = whatIfInputs(id, scenario.monthly, result.years);
+    const plain: Scenario = { ...scenario, monthly: inputs.monthly, realReturn: scenario.realReturn + inputs.growth };
+    const changed = inputs.badStart ? withBadStart(plain, investment, inputs.years) : plain;
+    return { id, change: valueAt(changed, inputs.years * 12) - result.total, available };
+  });
 }
 
 /** The "Buy it" list against the plan: now, in N years, or out of reach. */

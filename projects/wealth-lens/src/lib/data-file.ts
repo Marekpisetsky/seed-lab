@@ -62,6 +62,8 @@ export function parseDataFile(text: string): DataFileResult {
       plan: parsePlan(json.plan, holdings, notices) ?? INITIAL_STATE.plan,
       holdings,
       uploadedPrices,
+      // A "What if…?" is a look at the plan, not part of it: a loaded file starts without one.
+      whatIf: null,
     },
     notices,
   };

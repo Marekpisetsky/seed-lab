@@ -2,11 +2,12 @@
 
 import { type AppState } from "@/lib/app-store";
 import { priceHoldings } from "@/lib/auto-price";
-import { calculate, WITHDRAWAL_CHOICES, type Calculation } from "@/lib/calculator";
+import { calculate, whatIfEffects, WITHDRAWAL_CHOICES, type Calculation } from "@/lib/calculator";
 import { toIsoDate } from "@/lib/dates";
 import { topFindings, type Finding } from "@/lib/findings";
 import { mixFigures, successRatesFor, type MixFigures } from "@/lib/projections";
 import type { Holding } from "@/lib/types";
+import type { WhatIfEffect } from "@/lib/what-if";
 import { useAppState } from "./use-app";
 import { useToday } from "./use-plan";
 
@@ -14,7 +15,12 @@ export interface CalculationBundle {
   state: AppState;
   today: Date;
   holdings: readonly Holding[];
+  /** What the page shows: the plan, with the "What if…?" applied if there is one. */
   calc: Calculation;
+  /** The plan as it is, without a "What if…?": the findings and the scenarios' effects are about it. */
+  base: Calculation;
+  /** What each "What if…?" would change, in the fixed order of their row. */
+  whatIfs: WhatIfEffect[];
   /** How often each offered withdrawal rate lasted 30 years with this investment, lowest rate first. */
   rates: { rate: number; lasted: number }[];
   /** For a mix or the portfolio: its range and worst year, with the S&P 500 alone beside them. */
@@ -38,11 +44,13 @@ export function calculationFor(state: AppState, today: Date): CalculationBundle 
   if (last && last.state === state && last.day === day) return last.bundle;
   const start = performance.now();
   const holdings = priceHoldings(state.holdings, state.uploadedPrices);
-  const calc = calculate(state.plan, holdings, today);
+  const base = calculate(state.plan, holdings, today);
+  const calc = state.whatIf ? calculate(state.plan, holdings, today, state.whatIf) : base;
+  const whatIfs = whatIfEffects(base);
   const rates = offeredRates(state.plan.withdrawalRate);
   const lasted = successRatesFor(calc.investment, rates);
   const mix = mixFigures(calc.investment, { start: calc.scenario.capital, monthly: calc.scenario.monthly, years: calc.result.years });
-  const bundle = { state, today, holdings, calc, rates: rates.map((rate, index) => ({ rate, lasted: lasted[index] })), mix };
+  const bundle = { state, today, holdings, calc, base, whatIfs, rates: rates.map((rate, index) => ({ rate, lasted: lasted[index] })), mix };
   try {
     performance.measure("wealth-lens:report", { start, end: performance.now() });
   } catch {
@@ -57,7 +65,7 @@ let lastFindings: { bundle: CalculationBundle; findings: Finding[] } | null = nu
 /** The findings of a calculation, worked out only when their section is open. */
 export function findingsFor(bundle: CalculationBundle): Finding[] {
   if (lastFindings?.bundle === bundle) return lastFindings.findings;
-  const findings = topFindings({ calc: bundle.calc, inflation: bundle.calc.investment.inflation, today: bundle.today, holdings: bundle.holdings });
+  const findings = topFindings({ calc: bundle.base, inflation: bundle.base.investment.inflation, today: bundle.today, holdings: bundle.holdings });
   lastFindings = { bundle, findings };
   return findings;
 }

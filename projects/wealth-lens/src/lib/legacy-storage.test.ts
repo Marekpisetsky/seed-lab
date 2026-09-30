@@ -47,6 +47,7 @@ describe("data saved by earlier versions", () => {
       },
       holdings: [{ ...holding, priceSource: "auto", priceDate: null }],
       uploadedPrices: { XYZ: { fileName: "x.csv", points: [{ time: "2026-09-25", close: 3 }] } },
+      whatIf: null,
     });
   });
 

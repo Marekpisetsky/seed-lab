@@ -13,15 +13,18 @@ import type { AssetId } from "./assets";
 import { createId } from "./id";
 import { STANDARD_ASSUMPTIONS, type AssumptionOverrides, type Holding, type Investment, type NewGoal, type Plan } from "./types";
 import { DEFAULT_PLAN, type UploadedPrices } from "./validation";
+import type { WhatIfId } from "./what-if";
 
 export interface AppState {
   plan: Plan;
   holdings: readonly Holding[];
   /** Price files uploaded for tickers without downloaded prices, keyed by ticker. */
   uploadedPrices: Readonly<Record<string, UploadedPrices>>;
+  /** The "What if…?" applied to the whole screen, if any: a look, not part of the plan, never saved. */
+  whatIf: WhatIfId | null;
 }
 
-export const INITIAL_STATE: AppState = { plan: DEFAULT_PLAN, holdings: [], uploadedPrices: {} };
+export const INITIAL_STATE: AppState = { plan: DEFAULT_PLAN, holdings: [], uploadedPrices: {}, whatIf: null };
 
 export type Updater<T> = T | ((previous: T) => T);
 
@@ -96,6 +99,15 @@ export function setHoldingReference(id: string, reference: AssetId | null): void
       return next;
     }),
   );
+}
+
+/** One "What if…?" at a time: tapping another switches to it, tapping the one applied takes it away. */
+export function toggleWhatIf(id: WhatIfId): void {
+  appStore.set((state) => ({ ...state, whatIf: state.whatIf === id ? null : id }));
+}
+
+export function clearWhatIf(): void {
+  appStore.set((state) => (state.whatIf === null ? state : { ...state, whatIf: null }));
 }
 
 /** Adds a goal at the end of "My goals": goals keep the order they were added in. */
