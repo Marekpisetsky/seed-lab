@@ -94,6 +94,12 @@ function Plot({ points, band, startYear, swings }: { points: YearPoint[]; band: 
   const growthEnd = end.total - Math.min(end.putIn, end.total);
   const labelYears = years <= 1 ? [0, years] : [0, Math.round(years / 2), years];
   const shown = hover === null ? null : points[hover];
+  // The year under the mouse or the finger.
+  const showYearAt = (event: React.PointerEvent<SVGSVGElement>) => {
+    const box = event.currentTarget.getBoundingClientRect();
+    const year = Math.round(((event.clientX - box.left - PAD.left) / (plotRight - PAD.left)) * years);
+    setHover(Math.min(years, Math.max(0, year)));
+  };
   // The tooltip sits beside the hovered year, on the side with more room, and never leaves the chart.
   const tip = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
@@ -121,12 +127,10 @@ function Plot({ points, band, startYear, swings }: { points: YearPoint[]; band: 
         className="block touch-pan-y select-none"
         role="img"
         aria-label={`Year by year to ${startYear + years}: ${formatEur(end.putIn)} put in, ${formatEur(growthEnd)} of growth.${swings ? ` 8 in 10 simulations ended between ${formatEur(band.p10[years])} and ${formatEur(band.p90[years])}.` : ""}`}
-        onPointerMove={(event) => {
-          const box = event.currentTarget.getBoundingClientRect();
-          const year = Math.round(((event.clientX - box.left - PAD.left) / (plotRight - PAD.left)) * years);
-          setHover(Math.min(years, Math.max(0, year)));
-        }}
-        onPointerLeave={() => setHover(null)}
+        onPointerDown={showYearAt}
+        onPointerMove={showYearAt}
+        // A finger lifted leaves the year shown; a mouse that leaves hides it.
+        onPointerLeave={(event) => event.pointerType === "mouse" && setHover(null)}
       >
         <defs>
           <clipPath id={clip}>
