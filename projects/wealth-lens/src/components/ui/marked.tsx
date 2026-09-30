@@ -14,7 +14,8 @@ const NAMED_LINKS: Readonly<Record<string, string>> = {
   hub: SEED_LAB_HUB_URL,
 };
 
-const linkClass = "font-medium text-accent underline underline-offset-2";
+/** Inside a sentence: the padding makes a 44 px tall area for a finger without moving the text around it. */
+const linkClass = "py-3 font-medium text-accent underline underline-offset-2";
 
 /**
  * A dictionary sentence with its key figure marked "**like this**" (bold,
