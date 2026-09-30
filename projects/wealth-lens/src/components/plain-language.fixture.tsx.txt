@@ -1,0 +1,7 @@
+export function Fixture({ label }: { label: string }) {
+  return (
+    <p className="text-sm" aria-hidden="true">
+      Hello there <button aria-label="Close it">{label}</button> · 1
+    </p>
+  );
+}

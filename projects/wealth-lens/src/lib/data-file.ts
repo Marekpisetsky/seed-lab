@@ -6,6 +6,7 @@
 
 import { INITIAL_STATE, type AppState } from "./app-store";
 import { toIsoDate } from "./dates";
+import { problem, type Problem } from "./problems";
 import { isRecord, parseHoldings, parsePlan, parseUploadedPrices, type Notices, type UploadedPrices } from "./validation";
 
 export const DATA_FILE_KIND = "wealth-lens-data";
@@ -28,7 +29,7 @@ export function serializeState(state: AppState, savedAt: Date): string {
 }
 
 /** A loaded file, with one-line notices for what it had that the app no longer does (a single stock projected on its own). */
-export type DataFileResult = { ok: true; state: AppState; notices: Notices } | { ok: false; error: string };
+export type DataFileResult = { ok: true; state: AppState; notices: Notices } | { ok: false; error: Problem };
 
 /**
  * Reads a file made by "Download my data" (versions 1 to 6); anything invalid
@@ -39,13 +40,13 @@ export function parseDataFile(text: string): DataFileResult {
   try {
     json = JSON.parse(text);
   } catch {
-    return { ok: false, error: "This file is not a Wealth Lens data file (it is not valid JSON)." };
+    return { ok: false, error: problem("data-not-json") };
   }
   if (!isRecord(json) || json.kind !== DATA_FILE_KIND) {
-    return { ok: false, error: "This file is not a Wealth Lens data file." };
+    return { ok: false, error: problem("data-not-ours") };
   }
   if (typeof json.version !== "number" || json.version > DATA_FILE_VERSION) {
-    return { ok: false, error: "This file was made by a newer version of Wealth Lens." };
+    return { ok: false, error: problem("data-newer") };
   }
   const uploadedPrices: Record<string, UploadedPrices> = {};
   if (isRecord(json.uploadedPrices)) {

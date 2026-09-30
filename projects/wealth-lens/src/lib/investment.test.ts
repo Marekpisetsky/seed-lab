@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { SAVINGS_RATE, seriesVolatility } from "./assets";
 import { annualizedReturn, SERIES } from "./indexes";
-import { dividendNote, inflationFor, mixName, periodText, resolveInvestment, STANDARD_SETTINGS, toNominal, toReal, type ProjectionSettings } from "./investment";
+import { EN } from "@/i18n";
+import { dividendNote, growthSource, investmentName, simulationsText } from "@/i18n/investment-text";
+import { inflationFor, periodText, resolveInvestment, STANDARD_SETTINGS, toNominal, toReal, type ProjectionSettings } from "./investment";
 import { logStats } from "./volatility";
 import { STANDARD_ASSUMPTIONS, type Holding } from "./types";
 
@@ -24,7 +26,8 @@ const settings = (patch: Partial<ProjectionSettings["assumptions"]> = {}, prices
 describe("standard assumptions: filled in from the data", () => {
   it("gives an asset its average growth after inflation, its swings and its years", () => {
     const resolved = resolveInvestment({ kind: "asset", asset: "sp500" }, []);
-    expect(resolved).toMatchObject({ name: "S&P 500", period: [1988, 2022], simulation: "history", custom: false, key: "asset:sp500" });
+    expect(resolved).toMatchObject({ period: [1988, 2022], simulation: "history", custom: false, key: "asset:sp500" });
+    expect(investmentName(resolved, EN)).toBe("S&P 500");
     expect(resolved.realReturn).toBeCloseTo(SERIES.sp500.averageReturn, 12);
     expect(resolved.volatility).toBeCloseTo(seriesVolatility("sp500"), 12);
     expect(resolved.volatility).toBeGreaterThan(0.15);
@@ -42,8 +45,8 @@ describe("standard assumptions: filled in from the data", () => {
     expect(gold.volatility).toBeGreaterThan(bonds.volatility);
     expect(bonds.realReturn).toBeLessThan(sp500.realReturn);
     expect(gold.realReturn).toBeLessThan(bonds.realReturn);
-    expect(bonds.modelText).toBe("euro government bond histories");
-    expect(gold.modelText).toBe("gold histories");
+    expect(simulationsText(bonds, EN)).toBe("euro bond histories");
+    expect(simulationsText(gold, EN)).toBe("gold histories");
   });
 
   it("gives a savings account its rate less the country's inflation, with no swings: it can be below zero", () => {
@@ -59,7 +62,7 @@ describe("standard assumptions: filled in from the data", () => {
 
   it("weights My portfolio by value, each holding growing like what it holds", () => {
     const resolved = resolveInvestment({ kind: "portfolio" }, [holding("VUAA", 5000), holding("EQQQ", 3000), holding("4GLD", 2000)]);
-    expect(resolved.name).toBe("My portfolio");
+    expect(investmentName(resolved, EN)).toBe("My portfolio");
     expect(resolved.realReturn).toBeCloseTo(0.5 * SERIES.sp500.averageReturn + 0.3 * SERIES.nasdaq100.averageReturn + 0.2 * SERIES.gold.averageReturn, 12);
     expect(resolved.model?.parts.map((part) => [part.asset, part.weight])).toEqual([
       ["sp500", 0.5],
@@ -72,16 +75,16 @@ describe("standard assumptions: filled in from the data", () => {
   });
 
   it("names a mix after its template", () => {
-    expect(mixName({ kind: "mix", parts: [{ asset: "world", weight: 60 }, { asset: "bonds", weight: 40 }], rebalance: false })).toBe("Mix 60/40");
-    expect(mixName({ kind: "mix", parts: [{ asset: "bonds", weight: 20 }, { asset: "world", weight: 80 }], rebalance: true })).toBe("Mix 80/20");
-    expect(mixName({ kind: "mix", parts: [{ asset: "world", weight: 100 }], rebalance: false })).toBe("Mix: 100% stocks");
-    expect(mixName({ kind: "mix", parts: [{ asset: "gold", weight: 50 }, { asset: "sp500", weight: 50 }], rebalance: false })).toBe("Mix of 2");
+    expect(investmentName({ investment: { kind: "mix", parts: [{ asset: "world", weight: 60 }, { asset: "bonds", weight: 40 }], rebalance: false } }, EN)).toBe("Mix 60/40");
+    expect(investmentName({ investment: { kind: "mix", parts: [{ asset: "bonds", weight: 20 }, { asset: "world", weight: 80 }], rebalance: true } }, EN)).toBe("Mix 80/20");
+    expect(investmentName({ investment: { kind: "mix", parts: [{ asset: "world", weight: 100 }], rebalance: false } }, EN)).toBe("Mix: 100% stocks");
+    expect(investmentName({ investment: { kind: "mix", parts: [{ asset: "gold", weight: 50 }, { asset: "sp500", weight: 50 }], rebalance: false } }, EN)).toBe("Mix of 2");
   });
 
   it("falls back to the S&P 500 when the choice cannot be used", () => {
     expect(resolveInvestment({ kind: "portfolio" }, []).investment).toEqual({ kind: "asset", asset: "sp500" });
-    expect(resolveInvestment({ kind: "portfolio" }, [holding("NVDA", 5000, "USD")]).name).toBe("S&P 500");
-    expect(resolveInvestment({ kind: "mix", parts: [{ asset: "gold", weight: 0 }], rebalance: false }, []).name).toBe("S&P 500");
+    expect(investmentName(resolveInvestment({ kind: "portfolio" }, [holding("NVDA", 5000, "USD")]), EN)).toBe("S&P 500");
+    expect(investmentName(resolveInvestment({ kind: "mix", parts: [{ asset: "gold", weight: 0 }], rebalance: false }, []), EN)).toBe("S&P 500");
   });
 });
 
@@ -150,7 +153,9 @@ describe("assumptions the user changes", () => {
 describe("Custom growth", () => {
   it("starts from the S&P 500's figures, with no asset behind it, and is always the user's own", () => {
     const resolved = resolveInvestment({ kind: "custom" }, []);
-    expect(resolved).toMatchObject({ name: "Custom growth", custom: true, simulation: "normal", period: null, growthText: "your own figure" });
+    expect(resolved).toMatchObject({ custom: true, simulation: "normal", period: null });
+    expect(investmentName(resolved, EN)).toBe("Custom growth");
+    expect(growthSource(resolved, EN)).toBe(EN.m.invest.source.custom);
     expect(resolved.realReturn).toBeCloseTo(SERIES.sp500.averageReturn, 12);
     expect(resolved.volatility).toBeCloseTo(seriesVolatility("sp500"), 12);
   });
@@ -158,7 +163,7 @@ describe("Custom growth", () => {
   it("uses the growth and swings typed", () => {
     const resolved = resolveInvestment({ kind: "custom" }, [], settings({ growth: { rate: 0.06, basis: "real" }, volatility: 0.1 }));
     expect(resolved).toMatchObject({ realReturn: 0.06, volatility: 0.1 });
-    expect(resolved.modelText).toBe("simulations with 6% a year after rising prices and ups and downs of ±10%");
+    expect(simulationsText(resolved, EN)).toBe("simulations with your numbers");
     expect(annualizedReturn(resolved.returns)).toBeCloseTo(0.06, 4);
   });
 });
@@ -181,10 +186,10 @@ describe("periodText and dividendNote", () => {
   it("say where a growth figure comes from", () => {
     expect(periodText(resolveInvestment({ kind: "asset", asset: "world" }, []))).toBe("1988–2022");
     expect(periodText(resolveInvestment({ kind: "asset", asset: "savings" }, []))).toBe("");
-    expect(dividendNote(resolveInvestment({ kind: "asset", asset: "world" }, []))).toBeNull();
-    expect(dividendNote(resolveInvestment({ kind: "asset", asset: "nasdaq100" }, []))).toBe("price only: dividends (roughly 1% a year) not included");
-    expect(dividendNote({ withoutDividends: 0.3 })).toBe("the Nasdaq-100 part is price only: dividends (roughly 1% a year) not included");
+    expect(dividendNote(resolveInvestment({ kind: "asset", asset: "world" }, []), EN)).toBeNull();
+    expect(dividendNote(resolveInvestment({ kind: "asset", asset: "nasdaq100" }, []), EN)).toBe(EN.m.invest.dividends.all);
+    expect(dividendNote({ withoutDividends: 0.3 }, EN)).toBe(EN.m.invest.dividends.part);
     // The user's own figure is not the index's.
-    expect(dividendNote(resolveInvestment({ kind: "asset", asset: "nasdaq100" }, [], settings({ volatility: 0.2 })))).toBeNull();
+    expect(dividendNote(resolveInvestment({ kind: "asset", asset: "nasdaq100" }, [], settings({ volatility: 0.2 })), EN)).toBeNull();
   });
 });

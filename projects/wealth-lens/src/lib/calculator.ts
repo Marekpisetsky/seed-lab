@@ -12,11 +12,10 @@
  */
 
 import { connectionsData, type BuyItem, type ConnectionsDataset } from "./connections";
-import { costOfLiving, countryInSentence, type CountryCost } from "./cost-of-living";
+import { costOfLiving, type CountryCost } from "./cost-of-living";
 import { addMonths } from "./dates";
 import { futureValueWithContributions, monthlyWithdrawal, monthsToGoal, requiredCapital, requiredMonthlyContribution } from "./finance";
-import { formatDuration, formatEur, formatMonthYear, formatRate } from "./format";
-import { dividendNote, resolveInvestment, shiftGrowth, type ResolvedInvestment } from "./investment";
+import { resolveInvestment, shiftGrowth, type ResolvedInvestment } from "./investment";
 import { startingCapital, type StartingCapital } from "./plan";
 import { successRatesFor } from "./projections";
 import type { AssumptionOverrides, Goal, Holding, Investment } from "./types";
@@ -51,28 +50,6 @@ export const WITHDRAWAL_CHOICES = [0.03, 0.04, 0.05] as const;
 /** Reached within MAX_YEARS (0 = now). `Infinity` (never) is not. */
 export function withinReach(months: number): boolean {
   return months <= MAX_MONTHS;
-}
-
-/**
- * When the plan gets somewhere, as goals, the country table and the buy
- * list say it: "now", "in 12 years" ("in 12 years (2038)" given today), or
- * past 60 years "not at this pace". Rounded up to whole months, then whole
- * years: something not paid after 20 years never reads "in 20 years".
- */
-export function whenText(months: number, today?: Date): string {
-  // A few billionths of a month is now: never "in 0 months".
-  if (months <= 1e-9) return "now";
-  if (!withinReach(months)) return "not at this pace";
-  const whole = Math.ceil(months - 1e-9);
-  const plural = (n: number, unit: string) => `${n} ${unit}${n === 1 ? "" : "s"}`;
-  const span = whole < 12 ? plural(whole, "month") : plural(Math.ceil(whole / 12), "year");
-  const year = today ? ` (${addMonths(today, whole).getUTCFullYear()})` : "";
-  return `in ${span}${year}`;
-}
-
-/** Whole euros, but "under €1" for a few cents: €1 invested pays €0.003 a month, not €0. */
-export function formatSmallEur(amount: number): string {
-  return amount > 0 && amount < 0.5 ? "under €1" : formatEur(amount);
 }
 
 /** The numbers every projection needs. */
@@ -208,15 +185,11 @@ export interface CountryCell {
   covered: boolean;
 }
 
+/** A country of the table; its name comes from the page's language (i18n/countries.ts). */
 export interface CountryRow {
   code: string;
-  /** "Peru", "Netherlands": as a table lists it. */
-  label: string;
-  /** "Peru", "the Netherlands": as a sentence says it. */
-  name: string;
   withoutHousing: CountryCell;
   withHousing: CountryCell;
-  source: string;
   referenceDate: string;
 }
 
@@ -246,14 +219,11 @@ export function countryRows(
   countries: readonly CountryCost[] = costOfLiving.countries,
 ): CountryRow[] {
   return [...countries]
-    .sort((a, b) => a.monthlyCostEur.withoutRent - b.monthlyCostEur.withoutRent || a.name.localeCompare(b.name))
+    .sort((a, b) => a.monthlyCostEur.withoutRent - b.monthlyCostEur.withoutRent || a.code.localeCompare(b.code))
     .map((country) => ({
       code: country.code,
-      label: country.name,
-      name: countryInSentence(country.name),
       withoutHousing: cell(scenario, horizonMonths, country.monthlyCostEur.withoutRent),
       withHousing: cell(scenario, horizonMonths, country.monthlyCostEur.withRent),
-      source: country.source,
       referenceDate: country.referenceDate,
     }));
 }
@@ -263,12 +233,11 @@ export function featuredRows(rows: readonly CountryRow[]): CountryRow[] {
   return rows.filter((row, index) => index < CHEAPEST_SHOWN || (FEATURED_COUNTRIES as readonly string[]).includes(row.code));
 }
 
+/** A purchase of the list; its name and source come from the page's language (things.items). */
 export interface PricedItem {
   /** The item's id in src/data/connections.json. */
   id: string;
-  name: string;
   amount: number;
-  source: string;
   referenceDate: string;
 }
 
@@ -287,7 +256,7 @@ export function pricedItems(
       const monthly = place.reduce((sum, code) => sum + (byCode.get(code)?.monthlyCostEur.withRent ?? 0), 0) / place.length;
       amount = roundTo10(monthly * item.monthsAt.months) + (item.plus ?? 0);
     }
-    return { id: item.id, name: item.name, amount, source: item.source, referenceDate: item.referenceDate };
+    return { id: item.id, amount, referenceDate: item.referenceDate };
   });
 }
 
@@ -300,12 +269,9 @@ export interface ItemStatus {
 // Goals
 // ---------------------------------------------------------------------------
 
+/** A goal against the plan: numbers only; its name and the calculation in words come from i18n/goal-text.ts. */
 export interface GoalStatus {
   goal: Goal;
-  /** "Live in Peru", "A used car", "Reach €100,000", "My mortgage" (a monthly amount's label). */
-  name: string;
-  /** "with housing", "without housing", or nothing. */
-  detail: string | null;
   /** monthly: a cost the withdrawals pay every month; once: an amount to have. */
   kind: "monthly" | "once";
   /** The monthly cost or the amount. */
@@ -320,18 +286,16 @@ export interface GoalStatus {
   date: Date | null;
   /** Out of reach: the monthly amount that would get there in 30 years. */
   needed: number | null;
-  /** How the status is worked out, one step per line. */
-  explain: string[];
-  /** False for an item a file names but the list no longer has. */
+  /** False for an item or country a file names but the lists no longer have. */
   known: boolean;
+  /** When the country's or the item's figures are from ("2026-09"); `null` for the user's own amounts. */
+  referenceDate: string | null;
 }
 
 interface GoalShape {
-  name: string;
-  detail: string | null;
   kind: "monthly" | "once";
   amount: number;
-  source: string;
+  referenceDate: string | null;
 }
 
 function shapeOf(goal: Goal, items: ReadonlyMap<string, PricedItem>, countries: ReadonlyMap<string, CountryCost>): GoalShape | null {
@@ -339,98 +303,41 @@ function shapeOf(goal: Goal, items: ReadonlyMap<string, PricedItem>, countries: 
     case "live": {
       const country = countries.get(goal.country);
       if (!country) return null;
-      return {
-        name: `Live in ${countryInSentence(country.name)}`,
-        detail: goal.housing ? "with housing" : "without housing",
-        kind: "monthly",
-        amount: goal.housing ? country.monthlyCostEur.withRent : country.monthlyCostEur.withoutRent,
-        source: `One person, ${goal.housing ? "with" : "without"} housing: ${country.source} (estimate, ${country.referenceDate}).`,
-      };
+      return { kind: "monthly", amount: goal.housing ? country.monthlyCostEur.withRent : country.monthlyCostEur.withoutRent, referenceDate: country.referenceDate };
     }
     case "buy": {
       const item = items.get(goal.item);
-      if (!item) return null;
-      return { name: item.name, detail: null, kind: "once", amount: item.amount, source: `${item.source} (estimate)` };
+      return item ? { kind: "once", amount: item.amount, referenceDate: item.referenceDate } : null;
     }
     case "buy-own":
-      return { name: goal.name, detail: null, kind: "once", amount: goal.amount, source: "Your own price." };
     case "amount":
-      return { name: `Reach ${formatEur(goal.amount)}`, detail: null, kind: "once", amount: goal.amount, source: "Your own amount." };
+      return { kind: "once", amount: goal.amount, referenceDate: null };
     case "monthly":
-      return {
-        name: goal.label ? goal.label.charAt(0).toUpperCase() + goal.label.slice(1) : "A monthly amount",
-        detail: null,
-        kind: "monthly",
-        amount: goal.amount,
-        source: "Your own amount.",
-      };
+      return { kind: "monthly", amount: goal.amount, referenceDate: null };
   }
-}
-
-function growthLine({ realReturn }: Scenario, investment: ResolvedInvestment): string {
-  const dividends = dividendNote(investment);
-  return `growing ${formatRate(realReturn)} a year after inflation (${investment.growthText}${dividends ? `; ${dividends}` : ""})`;
 }
 
 /** Each goal against the same plan, in the order the user added them. */
 export function goalStatuses(
   goals: readonly Goal[],
   scenario: Scenario,
-  investment: ResolvedInvestment,
   today: Date,
   items: readonly PricedItem[] = pricedItems(),
   countries: readonly CountryCost[] = costOfLiving.countries,
 ): GoalStatus[] {
   const itemById = new Map(items.map((item) => [item.id, item]));
   const countryByCode = new Map(countries.map((country) => [country.code, country]));
-  const start = `${formatEur(scenario.capital)} now + ${formatEur(scenario.monthly)} a month, ${growthLine(scenario, investment)}`;
   return goals.map((goal) => {
     const shape = shapeOf(goal, itemById, countryByCode);
     if (!shape) {
-      return {
-        goal,
-        name: "Not in the list any more",
-        detail: null,
-        kind: "once",
-        amount: 0,
-        target: 0,
-        months: Infinity,
-        reachable: false,
-        date: null,
-        needed: null,
-        explain: ["A file named something the list no longer has. Remove it with ×."],
-        known: false,
-      };
+      return { goal, kind: "once", amount: 0, target: 0, months: Infinity, reachable: false, date: null, needed: null, known: false, referenceDate: null };
     }
     const target = shape.kind === "monthly" ? requiredCapital(shape.amount * 12, scenario.withdrawalRate) : shape.amount;
     const months = monthsTo(scenario, target);
     const reachable = withinReach(months);
-    const date = reachable && months > 0 ? addMonths(today, Math.ceil(months - 1e-9)) : null;
+    const date = reachable && months > 1e-9 ? addMonths(today, Math.ceil(months - 1e-9)) : null;
     const needed = reachable ? null : requiredMonthlyContribution(scenario.capital, scenario.realReturn, NEEDED_WITHIN_YEARS * 12, target);
-    const cost =
-      shape.kind === "monthly"
-        ? `${formatEur(shape.amount)} a month × 12 ÷ ${formatRate(scenario.withdrawalRate)} taken out a year = ${formatEur(target)} needed.`
-        : `${formatEur(target)} needed.`;
-    const reach =
-      months === 0
-        ? `Already there: you have ${formatEur(scenario.capital)}.`
-        : reachable && date
-          ? `${start}: ${formatEur(target)} in ${formatDuration(months)} (${formatMonthYear(date)}).`
-          : `${start}: more than ${MAX_YEARS} years. In ${NEEDED_WITHIN_YEARS} years it would take ${formatEur(needed ?? 0)} a month.`;
-    return {
-      goal,
-      name: shape.name,
-      detail: shape.detail,
-      kind: shape.kind,
-      amount: shape.amount,
-      target,
-      months,
-      reachable,
-      date,
-      needed,
-      explain: [cost, reach, shape.source],
-      known: true,
-    };
+    return { goal, kind: shape.kind, amount: shape.amount, target, months, reachable, date, needed, known: true, referenceDate: shape.referenceDate };
   });
 }
 
@@ -474,7 +381,7 @@ export function calculate(plan: CalculatorPlan, holdings: readonly Holding[], to
     scenario,
     whatIf: applied,
     result: resultOf(scenario, investment, inputs.years),
-    goals: goalStatuses(plan.goals, scenario, investment, today),
+    goals: goalStatuses(plan.goals, scenario, today),
     countries: countryRows(scenario, inputs.years * 12),
   };
 }

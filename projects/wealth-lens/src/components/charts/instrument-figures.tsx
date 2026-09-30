@@ -1,4 +1,7 @@
-import { formatDayMonth, formatMoney, formatPercent } from "@/lib/format";
+"use client";
+
+import { useI18n } from "@/components/i18n";
+import { Marked } from "@/components/ui/marked";
 import type { InstrumentPrices } from "@/lib/market-data";
 import { YearChanges } from "./year-changes";
 
@@ -8,37 +11,38 @@ import { YearChanges } from "./year-changes";
  * change. Figures only: the closes themselves are not published.
  */
 export function InstrumentFigures({ prices, averageCost = null }: { prices: InstrumentPrices; averageCost?: number | null }) {
+  const { m, f } = useI18n();
+  const t = m.stocks;
   const since = (from: string) => from.slice(0, 4);
   const vsPaid = averageCost ? prices.close / averageCost - 1 : null;
   return (
     <div className="space-y-2 text-sm">
       <p>
-        Last close {formatMoney(prices.close, prices.currency)} on {formatDayMonth(prices.date)}.
+        {t.lastClose(f.money(prices.close, prices.currency), f.dayMonth(prices.date))}
         {vsPaid !== null && averageCost !== null && (
           <>
             {" "}
-            <strong className={vsPaid >= 0 ? "text-positive" : "text-negative"}>
-              {formatPercent(Math.abs(vsPaid))} {vsPaid >= 0 ? "above" : "below"}
-            </strong>{" "}
-            what you paid ({formatMoney(averageCost, prices.currency)}).
+            <Marked
+              text={t.vsPaid(f.percent(Math.abs(vsPaid)), vsPaid >= 0, f.money(averageCost, prices.currency))}
+              strongClassName={vsPaid >= 0 ? "text-positive" : "text-negative"}
+            />
           </>
         )}
       </p>
       <ul className="space-y-1 text-muted">
         {prices.growth && (
           <li>
-            Grew <strong className="font-medium text-foreground tabular-nums">{formatPercent(prices.growth.perYear, { signed: true })} a year</strong> since{" "}
-            {since(prices.growth.from)}, before rising prices. Past, not a forecast.
+            <Marked text={t.grew(f.percent(prices.growth.perYear, { signed: true }), since(prices.growth.from))} />
           </li>
         )}
         {prices.drawdown && (
           <li>
-            Worst fall since {since(prices.drawdown.from)}: <strong className="font-medium text-foreground tabular-nums">−{formatPercent(prices.drawdown.max, { decimals: 0 })}</strong>.
+            <Marked text={t.worstFall(since(prices.drawdown.from), f.percent(-prices.drawdown.max, { decimals: 0 }))} />
           </li>
         )}
         {prices.stats && (
           <li>
-            Moves about <strong className="font-medium text-foreground tabular-nums">±{formatPercent(prices.stats.volatility, { decimals: 0 })}</strong> in a normal year.
+            <Marked text={t.moves(f.percent(prices.stats.volatility, { decimals: 0 }))} />
           </li>
         )}
       </ul>

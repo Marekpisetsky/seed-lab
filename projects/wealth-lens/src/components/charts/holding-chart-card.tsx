@@ -1,13 +1,15 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useI18n } from "@/components/i18n";
 import { Button } from "@/components/ui/button";
+import { Marked } from "@/components/ui/marked";
 import { useAppState } from "@/hooks/use-app";
 import { setUploadedPrices } from "@/lib/app-store";
 import { averageCost } from "@/lib/finance";
-import { formatMoney, formatPercent, formatPrice } from "@/lib/format";
 import { instrumentForHolding, MARKET } from "@/lib/market-data";
 import { parsePriceCsv, summarizeSeries, type PricePoint } from "@/lib/prices";
+import { problem, problemText, type Problem } from "@/lib/problems";
 import { lastDays, periodChange } from "@/lib/sparkline";
 import type { Holding } from "@/lib/types";
 import { ChartRow } from "./chart-row";
@@ -25,6 +27,8 @@ const PERIOD_DAYS = 365;
  * app never asks a price source.
  */
 export function HoldingChartRow({ holding }: { holding: Holding }) {
+  const { m } = useI18n();
+  const t = m.stocks;
   const uploaded = useAppState().uploadedPrices[holding.ticker] ?? null;
   const setUploaded = (prices: Parameters<typeof setUploadedPrices>[1]) => setUploadedPrices(holding.ticker, prices);
   const instrument = instrumentForHolding(holding.ticker, holding.currency);
@@ -32,7 +36,7 @@ export function HoldingChartRow({ holding }: { holding: Holding }) {
 
   const recent = uploaded ? lastDays(uploaded.points, PERIOD_DAYS) : null;
   const change = recent ? periodChange(recent) : (market?.change1y ?? null);
-  const subtitle = uploaded ? "your prices" : instrument && market ? instrument.name : "no downloaded prices";
+  const subtitle = uploaded ? t.yourPrices : instrument && market ? instrument.name : t.noDownloaded;
   const visual =
     recent && recent.length > 1 ? (
       <Sparkline closes={recent.map((point) => point.close)} rising={(change ?? 0) >= 0} />
@@ -44,13 +48,13 @@ export function HoldingChartRow({ holding }: { holding: Holding }) {
     <ChartRow title={holding.ticker} subtitle={subtitle} visual={visual} change={change}>
       {uploaded ? (
         <>
-          <PriceChart points={uploaded.points} averageCost={averageCost(holding)} label={`Daily closing prices of ${holding.ticker} with a line at your average cost`} />
+          <PriceChart points={uploaded.points} averageCost={averageCost(holding)} label={t.chartLabel(holding.ticker)} />
           <Summary points={uploaded.points} holding={holding} />
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xs text-muted">Prices from your file {uploaded.fileName}.</p>
+            <p className="text-xs text-muted">{t.fromFile(uploaded.fileName)}</p>
             {market && (
               <Button size="sm" variant="ghost" onClick={() => setUploaded(null)}>
-                Use the downloaded figures
+                {t.useDownloaded}
               </Button>
             )}
           </div>
@@ -58,9 +62,7 @@ export function HoldingChartRow({ holding }: { holding: Holding }) {
       ) : market ? (
         <InstrumentFigures prices={market} averageCost={averageCost(holding)} />
       ) : (
-        <p className="rounded-lg border border-border bg-background px-3 py-2 text-sm">
-          No downloaded prices for {holding.ticker}. Upload a CSV with its daily prices to see a chart.
-        </p>
+        <p className="rounded-lg border border-border bg-background px-3 py-2 text-sm">{t.noPricesFor(holding.ticker)}</p>
       )}
       {!market && <UploadPrices ticker={holding.ticker} onLoaded={(fileName, points) => setUploaded({ fileName, points })} />}
     </ChartRow>
@@ -68,43 +70,46 @@ export function HoldingChartRow({ holding }: { holding: Holding }) {
 }
 
 function Summary({ points, holding }: { points: readonly PricePoint[]; holding: Holding }) {
+  const { m, f } = useI18n();
   const average = averageCost(holding);
   const summary = summarizeSeries(points, average);
   if (!summary) return null;
   const { last, vsAverageCost } = summary;
   if (vsAverageCost === null || average === null) {
-    return <p className="text-sm">Last close {formatPrice(last.close)}.</p>;
+    return <p className="text-sm">{m.stocks.lastPrice(f.price(last.close))}</p>;
   }
   return (
     <p className="text-sm">
-      Now {formatPrice(last.close)}:{" "}
-      <strong className={vsAverageCost >= 0 ? "text-positive" : "text-negative"}>
-        {formatPercent(Math.abs(vsAverageCost))} {vsAverageCost >= 0 ? "above" : "below"}
-      </strong>{" "}
-      what you paid ({formatMoney(average, holding.currency)}, dashed line).
+      <Marked
+        text={m.stocks.now(f.price(last.close), f.percent(Math.abs(vsAverageCost)), vsAverageCost >= 0, f.money(average, holding.currency))}
+        strongClassName={vsAverageCost >= 0 ? "text-positive" : "text-negative"}
+      />
     </p>
   );
 }
 
+type UploadMessage = { kind: "problem"; file: string; problem: Problem } | { kind: "skipped"; count: number };
+
 function UploadPrices({ ticker, onLoaded }: { ticker: string; onLoaded: (fileName: string, points: PricePoint[]) => unknown }) {
+  const { m } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<UploadMessage | null>(null);
 
   const handle = async (file: File) => {
     let text: string;
     try {
       text = await file.text();
     } catch {
-      setMessage(`Could not read ${file.name}.`);
+      setMessage({ kind: "problem", file: "", problem: problem("file-unreadable", { file: file.name }) });
       return;
     }
     const parsed = parsePriceCsv(text);
     if (!parsed.ok) {
-      setMessage(`${file.name}: ${parsed.error}`);
+      setMessage({ kind: "problem", file: file.name, problem: parsed.error });
       return;
     }
     onLoaded(file.name, parsed.points);
-    setMessage(parsed.skippedRows > 0 ? `Loaded. ${parsed.skippedRows} rows skipped.` : null);
+    setMessage(parsed.skippedRows > 0 ? { kind: "skipped", count: parsed.skippedRows } : null);
   };
 
   return (
@@ -116,7 +121,7 @@ function UploadPrices({ ticker, onLoaded }: { ticker: string; onLoaded: (fileNam
         className="sr-only"
         // Opened by the visible button next to it: one stop for Tab, not two.
         tabIndex={-1}
-        aria-label={`Upload a price CSV for ${ticker}`}
+        aria-label={m.stocks.uploadLabel(ticker)}
         onChange={(event) => {
           const file = event.target.files?.[0];
           if (file) void handle(file);
@@ -124,10 +129,16 @@ function UploadPrices({ ticker, onLoaded }: { ticker: string; onLoaded: (fileNam
         }}
       />
       <Button size="sm" onClick={() => inputRef.current?.click()}>
-        Upload prices (CSV)
+        {m.stocks.upload}
       </Button>
-      <p className="text-xs text-muted">A file with a date and a close column. It stays in your browser.</p>
-      {message && <p className="text-xs">{message}</p>}
+      <p className="text-xs text-muted">{m.stocks.uploadHint}</p>
+      {message && (
+        <p className="text-xs">
+          {message.kind === "skipped"
+            ? m.stocks.loadedSkipped(message.count)
+            : `${message.file ? `${message.file}: ` : ""}${problemText(message.problem, m.problems)}`}
+        </p>
+      )}
     </div>
   );
 }

@@ -1,27 +1,24 @@
+import type { Problem } from "../problems";
 import type { HoldingInput } from "../types";
 
 /** A position read from a file, before it gets an id. */
 export type ImportedPosition = HoldingInput;
 
-/** A row the importer could not use, with the reason in plain words. */
+/** A row the importer could not use, and why. */
 export interface ImportIssue {
   /** 1-based line number in the file. */
   line: number;
-  message: string;
+  problem: Problem;
 }
 
 /** Rows skipped on purpose because they are not trades (deposits, dividends...). */
 export interface IgnoredRows {
-  label: string;
+  /** The file's own word for them ("Deposit"); `null` for rows with no action. */
+  label: string | null;
   count: number;
 }
 
 export type ImportFormat = "trading212" | "holdings";
-
-export const IMPORT_FORMAT_LABELS: Readonly<Record<ImportFormat, string>> = {
-  trading212: "Trading 212 export",
-  holdings: "Holdings CSV",
-};
 
 export type ImportOutcome =
   | {
@@ -33,4 +30,4 @@ export type ImportOutcome =
       /** Data rows in the file (header excluded). */
       rowCount: number;
     }
-  | { ok: false; error: string };
+  | { ok: false; error: Problem };

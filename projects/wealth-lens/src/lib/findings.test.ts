@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EN, getI18n } from "@/i18n";
 import { priceHoldings } from "./auto-price";
 import { calculate, valueAt, type CalculatorPlan } from "./calculator";
 import { parseIsoDate } from "./dates";
@@ -18,10 +19,13 @@ import {
   waitingFinding,
   type FindingContext,
 } from "./findings";
-import { formatEurRounded, formatYears } from "./format";
 import { INDEXES } from "./indexes";
 import { MARKET } from "./market-data";
 import { STANDARD_ASSUMPTIONS, type Goal, type Holding } from "./types";
+
+const ES = getI18n("es");
+const formatEurRounded = EN.f.eurRounded;
+const formatYears = EN.f.span;
 
 const today = parseIsoDate("2026-09-29");
 const r = INDEXES.sp500.averageReturn;
@@ -51,7 +55,7 @@ const holding = (ticker: string, quantity: number, price: number, currency = "EU
 
 function context(overrides: Partial<CalculatorPlan> = {}, holdings: Holding[] = []): FindingContext {
   const priced = priceHoldings(holdings);
-  return { calc: calculate(plan(overrides), priced, today), inflation: 0.02, today, holdings: priced, market: MARKET };
+  return { calc: calculate(plan(overrides), priced, today), inflation: 0.02, today, holdings: priced, market: MARKET, i18n: EN };
 }
 
 const india: Goal = { id: "a", kind: "live", country: "IN", housing: true };
@@ -83,14 +87,14 @@ describe("lever: +€100 a month vs +1% vs a year earlier", () => {
     const finding = leverFinding(byDefault);
     const gain = futureValueWithContributions(1000, 300, r, 20) - total;
     expect(finding?.value).toBe(`+${formatEurRounded(gain)}`);
-    expect(finding?.text).toBe(`Adding €100 a month gives you ${formatEurRounded(gain)} more by 2046.`);
+    expect(finding?.text).toBe(`€100 more a month gives you ${formatEurRounded(gain)} more by 2046.`);
     expect(finding?.calculation).toHaveLength(4);
   });
 
   it("speaks in years for the first goal", () => {
     const finding = leverFinding(small);
     const gain = n - monthsToGoal(1000, 300, r, 99_000);
-    expect(finding).toMatchObject({ value: formatYears(gain), text: `Adding €100 a month reaches your first goal ${formatYears(gain)} sooner.` });
+    expect(finding).toMatchObject({ value: formatYears(gain), text: `€100 more a month reaches your first goal ${formatYears(gain)} sooner.` });
     expect(finding?.calculation[0]).toMatch(/^Live in India: €99,000 needed, in \d+ years \(20\d\d\)\.$/);
   });
 
@@ -135,7 +139,7 @@ describe("inflation", () => {
     const finding = inflationFinding(byDefault);
     const shown = formatEurRounded(total * factor);
     expect(finding?.value).toBe(`~${shown}`);
-    expect(finding?.text).toBe(`In 2046 your account will show ~${shown} — worth ${formatEurRounded(total)} of today's money.`);
+    expect(finding?.text).toBe(`In 2046 your account will show ~${shown}. That is ${formatEurRounded(total)} of today's money.`);
     expect(finding?.calculation[1]).toMatch(/^€[\d,]+ × 1\.49 = €[\d,]+ in euros of 2046\.$/);
   });
 
@@ -143,7 +147,7 @@ describe("inflation", () => {
     const ten = context({ years: 10 });
     const real = valueAt(ten.calc.scenario, 120);
     expect(inflationFinding(ten)?.text).toBe(
-      `In 2036 your account will show ~${formatEurRounded(real * Math.pow(1.02, 10))} — worth ${formatEurRounded(real)} of today's money.`,
+      `In 2036 your account will show ~${formatEurRounded(real * Math.pow(1.02, 10))}. That is ${formatEurRounded(real)} of today's money.`,
     );
   });
 
@@ -168,7 +172,7 @@ describe("fees", () => {
 describe("concentration", () => {
   it("flags one stock over 40% of the portfolio, with its worst fall", () => {
     const finding = concentrationFinding(concentrated);
-    expect(finding).toMatchObject({ value: "70%", text: "70% of your portfolio rides on ASML alone.", tone: "warning" });
+    expect(finding).toMatchObject({ value: "70%", text: "70% of your portfolio is ASML alone.", tone: "warning" });
     expect(finding?.calculation.join(" ")).toMatch(/Worst fall from a peak since 2016: -48%/);
   });
 
@@ -182,7 +186,7 @@ describe("concentration", () => {
 describe("currency", () => {
   it("says what is left out for being in another currency", () => {
     const finding = currencyFinding(context({}, [holding("VWCE", 10, 169.4), holding("NVDA", 5, 228, "USD")]));
-    expect(finding).toMatchObject({ value: "$1,140", text: "Your $1,140 in US dollars isn't counted: no currency conversion." });
+    expect(finding).toMatchObject({ value: "$1,140", text: "Your $1,140 in US dollars is not counted. No currency conversion." });
     expect(finding?.calculation.at(-1)).toBe("Counted: €1,694 in euros.");
   });
 
@@ -227,12 +231,12 @@ describe("where the growth comes from, in the assumptions", () => {
     const bonds = doublingFinding(context({ investment: { kind: "asset", asset: "bonds" } }));
     expect(bonds?.assumptions[0]).toMatch(/: Euro government bonds, 1988–2022 average\./);
     const own = doublingFinding(context({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth: { rate: 0.05, basis: "real" } } }));
-    expect(own?.assumptions[0]).toBe("Growth 5% a year after inflation: your own figure. Not a promise.");
+    expect(own?.assumptions[0]).toBe("Growth 5% a year after rising prices: your own number. Not a promise.");
   });
 
   it("quotes the inflation of the country whose prices the user chose", () => {
     const finding = inflationFinding({ ...context({ pricesOf: "BR" }), inflation: 0.03 });
-    expect(finding?.assumptions[0]).toBe("Inflation 3% a year.");
+    expect(finding?.assumptions[0]).toBe("Prices rise 3% a year.");
   });
 });
 
@@ -269,14 +273,28 @@ describe("the findings shown", () => {
     expect(topFindings(concentrated)[0].id).toBe("concentration");
   });
 
-  it("are short, concrete and never tell the user what to do", () => {
+  it("are short, concrete and never tell the user what to do, in English and in Spanish", () => {
     for (const ctx of Object.values(profiles)) {
-      for (const finding of allFindings(ctx)) {
-        expect(finding.text.split(/\s+/).length, finding.text).toBeLessThanOrEqual(13);
-        expect(finding.text, finding.id).not.toMatch(/\b(should|must|need to|recommend)\b/i);
-        expect(finding.calculation.length, finding.id).toBeGreaterThan(0);
-        expect(finding.assumptions.length, finding.id).toBeGreaterThan(0);
+      for (const i18n of [EN, ES]) {
+        for (const finding of allFindings({ ...ctx, i18n })) {
+          // "1 %" and "9700 €" are one word each.
+          expect(finding.text.replace(/(\d)\u00a0(?=[%€])/g, "$1").split(/\s+/).length, finding.text).toBeLessThanOrEqual(14);
+          expect(finding.text, finding.id).not.toMatch(/\b(should|must|need to|recommend|deberías|debes|tienes que|recomend\w*)\b/i);
+          expect(finding.calculation.length, finding.id).toBeGreaterThan(0);
+          expect(finding.assumptions.length, finding.id).toBeGreaterThan(0);
+        }
       }
     }
+  });
+
+  it("are the same findings in Spanish, with the same numbers written the Spanish way", () => {
+    for (const ctx of Object.values(profiles)) {
+      const english = allFindings(ctx);
+      const spanish = allFindings({ ...ctx, i18n: ES });
+      expect(spanish.map((finding) => finding.id)).toEqual(english.map((finding) => finding.id));
+      for (const [index, finding] of spanish.entries()) expect(finding.text).not.toBe(english[index].text);
+    }
+    const [lever] = allFindings({ ...profiles.byDefault, i18n: ES });
+    expect(lever.text).toMatch(/^100\u00a0€ más al mes te da [\d.]+\u00a0€ más en 2046\.$/);
   });
 });

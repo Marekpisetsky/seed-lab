@@ -1,11 +1,11 @@
 "use client";
 
+import { useI18n } from "@/components/i18n";
 import { setHoldingReference } from "@/lib/app-store";
-import { ASSET_IDS, assetShortName, type AssetId } from "@/lib/assets";
-import { formatEur, formatPercent } from "@/lib/format";
+import { ASSET_IDS, type AssetId } from "@/lib/assets";
 import { instrumentForHolding } from "@/lib/market-data";
 import type { MixModel } from "@/lib/mix";
-import { defaultReference, PORTFOLIO_LABEL, type Allocation } from "@/lib/portfolio";
+import { defaultReference, type Allocation } from "@/lib/portfolio";
 import { HowMyPortfolioWorks } from "./explainers";
 
 /**
@@ -14,10 +14,12 @@ import { HowMyPortfolioWorks } from "./explainers";
  * changeable here.
  */
 export function PortfolioEditor({ allocation, model }: { allocation: Allocation; model: MixModel | null }) {
+  const { m, f } = useI18n();
+  const t = m.portfolio;
   return (
     <div className="col-span-2 space-y-3 rounded-lg bg-background p-3 sm:col-span-4">
-      <p className="text-sm font-medium">{PORTFOLIO_LABEL}</p>
-      <p className="text-xs text-muted">Each holding grows like the asset beside it; change any of them.</p>
+      <p className="text-sm font-medium">{t.label}</p>
+      <p className="text-xs text-muted">{t.hint}</p>
       <ul className="space-y-2">
         {allocation.entries.map((entry) => {
           const { holding } = entry;
@@ -31,13 +33,11 @@ export function PortfolioEditor({ allocation, model }: { allocation: Allocation;
                   {instrument && <span className="hidden font-normal text-muted sm:inline"> · {instrument.name}</span>}
                 </span>
                 <span className="block text-xs text-muted tabular-nums">
-                  {formatPercent(entry.weight, { decimals: 0 })} · {formatEur(entry.value)}
-                  {entry.stock ? " · its own ups and downs" : ""}
-                  {entry.assumed ? " · a guess: change it" : ""}
+                  {[f.percent(entry.weight, { decimals: 0 }), f.eur(entry.value), entry.stock && t.ownUpsAndDowns, entry.assumed && t.guess].filter(Boolean).join(" · ")}
                 </span>
               </span>
               <select
-                aria-label={`What ${holding.ticker} grows like`}
+                aria-label={t.growsLike(holding.ticker)}
                 value={entry.asset}
                 onChange={(event) => {
                   const asset = event.target.value as AssetId;
@@ -48,7 +48,7 @@ export function PortfolioEditor({ allocation, model }: { allocation: Allocation;
               >
                 {ASSET_IDS.map((asset) => (
                   <option key={asset} value={asset}>
-                    {assetShortName(asset)}
+                    {m.assets.short[asset]}
                   </option>
                 ))}
               </select>
@@ -58,11 +58,9 @@ export function PortfolioEditor({ allocation, model }: { allocation: Allocation;
       </ul>
       {allocation.left.length > 0 && (
         <p className="text-xs text-muted">
-          Not counted:{" "}
-          {allocation.left
-            .map((holding) => `${holding.ticker} (${holding.currency !== "EUR" ? holding.currency : "no price"})`)
-            .join(", ")}
-          . The app does not convert currencies.
+          {t.notCounted}{" "}
+          {allocation.left.map((holding) => `${holding.ticker} (${holding.currency !== "EUR" ? holding.currency : t.noPrice})`).join(", ")}.{" "}
+          {t.noConversion}
         </p>
       )}
       <HowMyPortfolioWorks model={model} />

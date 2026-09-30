@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EN, getI18n } from "@/i18n";
+import { problemText } from "./problems";
 import { INITIAL_STATE, type AppState } from "./app-store";
 import { dataFileName, parseDataFile, serializeState } from "./data-file";
 
@@ -60,12 +62,10 @@ describe("data file", () => {
   });
 
   it("refuses files that are not Wealth Lens data", () => {
-    expect(parseDataFile("not json")).toEqual({ ok: false, error: expect.stringMatching(/not valid JSON/) });
-    expect(parseDataFile('{"holdings": []}')).toEqual({ ok: false, error: expect.stringMatching(/not a Wealth Lens/) });
-    expect(parseDataFile('{"kind": "wealth-lens-data", "version": 7}')).toEqual({
-      ok: false,
-      error: expect.stringMatching(/newer version/),
-    });
+    expect(parseDataFile("not json")).toEqual({ ok: false, error: { code: "data-not-json" } });
+    expect(parseDataFile('{"holdings": []}')).toEqual({ ok: false, error: { code: "data-not-ours" } });
+    expect(parseDataFile('{"kind": "wealth-lens-data", "version": 7}')).toEqual({ ok: false, error: { code: "data-newer" } });
+    expect(problemText({ code: "data-newer" }, EN.m.problems)).toBe("A newer Wealth Lens made this file.");
   });
 
   it("reads version 1 files: the euro goal becomes a goal 'reach an amount'", () => {
@@ -193,15 +193,16 @@ describe("data file", () => {
     it("move to My portfolio when the file holds the stock, with a one-line notice", () => {
       const result = v5({ kind: "stock", id: "NVDA" }, [nvidia]);
       expect(result.ok && result.state.plan.investment).toEqual({ kind: "portfolio" });
-      expect(result.ok && result.notices).toEqual([
-        "Your file projected NVIDIA on its own. Single stocks are no longer projected, so it now uses My portfolio, where each stock grows like its index.",
-      ]);
+      expect(result.ok && result.notices).toEqual([{ code: "stock-now-portfolio", name: "NVIDIA" }]);
     });
 
     it("move to the stock's index otherwise", () => {
       const result = v5({ kind: "stock", id: "BRK-B" });
       expect(result.ok && result.state.plan.investment).toEqual({ kind: "asset", asset: "sp500" });
-      expect(result.ok && result.notices).toEqual(["Your file projected Berkshire Hathaway on its own. Single stocks are no longer projected, so it now grows like the S&P 500."]);
+      expect(result.ok && result.notices).toEqual([{ code: "stock-now-index", name: "Berkshire Hathaway", index: "sp500" }]);
+      const [notice] = result.ok ? result.notices : [];
+      expect(problemText(notice, EN.m.problems)).toBe("Your file projected Berkshire Hathaway alone. One stock is no longer projected alone. It now grows like the S&P 500.");
+      expect(problemText(notice, getI18n("es").m.problems)).toMatch(/Ahora crece como el S&P 500\.$/);
       // A stock no longer on the list: the default, quietly.
       expect(v5({ kind: "stock", id: "GONE" })).toMatchObject({ ok: true, notices: [], state: { plan: { investment: { kind: "asset", asset: "sp500" } } } });
     });
@@ -224,7 +225,7 @@ describe("data file", () => {
         ],
         rebalance: true,
       });
-      expect(result.ok && result.notices).toEqual(["Your mix had single stocks, which are no longer projected: each now counts as its index."]);
+      expect(result.ok && result.notices).toEqual([{ code: "mix-had-stocks" }]);
     });
 
     it("read an index as that asset, a custom rate as Custom growth after inflation, and an inflation other than the old default as typed", () => {

@@ -20,6 +20,8 @@ export interface Formats extends NumberFormats {
   span(months: number): string;
   /** When the plan gets somewhere: "now", "in 12 years (2038)", "not at this pace". */
   when(months: number, today?: Date): string;
+  /** Whole euros, but "under €1" for a few cents: €1 invested pays €0.003 a month, not €0. */
+  smallEur(amount: number): string;
 }
 
 export interface I18n {
@@ -59,6 +61,9 @@ function createI18n(locale: Locale): I18n {
       const whole = Math.ceil(months - 1e-9);
       const span = whole < 12 ? monthsText(whole) : yearsText(Math.ceil(whole / 12));
       return m.when.inSpan(span, today ? addMonths(today, whole).getUTCFullYear() : null);
+    },
+    smallEur(amount) {
+      return amount > 0 && amount < 0.5 ? m.result.underOne : numbers.eur(amount);
     },
   };
   return { locale, m, f };

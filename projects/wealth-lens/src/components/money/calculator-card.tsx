@@ -2,6 +2,7 @@
 
 import { ChevronDown, Minus, Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useI18n } from "@/components/i18n";
 import { Changed } from "@/components/ui/changed";
 import { SettledNumberInput } from "@/components/ui/form";
 import { useAppState } from "@/hooks/use-app";
@@ -9,7 +10,6 @@ import { offeredRates } from "@/hooks/use-calculation";
 import { setInvestment, updatePlan } from "@/lib/app-store";
 import type { Basis } from "@/lib/assumptions";
 import { priceHoldings } from "@/lib/auto-price";
-import { formatEur } from "@/lib/format";
 import { resolveInvestment } from "@/lib/investment";
 import { startingCapital } from "@/lib/plan";
 import { portfolioAllocation } from "@/lib/portfolio";
@@ -21,6 +21,7 @@ import { InvestmentPicker, type PickChoice } from "./investment-picker";
 import { MixEditor } from "./mix-editor";
 import { PortfolioEditor } from "./portfolio-editor";
 import { MAX_AMOUNT, MAX_YEARS_AHEAD, MIN_YEARS } from "@/lib/validation";
+import { investmentName } from "@/i18n/investment-text";
 
 const labelClass = "block text-xs font-medium text-muted";
 
@@ -119,6 +120,9 @@ const monthlyStep = { ...MONTHLY_STEP, max: MAX_AMOUNT };
  * result once the user has finished typing.
  */
 export function CalculatorCard() {
+  const i18n = useI18n();
+  const { m, f } = i18n;
+  const t = m.calculator;
   const { plan, holdings, uploadedPrices } = useAppState();
   const priced = useMemo(() => priceHoldings(holdings, uploadedPrices), [holdings, uploadedPrices]);
   const capital = startingCapital(priced, plan.invested);
@@ -149,24 +153,24 @@ export function CalculatorCard() {
   const mix = plan.investment.kind === "mix" ? plan.investment : null;
 
   return (
-    <section aria-label="Calculator" className="relative grid grid-cols-2 gap-x-3 gap-y-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-4">
+    <section aria-label={t.label} className="relative grid grid-cols-2 gap-x-3 gap-y-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-4">
       {/* The same order everywhere, so Tab follows what the eye reads: on a phone "You have" and "Invested
           in" side by side, then the two steppers in a row of their own (they need the width); on a wider
           screen the four fields in one row. */}
       {capital.source === "holdings" ? (
         <div className="min-w-0 space-y-1">
-          <p className={labelClass}>You have</p>
+          <p className={labelClass}>{t.youHave}</p>
           <p className="py-1.5 text-base font-semibold">
-            <Changed value={formatEur(capital.amount)} />
+            <Changed value={f.eur(capital.amount)} />
           </p>
-          <p className="text-xs text-muted">Euro holdings, on My stocks</p>
+          <p className="text-xs text-muted">{t.fromHoldings}</p>
         </div>
       ) : (
-        <EuroInput label="You have" value={plan.invested} onCommit={(invested) => updatePlan({ invested })} />
+        <EuroInput label={t.youHave} value={plan.invested} onCommit={(invested) => updatePlan({ invested })} />
       )}
       <div className="min-w-0 space-y-1">
         <span id="invested-in-label" className={labelClass}>
-          Invested in
+          {t.investedIn}
         </span>
         <button
           type="button"
@@ -179,23 +183,23 @@ export function CalculatorCard() {
           className="flex min-h-11 w-full items-center justify-between gap-1 rounded-md border border-border bg-background px-2.5 py-2 text-left text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 sm:px-3"
         >
           <span id="invested-in-value" className="min-w-0 truncate">
-            <Changed value={current.name} />
+            <Changed value={investmentName(current, i18n)} />
           </span>
           <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted" />
         </button>
       </div>
       <div className="col-span-2 grid grid-cols-2 gap-x-2 sm:contents">
       <Stepped
-        label="You add each month (€)"
-        less="€50 less a month"
-        more="€50 more a month"
+        label={t.monthly}
+        less={t.lessMonthly}
+        more={t.moreMonthly}
         atMin={plan.monthlyContribution <= 0}
         atMax={plan.monthlyContribution >= MAX_AMOUNT}
         onLess={() => updatePlan({ monthlyContribution: stepValue(plan.monthlyContribution, -1, monthlyStep) })}
         onMore={() => updatePlan({ monthlyContribution: stepValue(plan.monthlyContribution, 1, monthlyStep) })}
       >
         <SettledNumberInput
-          aria-label="You add each month, in euros"
+          aria-label={t.monthlyInput}
           value={plan.monthlyContribution}
           onCommit={(monthlyContribution) => updatePlan({ monthlyContribution })}
           max={MAX_AMOUNT}
@@ -204,16 +208,16 @@ export function CalculatorCard() {
         />
       </Stepped>
       <Stepped
-        label="For (years)"
-        less="One year less"
-        more="One year more"
+        label={t.years}
+        less={t.lessYear}
+        more={t.moreYear}
         atMin={plan.years <= MIN_YEARS}
         atMax={plan.years >= MAX_YEARS_AHEAD}
         onLess={() => updatePlan({ years: stepValue(plan.years, -1, YEARS_STEP) })}
         onMore={() => updatePlan({ years: stepValue(plan.years, 1, YEARS_STEP) })}
       >
         <SettledNumberInput
-          aria-label="For how many years"
+          aria-label={t.yearsInput}
           value={plan.years}
           onCommit={(years) => updatePlan({ years: Math.min(MAX_YEARS_AHEAD, Math.max(MIN_YEARS, Math.round(years))) })}
           max={MAX_YEARS_AHEAD}
@@ -227,7 +231,7 @@ export function CalculatorCard() {
       {picker && (
         <InvestmentPicker
           top={picker.top}
-          label={picker.mode === "add" ? "Add to the mix" : "Invested in"}
+          label={picker.mode === "add" ? t.addToMix : t.investedIn}
           selected={picker.mode === "add" ? null : keyOf(plan.investment)}
           hasPortfolio={picker.mode === "choose" && hasPortfolio}
           holdingsCount={portfolioAllocation(priced).entries.length}

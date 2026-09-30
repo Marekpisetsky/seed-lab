@@ -2,13 +2,14 @@
 
 import { Check } from "lucide-react";
 import Link from "next/link";
+import { useI18n } from "@/components/i18n";
 import { Button } from "@/components/ui/button";
 import { useAppState } from "@/hooks/use-app";
 import { setInvestment } from "@/lib/app-store";
-import { formatRate } from "@/lib/format";
 import { INDEXES } from "@/lib/indexes";
 import { MARKET, type Instrument } from "@/lib/market-data";
 import type { Investment } from "@/lib/types";
+import { localePath } from "@/i18n/locales";
 import { ChartRow } from "./chart-row";
 import { InstrumentFigures } from "./instrument-figures";
 import { YearStrip } from "./year-changes";
@@ -34,37 +35,39 @@ export function InstrumentRow({ instrument }: { instrument: Instrument }) {
 }
 
 function InstrumentPanel({ instrument }: { instrument: Instrument }) {
+  const { locale, m, f } = useI18n();
+  const t = m.stocks;
   const { plan } = useAppState();
   const prices = MARKET.prices[instrument.id];
   const index = INDEXES[instrument.index];
   const period = `${index.firstYear}–${index.lastYear}`;
-  const priceOnly = index.priceOnly ? ", price only, without dividends" : "";
+  const name = m.assets.inSentence[instrument.index];
   const chosen = isChosen(plan.investment, instrument);
   const investment = investmentFor(instrument);
 
   return (
     <>
-      {prices ? <InstrumentFigures prices={prices} /> : <p className="rounded-lg border border-border bg-background px-3 py-2 text-sm">No prices downloaded yet.</p>}
+      {prices ? <InstrumentFigures prices={prices} /> : <p className="rounded-lg border border-border bg-background px-3 py-2 text-sm">{t.noPrices}</p>}
 
       <p className="text-sm text-muted">
         {instrument.kind === "etf"
-          ? `Tracks the ${index.name}: ${formatRate(index.averageReturn)} a year after inflation on average, ${period}${priceOnly}.`
-          : `Not projected on its own: one company's future can't be predicted. In My portfolio it grows like the ${index.name} (${formatRate(index.averageReturn)} a year after inflation, ${period}${priceOnly}), with its own ups and downs: a simple projection.`}
+          ? t.tracks(name, f.rate(index.averageReturn), period, index.priceOnly)
+          : t.stockNote(name, f.rate(index.averageReturn), period)}
       </p>
 
       {!investment ? null : chosen ? (
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium" aria-live="polite">
           <span className="inline-flex items-center gap-1 text-positive">
             <Check aria-hidden="true" className="size-4" />
-            Your money grows like the {index.name}.
+            {t.chosen(name)}
           </span>
-          <Link href="/" className="text-accent underline-offset-2 hover:underline">
-            See what it means
+          <Link href={localePath("/", locale)} className="text-accent underline-offset-2 hover:underline">
+            {t.seeWhat}
           </Link>
         </p>
       ) : (
         <Button variant="primary" onClick={() => setInvestment(investment)}>
-          Use as my investment
+          {t.use}
         </Button>
       )}
     </>

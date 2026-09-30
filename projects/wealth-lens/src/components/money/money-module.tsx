@@ -23,7 +23,7 @@ export function MoneyModule() {
         <ResultSection bundle={bundle} />
         <GrowthChart bundle={bundle} />
       </div>
-      <GoalsSection goals={bundle.calc.goals} today={bundle.today} />
+      <GoalsSection calc={bundle.calc} today={bundle.today} />
       <CountriesSection income={bundle.calc.result.income} rows={bundle.calc.countries} />
       <div className="space-y-3">
         <FindingsSection bundle={bundle} />

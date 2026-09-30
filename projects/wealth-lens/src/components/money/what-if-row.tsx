@@ -1,29 +1,32 @@
 "use client";
 
 import { X } from "lucide-react";
+import { useI18n } from "@/components/i18n";
 import { Changed } from "@/components/ui/changed";
+import { Help } from "@/components/ui/help";
+import type { I18n } from "@/i18n";
 import { clearWhatIf, toggleWhatIf } from "@/lib/app-store";
-import { formatEurRounded } from "@/lib/format";
-import { WHAT_IF_LABELS, type WhatIfEffect, type WhatIfId } from "@/lib/what-if";
+import type { WhatIfEffect, WhatIfId } from "@/lib/what-if";
 
 /** "+€23,000", or why it cannot apply. */
-function effectText({ id, change, available }: WhatIfEffect): string {
-  if (!available) return id === "years-5" ? "60 years at most" : "No ups and downs here";
-  return formatEurRounded(change, { signed: true });
+function effectText({ id, change, available }: WhatIfEffect, { m, f }: I18n): string {
+  if (!available) return id === "years-5" ? m.whatIf.maxYears : m.whatIf.noUps;
+  return f.eurRounded(change, { signed: true });
 }
 
 /** "What if: grows 1% more ×": the scenario applied to the whole screen, and the way back. */
 export function WhatIfIndicator({ applied }: { applied: WhatIfId | null }) {
+  const { m } = useI18n();
   if (!applied) return null;
-  const label = WHAT_IF_LABELS[applied].applied;
+  const label = m.whatIf.applied[applied];
   return (
     <button
       type="button"
       onClick={clearWhatIf}
-      aria-label={`Stop "What if: ${label}"`}
+      aria-label={m.whatIf.stop(label)}
       className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full bg-accent/10 px-3 py-1 text-sm font-medium text-accent hover:bg-accent/20"
     >
-      What if: {label}
+      {m.whatIf.indicator(label)}
       <X aria-hidden="true" className="size-4" />
     </button>
   );
@@ -37,10 +40,13 @@ export function WhatIfIndicator({ applied }: { applied: WhatIfId | null }) {
  * a phone.
  */
 export function WhatIfRow({ effects, applied }: { effects: readonly WhatIfEffect[]; applied: WhatIfId | null }) {
+  const i18n = useI18n();
+  const { m } = i18n;
   return (
     <div className="space-y-1.5">
-      <p id="what-if-label" className="text-xs font-medium text-muted">
-        What if…?
+      <p className="flex items-center gap-2 text-xs font-medium text-muted">
+        <span id="what-if-label">{m.whatIf.title}</span>
+        <Help what={m.whatIf.title} text={m.help.whatIf} />
       </p>
       <div role="group" aria-labelledby="what-if-label" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:px-0">
         {effects.map((effect) => {
@@ -57,9 +63,9 @@ export function WhatIfRow({ effects, applied }: { effects: readonly WhatIfEffect
                 pressed ? "border-accent bg-accent/10 ring-1 ring-accent" : "border-border bg-card hover:bg-border/30"
               } disabled:opacity-60`}
             >
-              <span className="text-sm font-medium">{WHAT_IF_LABELS[effect.id].chip}</span>
+              <span className="text-sm font-medium">{m.whatIf.chips[effect.id]}</span>
               <span className={`text-xs font-medium tabular-nums ${tone}`}>
-                <Changed value={effectText(effect)} />
+                <Changed value={effectText(effect, i18n)} />
               </span>
             </button>
           );

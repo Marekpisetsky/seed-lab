@@ -1,5 +1,6 @@
 "use client";
 
+import type { I18n } from "@/i18n";
 import { type AppState } from "@/lib/app-store";
 import { priceHoldings } from "@/lib/auto-price";
 import { calculate, whatIfEffects, WITHDRAWAL_CHOICES, type Calculation } from "@/lib/calculator";
@@ -60,13 +61,13 @@ export function calculationFor(state: AppState, today: Date): CalculationBundle 
   return bundle;
 }
 
-let lastFindings: { bundle: CalculationBundle; findings: Finding[] } | null = null;
+let lastFindings: { bundle: CalculationBundle; i18n: I18n; findings: Finding[] } | null = null;
 
-/** The findings of a calculation, worked out only when their section is open. */
-export function findingsFor(bundle: CalculationBundle): Finding[] {
-  if (lastFindings?.bundle === bundle) return lastFindings.findings;
-  const findings = topFindings({ calc: bundle.base, inflation: bundle.base.investment.inflation, today: bundle.today, holdings: bundle.holdings });
-  lastFindings = { bundle, findings };
+/** The findings of a calculation in the page's language, worked out only when their section is open. */
+export function findingsFor(bundle: CalculationBundle, i18n: I18n): Finding[] {
+  if (lastFindings?.bundle === bundle && lastFindings.i18n === i18n) return lastFindings.findings;
+  const findings = topFindings({ calc: bundle.base, inflation: bundle.base.investment.inflation, today: bundle.today, holdings: bundle.holdings, i18n });
+  lastFindings = { bundle, i18n, findings };
   return findings;
 }
 

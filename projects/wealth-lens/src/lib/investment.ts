@@ -21,12 +21,11 @@
  * same. Custom growth always works that way.
  */
 
-import { assetName, historyName, isSeriesAsset, SAVINGS_RATE, savingsRealReturn, seriesVolatility, type AssetId } from "./assets";
-import { DEFAULT_PRICES_OF, countryByCode, countryInSentence, referenceInflation } from "./cost-of-living";
-import { formatPercent, formatRate } from "./format";
+import { isSeriesAsset, SAVINGS_RATE, savingsRealReturn, seriesVolatility, type AssetId } from "./assets";
+import { DEFAULT_PRICES_OF, countryByCode, referenceInflation } from "./cost-of-living";
 import { COMMON_PERIOD, SERIES } from "./indexes";
 import { MARKET, type PricesFile } from "./market-data";
-import { mixModel, mixVolatility, templateOf, type MixModel } from "./mix";
+import { mixModel, mixVolatility, type MixModel } from "./mix";
 import { normalReturns } from "./normal";
 import { portfolioAllocation, portfolioInputs, type Allocation } from "./portfolio";
 import { STANDARD_ASSUMPTIONS, type AssumptionOverrides, type Holding, type Investment } from "./types";
@@ -67,10 +66,8 @@ export interface StandardFigures {
 }
 
 export interface ResolvedInvestment {
-  /** What the plan says, or the default when that cannot be used (e.g. an empty portfolio). */
+  /** What the plan says, or the default when that cannot be used (e.g. an empty portfolio). Its name and texts: i18n/investment-text.ts. */
   investment: Investment;
-  /** "S&P 500", "Gold", "Savings account", "Mix 60/40", "My portfolio", "Custom growth". */
-  name: string;
   /** Growth a year after inflation, used for every projection. */
   realReturn: number;
   /** Swings a year: the standard deviation of yearly log returns (0: none). */
@@ -95,28 +92,17 @@ export interface ResolvedInvestment {
   model: MixModel | null;
   /** How the holdings are split, for My portfolio. */
   allocation: Allocation | null;
-  /** What the simulations are, to end "lasted 30 years in 93% of …". */
-  modelText: string;
-  /** The same, shorter, for a chart legend. */
-  modelShort: string;
-  /** Where the growth comes from, for a finding's assumptions: "S&P 500, 1988–2022 average". */
-  growthText: string;
   /** Share of it whose figures leave dividends out (the Nasdaq-100's are price only): 0, 1 or in between. */
   withoutDividends: number;
   /** Every simulated year's growth factor is multiplied by this ("What if: grows 1% more"); 1 otherwise. */
   growthFactor: number;
+  /** Growth added a year by a "What if…?" (+0.01, −0.01), 0 otherwise. */
+  shift: number;
 }
 
 /** "1988–2022", or "" without history. */
 export function periodText({ period }: Pick<ResolvedInvestment, "period">): string {
   return period ? `${period[0]}–${period[1]}` : "";
-}
-
-/** Said next to a growth figure that leaves dividends out; `null` when they are in. */
-export function dividendNote({ withoutDividends }: Pick<ResolvedInvestment, "withoutDividends">): string | null {
-  if (withoutDividends <= 0) return null;
-  const what = withoutDividends >= 1 ? "price only" : "the Nasdaq-100 part is price only";
-  return `${what}: dividends (roughly 1% a year) not included`;
 }
 
 /** Inflation a year for these settings: the user's, or the "Prices of" country's reference. */
@@ -136,16 +122,12 @@ export function toReal(nominal: number, inflation: number): number {
 /** An investment's own figures, before anything the user changed. */
 interface Base {
   investment: Investment;
-  name: string;
   standard: StandardFigures;
   simulation: SimulationKind;
   key: string;
   returns: readonly number[];
   model: MixModel | null;
   allocation: Allocation | null;
-  modelText: string;
-  modelShort: string;
-  growthText: string;
   withoutDividends: number;
 }
 
@@ -156,63 +138,43 @@ function fromAsset(asset: AssetId, inflation: number, investment: Investment = {
     const realReturn = savingsRealReturn(inflation);
     return {
       investment,
-      name: assetName(asset),
       standard: { realReturn, volatility: 0, period: null, basis: "nominal", nominalRate: SAVINGS_RATE },
       simulation: "fixed",
       key: `fixed:${realReturn.toFixed(6)}`,
       returns: [realReturn],
       model: null,
       allocation: null,
-      modelText: "a savings account, which has no ups and downs",
-      modelShort: "savings",
-      growthText: `${formatRate(SAVINGS_RATE)} interest less ${formatRate(inflation)} inflation`,
       withoutDividends: 0,
     };
   }
   const info = SERIES[asset];
   return {
     investment,
-    name: info.name,
     standard: { realReturn: info.averageReturn, volatility: seriesVolatility(asset), period: PERIOD, basis: "real", nominalRate: null },
     simulation: "history",
     key: `asset:${asset}`,
     returns: info.years.map((entry) => entry.realReturn),
     model: null,
     allocation: null,
-    modelText: `${historyName(asset)} histories`,
-    modelShort: `${historyName(asset)} histories`,
-    growthText: `${info.name}, ${PERIOD[0]}–${PERIOD[1]} average`,
     withoutDividends: info.priceOnly ? 1 : 0,
   };
 }
 
 /** A mix or the portfolio, through its model. */
-function fromModel(model: MixModel, investment: Investment, name: string, allocation: Allocation | null): Base {
+function fromModel(model: MixModel, investment: Investment, allocation: Allocation | null): Base {
   const onlySavings = model.parts.every((part) => part.asset === "savings");
   const weights = model.parts.map((part) => part.weight.toFixed(4)).join(",");
-  const what = allocation ? "your portfolio" : "this mix";
   const volatility = mixVolatility(model);
   return {
     investment,
-    name,
     standard: { realReturn: model.realReturn, volatility, period: onlySavings ? null : PERIOD, basis: "real", nominalRate: null },
     simulation: "joint",
     key: `model:${model.key}:${weights}:${model.rebalance ? "rebalance" : "drift"}`,
     returns: [],
     model,
     allocation,
-    modelText: `simulations of ${what} (${model.rebalance ? "rebalanced every year" : "weights drifting"})`,
-    modelShort: `simulations of ${what}`,
-    growthText: `the weighted average of ${allocation ? "what your holdings grow like" : "its parts"}, ${PERIOD[0]}–${PERIOD[1]}`,
     withoutDividends: model.parts.reduce((sum, part) => sum + (part.asset === "nasdaq100" ? part.weight : 0), 0),
   };
-}
-
-/** "Mix 60/40" for a template, "Mix of 3" otherwise. */
-export function mixName(investment: Extract<Investment, { kind: "mix" }>): string {
-  const template = templateOf(investment.parts);
-  if (template) return template.label === "100% stocks" ? "Mix: 100% stocks" : `Mix ${template.label}`;
-  return `Mix of ${investment.parts.length}`;
 }
 
 function baseFor(investment: Investment, holdings: readonly Holding[], inflation: number, market: PricesFile): Base {
@@ -222,24 +184,17 @@ function baseFor(investment: Investment, holdings: readonly Holding[], inflation
     case "portfolio": {
       const allocation = portfolioAllocation(holdings);
       const model = mixModel(portfolioInputs(allocation), false, { savingsReturn: savingsRealReturn(inflation), market });
-      if (model) return fromModel(model, investment, "My portfolio", allocation);
+      if (model) return fromModel(model, investment, allocation);
       break;
     }
     case "mix": {
       const model = mixModel(investment.parts, investment.rebalance, { savingsReturn: savingsRealReturn(inflation), market });
-      if (model) return fromModel(model, investment, mixName(investment), null);
+      if (model) return fromModel(model, investment, null);
       break;
     }
     case "custom": {
       const sp500 = fromAsset("sp500", inflation);
-      return {
-        ...sp500,
-        investment,
-        name: "Custom growth",
-        standard: { ...sp500.standard, period: null },
-        growthText: "your own figure",
-        withoutDividends: 0,
-      };
+      return { ...sp500, investment, standard: { ...sp500.standard, period: null }, withoutDividends: 0 };
     }
   }
   // A portfolio with nothing priced in euros, or a mix with no weight.
@@ -266,8 +221,8 @@ export function resolveInvestment(
   const custom = base.investment.kind === "custom" || growth !== null || typedVolatility !== null;
   const shared = {
     growthFactor: 1,
+    shift: 0,
     investment: base.investment,
-    name: base.name,
     realReturn,
     volatility,
     inflation,
@@ -286,12 +241,8 @@ export function resolveInvestment(
       key: base.key,
       returns: base.returns,
       period: base.standard.period,
-      modelText: base.modelText,
-      modelShort: base.modelShort,
-      growthText: base.growthText,
     };
   }
-  const upsAndDowns = `ups and downs of ±${formatPercent(volatility, { decimals: 0 })}`;
   const fixed = volatility <= 0;
   return {
     ...shared,
@@ -299,9 +250,6 @@ export function resolveInvestment(
     key: fixed ? `fixed:${realReturn.toFixed(6)}` : `normal:${realReturn.toFixed(6)}:${volatility.toFixed(6)}`,
     returns: fixed ? [realReturn] : normalReturns(realReturn, volatility),
     period: null,
-    modelText: fixed ? "your figures, with no ups and downs" : `simulations with ${formatRate(realReturn)} a year after rising prices and ${upsAndDowns}`,
-    modelShort: fixed ? "your figures" : "simulations with your figures",
-    growthText: "your own figure",
   };
 }
 
@@ -313,20 +261,12 @@ export function resolveInvestment(
  */
 export function shiftGrowth(investment: ResolvedInvestment, delta: number): ResolvedInvestment {
   const factor = (1 + investment.realReturn + delta) / (1 + investment.realReturn);
-  const change = `${delta >= 0 ? "+" : "−"}${formatRate(Math.abs(delta))} a year`;
   return {
     ...investment,
     realReturn: investment.realReturn + delta,
     growthFactor: investment.growthFactor * factor,
+    shift: investment.shift + delta,
     key: `${investment.key}|x${factor.toFixed(6)}`,
     returns: investment.returns.map((value) => (1 + value) * factor - 1),
-    modelText: `${investment.modelText}, ${change}`,
-    modelShort: `${investment.modelShort}, ${change}`,
   };
-}
-
-/** "the Netherlands", as "Prices of" reads in a sentence. */
-export function pricesOfName(code: string): string {
-  const country = countryByCode(code) ?? countryByCode(DEFAULT_PRICES_OF);
-  return country ? countryInSentence(country.name) : code;
 }

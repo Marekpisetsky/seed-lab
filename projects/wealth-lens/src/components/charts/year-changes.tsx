@@ -1,4 +1,6 @@
-import { formatPercent } from "@/lib/format";
+"use client";
+
+import { useI18n } from "@/components/i18n";
 
 /** The calendar years of a price record, oldest first, with their change ("2022": −0.51). */
 function sortedYears(years: Readonly<Record<string, number>> | undefined): [string, number][] {
@@ -33,11 +35,12 @@ export function YearStrip({ years, count = 6 }: { years: Readonly<Record<string,
 
 /** Each full calendar year's price change, as a labelled bar: "2022  −51%". */
 export function YearChanges({ years }: { years: Readonly<Record<string, number>> | undefined }) {
+  const { m, f } = useI18n();
   const all = sortedYears(years);
   if (all.length === 0) return null;
   const top = Math.max(0.05, ...all.map(([, change]) => Math.abs(change)));
   return (
-    <ul aria-label="Price change each year" className="space-y-1 text-sm tabular-nums">
+    <ul aria-label={m.stocks.yearChanges} className="space-y-1 text-sm tabular-nums">
       {all.map(([year, change]) => (
         <li key={year} className="grid grid-cols-[3rem_1fr_4rem] items-center gap-2">
           <span className="text-muted">{year}</span>
@@ -48,7 +51,7 @@ export function YearChanges({ years }: { years: Readonly<Record<string, number>>
               style={{ width: `${(Math.abs(change) / top) * 50}%` }}
             />
           </span>
-          <span className={`text-right font-medium ${change >= 0 ? "text-positive" : "text-negative"}`}>{formatPercent(change, { signed: true, decimals: 0 })}</span>
+          <span className={`text-right font-medium ${change >= 0 ? "text-positive" : "text-negative"}`}>{f.percent(change, { signed: true, decimals: 0 })}</span>
         </li>
       ))}
     </ul>

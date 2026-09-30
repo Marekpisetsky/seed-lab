@@ -1,11 +1,15 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { calculate, effectiveGrowth, valueAt, whatIfEffects, whenText, type CalculatorPlan } from "./calculator";
+import { EN, getI18n } from "@/i18n";
+import { calculate, effectiveGrowth, valueAt, whatIfEffects, type CalculatorPlan } from "./calculator";
 import { parseIsoDate } from "./dates";
 import { futureValueWithContributions, monthlyWithdrawal, monthsToGoal, requiredCapital, requiredMonthlyContribution } from "./finance";
-import { formatEur, formatEurRounded, formatRate } from "./format";
 import { formatShare, gainedShareOf, multipleOf } from "./growth";
 import { DEFAULT_PLAN } from "./validation";
+
+const ES = getI18n("es");
+const whenText = EN.f.when;
+const { eur: formatEur, eurRounded: formatEurRounded, rate: formatRate } = EN.f;
 
 /**
  * Properties the money math must keep for any input, checked on random
@@ -229,20 +233,24 @@ describe("texts never contradict their numbers", () => {
   it("never write a minus zero", () => {
     fc.assert(
       fc.property(fc.double({ min: -0.49, max: 0.49, noNaN: true }), (tiny) =>
-        [formatEur(tiny), formatEur(tiny, { signed: true }), formatEurRounded(tiny), formatEurRounded(tiny, { signed: true }), formatShare(tiny / 10_000), formatRate(tiny / 10_000)].every(
-          (text) => !/^[-−]/.test(text),
+        [EN, ES].every(({ f }, index) =>
+          [f.eur(tiny), f.eur(tiny, { signed: true }), f.eurRounded(tiny), f.eurRounded(tiny, { signed: true }), formatShare(tiny / 10_000, index ? ES : EN), f.rate(tiny / 10_000)].every(
+            (text) => !/^[-−]/.test(text),
+          ),
         ),
       ),
     );
   });
 
-  it("never say “in 0 months” or a span longer than 60 years", () => {
+  it("never say “in 0 months” or a span longer than 60 years, in either language", () => {
     fc.assert(
       fc.property(fc.double({ min: 0, max: 800, noNaN: true }), (months) => {
         const text = whenText(months);
         const span = /^in (\d+) (month|year)s?$/.exec(text);
         if (!span) return text === "now" || text === "not at this pace";
         const count = Number(span[1]);
+        const spanEs = /^en (\d+) (mes|meses|año|años)$/.exec(ES.f.when(months));
+        if (!spanEs || Number(spanEs[1]) !== Number(span[1])) return false;
         return count >= 1 && (span[2] === "month" ? count < 12 : count <= 60) && (months > 0 || text === "now");
       }),
     );

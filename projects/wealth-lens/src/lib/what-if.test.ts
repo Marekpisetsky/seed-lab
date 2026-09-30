@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { EN, getI18n } from "@/i18n";
 import { appStore, clearWhatIf, INITIAL_STATE, replaceState, setInvestment, toggleWhatIf, updatePlan } from "./app-store";
 import { calculate, monthsTo, valueAt, whatIfEffects, type CalculatorPlan } from "./calculator";
 import { parseDataFile, serializeState } from "./data-file";
@@ -8,19 +9,22 @@ import { annualizedReturn, SERIES } from "./indexes";
 import { bandsFor, successRatesFor } from "./projections";
 import { STANDARD_ASSUMPTIONS } from "./types";
 import { DEFAULT_PLAN } from "./validation";
-import { badStartHead, WHAT_IF_IDS, WHAT_IF_LABELS, whatIfInputs } from "./what-if";
+import { badStartHead, WHAT_IF_IDS, whatIfInputs } from "./what-if";
 
 const today = parseIsoDate("2026-09-30");
 const plan = (patch: Partial<CalculatorPlan> = {}): CalculatorPlan => ({ ...DEFAULT_PLAN, invested: 10_000, monthlyContribution: 300, ...patch });
 const effect = (base: ReturnType<typeof calculate>, id: (typeof WHAT_IF_IDS)[number]) => whatIfEffects(base).find((entry) => entry.id === id);
+
+const ES = getI18n("es");
 
 afterEach(() => replaceState(INITIAL_STATE));
 
 describe("the five scenarios", () => {
   it("come in a fixed order, each with its chip and its label once applied", () => {
     expect(WHAT_IF_IDS).toEqual(["grow-more", "grow-less", "monthly-50", "years-5", "bad-decade"]);
-    expect(WHAT_IF_IDS.map((id) => WHAT_IF_LABELS[id].chip)).toEqual(["Grows 1% more", "Grows 1% less", "+€50 a month", "5 more years", "A bad first decade"]);
-    expect(WHAT_IF_LABELS["grow-more"].applied).toBe("grows 1% more");
+    expect(WHAT_IF_IDS.map((id) => EN.m.whatIf.chips[id])).toEqual(["Grows 1% more", "Grows 1% less", "+€50 a month", "5 more years", "A bad first decade"]);
+    expect(EN.m.whatIf.applied["grow-more"]).toBe("grows 1% more");
+    expect(WHAT_IF_IDS.map((id) => ES.m.whatIf.chips[id])).toHaveLength(5);
   });
 
   it("change the plan's inputs, one each", () => {

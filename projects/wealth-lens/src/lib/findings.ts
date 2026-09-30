@@ -10,15 +10,17 @@
  * (ORDER): risks the user carries first, then what moves the plan, general
  * facts last, so a card never jumps places when a number changes; the page
  * shows the first three that apply. Findings inform with numbers; they
- * never say what to do.
+ * never say what to do. The words come from the dictionaries (`findings`),
+ * in the page's language.
  */
 
+import type { I18n } from "@/i18n";
+import { goalName } from "@/i18n/goal-text";
+import { dividendNote, growthSource, simulationsText } from "@/i18n/investment-text";
 import { valueAt, withinReach, type Calculation, type GoalStatus, type Scenario } from "./calculator";
 import { addMonths } from "./dates";
 import { holdingValue, monthsToGoal } from "./finance";
-import { formatEur, formatEurRounded, formatMoney, formatPercent, formatRate, formatYears } from "./format";
-import { assetName } from "./assets";
-import { dividendNote, type ResolvedInvestment } from "./investment";
+import type { ResolvedInvestment } from "./investment";
 import { INDEX_TRACKERS, instrumentForHolding, MARKET, type PricesFile } from "./market-data";
 import { referenceFor } from "./portfolio";
 import { bandsFor } from "./projections";
@@ -47,6 +49,7 @@ export interface FindingContext {
   /** Priced holdings. */
   holdings: readonly Holding[];
   market: PricesFile;
+  i18n: I18n;
 }
 
 export const MAX_FINDINGS = 3;
@@ -81,17 +84,15 @@ function yearOf(today: Date, months: number): number {
   return addMonths(today, Math.ceil(months - 1e-9)).getUTCFullYear();
 }
 
-function growthAssumption(scenario: Scenario, investment: ResolvedInvestment): string {
-  const dividends = dividendNote(investment);
-  const what = investment.period ? "Past, not a promise." : "Not a promise.";
-  return `Growth ${formatRate(scenario.realReturn)} a year after inflation: ${investment.growthText}${dividends ? ` (${dividends})` : ""}. ${what}`;
+function growthAssumption(scenario: Scenario, investment: ResolvedInvestment, i18n: I18n): string {
+  const dividends = dividendNote(investment, i18n);
+  const source = growthSource(investment, i18n) + (dividends ? ` (${dividends})` : "");
+  return i18n.m.findings.growthAssumption(i18n.f.rate(scenario.realReturn), source, Boolean(investment.period));
 }
 
-function monthlyAssumption(scenario: Scenario): string {
-  return `Your ${formatEur(scenario.monthly)} a month is added at the end of each month and rises with prices.`;
+function monthlyAssumption(scenario: Scenario, { m, f }: I18n): string {
+  return m.findings.monthlyAssumption(f.eur(scenario.monthly));
 }
-
-const TODAYS_EUROS = "All amounts in today's euros.";
 
 // ---------------------------------------------------------------------------
 // Rules
@@ -99,14 +100,16 @@ const TODAYS_EUROS = "All amounts in today's euros.";
 
 /** +€100 a month vs +1 % growth vs having started a year earlier: for the first goal, or for the result. */
 export function leverFinding(context: FindingContext): Finding | null {
-  const { calc, today } = context;
+  const { calc, today, i18n } = context;
+  const { m, f } = i18n;
+  const t = m.findings.lever;
   const { scenario, investment } = calc;
   const options = [
-    { key: "monthly", label: `+€100 a month (${formatEur(scenario.monthly + 100)})`, scenario: { ...scenario, monthly: scenario.monthly + 100 } },
-    { key: "return", label: `+1% growth (${formatRate(scenario.realReturn + 0.01)})`, scenario: { ...scenario, realReturn: scenario.realReturn + 0.01 } },
-    { key: "earlier", label: "Starting a year earlier", scenario: { ...scenario, capital: valueAt(scenario, 12) } },
+    { key: "monthly", label: t.monthlyLabel(f.eur(scenario.monthly + 100)), scenario: { ...scenario, monthly: scenario.monthly + 100 } },
+    { key: "return", label: t.returnLabel(f.rate(scenario.realReturn + 0.01)), scenario: { ...scenario, realReturn: scenario.realReturn + 0.01 } },
+    { key: "earlier", label: t.earlierLabel, scenario: { ...scenario, capital: valueAt(scenario, 12) } },
   ] as const;
-  const assumptions = [growthAssumption(scenario, investment), monthlyAssumption(scenario)];
+  const assumptions = [growthAssumption(scenario, investment, i18n), monthlyAssumption(scenario, i18n)];
 
   // A first goal under two years away says little about levers: then it is about the result.
   const focus = focusOf(context);
@@ -115,21 +118,16 @@ export function leverFinding(context: FindingContext): Finding | null {
     const results = options.map((option) => ({ ...option, gain: focus.months - monthsFor(option.scenario) }));
     const best = results.reduce((a, b) => (b.gain > a.gain ? b : a));
     if (best.gain < 6) return null;
-    const when = formatYears(best.gain);
-    const text =
-      best.key === "monthly"
-        ? `Adding €100 a month reaches your first goal ${when} sooner.`
-        : best.key === "return"
-          ? `1% more growth a year reaches your first goal ${when} sooner.`
-          : `Having started a year ago would reach your first goal ${when} sooner.`;
+    const when = f.span(best.gain);
+    const say = best.key === "monthly" ? t.goalMonthly : best.key === "return" ? t.goalReturn : t.goalEarlier;
     return {
       id: "lever",
       value: when,
-      text,
+      text: say(when),
       tone: "info",
       calculation: [
-        `${focus.name}: ${formatEur(focus.target)} needed, in ${formatYears(focus.months)} (${yearOf(today, focus.months)}).`,
-        ...results.map((result) => `${result.label}: ${formatYears(result.gain)} sooner.`),
+        t.goalNeeded(goalName(focus, i18n), f.eur(focus.target), f.span(focus.months), yearOf(today, focus.months)),
+        ...results.map((result) => t.sooner(result.label, f.span(result.gain))),
       ],
       assumptions,
     };
@@ -140,27 +138,24 @@ export function leverFinding(context: FindingContext): Finding | null {
   const results = options.map((option) => ({ ...option, gain: valueAt(option.scenario, months) - base }));
   const best = results.reduce((a, b) => (b.gain > a.gain ? b : a));
   if (base <= 0 || best.gain < Math.max(1000, base * 0.05)) return null;
-  const amount = formatEurRounded(best.gain);
+  const amount = f.eurRounded(best.gain);
   const year = yearOf(today, months);
-  const text =
-    best.key === "monthly"
-      ? `Adding €100 a month gives you ${amount} more by ${year}.`
-      : best.key === "return"
-        ? `1% more growth a year gives you ${amount} more by ${year}.`
-        : `Having started a year ago would give you ${amount} more by ${year}.`;
+  const say = best.key === "monthly" ? t.resultMonthly : best.key === "return" ? t.resultReturn : t.resultEarlier;
   return {
     id: "lever",
-    value: `+${amount}`,
-    text,
+    value: f.eurRounded(best.gain, { signed: true }),
+    text: say(amount, year),
     tone: "info",
-    calculation: [`Now: ${formatEur(base)} by ${year}.`, ...results.map((result) => `${result.label}: ${formatEur(result.gain, { signed: true })}.`)],
+    calculation: [t.now(f.eur(base), year), ...results.map((result) => t.gain(result.label, f.eur(result.gain, { signed: true })))],
     assumptions,
   };
 }
 
 /** What starting the same plan a year later leaves at the end of the chosen years. */
 export function waitingFinding(context: FindingContext): Finding | null {
-  const { calc, today } = context;
+  const { calc, today, i18n } = context;
+  const { m, f } = i18n;
+  const t = m.findings.waiting;
   const months = horizonOf(context);
   if (months < 24) return null;
   const now = valueAt(calc.scenario, months);
@@ -171,17 +166,19 @@ export function waitingFinding(context: FindingContext): Finding | null {
   const year = yearOf(today, months);
   return {
     id: "waiting",
-    value: formatEurRounded(cost),
-    text: `Starting a year later leaves you ${formatEurRounded(cost)} less by ${year}.`,
+    value: f.eurRounded(cost),
+    text: t.text(f.eurRounded(cost), year),
     tone: "info",
-    calculation: [`Start now: ${formatEur(now)} by ${year}.`, `Start the same plan a year later: ${formatEur(later)}.`, `Difference: ${formatEur(cost)}.`],
-    assumptions: [growthAssumption(calc.scenario, calc.investment), monthlyAssumption(calc.scenario), TODAYS_EUROS],
+    calculation: [t.now(f.eur(now), year), t.later(f.eur(later)), t.difference(f.eur(cost))],
+    assumptions: [growthAssumption(calc.scenario, calc.investment, i18n), monthlyAssumption(calc.scenario, i18n), m.findings.todaysEuros],
   };
 }
 
 /** What the result, in today's euros, will read on a statement of that year. */
 export function inflationFinding(context: FindingContext): Finding | null {
-  const { calc, inflation, today } = context;
+  const { calc, inflation, today, i18n } = context;
+  const { m, f } = i18n;
+  const t = m.findings.inflation;
   const months = horizonOf(context);
   const years = months / 12;
   if (years < 5 || inflation <= 0) return null;
@@ -191,23 +188,22 @@ export function inflationFinding(context: FindingContext): Finding | null {
   const factor = Math.pow(1 + inflation, years);
   const nominal = real * factor;
   const year = yearOf(today, months);
+  const times = f.fixed(factor, 2);
   return {
     id: "inflation",
-    value: `~${formatEurRounded(nominal)}`,
-    text: `In ${year} your account will show ~${formatEurRounded(nominal)} — worth ${formatEurRounded(real)} of today's money.`,
+    value: `~${f.eurRounded(nominal)}`,
+    text: t.text(year, f.eurRounded(nominal), f.eurRounded(real)),
     tone: "info",
-    calculation: [
-      `Prices rising ${formatRate(inflation)} a year for ${Math.round(years)} years: × ${factor.toFixed(2)}.`,
-      `${formatEur(real)} × ${factor.toFixed(2)} = ${formatEur(nominal)} in euros of ${year}.`,
-      `Every amount in Wealth Lens is in today's euros; your broker will show euros of ${year}.`,
-    ],
-    assumptions: [`Inflation ${formatRate(inflation)} a year.`, "Growth rates are after inflation, so they already allow for it."],
+    calculation: [t.factor(f.rate(inflation), Math.round(years), times), t.times(f.eur(real), times, f.eur(nominal), year), t.todays(year)],
+    assumptions: [t.assumption(f.rate(inflation)), t.afterPrices],
   };
 }
 
 /** A fund charging 1 % a year against one charging 0.2 %. */
 export function feesFinding(context: FindingContext): Finding | null {
-  const { calc, today } = context;
+  const { calc, today, i18n } = context;
+  const { m, f } = i18n;
+  const t = m.findings.fees;
   const months = horizonOf(context);
   if (months < 60) return null;
   const cheap: Scenario = { ...calc.scenario, realReturn: calc.scenario.realReturn - 0.002 };
@@ -217,19 +213,18 @@ export function feesFinding(context: FindingContext): Finding | null {
   const year = yearOf(today, months);
   return {
     id: "fees",
-    value: formatEurRounded(cost),
-    text: `A 1% fund instead of 0.2% costs you ${formatEurRounded(cost)} by ${year}.`,
+    value: f.eurRounded(cost),
+    text: t.text(f.eurRounded(cost), year),
     tone: "info",
-    calculation: [`At 0.2% a year: ${formatEur(valueAt(cheap, months))} by ${year}.`, `At 1% a year: ${formatEur(valueAt(dear, months))}.`],
-    assumptions: [
-      "The index returns here are before fund costs. Index funds cost about 0.1-0.3% a year; many other funds 1% or more.",
-      growthAssumption(calc.scenario, calc.investment),
-    ],
+    calculation: [t.cheap(f.eur(valueAt(cheap, months)), year), t.dear(f.eur(valueAt(dear, months)))],
+    assumptions: [t.assumption, growthAssumption(calc.scenario, calc.investment, i18n)],
   };
 }
 
 /** One holding (not an index fund) weighing more than 40 % of the portfolio. */
-export function concentrationFinding({ holdings, market }: FindingContext): Finding | null {
+export function concentrationFinding({ holdings, market, i18n }: FindingContext): Finding | null {
+  const { m, f } = i18n;
+  const t = m.findings.concentration;
   const priced = holdings
     .filter((holding) => holding.currency === BASE_CURRENCY)
     .map((holding) => ({ holding, value: holdingValue(holding) ?? 0 }))
@@ -249,46 +244,26 @@ export function concentrationFinding({ holdings, market }: FindingContext): Find
   const { ticker } = biggest.holding;
   const instrument = instrumentForHolding(ticker, biggest.holding.currency);
   const prices = instrument ? market.prices[instrument.id] : undefined;
-  const pct = formatPercent(weight, { decimals: 0 });
+  const pct = f.percent(weight, { decimals: 0 });
   return {
     id: "concentration",
     value: pct,
-    text: `${pct} of your portfolio rides on ${ticker} alone.`,
+    text: t.text(pct, ticker),
     tone: "warning",
     calculation: [
-      `${ticker}: ${formatEur(biggest.value)} of ${formatEur(total)} in euros.`,
-      ...(prices?.change1y != null ? [`Last 12 months: ${formatPercent(prices.change1y, { signed: true, decimals: 0 })}.`] : []),
-      ...(prices?.drawdown ? [`Worst fall from a peak since ${prices.drawdown.from.slice(0, 4)}: ${formatPercent(-prices.drawdown.max, { decimals: 0 })}.`] : []),
-      `In My portfolio it grows like ${referenceText(biggest.holding)}${instrument ? ", with its own ups and downs" : ""}; one company can fall much further than an index.`,
+      t.share(ticker, f.eur(biggest.value), f.eur(total)),
+      ...(prices?.change1y != null ? [t.lastYear(f.percent(prices.change1y, { signed: true, decimals: 0 }))] : []),
+      ...(prices?.drawdown ? [t.worstFall(prices.drawdown.from.slice(0, 4), f.percent(-prices.drawdown.max, { decimals: 0 }))] : []),
+      t.growsLike(m.assets.inSentence[referenceFor(biggest.holding).asset], Boolean(instrument)),
     ],
-    assumptions: ["Only holdings priced in euros are counted."],
+    assumptions: [t.assumption],
   };
 }
 
-/** "the Nasdaq-100", "gold", "a savings account": what a holding grows like, in a sentence. */
-function referenceText(holding: Holding): string {
-  const { asset } = referenceFor(holding);
-  if (asset === "savings") return "a savings account";
-  if (asset === "gold") return "gold";
-  if (asset === "bonds") return "euro government bonds";
-  return asset === "world" ? "world stocks" : `the ${assetName(asset)}`;
-}
-
-const CURRENCY_NAMES: Readonly<Record<string, string>> = {
-  USD: "US dollars",
-  GBP: "pounds",
-  GBX: "pence",
-  CHF: "Swiss francs",
-  JPY: "yen",
-  PLN: "złoty",
-  SEK: "Swedish kronor",
-  NOK: "Norwegian kroner",
-  DKK: "Danish kroner",
-  CAD: "Canadian dollars",
-};
-
 /** Holdings in another currency, which are left out of every figure. */
-export function currencyFinding({ holdings }: FindingContext): Finding | null {
+export function currencyFinding({ holdings, i18n }: FindingContext): Finding | null {
+  const { m, f } = i18n;
+  const t = m.findings.currency;
   const sums = new Map<string, number>();
   for (const holding of holdings) {
     if (holding.currency === BASE_CURRENCY) continue;
@@ -299,26 +274,23 @@ export function currencyFinding({ holdings }: FindingContext): Finding | null {
     .filter((holding) => holding.currency === BASE_CURRENCY)
     .reduce((sum, holding) => sum + (holdingValue(holding) ?? 0), 0);
   const [[currency, amount]] = [...sums].sort((a, b) => b[1] - a[1]);
-  const money = formatMoney(amount, currency, { decimals: 0 });
+  const money = f.money(amount, currency, { decimals: 0 });
   const single = sums.size === 1;
   return {
     id: "currency",
-    value: single ? money : `${sums.size} currencies`,
-    text: single
-      ? `Your ${money} in ${CURRENCY_NAMES[currency] ?? currency} isn't counted: no currency conversion.`
-      : `Your holdings in ${[...sums.keys()].join(" and ")} aren't counted: no currency conversion.`,
+    value: single ? money : t.value(sums.size),
+    text: single ? t.one(money, t.names[currency] ?? currency) : t.many([...sums.keys()].join(t.and)),
     tone: "warning",
-    calculation: [
-      ...[...sums].map(([code, value]) => `${formatMoney(value, code, { decimals: 0 })} in ${code}: not counted.`),
-      `Counted: ${formatEur(counted)} in euros.`,
-    ],
-    assumptions: ["Wealth Lens does not convert currencies, so the result and the goals only use euro holdings."],
+    calculation: [...[...sums].map(([code, value]) => t.line(f.money(value, code, { decimals: 0 }), code)), t.counted(f.eur(counted))],
+    assumptions: [t.assumption],
   };
 }
 
 /** A bad first decade (the 10th percentile of history-based simulations): for the first goal, or for the result. */
 export function sequenceFinding(context: FindingContext): Finding | null {
-  const { calc, today } = context;
+  const { calc, today, i18n } = context;
+  const { m, f } = i18n;
+  const t = m.findings.sequence;
   const { scenario, investment } = calc;
   // A first goal under five years away is not hit by a bad decade: then it is about the result.
   const first = focusOf(context);
@@ -329,12 +301,9 @@ export function sequenceFinding(context: FindingContext): Finding | null {
   const { p10, p50 } = bandsFor(investment, { start: scenario.capital, monthly: scenario.monthly, years: decade });
   const bad = p10[decade];
   const typical = p50[decade];
-  const period = decade === 10 ? "decade" : `${decade} years`;
-  const calculation = [
-    `After ${decade} years: ${formatEur(typical)} in a typical case, ${formatEur(bad)} in a bad one (1 in 10).`,
-    "From then on, growth at the average rate.",
-  ];
-  const assumptions = [`1,000 simulated paths: ${investment.modelText}.`, monthlyAssumption(scenario)];
+  const period = decade === 10 ? t.decade : t.years(decade);
+  const calculation = [t.afterYears(decade, f.eur(typical), f.eur(bad)), t.thenAverage];
+  const assumptions = [t.simulated(simulationsText(investment, i18n)), monthlyAssumption(scenario, i18n)];
 
   if (focus) {
     const typicalMonths = decade * 12 + monthsToGoal(typical, scenario.monthly, scenario.realReturn, focus.target);
@@ -344,10 +313,10 @@ export function sequenceFinding(context: FindingContext): Finding | null {
     if (!withinReach(badMonths) || !withinReach(typicalMonths) || delay < 12) return null;
     return {
       id: "sequence",
-      value: `+${formatYears(delay)}`,
-      text: `A bad first ${period} (1 in 10) delays your first goal ${formatYears(delay)}.`,
+      value: `+${f.span(delay)}`,
+      text: t.goalText(period, f.span(delay)),
       tone: "warning",
-      calculation: [...calculation, `${focus.name}: in ${formatYears(typicalMonths)} typically, ${formatYears(badMonths)} after a bad start.`],
+      calculation: [...calculation, t.goalLine(goalName(focus, i18n), f.span(typicalMonths), f.span(badMonths))],
       assumptions,
     };
   }
@@ -358,26 +327,27 @@ export function sequenceFinding(context: FindingContext): Finding | null {
   const year = yearOf(today, months);
   return {
     id: "sequence",
-    value: formatEurRounded(-shortfall),
-    text: `A bad first ${period} (1 in 10) leaves ${formatEurRounded(shortfall)} less by ${year}.`,
+    value: f.eurRounded(-shortfall),
+    text: t.resultText(period, f.eurRounded(shortfall), year),
     tone: "warning",
-    calculation: [...calculation, `By ${year}: ${formatEur(after(typical))} typically, ${formatEur(after(bad))} after a bad start.`],
+    calculation: [...calculation, t.resultLine(year, f.eur(after(typical)), f.eur(after(bad)))],
     assumptions,
   };
 }
 
 /** How long money takes to double at the plan's growth. */
-export function doublingFinding({ calc }: FindingContext): Finding | null {
+export function doublingFinding({ calc, i18n }: FindingContext): Finding | null {
+  const { m, f } = i18n;
   const rate = calc.scenario.realReturn;
   if (rate < 0.02) return null;
   const years = Math.log(2) / Math.log1p(rate);
   return {
     id: "doubling",
-    value: formatYears(years * 12),
-    text: `At ${formatRate(rate)} after inflation, money doubles every ${formatYears(years * 12)}.`,
+    value: f.span(years * 12),
+    text: m.findings.doubling.text(f.rate(rate), f.span(years * 12)),
     tone: "info",
-    calculation: [`(1 + ${formatRate(rate)}) ^ ${years.toFixed(1)} = 2.`],
-    assumptions: [growthAssumption(calc.scenario, calc.investment)],
+    calculation: [m.findings.doubling.line(f.rate(rate), f.fixed(years, 1))],
+    assumptions: [growthAssumption(calc.scenario, calc.investment, i18n)],
   };
 }
 

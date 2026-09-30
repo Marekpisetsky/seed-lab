@@ -51,14 +51,8 @@ describe("parsePriceCsv", () => {
   });
 
   it("explains what is missing", () => {
-    expect(parsePriceCsv("Ticker,Value\nA,1")).toEqual({
-      ok: false,
-      error: "Expected a header with a date column and a close (or price) column.",
-    });
-    expect(parsePriceCsv("Date,Close\nx,y")).toEqual({
-      ok: false,
-      error: "No rows with a valid date and a positive close price.",
-    });
+    expect(parsePriceCsv("Ticker,Value\nA,1")).toEqual({ ok: false, error: { code: "prices-no-columns" } });
+    expect(parsePriceCsv("Date,Close\nx,y")).toEqual({ ok: false, error: { code: "prices-no-rows" } });
   });
 });
 

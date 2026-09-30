@@ -28,12 +28,18 @@ export interface NumberFormats {
   eur(amount: number, options?: { signed?: boolean }): string;
   /** Rounded the way a brief says it: €8,429 → "€8,400", €66,827 → "€67,000". */
   eurRounded(amount: number, options?: { signed?: boolean }): string;
+  /** Short, for an axis: "€1.2M", "€99K" ("1,2 M €", "99 mil €"). */
+  eurCompact(amount: number): string;
   /** 0.0914 → "9.1%". */
   percent(fraction: number, options?: PercentOptions): string;
   /** A rate without needless decimals: 0.04 → "4%", 0.045 → "4.5%". */
   rate(rate: number): string;
   /** Plain number with up to `maxDecimals` fraction digits (share counts). */
   number(value: number, maxDecimals?: number): string;
+  /** "." or ",": how this language writes 1.5, so typed numbers are read its way. */
+  decimalSeparator: string;
+  /** Exactly `decimals` fraction digits: 0.9, 2 → "0.90" ("0,90"). */
+  fixed(value: number, decimals: number): string;
   /** Price per share without a currency: 2 decimals, up to 4 for small prices. */
   price(value: number): string;
   /** "Jun 2036". */
@@ -85,12 +91,17 @@ function createFormats(intl: string): NumberFormats {
   const eur: NumberFormats["eur"] = (amount, { signed = false } = {}) => money(amount, "EUR", { decimals: 0, signed });
   const monthYear = new Intl.DateTimeFormat(intl, { month: "short", year: "numeric", timeZone: "UTC" });
   return {
+    decimalSeparator: new Intl.NumberFormat(intl).formatToParts(1.5).find((part) => part.type === "decimal")?.value ?? ".",
     money,
     eur,
     eurRounded(amount, { signed = false } = {}) {
       const abs = Math.abs(amount);
       const step = abs >= 10_000 ? 1000 : abs >= 1000 ? 100 : abs >= 100 ? 10 : 1;
       return eur(Math.round(amount / step) * step, { signed });
+    },
+    eurCompact(amount) {
+      const digits = amount >= 1e6 && amount < 1e7 ? 1 : 0;
+      return spaces(numberFormat(`compact|${digits}`, { style: "currency", currency: "EUR", notation: "compact", maximumFractionDigits: digits }).format(amount));
     },
     percent,
     rate(rate) {
@@ -99,6 +110,9 @@ function createFormats(intl: string): NumberFormats {
     },
     number(value, maxDecimals = 4) {
       return spaces(numberFormat(`number|${maxDecimals}`, { maximumFractionDigits: maxDecimals }).format(value));
+    },
+    fixed(value, decimals) {
+      return spaces(numberFormat(`fixed|${decimals}`, { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(shown(value, decimals)));
     },
     price(value) {
       const maxDecimals = Math.abs(value) < 1 ? 4 : 2;
@@ -124,57 +138,4 @@ export function numberFormats(intl: string): NumberFormats {
     byIntl.set(intl, formats);
   }
   return formats;
-}
-
-/** English, for code that writes no words (data files, the job's reports). */
-const EN = numberFormats("en-US");
-
-export const formatMoney = EN.money;
-export const formatEur = EN.eur;
-export const formatEurRounded = EN.eurRounded;
-export const formatPercent = EN.percent;
-export const formatRate = EN.rate;
-export const formatNumber = EN.number;
-export const formatPrice = EN.price;
-export const formatMonthYear = EN.monthYear;
-export const formatDayMonth = EN.dayMonth;
-
-/**
- * Months → "9 years 8 months". Partial months round up, because monthly
- * contributions only reach the goal at the end of a month.
- */
-export function formatDuration(months: number): string {
-  if (!Number.isFinite(months)) return "never";
-  const total = Math.max(0, Math.ceil(months - 1e-9));
-  const years = Math.floor(total / 12);
-  const rest = total % 12;
-  const plural = (n: number, unit: string) => `${n} ${unit}${n === 1 ? "" : "s"}`;
-  if (years === 0) return plural(rest, "month");
-  if (rest === 0) return plural(years, "year");
-  return `${plural(years, "year")} ${plural(rest, "month")}`;
-}
-
-/** Months → "~16 years" or "~5 months": the rough figure for a headline. */
-export function formatApproxDuration(months: number): string {
-  if (!Number.isFinite(months)) return "never";
-  const whole = Math.max(0, Math.ceil(months - 1e-9));
-  if (whole < 12) return `~${whole} month${whole === 1 ? "" : "s"}`;
-  const years = Math.round(whole / 12);
-  return `~${years} year${years === 1 ? "" : "s"}`;
-}
-
-/**
- * A span of time for a sentence, rounded to what a person would say:
- * 3 → "3 months", 18 → "2 years" (from 12 months on, whole years),
- * Infinity → "never".
- */
-export function formatYears(months: number): string {
-  if (!Number.isFinite(months)) return "never";
-  const abs = Math.abs(months);
-  if (abs < 11.5) {
-    const whole = Math.max(1, Math.round(abs));
-    return `${whole} month${whole === 1 ? "" : "s"}`;
-  }
-  const years = Math.round(abs / 12);
-  return `${years} year${years === 1 ? "" : "s"}`;
 }
