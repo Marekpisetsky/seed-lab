@@ -4,15 +4,16 @@
   --background: #fafafa;
   --foreground: #18181b;
   --card: #ffffff;
-  --muted: #71717a;
+  --muted: #52525b;
   --border: #e4e4e7;
-  --accent: #2563eb;
+  --accent: #1d4ed8;
   --accent-foreground: #ffffff;
-  --positive: #15803d;
+  --positive: #166a37;
   --negative: #b91c1c;
   --warning-bg: #fffbeb;
   --warning-border: #fcd34d;
   --warning-foreground: #78350f;
+  /* Text colours keep 4.5:1 (WCAG AA) on the card, the page, the 10% accent tint and the "changed" tint. */
   /* Chart series (validated as a pair for colour-blind separation, light and dark). */
   --chart-put-in: #2a78d6;
   --chart-growth: #1baf7a;
@@ -60,7 +61,7 @@
   @keyframes changed {
     0%,
     35% {
-      background-color: color-mix(in oklab, var(--accent) 24%, transparent);
+      background-color: color-mix(in oklab, var(--accent) 14%, transparent);
     }
     100% {
       background-color: transparent;
@@ -71,6 +72,12 @@
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+/* Every control shows clearly where the keyboard is. */
+:where(a, button, summary, [role="option"], [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* Native form controls follow the color scheme (date pickers, selects). */

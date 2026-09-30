@@ -216,7 +216,7 @@ function YearTable({ points, band, startYear, swings }: { points: YearPoint[]; b
   const [open, setOpen] = useState(false);
   return (
     <details className="text-xs" onToggle={(event) => setOpen(event.currentTarget.open)}>
-      <summary className="cursor-pointer text-muted hover:text-foreground">Year by year, as a table</summary>
+      <summary className="flex min-h-11 cursor-pointer items-center text-muted hover:text-foreground">Year by year, as a table</summary>
       {open && band && (
       <div className="mt-2 max-h-72 overflow-auto">
         <table className="w-full text-right tabular-nums">

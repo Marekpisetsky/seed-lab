@@ -13,7 +13,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export function Button({ variant = "secondary", size = "md", className = "", type = "button", ...props }: ButtonProps) {
-  const sizing = size === "sm" ? "px-2 py-1 text-xs" : "px-3 py-2 text-sm";
+  const sizing = size === "sm" ? "min-h-11 px-3 py-1 text-sm" : "min-h-11 px-3 py-2 text-sm";
   return (
     <button
       type={type}

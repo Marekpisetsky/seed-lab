@@ -21,7 +21,7 @@ export function WhatIfIndicator({ applied }: { applied: WhatIfId | null }) {
       type="button"
       onClick={clearWhatIf}
       aria-label={`Stop "What if: ${label}"`}
-      className="inline-flex shrink-0 items-center gap-1 rounded-full bg-accent/10 px-3 py-1 text-sm font-medium text-accent hover:bg-accent/20"
+      className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full bg-accent/10 px-3 py-1 text-sm font-medium text-accent hover:bg-accent/20"
     >
       What if: {label}
       <X aria-hidden="true" className="size-4" />

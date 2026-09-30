@@ -45,17 +45,17 @@ function AddRow({ row, onClose }: { row: CountryRow; onClose: () => void }) {
           ) : (
             <>
               <span className="w-full text-xs text-muted">Add living in {row.name} to My goals:</span>
-              <button type="button" onClick={() => add(false)} className="rounded-md border border-border bg-card px-2 py-1 font-medium hover:border-accent">
+              <button type="button" onClick={() => add(false)} className="min-h-11 rounded-md border border-border bg-card px-3 py-1 font-medium hover:border-accent">
                 <Plus aria-hidden="true" className="mr-0.5 inline size-3.5 align-[-2px]" />
                 Without housing
               </button>
-              <button type="button" onClick={() => add(true)} className="rounded-md border border-border bg-card px-2 py-1 font-medium hover:border-accent">
+              <button type="button" onClick={() => add(true)} className="min-h-11 rounded-md border border-border bg-card px-3 py-1 font-medium hover:border-accent">
                 <Plus aria-hidden="true" className="mr-0.5 inline size-3.5 align-[-2px]" />
                 With housing
               </button>
             </>
           )}
-          <button type="button" aria-label="Close" onClick={onClose} className="ml-auto flex size-7 items-center justify-center rounded-md text-muted hover:bg-border/40">
+          <button type="button" aria-label="Close" onClick={onClose} className="ml-auto flex size-11 items-center justify-center rounded-md text-muted hover:bg-border/40">
             <X aria-hidden="true" className="size-4" />
           </button>
         </div>
@@ -92,7 +92,7 @@ export function CountriesSection({ income, rows }: { income: number; rows: reado
               <th scope="col" className="px-1.5 py-2 font-medium">
                 With housing
               </th>
-              <th scope="col" className="w-9 px-1 py-2">
+              <th scope="col" className="w-12 px-1 py-2">
                 <span className="sr-only">Add to My goals</span>
               </th>
             </tr>
@@ -112,7 +112,7 @@ export function CountriesSection({ income, rows }: { income: number; rows: reado
                       aria-label={`Add living in ${row.name} to My goals`}
                       aria-expanded={adding === row.code}
                       onClick={() => setAdding(adding === row.code ? null : row.code)}
-                      className="flex size-8 items-center justify-center rounded-md text-accent hover:bg-accent/10"
+                      className="flex size-11 items-center justify-center rounded-md text-accent hover:bg-accent/10"
                     >
                       <Plus aria-hidden="true" className="size-4" />
                     </button>
@@ -127,7 +127,7 @@ export function CountriesSection({ income, rows }: { income: number; rows: reado
           type="button"
           onClick={() => setAll(!all)}
           aria-expanded={all}
-          className="w-full border-t border-border px-3 py-2 text-sm font-medium text-accent hover:bg-accent/5"
+          className="min-h-11 w-full border-t border-border px-3 py-2 text-sm font-medium text-accent hover:bg-accent/5"
         >
           {all ? "Show fewer" : `Show all ${rows.length}`}
         </button>

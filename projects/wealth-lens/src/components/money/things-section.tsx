@@ -26,7 +26,7 @@ function Things({ scenario, goals }: { scenario: Scenario; goals: readonly Goal[
             type="button"
             aria-expanded={source === item.id}
             onClick={() => setSource(source === item.id ? null : item.id)}
-            className="min-w-0 flex-1 rounded-md text-left hover:bg-border/30"
+            className="min-h-11 min-w-0 flex-1 rounded-md text-left hover:bg-border/30"
           >
             <span className="block text-sm">{item.name}</span>
             <span className="block text-xs text-muted">{formatEur(item.amount)}</span>
@@ -36,7 +36,7 @@ function Things({ scenario, goals }: { scenario: Scenario; goals: readonly Goal[
             <Changed value={whenText(months)} />
           </span>
           {chosen.has(item.id) ? (
-            <span className="flex size-8 shrink-0 items-center justify-center text-positive" title="In My goals">
+            <span className="flex size-11 shrink-0 items-center justify-center text-positive" title="In My goals">
               <Check aria-hidden="true" className="size-4" />
               <span className="sr-only">{item.name} is in My goals</span>
             </span>
@@ -45,7 +45,7 @@ function Things({ scenario, goals }: { scenario: Scenario; goals: readonly Goal[
               type="button"
               aria-label={`Add ${item.name} to My goals`}
               onClick={() => addGoal({ kind: "buy", item: item.id })}
-              className="flex size-8 shrink-0 items-center justify-center rounded-md text-accent hover:bg-accent/10"
+              className="flex size-11 shrink-0 items-center justify-center rounded-md text-accent hover:bg-accent/10"
             >
               <Plus aria-hidden="true" className="size-4" />
             </button>

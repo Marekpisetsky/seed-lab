@@ -56,7 +56,7 @@ export function MixEditor({ mix, onAddPart }: { mix: Mix; onAddPart: (anchor: HT
   const template = templateOf(mix.parts);
 
   return (
-    <div className="order-4 col-span-2 space-y-3 rounded-lg bg-background p-3 sm:order-5 sm:col-span-4">
+    <div className="col-span-2 space-y-3 rounded-lg bg-background p-3 sm:col-span-4">
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <span className="text-muted">Quick mixes:</span>
         {TEMPLATES.map((entry) => (
@@ -65,7 +65,7 @@ export function MixEditor({ mix, onAddPart }: { mix: Mix; onAddPart: (anchor: HT
             type="button"
             aria-pressed={template === entry}
             onClick={() => edit(entry.parts.map((part) => ({ ...part })))}
-            className={`rounded-md border px-2 py-1 font-medium ${template === entry ? "border-foreground bg-foreground text-background" : "border-border text-foreground hover:bg-border/40"}`}
+            className={`min-h-11 rounded-md border px-3 py-1 font-medium ${template === entry ? "border-foreground bg-foreground text-background" : "border-border text-foreground hover:bg-border/40"}`}
           >
             {entry.label}
           </button>
@@ -96,7 +96,7 @@ export function MixEditor({ mix, onAddPart }: { mix: Mix; onAddPart: (anchor: HT
               aria-label={`Remove ${assetName(part.asset)}`}
               disabled={draft.length === 1}
               onClick={() => edit(draft.filter((_, position) => position !== index))}
-              className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted hover:bg-border/40 hover:text-foreground disabled:opacity-30"
+              className="flex size-11 shrink-0 items-center justify-center rounded-md text-muted hover:bg-border/40 hover:text-foreground disabled:opacity-30"
             >
               <X aria-hidden="true" className="size-4" />
             </button>
@@ -110,11 +110,11 @@ export function MixEditor({ mix, onAddPart }: { mix: Mix; onAddPart: (anchor: HT
             type="button"
             disabled={draft.length >= MAX_PARTS}
             onClick={(event) => onAddPart(event.currentTarget)}
-            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-accent hover:bg-accent/10 disabled:opacity-40"
+            className="inline-flex min-h-11 items-center gap-1 rounded-md px-3 py-1 text-sm font-medium text-accent hover:bg-accent/10 disabled:opacity-40"
           >
             <Plus aria-hidden="true" className="size-4" /> Add
           </button>
-          <button type="button" onClick={() => edit(splitEvenly(draft))} className="rounded-md px-2 py-1 text-sm font-medium text-accent hover:bg-accent/10">
+          <button type="button" onClick={() => edit(splitEvenly(draft))} className="min-h-11 rounded-md px-3 py-1 text-sm font-medium text-accent hover:bg-accent/10">
             Split evenly
           </button>
         </span>
@@ -127,7 +127,7 @@ export function MixEditor({ mix, onAddPart }: { mix: Mix; onAddPart: (anchor: HT
             role="radio"
             aria-checked={mix.rebalance === rebalance}
             onClick={() => setInvestment({ ...mix, rebalance })}
-            className={`rounded px-2 py-1 font-medium ${mix.rebalance === rebalance ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
+            className={`min-h-11 rounded px-3 py-1 font-medium ${mix.rebalance === rebalance ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
           >
             {rebalance ? "Rebalance every year" : "Let weights drift"}
           </button>

@@ -30,7 +30,7 @@ function GoalRow({ status, today }: { status: GoalStatus; today: Date }) {
           aria-expanded={open}
           aria-controls={panel}
           onClick={() => setOpen(!open)}
-          className="min-w-0 flex-1 rounded-md px-1 py-1 text-left hover:bg-border/30"
+          className="min-h-11 min-w-0 flex-1 rounded-md px-1 py-1 text-left hover:bg-border/30"
         >
           <span className="block text-sm font-medium">
             {status.name}
@@ -52,7 +52,7 @@ function GoalRow({ status, today }: { status: GoalStatus; today: Date }) {
           type="button"
           aria-label={`Remove ${status.name}`}
           onClick={() => removeGoal(status.goal.id)}
-          className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted hover:bg-border/40 hover:text-foreground"
+          className="flex size-11 shrink-0 items-center justify-center rounded-md text-muted hover:bg-border/40 hover:text-foreground"
         >
           <X aria-hidden="true" className="size-4" />
         </button>
@@ -97,7 +97,7 @@ function AddGoal({ onDone }: { onDone: () => void }) {
             role="radio"
             aria-checked={kind === option.id}
             onClick={() => setKind(option.id)}
-            className={`rounded-lg border px-3 py-2 text-left text-sm font-medium ${
+            className={`min-h-11 rounded-lg border px-3 py-2 text-left text-sm font-medium ${
               kind === option.id ? "border-accent bg-accent/10" : "border-border hover:border-accent"
             }`}
           >
@@ -271,7 +271,7 @@ export function GoalsSection({ goals, today }: { goals: readonly GoalStatus[]; t
         <button
           type="button"
           onClick={() => setAdding(true)}
-          className="inline-flex items-center gap-1 rounded-md px-1 py-1 text-sm font-medium text-accent hover:bg-accent/10"
+          className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-accent hover:bg-accent/10"
         >
           <Plus aria-hidden="true" className="size-4" /> Add a goal
         </button>

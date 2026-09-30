@@ -113,7 +113,7 @@ function HoldingRow({ holding, onEdit, onUseMarketPrice, onRemove }: HoldingRowP
       </div>
       <div className="text-right">
         {value === null || gain === null ? (
-          <button type="button" onClick={onEdit} className="text-sm font-medium text-accent">
+          <button type="button" onClick={onEdit} className="min-h-11 px-2 text-sm font-medium text-accent">
             Add price
           </button>
         ) : (

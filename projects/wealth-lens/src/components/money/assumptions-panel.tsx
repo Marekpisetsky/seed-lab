@@ -106,7 +106,7 @@ export function AssumptionsPanel({
   const isCustomGrowth = investment.investment.kind === "custom";
 
   return (
-    <div className="order-5 col-span-2 space-y-1 sm:order-6 sm:col-span-4">
+    <div className="col-span-2 space-y-1 sm:col-span-4">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <p className="text-sm tabular-nums">
           <Changed value={assumptionsLine(investment, basis)} />
@@ -119,7 +119,7 @@ export function AssumptionsPanel({
           aria-expanded={open}
           aria-controls={panelId}
           onClick={() => onOpen(!open)}
-          className="rounded-md px-1.5 py-0.5 text-sm font-medium text-accent underline-offset-2 hover:underline"
+          className="min-h-11 rounded-md px-3 py-1 text-sm font-medium text-accent underline-offset-2 hover:underline"
         >
           {open ? "Done" : "Edit"}
         </button>
@@ -155,7 +155,7 @@ export function AssumptionsPanel({
                     role="radio"
                     aria-checked={basis === option}
                     onClick={() => onBasis(option)}
-                    className={`rounded px-2 py-1 font-medium ${basis === option ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
+                    className={`min-h-11 rounded px-3 py-1 font-medium ${basis === option ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
                   >
                     {option === "real" ? "After rising prices" : "Before rising prices"}
                   </button>
@@ -186,7 +186,7 @@ export function AssumptionsPanel({
               <select
                 value={investment.pricesOf}
                 onChange={(event) => setPricesOf(event.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
+                className="min-h-11 w-full rounded-md border border-border bg-background px-3 py-2 text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
               >
                 {COUNTRIES.map((country) => (
                   <option key={country.code} value={country.code}>
@@ -212,7 +212,7 @@ export function AssumptionsPanel({
               <button
                 type="button"
                 onClick={resetAssumptions}
-                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-accent hover:bg-accent/10"
+                className="inline-flex min-h-11 items-center gap-1 rounded-md px-3 py-1 text-sm font-medium text-accent hover:bg-accent/10"
               >
                 <RotateCcw aria-hidden="true" className="size-4" /> Reset to standard
               </button>

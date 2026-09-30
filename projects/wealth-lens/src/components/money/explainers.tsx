@@ -17,7 +17,7 @@ import { FALLBACK_FACTOR, MIN_DATA_YEARS } from "@/lib/volatility";
 function Explainer({ title, className = "", children }: { title: string; className?: string; children: React.ReactNode }) {
   return (
     <details className={`text-xs text-muted ${className}`}>
-      <summary className="cursor-pointer list-none font-medium text-foreground [&::-webkit-details-marker]:hidden">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center font-medium text-foreground [&::-webkit-details-marker]:hidden">
         <span aria-hidden="true" className="mr-1 inline-flex size-4 items-center justify-center rounded-full border border-current text-[10px]">
           i
         </span>
