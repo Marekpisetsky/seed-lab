@@ -29,13 +29,17 @@ son resultados en posiciones fijas, y las metas son opcionales. La app no
 supone nada sobre la vida del usuario: no pregunta país, ni si alquila o
 es propietario, ni qué quiere hacer con su dinero. Nada se guarda ni se
 envía, y la app no llama a ningún servicio mientras se usa. La lógica
-vive en funciones puras con unos 380 tests unitarios (Vitest). Todavía
+vive en funciones puras con unos 420 tests unitarios (Vitest). Todavía
 sin validar con uso propio sostenido.
 
 - **My money — `/`**, de arriba abajo:
   1. **La calculadora**: una tarjeta con cuatro campos: *You have* (€),
-     *You add each month* (€), *Invested in* (S&P 500, World,
-     Nasdaq-100 o mi cartera) y *For* (años, 1-60). Arranca con valores
+     *You add each month* (€, con − / + de €50), *Invested in* y *For
+     (years)* (1-60, con − / + de un año; los botones se aplican al
+     instante). *Invested in* abre la lista completa, agrupada y con
+     buscador por nombre o ticker: Indexes (S&P 500, World, Nasdaq-100),
+     Stocks (las 12 de `instruments.json`, con cuánto oscilan), My
+     portfolio (si hay holdings) y "A mix…" (ver abajo). Arranca con valores
      reales editables (€1.000, €200, S&P 500, 20 años), así que hay
      resultado desde el primer segundo. Se recalcula cuando el usuario
      termina de escribir (500 ms sin teclear, al salir del campo o con
@@ -51,8 +55,9 @@ sin validar con uso propio sostenido.
   3. **My goals** (opcional, ninguna al empezar): solo un botón discreto
      "+ Add a goal". Cuatro tipos combinables, tantas como se quiera:
      *Live somewhere* (un país, con o sin vivienda), *Buy something* (de
-     la lista o propia, con su precio), *Reach an amount* y *Monthly
-     income*. Cada meta es una fila fija, en el orden en que se añadió y
+     la lista o propia, con su precio), *Reach an amount* y *A monthly
+     amount* (un importe y una etiqueta opcional: "my expenses", "my
+     mortgage"). Cada meta es una fila fija, en el orden en que se añadió y
      calculada por separado sobre el mismo plan: "✓ now", "in 12 years
      (2038)" o, a más de 60 años, "not at this pace — needs €327/month
      for 30 years". Se toca para ver el cálculo; × la quita.
@@ -101,19 +106,54 @@ porque el S&P 500 de Shiller llega a 2022; el Nasdaq-100 es solo precio.
   que se ve (resultado, metas, tabla de países, compras) y
   `src/hooks/use-calculation.ts` lo calcula una vez por cambio para todas
   las secciones (medido como `performance.measure("wealth-lens:report")`:
-  0,3 ms por cambio tras el primero). El archivo de datos va por la
-  versión 4 y lee las anteriores: la misión guardada (v3), la conexión
+  0,3 ms por cambio con un índice; con una mezcla, menos de 16 ms incluso la
+  primera vez, porque al abrir la lista se precalculan en ratos libres las
+  tasas de éxito de cada acción y los sorteos de las mezclas). El archivo
+  de datos va por la versión 5 (las metas mensuales "income" de la 4 pasan
+  a *A monthly amount* con su nombre como etiqueta; la mezcla viaja en
+  el archivo) y lee las anteriores: la misión guardada (v3), la conexión
   fijada (v2) o la meta en euros (v1) pasan a ser la primera meta de My
   goals, y los elementos propios las siguientes. "Stop working" se
   convierte en vivir en el país que aquella versión preguntaba, con
   vivienda si alquilaba; lo que no se puede decir sin suponer un país
   propio (4 días, media jornada, "la app elegía") se omite.
-- En qué crece el plan (`src/lib/investment.ts`): S&P 500, World o
-  Nasdaq-100 (su promedio real en el periodo común, ver abajo), la cartera real (cada holding
-  cuenta hacia el índice que sigue —o el más cercano— ponderado por su
-  valor en EUR), una acción (proyectada con su índice más cercano, nunca
-  con su propio pasado) o un % propio. La misma historia alimenta el
-  Monte Carlo.
+- En qué crece el plan (`src/lib/investment.ts`):
+  - **Un índice**: su promedio real en el periodo común (ver abajo); el
+    Monte Carlo sortea sus años.
+  - **Una acción** (`src/lib/volatility.ts`): crece al promedio de su
+    índice de referencia, dicho en la línea de supuestos ("Growth:
+    Nasdaq-100 average … One stock's future can't be predicted."), pero
+    oscila como ella: los años del índice se estiran alrededor de su media
+    (en logaritmos) hasta tener la volatilidad de la acción, calculada de
+    sus cierres diarios. La media geométrica es la del índice, así que la
+    proyección y, para una suma invertida una vez, la mediana coinciden; la
+    banda se ensancha y la tasa de retiro dura menos (NVIDIA: 50 % al año
+    frente al 30 % de los años del Nasdaq-100; €10.000 a 20 años: misma
+    mediana, percentil 10 de €3.400 en vez de €11.100). Con aportes
+    mensuales la mediana simulada sube algo con la dispersión (los años
+    comprados barato pesan más: NVIDIA con €300/mes, un 15 % a 20 años);
+    la cifra principal, que es la proyección, es la misma. Con menos de 3 años de datos se toma el
+    doble de la volatilidad del índice (factor documentado en el código) y
+    la página lo dice. Su pasado se muestra aparte: "Past 10 years: +63% a
+    year (price, before inflation). Past, not a forecast.". Las etiquetas dicen el modelo exacto
+    ("simulations using Nasdaq-100 years scaled to NVIDIA's volatility").
+  - **Una mezcla** (`src/lib/mix.ts`, documentado arriba del archivo y en
+    un "i" plegado): hasta 10 partes (índices y acciones) con % que suman
+    100, indicador del total, "Split evenly" y un conmutador *Let weights
+    drift* (por defecto) / *Rebalance every year*. Crecimiento: la media
+    ponderada de los índices de referencia. Incertidumbre: 1.000 caminos
+    de 60 años; cada año se sortea un año histórico común a los tres
+    índices (se mueven juntos como lo hicieron) y cada acción es su índice
+    × β más una parte propia, con su volatilidad y su correlación semanal
+    con el ETF del índice; dos acciones van juntas lo que fueron sus
+    precios semanales. Junto al resultado: "Range (8 in 10)" y "Worst
+    year in the data" (su peor año natural, reequilibrado cada enero, en
+    los años con datos de todas las partes, después de inflación), con las
+    mismas cifras del S&P 500 solo en pequeño. Ninguna optimización ni
+    sugerencia de pesos.
+  - **My portfolio**: una mezcla de los holdings por su valor en EUR, cada
+    acción de la lista como ella misma, los ETF por su índice.
+  - **Un % propio**: los altibajos del S&P 500 escalados a ese promedio.
 - Velocidad: las dos pantallas se prerenderizan con sus valores de
   llegada (la calculadora con su resultado, la lista de acciones), así
   que se ven antes de que corra el JavaScript. Las tasas de éxito de
@@ -241,7 +281,14 @@ Finance primero (dos hosts) y Stooq como respaldo— y escribe:
 
 - `public/data/prices.json`: último cierre, fecha, moneda, mini-serie de
   12 meses, cambio a 1 año y crecimiento pasado por instrumento (una línea
-  por instrumento). Se importa en el build, así que va dentro de la página.
+  por instrumento), y cómo se mueve (`scripts/lib/stats.mts`, desde los
+  cierres guardados): volatilidad anual (desviación de los retornos
+  logarítmicos diarios × √ retornos al año), el cambio de cada año natural
+  completo y, al final, las correlaciones de retornos semanales entre
+  instrumentos (semanales porque las bolsas cierran a horas distintas;
+  `null` con menos de 3 años compartidos). Se importa en el build, así que
+  va dentro de la página. `npm run update-stats` recalcula esas cifras
+  desde el historial guardado, sin descargar nada.
 - `public/data/history/<ID>.json`: la serie diaria compacta (desplazamiento
   en días + cierre), que la app pide a su propio sitio solo al abrir el
   gráfico.
@@ -366,7 +413,7 @@ anteriores.
 
 ```
 scripts/
-  update-prices.mts            job diario: descarga y escribe public/data/
+  update-prices.mts            job diario: descarga y escribe public/data/ (--stats-only: solo cifras)
   update-prices.workflow.yml   el GitHub Action (copiar a .github/workflows/)
   lib/                         yahoo, stooq, cadena de respaldo, armado de archivos
 public/data/                   precios generados por el job (no editar a mano)
@@ -387,6 +434,10 @@ src/
     connections.ts      la lista de compras, con fuentes
     simulation.ts       bandas de Monte Carlo y cachés de simulación
     success-table.ts    tasas de éxito de 3/4/5 % precalculadas por índice
+    volatility.ts       una acción: el crecimiento de su índice, su propia volatilidad
+    mix.ts              mezclas con pesos: modelo conjunto, deriva/reequilibrio, peor año
+    projections.ts      una sola entrada a bandas y tasas de éxito, sea índice, acción o mezcla
+    step.ts             los botones − / + (pasos de €50 y de un año)
     investment.ts       en qué crece el plan: índice, cartera ponderada, acción, % propio
     indexes.ts          datasets de retornos reales de los 3 índices
     market-data.ts      lista curada + precios estáticos (formato en market-format.ts)

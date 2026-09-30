@@ -56,14 +56,23 @@ export interface LegacyGoal {
  * - index: one of the three indexes (bought through its well-known ETF);
  * - stock: a curated stock, projected with its closest index (a single
  *   stock's past is shown, never projected);
- * - portfolio: the user's holdings, each index weighted by holding value;
+ * - portfolio: the user's holdings, weighted by value (a mix, see below);
+ * - mix: indexes and stocks with weights in percent the user sets
+ *   (lib/mix.ts), drifting with growth or rebalanced every year;
  * - custom: a growth rate the user types.
  */
 export type Investment =
   | { kind: "index"; index: IndexId }
   | { kind: "stock"; id: string }
   | { kind: "portfolio" }
+  | { kind: "mix"; parts: MixPart[]; rebalance: boolean }
   | { kind: "custom"; realReturn: number };
+
+/** A part of a mix: "index:sp500" or "stock:NVDA", and its weight in percent. */
+export interface MixPart {
+  ref: string;
+  weight: number;
+}
 
 /**
  * A goal the user adds to "My goals": optional, as many as they like, each
@@ -74,15 +83,15 @@ export type Investment =
  * - buy: an item of the "Buy it" list (src/data/connections.json, its id);
  * - buy-own: something of the user's own, at the price they give;
  * - amount: an amount to reach;
- * - income: a monthly amount the money should pay (their spending, a
- *   mortgage, anything), with an optional name.
+ * - monthly: a monthly amount the money should pay (expenses, a mortgage,
+ *   anything), with an optional label the user writes.
  */
 export type Goal =
   | { id: string; kind: "live"; country: string; housing: boolean }
   | { id: string; kind: "buy"; item: string }
   | { id: string; kind: "buy-own"; name: string; amount: number }
   | { id: string; kind: "amount"; amount: number }
-  | { id: string; kind: "income"; amount: number; name: string | null };
+  | { id: string; kind: "monthly"; amount: number; label: string | null };
 
 /** A goal before it gets its id. */
 export type NewGoal = Goal extends infer G ? (G extends Goal ? Omit<G, "id"> : never) : never;

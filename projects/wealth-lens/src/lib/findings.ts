@@ -20,7 +20,7 @@ import { formatEur, formatEurRounded, formatMoney, formatPercent, formatRate, fo
 import { INDEXES } from "./indexes";
 import { dividendNote, periodText, type ResolvedInvestment } from "./investment";
 import { INDEX_TRACKERS, instrumentForHolding, MARKET, type PricesFile } from "./market-data";
-import { wealthPercentiles } from "./simulation";
+import { bandsFor } from "./projections";
 import { BASE_CURRENCY, type Holding } from "./types";
 
 export type FindingId = "lever" | "waiting" | "inflation" | "fees" | "concentration" | "currency" | "sequence" | "doubling" | "stock-past";
@@ -83,7 +83,7 @@ function yearOf(today: Date, months: number): number {
 
 function growthAssumption(scenario: Scenario, investment: ResolvedInvestment): string {
   const dividends = dividendNote(investment);
-  return `Growth ${formatRate(scenario.realReturn)} a year after inflation: ${investment.name}, ${periodText(investment)} average${dividends ? ` (${dividends})` : ""}. Past, not a promise.`;
+  return `Growth ${formatRate(scenario.realReturn)} a year after inflation: ${investment.growthSource}, ${periodText(investment)} average${dividends ? ` (${dividends})` : ""}. Past, not a promise.`;
 }
 
 function monthlyAssumption(scenario: Scenario): string {
@@ -259,8 +259,8 @@ export function concentrationFinding({ holdings, market }: FindingContext): Find
       ...(prices?.change1y != null ? [`Last 12 months: ${formatPercent(prices.change1y, { signed: true, decimals: 0 })}.`] : []),
       ...(prices?.drawdown ? [`Worst fall from a peak since ${prices.drawdown.from.slice(0, 4)}: ${formatPercent(-prices.drawdown.max, { decimals: 0 })}.`] : []),
       instrument
-        ? `Projections count it as the ${INDEXES[instrument.index].name}; one company can fall much further than an index.`
-        : "Projections count it as world stocks; one company can fall much further than an index.",
+        ? `In My portfolio it grows at the ${INDEXES[instrument.index].name}'s average, with its own ups and downs; one company can fall much further than an index.`
+        : "In My portfolio it counts as world stocks; one company can fall much further than an index.",
     ],
     assumptions: ["Only holdings priced in euros are counted."],
   };
@@ -318,13 +318,7 @@ export function sequenceFinding(context: FindingContext): Finding | null {
   const months = focus ? focus.months : horizonOf(context);
   if (months < 60) return null;
   const decade = Math.min(10, Math.floor(months / 12));
-  const { p10, p50 } = wealthPercentiles({
-    start: scenario.capital,
-    monthly: scenario.monthly,
-    returns: investment.returns,
-    years: decade,
-    key: investment.key,
-  });
+  const { p10, p50 } = bandsFor(investment, { start: scenario.capital, monthly: scenario.monthly, years: decade });
   const bad = p10[decade];
   const typical = p50[decade];
   const period = decade === 10 ? "decade" : `${decade} years`;
@@ -333,7 +327,7 @@ export function sequenceFinding(context: FindingContext): Finding | null {
     "From then on, growth at the average rate.",
   ];
   const assumptions = [
-    `1,000 simulations drawing each year's return from the ${investment.name} history (${periodText(investment)}).`,
+    `1,000 simulations drawing each year's return from the ${investment.growthSource}'s ${periodText(investment)} history${investment.stock ? `, scaled to ${investment.name}'s volatility (${formatPercent(investment.stock.volatility, { decimals: 0 })} a year)` : ""}.`,
     monthlyAssumption(scenario),
   ];
 

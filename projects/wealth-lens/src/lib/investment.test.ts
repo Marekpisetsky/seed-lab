@@ -99,12 +99,14 @@ describe("resolveInvestment", () => {
 
   it("weights the portfolio's growth by holding value", () => {
     const resolved = resolveInvestment({ kind: "portfolio" }, [holding("VUAA", 5000), holding("EQQQ", 5000)]);
-    const { years } = blendedReturns([
-      { index: "sp500", weight: 0.5 },
-      { index: "nasdaq100", weight: 0.5 },
-    ]);
     expect(resolved.name).toBe("My portfolio");
-    expect(resolved.realReturn).toBeCloseTo(annualizedReturn(years.map((entry) => entry.realReturn)), 12);
+    // A mix of its holdings: growth is the weighted average of the indexes behind them.
+    expect(resolved.realReturn).toBeCloseTo(0.5 * INDEXES.sp500.averageReturn + 0.5 * INDEXES.nasdaq100.averageReturn, 12);
+    expect(resolved.model?.parts.map((part) => [part.ref, part.weight])).toEqual([
+      ["index:sp500", 0.5],
+      ["index:nasdaq100", 0.5],
+    ]);
+    expect(resolved.model?.rebalance).toBe(false);
     expect(resolved.period).toEqual([1988, 2022]);
     expect(resolved.mix?.weights.map((weight) => weight.weight)).toEqual([0.5, 0.5]);
     // Half of it is the Nasdaq-100, whose figures leave dividends out.
@@ -121,10 +123,11 @@ describe("resolveInvestment", () => {
 
   it("keys each history, so simulations can be cached", () => {
     expect(resolveInvestment({ kind: "index", index: "world" }, []).key).toBe("index:world");
-    expect(resolveInvestment({ kind: "stock", id: "NVDA" }, []).key).toBe("index:nasdaq100");
+    // A stock's history is its index's, scaled to its volatility: a key of its own.
+    expect(resolveInvestment({ kind: "stock", id: "NVDA" }, []).key).toMatch(/^stock:NVDA:\d\.\d{4}$/);
     expect(resolveInvestment({ kind: "custom", realReturn: 0.05 }, []).key).toBe("custom:0.0500");
     expect(resolveInvestment({ kind: "portfolio" }, [holding("VUAA", 3000), holding("EQQQ", 1000)]).key).toBe(
-      "mix:sp500=0.750,nasdaq100=0.250",
+      "model:index:sp500=0.7500,index:nasdaq100=0.2500:drift",
     );
   });
 

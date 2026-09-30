@@ -70,7 +70,7 @@ function InstrumentPanel({ instrument }: { instrument: Instrument }) {
       <p className="text-sm text-muted">
         {instrument.kind === "etf"
           ? `Tracks the ${index.name}: ${formatRate(index.averageReturn)} a year after inflation on average, ${period}${priceOnly}.`
-          : `As your investment it is projected with the ${index.name}'s history (${formatRate(index.averageReturn)} a year after inflation, ${period}${priceOnly}), not with ${instrument.name}'s own past.`}
+          : `As your investment it grows at the ${index.name}'s average (${formatRate(index.averageReturn)} a year after inflation, ${period}${priceOnly}), with ${instrument.name}'s own ups and downs; its own past growth is not projected.`}
       </p>
 
       {chosen ? (

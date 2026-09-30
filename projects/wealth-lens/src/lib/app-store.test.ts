@@ -74,12 +74,12 @@ describe("the shared app state", () => {
   it("adds goals at the end and removes one without reordering the rest", () => {
     addGoal({ kind: "amount", amount: 100_000 }, "a");
     addGoal({ kind: "live", country: "PE", housing: true }, "b");
-    addGoal({ kind: "income", amount: 1500, name: null }, "c");
+    addGoal({ kind: "monthly", amount: 1500, label: null }, "c");
     expect(appStore.get().plan.goals.map((goal) => goal.id)).toEqual(["a", "b", "c"]);
     removeGoal("b");
     expect(appStore.get().plan.goals).toEqual([
       { id: "a", kind: "amount", amount: 100_000 },
-      { id: "c", kind: "income", amount: 1500, name: null },
+      { id: "c", kind: "monthly", amount: 1500, label: null },
     ]);
     addGoal({ kind: "buy", item: "used-car" }, "d");
     expect(appStore.get().plan.goals.map((goal) => goal.id)).toEqual(["a", "c", "d"]);

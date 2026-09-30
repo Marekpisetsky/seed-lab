@@ -4,7 +4,7 @@
  * download can replace what is already committed. Nothing here does I/O.
  */
 
-import type { HistoryFile, Instrument, InstrumentPrices, PricesFile } from "../../src/lib/market-format.ts";
+import type { Correlations, HistoryFile, Instrument, InstrumentPrices, InstrumentStats, PricesFile } from "../../src/lib/market-format.ts";
 import type { PricePoint } from "./series.mts";
 
 /** Years of daily closes kept per instrument. */
@@ -142,30 +142,41 @@ export function checkSeries(
 /**
  * The next prices file: fresh entries where a download succeeded, the
  * previous entry where it failed, in catalogue order (instruments removed
- * from the catalogue are dropped). `updatedAt` only moves when the prices
- * change, so an unchanged day produces an identical file and no commit.
+ * from the catalogue are dropped), each with its stats worked out from the
+ * stored history (`stats`, by id), and the correlations between them.
+ * `updatedAt` only moves when something changes, so an unchanged day
+ * produces an identical file and no commit.
  */
 export function nextPricesFile(
   instruments: readonly Instrument[],
   previous: PricesFile,
   fresh: Readonly<Record<string, InstrumentPrices>>,
   now: Date,
+  stats: Readonly<Record<string, InstrumentStats | null>> = {},
+  correlations: Correlations | null = previous.correlations ?? null,
 ): { file: PricesFile; changed: boolean } {
   const prices: Record<string, InstrumentPrices> = {};
   for (const { id } of instruments) {
     const entry = fresh[id] ?? previous.prices[id];
-    if (entry) prices[id] = entry;
+    if (entry) prices[id] = id in stats ? { ...entry, stats: stats[id] } : entry;
   }
-  const changed = JSON.stringify(prices) !== JSON.stringify(previous.prices);
+  const changed =
+    JSON.stringify(prices) !== JSON.stringify(previous.prices) ||
+    JSON.stringify(correlations) !== JSON.stringify(previous.correlations ?? null);
   return {
-    file: { version: 1, updatedAt: changed ? now.toISOString() : previous.updatedAt, prices },
+    file: { version: 1, updatedAt: changed ? now.toISOString() : previous.updatedAt, prices, ...(correlations ? { correlations } : {}) },
     changed,
   };
 }
 
-/** One instrument per line, so each day's git diff shows exactly what moved. */
+/** One instrument per line (and one correlation row per line), so each day's git diff shows exactly what moved. */
 export function formatPricesFile(file: PricesFile): string {
   const entries = Object.entries(file.prices).map(([id, entry]) => `${JSON.stringify(id)}: ${JSON.stringify(entry)}`);
   const prices = entries.length === 0 ? "{}" : `{\n${entries.join(",\n")}\n}`;
-  return `{\n"version": 1,\n"updatedAt": ${JSON.stringify(file.updatedAt)},\n"prices": ${prices}\n}\n`;
+  const { correlations } = file;
+  const rows = (table: readonly unknown[][]) => `[\n${table.map((row) => JSON.stringify(row)).join(",\n")}\n]`;
+  const tail = correlations
+    ? `,\n"correlations": {\n"ids": ${JSON.stringify(correlations.ids)},\n"matrix": ${rows(correlations.matrix)},\n"weeks": ${rows(correlations.weeks)}\n}`
+    : "";
+  return `{\n"version": 1,\n"updatedAt": ${JSON.stringify(file.updatedAt)},\n"prices": ${prices}${tail}\n}\n`;
 }

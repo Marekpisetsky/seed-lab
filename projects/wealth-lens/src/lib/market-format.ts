@@ -39,6 +39,27 @@ export interface InstrumentPrices {
   growth: { from: string; perYear: number } | null;
   /** Worst fall from a previous peak over the stored history (0.57 = −57 %); absent in older files. */
   drawdown?: { from: string; max: number } | null;
+  /** How it moves, from the stored daily closes (scripts/lib/stats.mts); absent in older files. */
+  stats?: InstrumentStats | null;
+}
+
+export interface InstrumentStats {
+  /** First and last daily close the figures come from. */
+  from: string;
+  to: string;
+  /** Yearly volatility: standard deviation of daily log returns × √(returns a year). */
+  volatility: number;
+  /** Price change of each full calendar year covered, by year ("2022": −0.51). */
+  years: Record<string, number>;
+}
+
+/** Correlations of weekly log returns between the instruments (scripts/lib/stats.mts). */
+export interface Correlations {
+  ids: string[];
+  /** Symmetric, 1 on the diagonal; `null` where two series share under three years of weeks. */
+  matrix: (number | null)[][];
+  /** Weeks each pair shares, same layout. */
+  weeks: number[][];
 }
 
 export interface PricesFile {
@@ -46,6 +67,8 @@ export interface PricesFile {
   /** When the job last changed the prices (ISO timestamp); `null` before its first run. */
   updatedAt: string | null;
   prices: Record<string, InstrumentPrices>;
+  /** Absent in older files. */
+  correlations?: Correlations | null;
 }
 
 /** Compact daily series: day offsets between consecutive closes, from `start`. */
@@ -100,9 +123,31 @@ export function parseCatalogue(value: unknown): { instruments: Instrument[]; tra
   return { instruments, trackers: { sp500: list("sp500"), world: list("world"), nasdaq100: list("nasdaq100") } };
 }
 
+function parseStats(value: unknown): InstrumentStats | null {
+  if (!isRecord(value) || !isDay(value.from) || !isDay(value.to) || !isPositive(value.volatility) || !isRecord(value.years)) return null;
+  const years: Record<string, number> = {};
+  for (const [year, change] of Object.entries(value.years)) {
+    if (/^\d{4}$/.test(year) && isFraction(change)) years[year] = change;
+  }
+  return { from: value.from, to: value.to, volatility: value.volatility, years };
+}
+
+function parseCorrelations(value: unknown): Correlations | null {
+  if (!isRecord(value) || !Array.isArray(value.ids) || !Array.isArray(value.matrix) || !Array.isArray(value.weeks)) return null;
+  const ids = value.ids.filter((id): id is string => typeof id === "string");
+  const n = ids.length;
+  if (n !== value.ids.length || value.matrix.length !== n || value.weeks.length !== n) return null;
+  const square = (rows: unknown[], ok: (cell: unknown) => boolean) =>
+    rows.every((row) => Array.isArray(row) && row.length === n && row.every(ok));
+  const isCorrelation = (cell: unknown) => cell === null || (typeof cell === "number" && cell >= -1 && cell <= 1);
+  const isCount = (cell: unknown) => Number.isInteger(cell) && (cell as number) >= 0;
+  if (!square(value.matrix, isCorrelation) || !square(value.weeks, isCount)) return null;
+  return { ids, matrix: value.matrix as (number | null)[][], weeks: value.weeks as number[][] };
+}
+
 function parseInstrumentPrices(value: unknown): InstrumentPrices | null {
   if (!isRecord(value)) return null;
-  const { symbol, currency, source, date, close, change1y, spark, growth, drawdown } = value;
+  const { symbol, currency, source, date, close, change1y, spark, growth, drawdown, stats } = value;
   if (typeof symbol !== "string" || typeof currency !== "string") return null;
   if (source !== "yahoo" && source !== "stooq") return null;
   if (!isDay(date) || !isPositive(close)) return null;
@@ -124,6 +169,7 @@ function parseInstrumentPrices(value: unknown): InstrumentPrices | null {
     spark: Array.isArray(spark) ? spark.filter(isPositive) : [],
     growth: growthOk,
     drawdown: drawdownOk,
+    ...(stats !== undefined ? { stats: parseStats(stats) } : {}),
   };
 }
 
@@ -137,7 +183,8 @@ export function parsePricesFile(value: unknown): PricesFile {
     }
   }
   const updatedAt = isRecord(value) && typeof value.updatedAt === "string" ? value.updatedAt : null;
-  return { version: 1, updatedAt, prices };
+  const correlations = isRecord(value) ? parseCorrelations(value.correlations) : null;
+  return { version: 1, updatedAt, prices, ...(correlations ? { correlations } : {}) };
 }
 
 /** Daily points from a history file; `null` if it is not one. */

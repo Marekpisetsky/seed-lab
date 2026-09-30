@@ -4,7 +4,8 @@ import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } fro
 import type { CalculationBundle } from "@/hooks/use-calculation";
 import { yearlyPath, type YearPoint } from "@/lib/calculator";
 import { formatEur } from "@/lib/format";
-import { wealthPercentiles, type WealthPercentiles } from "@/lib/simulation";
+import { bandsFor } from "@/lib/projections";
+import type { WealthPercentiles } from "@/lib/simulation";
 
 const HEIGHT = 200;
 const PAD = { left: 2, right: 58, top: 10, bottom: 22 };
@@ -72,7 +73,8 @@ function Plot({ points, band, startYear }: { points: YearPoint[]; band: WealthPe
   const upper = Math.max(...band.p90);
   const top = Math.max(projected, Math.max(...band.p10), Math.min(upper, projected * MAX_OVER_PROJECTION)) * 1.04 || 1;
   const clipped = upper > top;
-  const plotRight = width - PAD.right;
+  // Never narrower than a readable plot, even while the frame is being measured.
+  const plotRight = Math.max(PAD.left + 40, width - PAD.right);
   const x = (year: number) => PAD.left + (years === 0 ? 0 : (year / years) * (plotRight - PAD.left));
   const y = (value: number) => PAD.top + (1 - Math.max(0, value) / top) * (HEIGHT - PAD.top - PAD.bottom);
   const line = (values: readonly number[]) => values.map((value, year) => `${year === 0 ? "M" : "L"}${x(year).toFixed(1)},${y(value).toFixed(1)}`).join("");
@@ -248,9 +250,9 @@ export function GrowthChart({ bundle }: { bundle: CalculationBundle }) {
   const band = useMemo(
     () =>
       mounted
-        ? wealthPercentiles({ start: scenario.capital, monthly: scenario.monthly, returns: investment.returns, years: result.years, key: investment.key })
+        ? bandsFor(investment, { start: scenario.capital, monthly: scenario.monthly, years: result.years })
         : null,
-    [mounted, scenario.capital, scenario.monthly, investment.returns, investment.key, result.years],
+    [mounted, scenario.capital, scenario.monthly, investment, result.years],
   );
   const startYear = today.getUTCFullYear();
   return (
@@ -263,7 +265,7 @@ export function GrowthChart({ bundle }: { bundle: CalculationBundle }) {
           <Swatch color="var(--chart-growth)" /> Growth
         </span>
         <span>
-          <Swatch color="var(--foreground)" dashed /> 8 in 10 {investment.name} histories ended between the lines
+          <Swatch color="var(--foreground)" dashed /> 8 in 10 {investment.modelShort} ended between the lines
         </span>
       </figcaption>
       {band ? <Plot points={points} band={band} startYear={startYear} /> : <div style={{ height: HEIGHT }} aria-hidden="true" />}

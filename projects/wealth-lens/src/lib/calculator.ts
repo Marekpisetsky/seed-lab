@@ -18,7 +18,7 @@ import { futureValueWithContributions, monthlyWithdrawal, monthsToGoal, required
 import { formatDuration, formatEur, formatMonthYear, formatRate } from "./format";
 import { dividendNote, periodText, resolveInvestment, type ResolvedInvestment } from "./investment";
 import { startingCapital, type StartingCapital } from "./plan";
-import { cachedSuccessRate } from "./simulation";
+import { successRatesFor } from "./projections";
 import type { Goal, Holding, Investment } from "./types";
 
 /** What the calculator reads from the plan. */
@@ -117,7 +117,7 @@ export function resultOf(scenario: Scenario, investment: ResolvedInvestment, yea
     putIn,
     growth: total - putIn,
     income: monthlyWithdrawal(Math.max(0, total), scenario.withdrawalRate),
-    lasted: cachedSuccessRate(investment.key, investment.returns, scenario.withdrawalRate),
+    lasted: successRatesFor(investment, [scenario.withdrawalRate])[0],
   };
 }
 
@@ -240,9 +240,9 @@ export interface ItemStatus {
 
 export interface GoalStatus {
   goal: Goal;
-  /** "Live in Peru", "A used car", "Reach €100,000", "An income of €1,500 a month". */
+  /** "Live in Peru", "A used car", "Reach €100,000", "My mortgage" (a monthly amount's label). */
   name: string;
-  /** "with housing", "without housing", the income's own name, or nothing. */
+  /** "with housing", "without housing", or nothing. */
   detail: string | null;
   /** monthly: a cost the withdrawals pay every month; once: an amount to have. */
   kind: "monthly" | "once";
@@ -294,10 +294,10 @@ function shapeOf(goal: Goal, items: ReadonlyMap<string, PricedItem>, countries: 
       return { name: goal.name, detail: null, kind: "once", amount: goal.amount, source: "Your own price." };
     case "amount":
       return { name: `Reach ${formatEur(goal.amount)}`, detail: null, kind: "once", amount: goal.amount, source: "Your own amount." };
-    case "income":
+    case "monthly":
       return {
-        name: `An income of ${formatEur(goal.amount)} a month`,
-        detail: goal.name,
+        name: goal.label ? goal.label.charAt(0).toUpperCase() + goal.label.slice(1) : "A monthly amount",
+        detail: null,
         kind: "monthly",
         amount: goal.amount,
         source: "Your own amount.",
@@ -307,7 +307,7 @@ function shapeOf(goal: Goal, items: ReadonlyMap<string, PricedItem>, countries: 
 
 function growthLine({ realReturn }: Scenario, investment: ResolvedInvestment): string {
   const dividends = dividendNote(investment);
-  return `growing ${formatRate(realReturn)} a year after inflation (${investment.name}, ${periodText(investment)} average${dividends ? `; ${dividends}` : ""})`;
+  return `growing ${formatRate(realReturn)} a year after inflation (${investment.growthSource}, ${periodText(investment)} average${dividends ? `; ${dividends}` : ""})`;
 }
 
 /** Each goal against the same plan, in the order the user added them. */

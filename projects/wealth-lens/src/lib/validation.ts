@@ -7,7 +7,8 @@
 
 import { isIndexId } from "./index-ids";
 import type { PricePoint } from "./prices";
-import type { Goal, Holding, Investment, LegacyGoal, NewGoal, Plan } from "./types";
+import { MAX_PARTS, resolveRef } from "./mix";
+import type { Goal, Holding, Investment, LegacyGoal, MixPart, NewGoal, Plan } from "./types";
 
 /** The euro goal of version 1 files, which becomes the goal "reach an amount". */
 export const DEFAULT_GOAL: LegacyGoal = { amount: 100_000, targetDate: null };
@@ -119,6 +120,19 @@ export function parseInvestment(value: unknown): Investment | null {
       return typeof value.id === "string" && value.id !== "" ? { kind: "stock", id: value.id } : null;
     case "portfolio":
       return { kind: "portfolio" };
+    case "mix": {
+      if (!Array.isArray(value.parts)) return null;
+      const refs = new Set<string>();
+      const parts: MixPart[] = [];
+      for (const part of value.parts) {
+        if (!isRecord(part) || typeof part.ref !== "string" || !resolveRef(part.ref) || refs.has(part.ref)) continue;
+        if (!isFiniteNumber(part.weight) || part.weight < 0 || part.weight > 100) continue;
+        refs.add(part.ref);
+        parts.push({ ref: part.ref, weight: part.weight });
+        if (parts.length === MAX_PARTS) break;
+      }
+      return parts.length > 0 ? { kind: "mix", parts, rebalance: value.rebalance === true } : null;
+    }
     case "custom":
       return isRate(value.realReturn) ? { kind: "custom", realReturn: value.realReturn } : null;
     default:
@@ -147,10 +161,13 @@ export function parseGoalItem(value: unknown): Goal | null {
       return isName(value.name) && isAmount(value.amount) ? { id, kind: "buy-own", name: value.name.trim(), amount: value.amount } : null;
     case "amount":
       return isAmount(value.amount) ? { id, kind: "amount", amount: value.amount } : null;
+    case "monthly":
+    // Version 4 called it "income", with its label in "name".
     case "income":
-      return isAmount(value.amount)
-        ? { id, kind: "income", amount: value.amount, name: isName(value.name) ? value.name.trim() : null }
-        : null;
+    case "spending": {
+      const label = [value.label, value.name].find(isName);
+      return isAmount(value.amount) ? { id, kind: "monthly", amount: value.amount, label: label ? label.trim() : null } : null;
+    }
     default:
       return null;
   }
@@ -191,7 +208,7 @@ function parseOwnItem(value: unknown): OwnItem | null {
 function ownAsGoal(item: OwnItem): NewGoal {
   // Version 1's euro goal, carried by version 2 as "My goal".
   if (item.id === "goal" && item.name === "My goal") return { kind: "amount", amount: item.amount };
-  return item.kind === "buy" ? { kind: "buy-own", name: item.name, amount: item.amount } : { kind: "income", amount: item.amount, name: item.name };
+  return item.kind === "buy" ? { kind: "buy-own", name: item.name, amount: item.amount } : { kind: "monthly", amount: item.amount, label: item.name };
 }
 
 /** The one goal a version 3 mission, a version 2 pinned connection or a version 1 goal named. */

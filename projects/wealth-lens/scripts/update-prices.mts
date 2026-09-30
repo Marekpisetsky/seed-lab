@@ -7,6 +7,12 @@
  *   public/data/prices.json          latest close, 12-month line, past growth
  *   public/data/history/<ID>.json    the full daily series, for the chart
  *
+ * Each entry of prices.json also carries how the instrument moves (volatility,
+ * calendar-year changes) and the file ends with the weekly correlations
+ * between instruments, all worked out from the stored histories
+ * (scripts/lib/stats.mts). `--stats-only` recomputes just those from the
+ * committed histories, without downloading anything.
+ *
  * When an instrument cannot be downloaded, or the download looks wrong, its
  * previous data is kept untouched. Files are only rewritten when their
  * content changes, so a day without new closes leaves the tree clean and the
@@ -15,7 +21,7 @@
  */
 
 import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
-import { parseCatalogue, parsePricesFile, type InstrumentPrices } from "../src/lib/market-format.ts";
+import { decodeHistory, parseCatalogue, parsePricesFile, type Instrument, type InstrumentPrices, type InstrumentStats } from "../src/lib/market-format.ts";
 import { downloadInstrument } from "./lib/download.mts";
 import {
   checkSeries,
@@ -26,6 +32,8 @@ import {
   nextPricesFile,
   summarize,
 } from "./lib/price-files.mts";
+import type { PricePoint } from "./lib/series.mts";
+import { instrumentStats, weeklyCorrelations } from "./lib/stats.mts";
 
 const root = new URL("../", import.meta.url);
 const catalogueUrl = new URL("src/data/instruments.json", root);
@@ -50,15 +58,26 @@ async function writeIfChanged(url: URL, content: string): Promise<boolean> {
 
 const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/** Every instrument's stored daily closes, as the app would read them. */
+async function storedHistories(instruments: readonly Instrument[]): Promise<Record<string, PricePoint[]>> {
+  const histories: Record<string, PricePoint[]> = {};
+  for (const { id } of instruments) {
+    const points = decodeHistory(await readJson(new URL(`${encodeURIComponent(id)}.json`, historyDir)));
+    if (points) histories[id] = points;
+  }
+  return histories;
+}
+
 async function main(): Promise<void> {
   const { instruments } = parseCatalogue(await readJson(catalogueUrl));
   const previous = parsePricesFile(await readJson(pricesUrl));
   const now = new Date();
   const fresh: Record<string, InstrumentPrices> = {};
   const report: string[] = [];
+  const statsOnly = process.argv.includes("--stats-only");
   await mkdir(historyDir, { recursive: true });
 
-  for (const instrument of instruments) {
+  for (const instrument of statsOnly ? [] : instruments) {
     const download = await downloadInstrument(instrument);
     if (!download.ok) {
       console.log(`::warning::${instrument.id}: kept previous data. ${download.errors.join(" | ")}`);
@@ -87,13 +106,18 @@ async function main(): Promise<void> {
     if (name.endsWith(".json") && !known.has(name)) await rm(new URL(name, historyDir));
   }
 
-  const { file, changed } = nextPricesFile(instruments, previous, fresh, now);
+  const histories = await storedHistories(instruments);
+  const stats: Record<string, InstrumentStats | null> = {};
+  for (const [id, points] of Object.entries(histories)) stats[id] = instrumentStats(points);
+  const { file, changed } = nextPricesFile(instruments, previous, fresh, now, stats, weeklyCorrelations(histories));
   if (changed) await writeIfChanged(pricesUrl, formatPricesFile(file));
 
   const updated = Object.keys(fresh).length;
-  const summary = `${updated} of ${instruments.length} instruments downloaded; prices file ${changed ? "updated" : "unchanged"}.`;
+  const summary = statsOnly
+    ? `Stats recomputed from ${Object.keys(histories).length} stored histories; prices file ${changed ? "updated" : "unchanged"}.`
+    : `${updated} of ${instruments.length} instruments downloaded; prices file ${changed ? "updated" : "unchanged"}.`;
   console.log(summary);
-  if (updated === 0) console.log("::warning::No instrument could be downloaded; the previous data is kept.");
+  if (updated === 0 && !statsOnly) console.log("::warning::No instrument could be downloaded; the previous data is kept.");
   if (process.env.GITHUB_STEP_SUMMARY) {
     const table = ["| Instrument | Result | Details |", "| --- | --- | --- |", ...report].join("\n");
     await writeFile(process.env.GITHUB_STEP_SUMMARY, `### Prices\n\n${summary}\n\n${table}\n`, { flag: "a" });

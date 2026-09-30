@@ -132,3 +132,14 @@ export const INDEXES = Object.fromEntries(
     },
   ]),
 ) as Readonly<Record<IndexId, IndexInfo>>;
+
+/**
+ * US consumer prices, December to December, by year (from the Nasdaq-100
+ * dataset, which records the inflation it deflates by): used to put a
+ * stock's calendar-year price changes in the same after-inflation terms.
+ */
+export const US_INFLATION: ReadonlyMap<number, number> = new Map(
+  (nasdaq100.years as { year: number; inflation?: number }[])
+    .filter((entry): entry is { year: number; inflation: number } => typeof entry.inflation === "number")
+    .map((entry) => [entry.year, entry.inflation]),
+);

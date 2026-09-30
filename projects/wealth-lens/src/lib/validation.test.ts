@@ -98,7 +98,7 @@ describe("parsePlan", () => {
       { id: "b", kind: "buy", item: "used-car" },
       { id: "c", kind: "buy-own", name: "Boat", amount: 15_000 },
       { id: "d", kind: "amount", amount: 100_000 },
-      { id: "e", kind: "income", amount: 1500, name: null },
+      { id: "e", kind: "monthly", amount: 1500, label: null },
     ],
   };
 
@@ -139,7 +139,11 @@ describe("parsePlan", () => {
     expect(goals([{ id: "a", kind: "buy-own", name: " A boat ", amount: 15_000 }])).toEqual([
       { id: "a", kind: "buy-own", name: "A boat", amount: 15_000 },
     ]);
-    expect(goals([{ id: "a", kind: "income", amount: 900, name: "Rent" }])).toEqual([{ id: "a", kind: "income", amount: 900, name: "Rent" }]);
+    expect(goals([{ id: "a", kind: "monthly", amount: 900, label: " my mortgage " }])).toEqual([{ id: "a", kind: "monthly", amount: 900, label: "my mortgage" }]);
+    // Earlier monthly kinds, "income" (version 4) and "spending", are the same goal.
+    expect(goals([{ id: "a", kind: "income", amount: 900, name: "Rent" }])).toEqual([{ id: "a", kind: "monthly", amount: 900, label: "Rent" }]);
+    expect(goals([{ id: "a", kind: "spending", amount: 700, label: "Food" }])).toEqual([{ id: "a", kind: "monthly", amount: 700, label: "Food" }]);
+    expect(goals([{ id: "a", kind: "income", amount: 700, name: "" }])).toEqual([{ id: "a", kind: "monthly", amount: 700, label: null }]);
     expect(
       goals([
         { id: "a", kind: "amount", amount: 2e9 },
@@ -147,7 +151,7 @@ describe("parsePlan", () => {
         { id: "c", kind: "live", country: "PT" },
         { id: "d", kind: "buy", item: "../x" },
         { id: "e", kind: "buy-own", name: "", amount: 10 },
-        { id: "f", kind: "income", amount: -1, name: null },
+        { id: "f", kind: "monthly", amount: -1, label: null },
         { id: "", kind: "amount", amount: 10 },
         { id: "g", kind: "mission", amount: 10 },
         "boat",
@@ -174,7 +178,7 @@ describe("parsePlan", () => {
     const rent = { id: "k1", name: "Rent", kind: "live", amount: 900 };
     expect(v2("custom:b1", [rent, boat])).toEqual([
       { id: "g1", kind: "buy-own", name: "Boat", amount: 15_000 },
-      { id: "g2", kind: "income", amount: 900, name: "Rent" },
+      { id: "g2", kind: "monthly", amount: 900, label: "Rent" },
     ]);
     const goal = { id: "goal", name: "My goal", kind: "buy", amount: 250_000 };
     expect(v2("custom:goal", [goal])).toEqual([{ id: "g1", kind: "amount", amount: 250_000 }]);

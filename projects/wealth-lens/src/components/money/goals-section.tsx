@@ -15,10 +15,7 @@ import { MAX_AMOUNT } from "@/lib/validation";
 function amountLine(status: GoalStatus): string {
   if (!status.known) return "";
   if (status.kind === "once") return formatEur(status.amount);
-  // An income goal already says its monthly amount in its name.
-  return status.goal.kind === "income"
-    ? `${formatEur(status.target)} needed`
-    : `${formatEur(status.amount)} a month · ${formatEur(status.target)} needed`;
+  return `${formatEur(status.amount)} a month · ${formatEur(status.target)} needed`;
 }
 
 function GoalRow({ status, today }: { status: GoalStatus; today: Date }) {
@@ -71,13 +68,13 @@ function GoalRow({ status, today }: { status: GoalStatus; today: Date }) {
   );
 }
 
-type Kind = "live" | "buy" | "amount" | "income";
+type Kind = "live" | "buy" | "amount" | "monthly";
 
 const KINDS: { id: Kind; label: string }[] = [
   { id: "live", label: "Live somewhere" },
   { id: "buy", label: "Buy something" },
   { id: "amount", label: "Reach an amount" },
-  { id: "income", label: "Monthly income" },
+  { id: "monthly", label: "A monthly amount" },
 ];
 
 const COUNTRIES = [...costOfLiving.countries].sort((a, b) => a.name.localeCompare(b.name));
@@ -111,7 +108,7 @@ function AddGoal({ onDone }: { onDone: () => void }) {
       {kind === "live" && <LiveForm onAdd={add} />}
       {kind === "buy" && <BuyForm onAdd={add} />}
       {kind === "amount" && <AmountForm onAdd={add} />}
-      {kind === "income" && <IncomeForm onAdd={add} />}
+      {kind === "monthly" && <MonthlyForm onAdd={add} />}
       <Button variant="ghost" onClick={onDone}>
         Cancel
       </Button>
@@ -217,26 +214,27 @@ function AmountForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
   );
 }
 
-function IncomeForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
+/** A monthly amount the money should pay, with a label only if the user wants one. */
+function MonthlyForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
   const [amount, setAmount] = useState<number | null>(null);
-  const [name, setName] = useState("");
+  const [label, setLabel] = useState("");
   const valid = validAmount(amount);
   return (
     <form
       className="space-y-2"
       onSubmit={(event) => {
         event.preventDefault();
-        if (valid) onAdd({ kind: "income", amount, name: name.trim() === "" ? null : name.trim().slice(0, 60) });
+        if (valid) onAdd({ kind: "monthly", amount, label: label.trim() === "" ? null : label.trim().slice(0, 60) });
       }}
     >
       <div className="grid grid-cols-2 gap-2">
         <label className="block space-y-1 text-sm">
-          <span className="font-medium">A month</span>
+          <span className="font-medium">Amount a month</span>
           <LiveNumberInput value={amount} onValue={setAmount} placeholder="€ a month" />
         </label>
         <label className="block space-y-1 text-sm">
-          <span className="font-medium">For (optional)</span>
-          <input value={name} onChange={(event) => setName(event.target.value)} maxLength={60} placeholder="My spending" className={inputClass} />
+          <span className="font-medium">Label (optional)</span>
+          <input value={label} onChange={(event) => setLabel(event.target.value)} maxLength={60} placeholder="e.g. my expenses" className={inputClass} />
         </label>
       </div>
       <Button type="submit" variant="primary" disabled={!valid}>
