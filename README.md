@@ -14,6 +14,8 @@ herramienta y la prueba de los principios.
   [`docs/direction.md`](docs/direction.md).
 - Donde estamos: **peldano 1** de la escalera (herramientas que la gente
   usa). Los peldanos siguientes todavia no existen.
+- El hub (portada de seed-lab, EN/ES, paginas estaticas sin cookies):
+  [`hub/`](hub/README.md).
 
 Un holding de tres niveles:
 
@@ -46,6 +48,10 @@ misma, una empresa con cliente propio).
   `tools/forja/`, el generador de proyectos verificados.
 - `projects/` -- empresas de verdad, cada una en su propia carpeta con su
   propio README. Ver `projects/README.md` para el criterio de admision.
+- `hub/` -- la portada publica de seed-lab: mision, principios,
+  herramientas y bloques. Ver `hub/README.md`.
+- `docs/` -- direccion de seed-lab (`direction.md`) y plan de alojamiento
+  europeo.
 
 ```bash
 python seed.py list
