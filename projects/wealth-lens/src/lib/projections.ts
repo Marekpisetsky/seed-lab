@@ -16,16 +16,34 @@ export interface Amounts {
   years: number;
 }
 
-/** 10th, 50th and 90th percentile of the balance at each year. */
+const lastBands: { id: string; bands: WealthPercentiles }[] = [];
+
+/** 10th, 50th and 90th percentile of the balance at each year (the last few are kept: the chart and a mix's figures ask for the same). */
 export function bandsFor(investment: ResolvedInvestment, { start, monthly, years }: Amounts): WealthPercentiles {
-  return investment.model
+  const id = `${investment.key}|${start}|${monthly}|${years}`;
+  const kept = lastBands.find((entry) => entry.id === id);
+  if (kept) return kept.bands;
+  const bands = investment.model
     ? mixPercentiles(investment.model, { start, monthly, years })
     : wealthPercentiles({ start, monthly, returns: investment.returns, years, key: investment.key });
+  lastBands.unshift({ id, bands });
+  lastBands.length = Math.min(lastBands.length, 4);
+  return bands;
 }
+
+const mixRates = new Map<string, number>();
 
 /** How often each withdrawal rate lasted 30 years. */
 export function successRatesFor(investment: ResolvedInvestment, rates: readonly number[]): number[] {
-  return investment.model ? mixSuccessRates(investment.model, rates) : cachedSuccessRates(investment.key, investment.returns, rates);
+  const { model } = investment;
+  if (!model) return cachedSuccessRates(investment.key, investment.returns, rates);
+  const id = (rate: number) => `${investment.key}|${rate.toFixed(4)}`;
+  const missing = rates.filter((rate) => !mixRates.has(id(rate)));
+  if (missing.length > 0) {
+    if (mixRates.size > 256) mixRates.clear();
+    mixSuccessRates(model, missing).forEach((value, index) => mixRates.set(id(missing[index]), value));
+  }
+  return rates.map((rate) => mixRates.get(id(rate)) ?? NaN);
 }
 
 /** What a mix shows beside the result, with the S&P 500 alone as a reference. */
@@ -41,7 +59,7 @@ const SP500 = mixModel([{ ref: indexRef("sp500"), weight: 100 }], false);
 export function mixFigures(investment: ResolvedInvestment, amounts: Amounts): MixFigures | null {
   const { model } = investment;
   if (!model || !SP500) return null;
-  const bands = mixPercentiles(model, amounts);
+  const bands = bandsFor(investment, amounts);
   const reference = wealthPercentiles({
     ...amounts,
     returns: INDEXES.sp500.years.map((entry) => entry.realReturn),

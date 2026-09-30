@@ -323,6 +323,14 @@ export function assumptionLines(investment: ResolvedInvestment): string[] {
   const dividends = dividendNote(investment);
   const growth = `${formatRate(investment.realReturn)} a year after inflation, ${periodText(investment)} average${dividends ? ` (${dividends})` : ""}`;
   const { stock } = investment;
+  if (investment.model) {
+    return [
+      `Growth: ${formatRate(investment.realReturn)} a year after inflation, the weighted average of the indexes behind ${investment.name === "My portfolio" ? "your holdings" : "the parts"} (${periodText(investment)}${dividends ? `; ${dividends}` : ""}). Past, not a promise.`,
+      investment.name === "My portfolio"
+        ? "Ups and downs: your holdings simulated together, each stock with its own volatility."
+        : "Ups and downs: the parts simulated together (see “How this mix is worked out”).",
+    ];
+  }
   if (!stock) return [`${investment.name}: ${growth}. Past, not a promise. All amounts in today's euros.`];
   const lines = [`Growth: ${investment.growthSource} average, ${growth}. One stock's future can't be predicted.`];
   lines.push(

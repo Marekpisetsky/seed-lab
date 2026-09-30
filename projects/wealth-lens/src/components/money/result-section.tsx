@@ -5,6 +5,42 @@ import type { CalculationBundle } from "@/hooks/use-calculation";
 import { updatePlan } from "@/lib/app-store";
 import { formatSmallEur } from "@/lib/calculator";
 import { formatEur, formatPercent, formatRate } from "@/lib/format";
+import type { MixFigures } from "@/lib/projections";
+import type { WorstYear } from "@/lib/mix";
+
+const range = ([low, high]: [number, number]) => `${formatEur(low)} – ${formatEur(high)}`;
+const worst = (year: WorstYear | null) => (year ? `${formatPercent(year.change, { decimals: 0 })} (${year.year})` : "no shared data");
+
+/**
+ * For a mix: where 8 in 10 simulations ended and its worst year in the
+ * data, so the effect of spreading the money shows; the S&P 500 alone is
+ * beside them, small, over the same plan and years.
+ */
+function MixFiguresView({ figures, years }: { figures: MixFigures; years: number }) {
+  const span = figures.worst ? `${figures.worst.from}–${figures.worst.to}` : "";
+  return (
+    <dl className="grid gap-3 rounded-lg border border-border bg-card p-3 tabular-nums sm:grid-cols-2">
+      <div>
+        <dt className="text-xs text-muted">Range (8 in 10) after {years} years</dt>
+        <dd className="text-base font-semibold">
+          <Changed value={range(figures.range)} />
+        </dd>
+        <dd className="text-xs text-muted">
+          S&amp;P 500 alone: <Changed value={range(figures.reference.range)} />
+        </dd>
+      </div>
+      <div>
+        <dt className="text-xs text-muted">Worst year in the data{span && ` (${span}, after inflation)`}</dt>
+        <dd className="text-base font-semibold">
+          <Changed value={worst(figures.worst)} />
+        </dd>
+        <dd className="text-xs text-muted">
+          S&amp;P 500 alone, same years: <Changed value={worst(figures.reference.worst)} />
+        </dd>
+      </div>
+    </dl>
+  );
+}
 
 /**
  * The result, in places that never move: what the money is worth after the
@@ -63,6 +99,7 @@ export function ResultSection({ bundle }: { bundle: CalculationBundle }) {
         {result.growth >= 0 ? "growth added " : "the market took "}
         <Changed value={formatEur(Math.abs(result.growth))} className="text-foreground" />
       </p>
+      {bundle.mix && <MixFiguresView figures={bundle.mix} years={result.years} />}
     </section>
   );
 }

@@ -73,7 +73,8 @@ function Plot({ points, band, startYear }: { points: YearPoint[]; band: WealthPe
   const upper = Math.max(...band.p90);
   const top = Math.max(projected, Math.max(...band.p10), Math.min(upper, projected * MAX_OVER_PROJECTION)) * 1.04 || 1;
   const clipped = upper > top;
-  const plotRight = width - PAD.right;
+  // Never narrower than a readable plot, even while the frame is being measured.
+  const plotRight = Math.max(PAD.left + 40, width - PAD.right);
   const x = (year: number) => PAD.left + (years === 0 ? 0 : (year / years) * (plotRight - PAD.left));
   const y = (value: number) => PAD.top + (1 - Math.max(0, value) / top) * (HEIGHT - PAD.top - PAD.bottom);
   const line = (values: readonly number[]) => values.map((value, year) => `${year === 0 ? "M" : "L"}${x(year).toFixed(1)},${y(value).toFixed(1)}`).join("");

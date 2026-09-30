@@ -1,16 +1,19 @@
 "use client";
 
-import { useMemo } from "react";
+import { ChevronDown } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
 import { Changed } from "@/components/ui/changed";
-import { inputClass, SettledNumberInput } from "@/components/ui/form";
+import { SettledNumberInput } from "@/components/ui/form";
 import { useAppState } from "@/hooks/use-app";
 import { updatePlan } from "@/lib/app-store";
 import { priceHoldings } from "@/lib/auto-price";
 import { formatEur } from "@/lib/format";
-import { INDEXES, INDEX_IDS } from "@/lib/indexes";
 import { assumptionLines, portfolioMix, resolveInvestment } from "@/lib/investment";
+import { indexRef, stockRef } from "@/lib/mix";
 import { startingCapital } from "@/lib/plan";
 import type { Investment } from "@/lib/types";
+import { InvestmentPicker, type PickChoice } from "./investment-picker";
+import { MixEditor } from "./mix-editor";
 import { MAX_AMOUNT, MAX_YEARS_AHEAD, MIN_YEARS } from "@/lib/validation";
 
 const labelClass = "block text-xs font-medium text-muted";
@@ -38,9 +41,37 @@ function EuroInput({ label, value, onCommit }: { label: string; value: number; o
   );
 }
 
-/** A select value for each choice: "index:sp500", "portfolio", "current". */
-const keyOf = (investment: Investment) =>
-  investment.kind === "index" ? `index:${investment.index}` : investment.kind === "portfolio" ? "portfolio" : "current";
+/** The picker's key for the plan's choice: "index:sp500", "stock:NVDA", "portfolio", "mix". */
+function keyOf(investment: Investment): string | null {
+  switch (investment.kind) {
+    case "index":
+      return indexRef(investment.index);
+    case "stock":
+      return stockRef(investment.id);
+    case "portfolio":
+    case "mix":
+      return investment.kind;
+    case "custom":
+      return null;
+  }
+}
+
+/** A choice from the picker as the plan's investment; "A mix…" starts from what is chosen now. */
+function investmentFor(choice: PickChoice, current: Investment): Investment {
+  switch (choice.kind) {
+    case "index":
+    case "stock":
+    case "portfolio":
+      return choice;
+    case "mix": {
+      if (current.kind === "mix") return current;
+      const start = current.kind === "index" || current.kind === "stock" ? keyOf(current) : null;
+      return { kind: "mix", parts: [{ ref: start ?? indexRef("sp500"), weight: 100 }], rebalance: false };
+    }
+  }
+}
+
+const EMPTY: readonly string[] = [];
 
 /**
  * The calculator, first and on its own: what you have, what you add each
@@ -54,10 +85,14 @@ export function CalculatorCard() {
   const capital = startingCapital(priced, plan.invested);
   const hasPortfolio = portfolioMix(priced).weights.length > 0;
   const current = resolveInvestment(plan.investment, priced);
-  const other = plan.investment.kind === "stock" || plan.investment.kind === "custom";
+  const [picker, setPicker] = useState<{ mode: "choose" | "add"; top: number } | null>(null);
+  const close = useCallback(() => setPicker(null), []);
+  const open = (mode: "choose" | "add", anchor: HTMLElement) => setPicker({ mode, top: anchor.offsetTop + anchor.offsetHeight + 4 });
+  const mix = plan.investment.kind === "mix" ? plan.investment : null;
+  const shownName = mix ? `Mix (${mix.parts.length} part${mix.parts.length === 1 ? "" : "s"})` : plan.investment.kind === "stock" ? `${current.name} (${plan.investment.id})` : current.name;
 
   return (
-    <section aria-label="Calculator" className="grid grid-cols-2 gap-x-3 gap-y-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-4">
+    <section aria-label="Calculator" className="relative grid grid-cols-2 gap-x-3 gap-y-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-4">
       {capital.source === "holdings" ? (
         <div className="min-w-0 space-y-1">
           <p className={labelClass}>You have</p>
@@ -70,30 +105,26 @@ export function CalculatorCard() {
         <EuroInput label="You have" value={plan.invested} onCommit={(invested) => updatePlan({ invested })} />
       )}
       <EuroInput label="You add each month" value={plan.monthlyContribution} onCommit={(monthlyContribution) => updatePlan({ monthlyContribution })} />
-      <Field label="Invested in">
-        <select
-          className={`${inputClass} text-base`}
-          value={keyOf(plan.investment)}
-          onChange={(event) => {
-            const value = event.target.value;
-            if (value === "portfolio") updatePlan({ investment: { kind: "portfolio" } });
-            else if (value.startsWith("index:")) {
-              const index = INDEX_IDS.find((id) => `index:${id}` === value);
-              if (index) updatePlan({ investment: { kind: "index", index } });
-            }
-          }}
+      <div className="min-w-0 space-y-1">
+        <span id="invested-in-label" className={labelClass}>
+          Invested in
+        </span>
+        <button
+          type="button"
+          aria-haspopup="listbox"
+          aria-expanded={picker?.mode === "choose"}
+          aria-labelledby="invested-in-label invested-in-value"
+          // The list closes on a press outside it; this button toggles it instead.
+          onPointerDown={(event) => event.nativeEvent.stopPropagation()}
+          onClick={(event) => (picker ? close() : open("choose", event.currentTarget))}
+          className="flex w-full items-center justify-between gap-2 rounded-md border border-border bg-background px-3 py-2 text-left text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
         >
-          {INDEX_IDS.map((id) => (
-            <option key={id} value={`index:${id}`}>
-              {INDEXES[id].name}
-            </option>
-          ))}
-          <option value="portfolio" disabled={!hasPortfolio}>
-            {hasPortfolio ? "My portfolio" : "My portfolio (add holdings)"}
-          </option>
-          {other && <option value="current">{current.name}</option>}
-        </select>
-      </Field>
+          <span id="invested-in-value" className="min-w-0 truncate">
+            <Changed value={shownName} />
+          </span>
+          <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted" />
+        </button>
+      </div>
       <Field label="For">
         <span className="relative block">
           <SettledNumberInput
@@ -108,6 +139,29 @@ export function CalculatorCard() {
           </span>
         </span>
       </Field>
+      {mix && <MixEditor mix={mix} onAddPart={(anchor) => open("add", anchor)} />}
+      {picker && (
+        <InvestmentPicker
+          top={picker.top}
+          label={picker.mode === "add" ? "Add to the mix" : "Invested in"}
+          withdrawalRate={plan.withdrawalRate}
+          selected={picker.mode === "add" ? null : keyOf(plan.investment)}
+          hasPortfolio={picker.mode === "choose" && hasPortfolio}
+          holdingsCount={priced.length}
+          withMix={picker.mode === "choose"}
+          exclude={picker.mode === "add" && mix ? mix.parts.map((part) => part.ref) : EMPTY}
+          onClose={close}
+          onPick={(choice) => {
+            if (picker.mode === "add" && mix) {
+              const ref = choice.kind === "index" ? indexRef(choice.index) : choice.kind === "stock" ? stockRef(choice.id) : null;
+              if (ref) updatePlan({ investment: { ...mix, parts: [...mix.parts, { ref, weight: 0 }] } });
+            } else {
+              updatePlan({ investment: investmentFor(choice, plan.investment) });
+            }
+            close();
+          }}
+        />
+      )}
       <div className="col-span-2 space-y-0.5 text-xs text-muted sm:col-span-4">
         {assumptionLines(current).map((line, index) => (
           <p key={index}>

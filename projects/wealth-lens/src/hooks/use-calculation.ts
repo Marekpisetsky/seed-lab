@@ -5,7 +5,7 @@ import { priceHoldings } from "@/lib/auto-price";
 import { calculate, WITHDRAWAL_CHOICES, type Calculation } from "@/lib/calculator";
 import { toIsoDate } from "@/lib/dates";
 import { topFindings, type Finding } from "@/lib/findings";
-import { successRatesFor } from "@/lib/projections";
+import { mixFigures, successRatesFor, type MixFigures } from "@/lib/projections";
 import type { Holding } from "@/lib/types";
 import { useAppState } from "./use-app";
 import { useToday } from "./use-plan";
@@ -17,6 +17,8 @@ export interface CalculationBundle {
   calc: Calculation;
   /** How often each offered withdrawal rate lasted 30 years with this investment, lowest rate first. */
   rates: { rate: number; lasted: number }[];
+  /** For a mix or the portfolio: its range and worst year, with the S&P 500 alone beside them. */
+  mix: MixFigures | null;
 }
 
 let last: { state: AppState; day: string; bundle: CalculationBundle } | null = null;
@@ -39,7 +41,8 @@ export function calculationFor(state: AppState, today: Date): CalculationBundle 
   const calc = calculate(state.plan, holdings, today);
   const rates = offeredRates(state.plan.withdrawalRate);
   const lasted = successRatesFor(calc.investment, rates);
-  const bundle = { state, today, holdings, calc, rates: rates.map((rate, index) => ({ rate, lasted: lasted[index] })) };
+  const mix = mixFigures(calc.investment, { start: calc.scenario.capital, monthly: calc.scenario.monthly, years: calc.result.years });
+  const bundle = { state, today, holdings, calc, rates: rates.map((rate, index) => ({ rate, lasted: lasted[index] })), mix };
   try {
     performance.measure("wealth-lens:report", { start, end: performance.now() });
   } catch {
