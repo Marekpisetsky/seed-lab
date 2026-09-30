@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { appStore, clearWhatIf, INITIAL_STATE, replaceState, toggleWhatIf, updatePlan } from "./app-store";
+import { appStore, clearWhatIf, INITIAL_STATE, replaceState, setInvestment, toggleWhatIf, updatePlan } from "./app-store";
 import { calculate, monthsTo, valueAt, whatIfEffects, type CalculatorPlan } from "./calculator";
 import { parseDataFile, serializeState } from "./data-file";
 import { parseIsoDate } from "./dates";
@@ -160,6 +160,18 @@ describe("applying a scenario", () => {
     const { plan: current, whatIf } = appStore.get();
     expect(whatIf).toBe("monthly-50");
     expect(calculate(current, [], today, whatIf).scenario.monthly).toBe(550);
+  });
+
+  it("goes away when the plan can no longer take it, and does not come back on its own", () => {
+    toggleWhatIf("years-5");
+    updatePlan({ years: 58 });
+    expect(appStore.get().whatIf).toBeNull();
+    updatePlan({ years: 50 });
+    expect(appStore.get().whatIf).toBeNull();
+    toggleWhatIf("bad-decade");
+    expect(appStore.get().whatIf).toBe("bad-decade");
+    setInvestment({ kind: "asset", asset: "savings" });
+    expect(appStore.get().whatIf).toBeNull();
   });
 
   it("is never saved in a data file", () => {
