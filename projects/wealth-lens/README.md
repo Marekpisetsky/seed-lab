@@ -69,8 +69,11 @@ cambiar. Todo lo visible está en palabras simples: "real", "nominal",
      cifra, "Historically, assets growing about 7.5% moved about ±16% a
      year" con el activo de crecimiento medio más cercano), *Rising prices
      in* (país, Países Bajos por defecto) y *Prices rise per year*, cada
-     uno con su estándar al lado. Un cambio marca la línea como **Custom**
-     y aparece *Reset to standard*; un "i" plegado explica cómo usan las
+     uno con su estándar al lado. Un cambio (crecimiento, altibajos o
+     inflación) marca la línea como **Custom**, el selector *Invested in*
+     pasa a decir "Custom" con "(based on S&P 500)" debajo (o el activo o
+     la mezcla que fuese) y aparece *Reset to standard*, que devuelve el
+     nombre original; un "i" plegado explica cómo usan las
      simulaciones esas cifras, con sus nombres técnicos.
   2. **El resultado**, siempre en el mismo sitio: "In 20 years you'll have
      €112,288" (grande) y justo debajo, también grande, "Grows about 7.5%

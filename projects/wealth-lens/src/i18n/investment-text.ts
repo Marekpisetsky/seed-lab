@@ -36,6 +36,27 @@ export function investmentName({ investment }: Pick<ResolvedInvestment, "investm
   }
 }
 
+/**
+ * What "Invested in" shows: the investment's name, or, once any assumption
+ * is the user's (growth, ups and downs or rising prices), "Custom (based on
+ * S&P 500)". "Reset to standard" brings the name back. Custom growth has no
+ * asset behind it and keeps its own name.
+ */
+export function selectorParts(
+  investment: Pick<ResolvedInvestment, "investment" | "custom" | "customInflation">,
+  i18n: I18n,
+): { name: string; basedOn: string | null } {
+  const name = investmentName(investment, i18n);
+  if (investment.investment.kind === "custom" || !(investment.custom || investment.customInflation)) return { name, basedOn: null };
+  return { name: i18n.m.invest.customLabel, basedOn: i18n.m.invest.basedOn(name) };
+}
+
+/** The same in one line: "Custom (based on S&P 500)". */
+export function selectorName(investment: Pick<ResolvedInvestment, "investment" | "custom" | "customInflation">, i18n: I18n): string {
+  const { name, basedOn } = selectorParts(investment, i18n);
+  return basedOn ? `${name} ${basedOn}` : name;
+}
+
 type Described = Pick<ResolvedInvestment, "investment" | "custom" | "volatility" | "simulation" | "allocation" | "shift">;
 
 /** What the simulations are, to end "lasted 30 years in 93% of …": "S&P 500 histories", "simulations of this mix". */

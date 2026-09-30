@@ -20,7 +20,7 @@ import { InvestmentPicker, type PickChoice } from "./investment-picker";
 import { MixEditor } from "./mix-editor";
 import { PortfolioEditor } from "./portfolio-editor";
 import { MAX_AMOUNT, MAX_YEARS_AHEAD, MIN_YEARS } from "@/lib/validation";
-import { investmentName } from "@/i18n/investment-text";
+import { selectorParts } from "@/i18n/investment-text";
 
 const labelClass = "block text-xs font-medium text-muted";
 
@@ -152,6 +152,7 @@ export function CalculatorCard() {
     setPicker({ mode, top: anchor.offsetTop + anchor.offsetHeight + 4 });
   };
   const mix = plan.investment.kind === "mix" ? plan.investment : null;
+  const shownName = selectorParts(current, i18n);
 
   return (
     <section aria-label={t.label} className="relative grid grid-cols-2 gap-x-3 gap-y-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-4">
@@ -183,8 +184,15 @@ export function CalculatorCard() {
           onClick={(event) => (picker ? close() : open("choose", event.currentTarget))}
           className="flex min-h-11 w-full items-center justify-between gap-1 rounded-md border border-border bg-background px-2.5 py-2 text-left text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 sm:px-3"
         >
-          <span id="invested-in-value" className="min-w-0 truncate">
-            <Changed value={investmentName(current, i18n)} />
+          <span id="invested-in-value" className="min-w-0">
+            <span className="block truncate">
+              <Changed value={shownName.name} />
+            </span>
+            {/* Once a figure is the user's: "Custom", and what it started from below it, so a narrow screen never cuts the name. */}
+            {shownName.basedOn && (
+              // The name's last word stays with the one before it: "S&P 500" never splits.
+              <span className="block text-xs leading-tight text-muted">{shownName.basedOn.replace(/ (?=\S+$)/, "\u00a0")}</span>
+            )}
           </span>
           <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted" />
         </button>

@@ -535,6 +535,8 @@ export const es: Messages = {
   invest: {
     portfolio: "Mi cartera",
     custom: "Crecimiento propio",
+    customLabel: "Propio",
+    basedOn: (name: string) => `(basado en ${name})`,
     mixOf: (n: number) => `Mezcla de ${n}`,
     mixTemplate: { "stocks-100": "Mezcla: 100\u00a0% acciones", "80-20": "Mezcla 80/20", "60-40": "Mezcla 60/40" },
     simulations: {

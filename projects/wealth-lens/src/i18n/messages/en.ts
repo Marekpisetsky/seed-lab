@@ -538,6 +538,9 @@ export const en = {
   invest: {
     portfolio: "My portfolio",
     custom: "Custom growth",
+    /** In "Invested in" once any assumption is the user's: "Custom", and below it "(based on S&P 500)". */
+    customLabel: "Custom",
+    basedOn: (name: string) => `(based on ${name})`,
     mixOf: (n: number) => `Mix of ${n}`,
     mixTemplate: { "stocks-100": "Mix: 100% stocks", "80-20": "Mix 80/20", "60-40": "Mix 60/40" },
     simulations: {
