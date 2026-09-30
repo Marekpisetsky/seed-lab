@@ -16,7 +16,7 @@
 
 import catalogue from "@/data/instruments.json";
 import rawPrices from "../../public/data/prices.json";
-import type { IndexId } from "./index-ids";
+import type { SeriesId } from "./index-ids";
 import { parseCatalogue, parsePricesFile, type Instrument, type PricesFile } from "./market-format";
 
 export type { HistoryFile, Instrument, InstrumentPrices, PricesFile } from "./market-format";
@@ -25,7 +25,8 @@ export { decodeHistory } from "./market-format";
 const parsedCatalogue = parseCatalogue(catalogue);
 
 export const INSTRUMENTS: readonly Instrument[] = parsedCatalogue.instruments;
-export const INDEX_TRACKERS: Readonly<Record<IndexId, readonly string[]>> = parsedCatalogue.trackers;
+/** Tickers of well-known funds holding each asset with a history: "CSPX" holds the S&P 500, "4GLD" gold. */
+export const INDEX_TRACKERS: Readonly<Record<SeriesId, readonly string[]>> = parsedCatalogue.trackers;
 export const MARKET: PricesFile = parsePricesFile(rawPrices);
 
 export function instrumentById(id: string): Instrument | undefined {
