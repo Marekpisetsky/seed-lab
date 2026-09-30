@@ -10,6 +10,7 @@ import { localePath, PAGES } from "@/i18n/locales";
 import { SEED_LAB_HUB_URL } from "@/lib/seed-lab";
 import { PROJECT_URL } from "@/lib/site";
 import { LanguageSwitch } from "./language-switch";
+import { SeedLabLauncher } from "./seed-lab-launcher";
 
 const footerLink = "flex min-h-11 items-center px-2 text-muted underline-offset-2 hover:text-foreground hover:underline";
 
@@ -35,6 +36,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           </Link>
           <div className="flex items-center gap-2">
             <LanguageSwitch />
+            <SeedLabLauncher />
           </div>
           <div className="w-full sm:order-none sm:w-auto">
             <MainNav />

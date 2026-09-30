@@ -334,6 +334,12 @@ export const en = {
     text: "Maybe the address has a typo, or the page moved.",
     home: "Go to Wealth Lens",
   },
+  launcher: {
+    open: "seed-lab projects",
+    hub: "All the seed-lab projects",
+    projects: "Projects",
+    current: "You are here",
+  },
   money: { title: "My money" },
   stocks: {
     title: "My stocks",

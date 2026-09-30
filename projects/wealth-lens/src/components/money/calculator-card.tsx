@@ -35,14 +35,17 @@ function Field({ label, children, className = "" }: { label: string; children: R
   );
 }
 
+/** An amount in euros, with "€" where the page's language writes it: before ("€1,000") or after ("1000 €"). */
 function EuroInput({ label, value, onCommit, className }: { label: string; value: number; onCommit: (value: number) => void; className?: string }) {
+  const { f } = useI18n();
+  const before = f.eur(1).startsWith("€");
   return (
     <Field label={label} className={className}>
       <span className="relative block">
-        <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted">
+        <span aria-hidden="true" className={`pointer-events-none absolute inset-y-0 flex items-center text-muted ${before ? "left-3" : "right-3"}`}>
           €
         </span>
-        <SettledNumberInput value={value} onCommit={onCommit} max={MAX_AMOUNT} placeholder="0" className="pl-7 text-base" />
+        <SettledNumberInput value={value} onCommit={onCommit} max={MAX_AMOUNT} placeholder="0" className={`text-base ${before ? "pl-7" : "pr-7"}`} />
       </span>
     </Field>
   );

@@ -356,6 +356,17 @@ MIT (`LICENSE`). Icono propio (`src/app/icon.svg`, y `favicon.ico` y
 1200×630 generada en el build (`src/app/og.png/route.tsx`, estática, la
 misma para todas las páginas y los dos idiomas).
 
+## Lanzador de seed-lab
+
+En la cabecera, junto a EN/ES, un botón de rejilla abre un panel pequeño:
+"seed-lab" (enlace al hub) y la lista de proyectos, con Wealth Lens
+marcado como actual. La URL del hub es una constante única
+(`SEED_LAB_HUB_URL` en `src/lib/seed-lab.ts`, hoy
+`https://seed-lab-hub.vercel.app`, provisional) y la lista sale de
+`src/data/seed-lab-projects.json` (`id`, `name`, `url`, `current`): para
+añadir un proyecto o cambiar el hub no hace falta tocar componentes. Se
+cierra con Escape (el foco vuelve al botón) o tocando fuera.
+
 ## Licencias de los datos
 
 Revisión fuente por fuente (las páginas de condiciones de cada una no se

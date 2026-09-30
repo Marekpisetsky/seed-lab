@@ -331,6 +331,12 @@ export const es: Messages = {
     text: "Quizá la dirección tiene un error, o la página se mudó.",
     home: "Ir a Wealth Lens",
   },
+  launcher: {
+    open: "Proyectos de seed-lab",
+    hub: "Todos los proyectos de seed-lab",
+    projects: "Proyectos",
+    current: "Estás aquí",
+  },
   money: { title: "Mi dinero" },
   stocks: {
     title: "Mis acciones",
