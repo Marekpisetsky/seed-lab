@@ -296,7 +296,7 @@ export function resolveInvestment(
     key: fixed ? `fixed:${realReturn.toFixed(6)}` : `normal:${realReturn.toFixed(6)}:${volatility.toFixed(6)}`,
     returns: fixed ? [realReturn] : normalReturns(realReturn, volatility),
     period: null,
-    modelText: fixed ? "your figures, with no swings" : `simulations with ${formatRate(realReturn)} a year and ${swings}`,
+    modelText: fixed ? "your figures, with no swings" : `simulations with ${formatRate(realReturn)} a year after inflation and ${swings}`,
     modelShort: fixed ? "your figures" : "simulations with your figures",
     growthText: "your own figure",
   };

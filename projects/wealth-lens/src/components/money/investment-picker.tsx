@@ -103,8 +103,9 @@ function warmChoices(rates: readonly number[]): void {
 
 /**
  * The list behind "Invested in": only what has a long history and a known
- * range (indexes, euro government bonds, gold), a savings account, the
- * user's own figures, the portfolio when there are holdings, and "A mix…";
+ * range (indexes, euro government bonds, gold), a savings account, Custom
+ * growth (the user's own figures), the portfolio when there are holdings,
+ * and "A mix…";
  * grouped, with a search by name or fund ticker. Single stocks are not on
  * it: they are never projected on their own. Opens under `top` (px from
  * the calculator's top).
@@ -159,6 +160,14 @@ export function InvestmentPicker({
   const options = useMemo(() => {
     const all = assetOptions();
     if (!onlyAssets) {
+      all.push({
+        key: "custom",
+        group: "Your own figures",
+        choice: { kind: "custom" },
+        label: "Custom growth",
+        detail: "Type your own % a year and swings, without choosing an asset",
+        haystack: "custom growth own rate figures",
+      });
       if (hasPortfolio) {
         all.push({
           key: "portfolio",

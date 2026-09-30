@@ -6,7 +6,7 @@ import { Changed } from "@/components/ui/changed";
 import { SettledNumberInput } from "@/components/ui/form";
 import { useAppState } from "@/hooks/use-app";
 import { setInvestment, updatePlan } from "@/lib/app-store";
-import { assumptionsLine, assumptionsNote } from "@/lib/assumptions";
+import type { Basis } from "@/lib/assumptions";
 import { priceHoldings } from "@/lib/auto-price";
 import { formatEur } from "@/lib/format";
 import { resolveInvestment } from "@/lib/investment";
@@ -14,6 +14,7 @@ import { startingCapital } from "@/lib/plan";
 import { portfolioAllocation } from "@/lib/portfolio";
 import { MONTHLY_STEP, stepValue, YEARS_STEP } from "@/lib/step";
 import type { Investment } from "@/lib/types";
+import { AssumptionsPanel } from "./assumptions-panel";
 import { InvestmentPicker, type PickChoice } from "./investment-picker";
 import { MixEditor } from "./mix-editor";
 import { MAX_AMOUNT, MAX_YEARS_AHEAD, MIN_YEARS } from "@/lib/validation";
@@ -121,6 +122,8 @@ export function CalculatorCard() {
   const hasPortfolio = portfolioAllocation(priced).entries.length > 0;
   const current = resolveInvestment(plan.investment, priced, plan);
   const [picker, setPicker] = useState<{ mode: "choose" | "add"; top: number } | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [basis, setBasis] = useState<Basis>(plan.assumptions.growth?.basis ?? "real");
   const close = useCallback(() => setPicker(null), []);
   const open = (mode: "choose" | "add", anchor: HTMLElement) => setPicker({ mode, top: anchor.offsetTop + anchor.offsetHeight + 4 });
   const mix = plan.investment.kind === "mix" ? plan.investment : null;
@@ -217,19 +220,14 @@ export function CalculatorCard() {
               if (choice.kind === "asset") setInvestment({ ...mix, parts: [...mix.parts, { asset: choice.asset, weight: 0 }] });
             } else {
               setInvestment(investmentFor(choice, plan.investment));
+              // Custom growth is only its figures: open them to be typed.
+              if (choice.kind === "custom") setEditing(true);
             }
             close();
           }}
         />
       )}
-      <div className="order-5 col-span-2 space-y-0.5 sm:order-6 sm:col-span-4">
-        <p className="text-sm tabular-nums">
-          <Changed value={assumptionsLine(current, "real")} />
-        </p>
-        <p className="text-xs text-muted">
-          <Changed value={assumptionsNote(current)} />
-        </p>
-      </div>
+      <AssumptionsPanel investment={current} assumptions={plan.assumptions} basis={basis} onBasis={setBasis} open={editing} onOpen={setEditing} />
     </section>
   );
 }
