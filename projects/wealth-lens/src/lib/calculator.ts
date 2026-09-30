@@ -18,7 +18,7 @@ import { futureValueWithContributions, monthlyWithdrawal, monthsToGoal, required
 import { formatDuration, formatEur, formatMonthYear, formatRate } from "./format";
 import { dividendNote, periodText, resolveInvestment, type ResolvedInvestment } from "./investment";
 import { startingCapital, type StartingCapital } from "./plan";
-import { cachedSuccessRate } from "./simulation";
+import { successRatesFor } from "./projections";
 import type { Goal, Holding, Investment } from "./types";
 
 /** What the calculator reads from the plan. */
@@ -117,7 +117,7 @@ export function resultOf(scenario: Scenario, investment: ResolvedInvestment, yea
     putIn,
     growth: total - putIn,
     income: monthlyWithdrawal(Math.max(0, total), scenario.withdrawalRate),
-    lasted: cachedSuccessRate(investment.key, investment.returns, scenario.withdrawalRate),
+    lasted: successRatesFor(investment, [scenario.withdrawalRate])[0],
   };
 }
 

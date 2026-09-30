@@ -7,7 +7,8 @@
 
 import { isIndexId } from "./index-ids";
 import type { PricePoint } from "./prices";
-import type { Goal, Holding, Investment, LegacyGoal, NewGoal, Plan } from "./types";
+import { MAX_PARTS, resolveRef } from "./mix";
+import type { Goal, Holding, Investment, LegacyGoal, MixPart, NewGoal, Plan } from "./types";
 
 /** The euro goal of version 1 files, which becomes the goal "reach an amount". */
 export const DEFAULT_GOAL: LegacyGoal = { amount: 100_000, targetDate: null };
@@ -119,6 +120,19 @@ export function parseInvestment(value: unknown): Investment | null {
       return typeof value.id === "string" && value.id !== "" ? { kind: "stock", id: value.id } : null;
     case "portfolio":
       return { kind: "portfolio" };
+    case "mix": {
+      if (!Array.isArray(value.parts)) return null;
+      const refs = new Set<string>();
+      const parts: MixPart[] = [];
+      for (const part of value.parts) {
+        if (!isRecord(part) || typeof part.ref !== "string" || !resolveRef(part.ref) || refs.has(part.ref)) continue;
+        if (!isFiniteNumber(part.weight) || part.weight < 0 || part.weight > 100) continue;
+        refs.add(part.ref);
+        parts.push({ ref: part.ref, weight: part.weight });
+        if (parts.length === MAX_PARTS) break;
+      }
+      return parts.length > 0 ? { kind: "mix", parts, rebalance: value.rebalance === true } : null;
+    }
     case "custom":
       return isRate(value.realReturn) ? { kind: "custom", realReturn: value.realReturn } : null;
     default:

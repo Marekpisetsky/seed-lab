@@ -4,7 +4,8 @@ import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } fro
 import type { CalculationBundle } from "@/hooks/use-calculation";
 import { yearlyPath, type YearPoint } from "@/lib/calculator";
 import { formatEur } from "@/lib/format";
-import { wealthPercentiles, type WealthPercentiles } from "@/lib/simulation";
+import { bandsFor } from "@/lib/projections";
+import type { WealthPercentiles } from "@/lib/simulation";
 
 const HEIGHT = 200;
 const PAD = { left: 2, right: 58, top: 10, bottom: 22 };
@@ -248,9 +249,9 @@ export function GrowthChart({ bundle }: { bundle: CalculationBundle }) {
   const band = useMemo(
     () =>
       mounted
-        ? wealthPercentiles({ start: scenario.capital, monthly: scenario.monthly, returns: investment.returns, years: result.years, key: investment.key })
+        ? bandsFor(investment, { start: scenario.capital, monthly: scenario.monthly, years: result.years })
         : null,
-    [mounted, scenario.capital, scenario.monthly, investment.returns, investment.key, result.years],
+    [mounted, scenario.capital, scenario.monthly, investment, result.years],
   );
   const startYear = today.getUTCFullYear();
   return (

@@ -56,14 +56,23 @@ export interface LegacyGoal {
  * - index: one of the three indexes (bought through its well-known ETF);
  * - stock: a curated stock, projected with its closest index (a single
  *   stock's past is shown, never projected);
- * - portfolio: the user's holdings, each index weighted by holding value;
+ * - portfolio: the user's holdings, weighted by value (a mix, see below);
+ * - mix: indexes and stocks with weights in percent the user sets
+ *   (lib/mix.ts), drifting with growth or rebalanced every year;
  * - custom: a growth rate the user types.
  */
 export type Investment =
   | { kind: "index"; index: IndexId }
   | { kind: "stock"; id: string }
   | { kind: "portfolio" }
+  | { kind: "mix"; parts: MixPart[]; rebalance: boolean }
   | { kind: "custom"; realReturn: number };
+
+/** A part of a mix: "index:sp500" or "stock:NVDA", and its weight in percent. */
+export interface MixPart {
+  ref: string;
+  weight: number;
+}
 
 /**
  * A goal the user adds to "My goals": optional, as many as they like, each

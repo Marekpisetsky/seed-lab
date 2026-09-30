@@ -20,7 +20,7 @@ import { formatEur, formatEurRounded, formatMoney, formatPercent, formatRate, fo
 import { INDEXES } from "./indexes";
 import { dividendNote, periodText, type ResolvedInvestment } from "./investment";
 import { INDEX_TRACKERS, instrumentForHolding, MARKET, type PricesFile } from "./market-data";
-import { wealthPercentiles } from "./simulation";
+import { bandsFor } from "./projections";
 import { BASE_CURRENCY, type Holding } from "./types";
 
 export type FindingId = "lever" | "waiting" | "inflation" | "fees" | "concentration" | "currency" | "sequence" | "doubling" | "stock-past";
@@ -318,13 +318,7 @@ export function sequenceFinding(context: FindingContext): Finding | null {
   const months = focus ? focus.months : horizonOf(context);
   if (months < 60) return null;
   const decade = Math.min(10, Math.floor(months / 12));
-  const { p10, p50 } = wealthPercentiles({
-    start: scenario.capital,
-    monthly: scenario.monthly,
-    returns: investment.returns,
-    years: decade,
-    key: investment.key,
-  });
+  const { p10, p50 } = bandsFor(investment, { start: scenario.capital, monthly: scenario.monthly, years: decade });
   const bad = p10[decade];
   const typical = p50[decade];
   const period = decade === 10 ? "decade" : `${decade} years`;

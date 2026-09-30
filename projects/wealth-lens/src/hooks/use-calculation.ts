@@ -5,7 +5,7 @@ import { priceHoldings } from "@/lib/auto-price";
 import { calculate, WITHDRAWAL_CHOICES, type Calculation } from "@/lib/calculator";
 import { toIsoDate } from "@/lib/dates";
 import { topFindings, type Finding } from "@/lib/findings";
-import { cachedSuccessRates } from "@/lib/simulation";
+import { successRatesFor } from "@/lib/projections";
 import type { Holding } from "@/lib/types";
 import { useAppState } from "./use-app";
 import { useToday } from "./use-plan";
@@ -38,7 +38,7 @@ export function calculationFor(state: AppState, today: Date): CalculationBundle 
   const holdings = priceHoldings(state.holdings, state.uploadedPrices);
   const calc = calculate(state.plan, holdings, today);
   const rates = offeredRates(state.plan.withdrawalRate);
-  const lasted = cachedSuccessRates(calc.investment.key, calc.investment.returns, rates);
+  const lasted = successRatesFor(calc.investment, rates);
   const bundle = { state, today, holdings, calc, rates: rates.map((rate, index) => ({ rate, lasted: lasted[index] })) };
   try {
     performance.measure("wealth-lens:report", { start, end: performance.now() });

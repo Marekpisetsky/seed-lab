@@ -11,9 +11,12 @@
  *   downs: the index's years scaled to the stock's volatility
  *   (lib/volatility.ts). Its own past growth is shown apart as "past, not
  *   a forecast", never projected.
- * - My portfolio: each holding counts towards the index it tracks (or its
- *   closest one), weighted by its value in euros; the yearly returns are
- *   blended year by year, rebalanced yearly.
+ * - A mix (lib/mix.ts): indexes and stocks with the user's weights; growth
+ *   is the weighted average of the indexes behind the parts, ups and downs
+ *   come from a joint simulation of the parts.
+ * - My portfolio: a mix of the holdings, weighted by their value in euros:
+ *   a curated stock as itself, an ETF as the index it tracks (or World,
+ *   when unknown); weights drift, as holdings do.
  * - A custom rate: the S&P 500's ups and downs, scaled so that they average
  *   exactly the rate typed by the user.
  */
@@ -21,6 +24,7 @@
 import { formatPercent, formatRate } from "./format";
 import { annualizedReturn, INDEXES, INDEX_IDS, type IndexId } from "./indexes";
 import { INDEX_TRACKERS, instrumentById, instrumentForHolding, MARKET, type Instrument, type PricesFile } from "./market-data";
+import { indexRef, mixModel, stockRef, type MixModel } from "./mix";
 import { indexVolatility, scaleVolatility, stockVolatility } from "./volatility";
 import { holdingValue } from "./finance";
 import { BASE_CURRENCY, type Holding, type Investment } from "./types";
@@ -150,8 +154,10 @@ export interface ResolvedInvestment {
   period: [number, number];
   /** The index a single stock is projected with. */
   proxyIndex: IndexId | null;
-  /** The mix, when the investment is the portfolio. */
+  /** The split across indexes, when the investment is the portfolio. */
   mix: PortfolioMix | null;
+  /** A mix's model (a mix, or the portfolio); its simulations replace `returns`. */
+  model: MixModel | null;
   /** Share of it whose figures leave dividends out (the Nasdaq-100's are price only): 0, 1 or in between. */
   withoutDividends: number;
 }
@@ -183,7 +189,45 @@ function fromIndex(index: IndexId, investment: Investment, name = INDEXES[index]
     period: [info.firstYear, info.lastYear],
     proxyIndex: null,
     mix: null,
+    model: null,
     withoutDividends: info.priceOnly ? 1 : 0,
+  };
+}
+
+/** The parts of the portfolio as a mix: curated stocks as themselves, the rest by index. */
+export function portfolioParts(holdings: readonly Holding[]): { ref: string; weight: number }[] {
+  const values = new Map<string, number>();
+  let total = 0;
+  for (const holding of holdings) {
+    const value = holdingValue(holding);
+    if (holding.currency !== BASE_CURRENCY || value === null || value <= 0) continue;
+    const instrument = instrumentForHolding(holding.ticker, holding.currency);
+    const ref = instrument?.kind === "stock" ? stockRef(instrument.id) : indexRef(indexForHolding(holding).index);
+    values.set(ref, (values.get(ref) ?? 0) + value);
+    total += value;
+  }
+  return [...values].map(([ref, value]) => ({ ref, weight: (value / total) * 100 }));
+}
+
+/** A mix (or the portfolio) resolved through its model. */
+function fromModel(model: MixModel, investment: Investment, name: string, mix: PortfolioMix | null): ResolvedInvestment {
+  const period = INDEXES.sp500;
+  const weights = model.parts.map((part) => `${part.ref}=${part.weight.toFixed(4)}`).join(",");
+  return {
+    investment,
+    name,
+    growthSource: "the indexes behind it, weighted",
+    modelText: `simulations of ${name === "My portfolio" ? "your portfolio" : "this mix"} (${model.rebalance ? "rebalanced every year" : "weights drifting"})`,
+    modelShort: `simulations of ${name === "My portfolio" ? "your portfolio" : "this mix"}`,
+    stock: null,
+    key: `model:${weights}:${model.rebalance ? "rebalance" : "drift"}`,
+    realReturn: model.realReturn,
+    returns: [],
+    period: [period.firstYear, period.lastYear],
+    proxyIndex: null,
+    mix,
+    model,
+    withoutDividends: model.parts.reduce((sum, part) => sum + (INDEXES[part.index].priceOnly ? part.weight : 0), 0),
   };
 }
 
@@ -238,25 +282,14 @@ export function resolveInvestment(investment: Investment, holdings: readonly Hol
       return fromStock(instrument, investment);
     }
     case "portfolio": {
-      const mix = portfolioMix(holdings);
-      if (mix.weights.length === 0) break;
-      const { years } = blendedReturns(mix.weights);
-      const returns = years.map((entry) => entry.realReturn);
-      return {
-        investment,
-        name: "My portfolio",
-        growthSource: "your portfolio's indexes",
-        modelText: "histories of your portfolio's indexes",
-        modelShort: "histories of your portfolio's indexes",
-        stock: null,
-        key: `mix:${mix.weights.map(({ index, weight }) => `${index}=${weight.toFixed(3)}`).join(",")}`,
-        realReturn: annualizedReturn(returns),
-        returns,
-        period: [years[0].year, years[years.length - 1].year],
-        proxyIndex: null,
-        mix,
-        withoutDividends: mix.weights.reduce((sum, { index, weight }) => sum + (INDEXES[index].priceOnly ? weight : 0), 0),
-      };
+      const model = mixModel(portfolioParts(holdings), false);
+      if (!model) break;
+      return fromModel(model, investment, "My portfolio", portfolioMix(holdings));
+    }
+    case "mix": {
+      const model = mixModel(investment.parts, investment.rebalance);
+      if (!model) break;
+      return fromModel(model, investment, "Your mix", null);
     }
     case "custom": {
       const base = fromIndex(DEFAULT_INDEX, investment, "Your own rate");
