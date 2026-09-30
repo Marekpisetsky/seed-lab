@@ -2,14 +2,15 @@
  * The app's state: one plan shared by every screen, the holdings and any
  * price files the user uploaded. It lives in this module's memory only:
  * nothing is written to localStorage, cookies or a server, so reloading the
- * page starts over from the first questions. "Download my data" and "Load
+ * page starts over from the example numbers. "Download my data" and "Load
  * my data" (lib/data-file.ts) are the only way to keep it.
  *
  * Shaped for React's `useSyncExternalStore`: `get` returns the same object
  * until something changes, and every change notifies all screens at once.
  */
 
-import type { Holding, Plan } from "./types";
+import { createId } from "./id";
+import type { Holding, NewGoal, Plan } from "./types";
 import { DEFAULT_PLAN, type UploadedPrices } from "./validation";
 
 export interface AppState {
@@ -52,16 +53,20 @@ export function createStore<T>(initial: T): Store<T> {
 
 export const appStore = createStore<AppState>(INITIAL_STATE);
 
-/** True once there is something to keep: a mission chosen, holdings added or a file loaded. */
-export function hasStarted({ plan, holdings }: AppState): boolean {
-  return plan.mission !== null || holdings.length > 0;
-}
-
 export function updatePlan(patch: Partial<Plan> | ((plan: Plan) => Partial<Plan>)): void {
   appStore.set((state) => ({
     ...state,
     plan: { ...state.plan, ...(typeof patch === "function" ? patch(state.plan) : patch) },
   }));
+}
+
+/** Adds a goal at the end of "My goals": goals keep the order they were added in. */
+export function addGoal(goal: NewGoal, id: string = createId()): void {
+  updatePlan((plan) => ({ goals: [...plan.goals, { ...goal, id } as Plan["goals"][number]] }));
+}
+
+export function removeGoal(id: string): void {
+  updatePlan((plan) => ({ goals: plan.goals.filter((goal) => goal.id !== id) }));
 }
 
 export function setHoldings(next: Updater<readonly Holding[]>): void {

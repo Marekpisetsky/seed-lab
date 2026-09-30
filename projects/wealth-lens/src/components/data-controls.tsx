@@ -3,13 +3,11 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAppState } from "@/hooks/use-app";
-import { hasStarted, replaceState } from "@/lib/app-store";
+import { replaceState } from "@/lib/app-store";
 import { dataFileName, parseDataFile, serializeState } from "@/lib/data-file";
 
-/** Download and Load, once there is a plan (the first screen offers Load itself). */
+/** Download and Load, always: the calculator works from the first second. */
 export function FooterDataControls() {
-  const state = useAppState();
-  if (!hasStarted(state)) return null;
   return (
     <div className="flex flex-wrap items-start gap-2">
       <DownloadDataButton />

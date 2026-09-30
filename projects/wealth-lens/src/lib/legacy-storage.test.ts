@@ -40,11 +40,9 @@ describe("data saved by earlier versions", () => {
         // Not saved: 0, not the example numbers of a first visit.
         invested: 0,
         monthlyContribution: 400,
-        mission: { kind: "amount", amount: 250_000 },
+        goals: [{ id: "g1", kind: "amount", amount: 250_000 }],
         investment: { kind: "custom", realReturn: 0.05 },
         withdrawalRate: 0.035,
-        housing: "own",
-        homeCountry: "PE",
       },
       holdings: [{ ...holding, priceSource: "auto", priceDate: null }],
       uploadedPrices: { XYZ: { fileName: "x.csv", points: [{ time: "2026-09-25", close: 3 }] } },

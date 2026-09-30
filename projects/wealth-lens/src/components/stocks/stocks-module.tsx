@@ -1,10 +1,12 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { ResultsLoading } from "@/components/results-loading";
+import { StocksContent } from "./stocks-content";
 
-/** Holdings, charts and the curated list are their own chunk, so the page shell stays small. */
-export const StocksModule = dynamic(() => import("./stocks-content").then((module) => module.StocksContent), {
-  ssr: false,
-  loading: ResultsLoading,
-});
+/**
+ * Holdings, charts and the curated list. Rendered on the server too (with
+ * no holdings, as on arrival), so the list is on screen before any code
+ * runs; the charts themselves load when opened.
+ */
+export function StocksModule() {
+  return <StocksContent />;
+}

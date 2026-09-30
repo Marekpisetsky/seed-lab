@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { priceHoldings } from "./auto-price";
-import { addMonths, parseIsoDate } from "./dates";
+import { calculate, valueAt, type CalculatorPlan } from "./calculator";
+import { parseIsoDate } from "./dates";
 import { futureValueWithContributions, monthsToGoal } from "./finance";
 import {
   allFindings,
@@ -8,40 +9,32 @@ import {
   currencyFinding,
   doublingFinding,
   feesFinding,
-  geographyFinding,
-  growthShareFinding,
-  horizonOf,
+  focusOf,
   inflationFinding,
   leverFinding,
-  MISSION_ORDER,
+  ORDER,
   sequenceFinding,
   stockPastFinding,
   topFindings,
   waitingFinding,
-  withdrawalFinding,
   type FindingContext,
 } from "./findings";
 import { formatEurRounded, formatYears } from "./format";
 import { INDEXES } from "./indexes";
 import { MARKET } from "./market-data";
 import { parsePricesFile } from "./market-format";
-import { buildReport, valueAt, type ReportPlan } from "./report";
-import type { Holding } from "./types";
+import type { Goal, Holding } from "./types";
 
 const today = parseIsoDate("2026-09-29");
 const r = INDEXES.sp500.averageReturn;
 
-const plan = (overrides: Partial<ReportPlan> = {}): ReportPlan => ({
+const plan = (overrides: Partial<CalculatorPlan> = {}): CalculatorPlan => ({
   invested: 1000,
   monthlyContribution: 200,
   investment: { kind: "index", index: "sp500" },
+  years: 20,
   withdrawalRate: 0.04,
-  inflation: 0.02,
-  housing: "rent",
-  homeCountry: "NL",
-  mission: { kind: "live-abroad", country: "IN" },
-  horizonYears: null,
-  customConnections: [],
+  goals: [],
   ...overrides,
 });
 
@@ -56,65 +49,79 @@ const holding = (ticker: string, quantity: number, price: number, currency = "EU
   priceDate: null,
 });
 
-function context(overrides: Partial<ReportPlan> = {}, holdings: Holding[] = []): FindingContext {
+function context(overrides: Partial<CalculatorPlan> = {}, holdings: Holding[] = []): FindingContext {
   const priced = priceHoldings(holdings);
-  return { report: buildReport(plan(overrides), priced, today), holdings: priced, market: MARKET };
+  return { calc: calculate(plan(overrides), priced, today), inflation: 0.02, today, holdings: priced, market: MARKET };
 }
 
-/** Profile 1: EUR 1,000 and EUR 200/month; the goal is living in India (EUR 99,000). */
-const small = context();
+const india: Goal = { id: "a", kind: "live", country: "IN", housing: true };
+const ebike: Goal = { id: "b", kind: "buy", item: "e-bike" };
+
+/** The default: EUR 1,000 and EUR 200/month in the S&P 500 for 20 years, no goals. */
+const byDefault = context();
+const total = futureValueWithContributions(1000, 200, r, 20);
+/** With a first goal: living in India with housing (EUR 330/month → EUR 99,000). */
+const small = context({ goals: [india] });
 const n = monthsToGoal(1000, 200, r, 99_000);
-/** Profile 3: 70% of the portfolio in ASML. */
+/** 70% of the portfolio in ASML. */
 const concentrated = context({ monthlyContribution: 300 }, [holding("ASML", 9, 1601.2), holding("VWCE", 36, 169.4)]);
 
+describe("the first goal", () => {
+  it("is what findings about reaching something are about, when the plan gets there later", () => {
+    expect(focusOf(byDefault)).toBeNull();
+    expect(focusOf(small)?.goal).toBe(india);
+    // Reached already, or past 60 years: findings speak about the result instead.
+    expect(focusOf(context({ invested: 200_000, goals: [india] }))).toBeNull();
+    expect(focusOf(context({ monthlyContribution: 1, goals: [india] }))).toBeNull();
+    // Only the first goal counts.
+    expect(focusOf(context({ goals: [ebike, india] }))?.goal).toBe(ebike);
+  });
+});
+
 describe("lever: +€100 a month vs +1% vs a year earlier", () => {
-  it("reports the strongest lever in years", () => {
+  it("speaks in euros at the end of the chosen years when there is no goal", () => {
+    const finding = leverFinding(byDefault);
+    const gain = futureValueWithContributions(1000, 300, r, 20) - total;
+    expect(finding?.value).toBe(`+${formatEurRounded(gain)}`);
+    expect(finding?.text).toBe(`Adding €100 a month gives you ${formatEurRounded(gain)} more by 2046.`);
+    expect(finding?.calculation).toHaveLength(4);
+  });
+
+  it("speaks in years for the first goal", () => {
     const finding = leverFinding(small);
     const gain = n - monthsToGoal(1000, 300, r, 99_000);
-    expect(finding).toMatchObject({ value: formatYears(gain), text: `Adding €100 a month gets you there ${formatYears(gain)} earlier.` });
-    expect(finding?.calculation).toHaveLength(4);
-    expect(finding?.calculation[3]).toBe("Starting a year earlier: 1 year earlier.");
+    expect(finding).toMatchObject({ value: formatYears(gain), text: `Adding €100 a month reaches your first goal ${formatYears(gain)} sooner.` });
+    expect(finding?.calculation[0]).toMatch(/^Live in India: €99,000 needed, in \d+ years \(20\d\d\)\.$/);
   });
 
-  it("is not shown when the goal is already reached or less than two years away", () => {
-    expect(leverFinding(context({ invested: 200_000, mission: { kind: "live-abroad", country: "IN" } }))).toBeNull();
-    expect(leverFinding(context({ mission: { kind: "buy", item: "e-bike" } }))).toBeNull();
-  });
-
-  it("speaks in euros when looking a fixed number of years ahead", () => {
-    const finding = leverFinding(context({ horizonYears: 10 }));
-    expect(finding?.value).toMatch(/^\+€\d+\/month$/);
-    expect(finding?.text).toMatch(/more in 2036\.$/);
+  it("is about the result when the first goal is less than two years away", () => {
+    expect(leverFinding(context({ goals: [ebike] }))?.text).toBe(leverFinding(byDefault)?.text);
   });
 });
 
 describe("waiting a year", () => {
-  it("costs the difference at the goal's date", () => {
-    const now = futureValueWithContributions(1000, 200, r, n / 12);
-    const later = futureValueWithContributions(1000, 200, r, (n - 12) / 12);
-    const finding = waitingFinding(small);
-    expect(finding?.value).toBe(formatEurRounded(now - later));
-    const year = addMonths(today, Math.ceil(n)).getUTCFullYear();
-    expect(finding?.text).toBe(`Starting a year later leaves you ${formatEurRounded(now - later)} less by ${year}.`);
+  it("costs the difference at the end of the chosen years", () => {
+    const later = futureValueWithContributions(1000, 200, r, 19);
+    const finding = waitingFinding(byDefault);
+    expect(finding?.value).toBe(formatEurRounded(total - later));
+    expect(finding?.text).toBe(`Starting a year later leaves you ${formatEurRounded(total - later)} less by 2046.`);
   });
 
-  it("is not shown for a goal under two years away", () => {
-    expect(waitingFinding(context({ mission: { kind: "buy", item: "e-bike" } }))).toBeNull();
+  it("is not shown for less than two years", () => {
+    expect(waitingFinding(context({ years: 1 }))).toBeNull();
   });
 });
 
-describe("goals more than 60 years away", () => {
+describe("far goals", () => {
   // EUR 1,000 + EUR 1 a month, living in India: about 62 years.
-  const far = context({ monthlyContribution: 1, mission: { kind: "live-abroad", country: "IN" } });
+  const far = context({ monthlyContribution: 1, goals: [india] });
 
-  it("hide every finding that would quote a figure that far out", () => {
-    expect(far.report.answer.reachable).toBe(false);
-    expect(horizonOf(far.report)).toBeNull();
-    for (const rule of [leverFinding, waitingFinding, inflationFinding, feesFinding, sequenceFinding, growthShareFinding]) {
-      expect(rule(far), rule.name).toBeNull();
-    }
-    const years = allFindings(far.report, []).flatMap((finding) => [finding.text, ...finding.calculation].join(" ").match(/\b2\d{3}\b/g) ?? []);
+  it("never quote a date more than 60 years out", () => {
+    expect(far.calc.goals[0].reachable).toBe(false);
+    const years = allFindings(far).flatMap((finding) => [finding.text, ...finding.calculation].join(" ").match(/\b2\d{3}\b/g) ?? []);
     expect(years.every((year) => Number(year) <= 2026 + 60)).toBe(true);
+    const longest = allFindings(context({ years: 60 })).flatMap((finding) => [finding.text, ...finding.calculation].join(" ").match(/\b2\d{3}\b/g) ?? []);
+    expect(longest.every((year) => Number(year) <= 2026 + 60)).toBe(true);
   });
 
   it("still say what does not depend on a date", () => {
@@ -124,76 +131,37 @@ describe("goals more than 60 years away", () => {
 
 describe("inflation", () => {
   it("gives what the account will show in euros of that year", () => {
-    const factor = Math.pow(1.02, n / 12);
-    const finding = inflationFinding(small);
-    const shown = formatEurRounded(99_000 * factor);
+    const factor = Math.pow(1.02, 20);
+    const finding = inflationFinding(byDefault);
+    const shown = formatEurRounded(total * factor);
     expect(finding?.value).toBe(`~${shown}`);
-    const year = addMonths(today, Math.ceil(n)).getUTCFullYear();
-    expect(finding?.text).toBe(`In ${year} your account will show ~${shown} — worth €99,000 of today's money.`);
-    expect(finding?.calculation[1]).toMatch(/^€99,000 × 1\.\d\d = €[\d,]+ in euros of 20\d\d\.$/);
+    expect(finding?.text).toBe(`In 2046 your account will show ~${shown} — worth ${formatEurRounded(total)} of today's money.`);
+    expect(finding?.calculation[1]).toMatch(/^€[\d,]+ × 1\.49 = €[\d,]+ in euros of 2046\.$/);
   });
 
-  it("uses the projected amount when looking a fixed number of years ahead", () => {
-    const ten = context({ horizonYears: 10 });
-    const real = valueAt(ten.report.scenario, 120);
+  it("follows the chosen years", () => {
+    const ten = context({ years: 10 });
+    const real = valueAt(ten.calc.scenario, 120);
     expect(inflationFinding(ten)?.text).toBe(
       `In 2036 your account will show ~${formatEurRounded(real * Math.pow(1.02, 10))} — worth ${formatEurRounded(real)} of today's money.`,
     );
   });
 
-  it("is not shown for a goal less than 5 years away, or already reached", () => {
-    expect(inflationFinding(context({ mission: { kind: "buy", item: "e-bike" } }))).toBeNull();
-    expect(inflationFinding(context({ invested: 50_000, mission: { kind: "buy", item: "used-car" } }))).toBeNull();
+  it("is not shown for less than 5 years, or for a few euros", () => {
+    expect(inflationFinding(context({ years: 4 }))).toBeNull();
+    expect(inflationFinding(context({ invested: 1, monthlyContribution: 0 }))).toBeNull();
   });
 });
 
 describe("fees", () => {
-  it("compares a 1% fund with a 0.2% one over the horizon", () => {
-    const cheap = futureValueWithContributions(1000, 200, r - 0.002, n / 12);
-    const dear = futureValueWithContributions(1000, 200, r - 0.01, n / 12);
-    expect(feesFinding(small)?.value).toBe(formatEurRounded(cheap - dear));
+  it("compares a 1% fund with a 0.2% one over the chosen years", () => {
+    const cheap = futureValueWithContributions(1000, 200, r - 0.002, 20);
+    const dear = futureValueWithContributions(1000, 200, r - 0.01, 20);
+    expect(feesFinding(byDefault)?.value).toBe(formatEurRounded(cheap - dear));
   });
 
-  it("is not shown for a short horizon", () => {
-    expect(feesFinding(context({ mission: { kind: "buy", item: "e-bike" } }))).toBeNull();
-  });
-});
-
-describe("geography", () => {
-  const stop = { mission: { kind: "stop-working" } } as const;
-
-  it("stopping work: shows how much sooner the cheapest place comes than home", () => {
-    const report = context(stop).report;
-    const home = report.statuses.find((status) => status.connection.id === "life:stop-working");
-    const finding = geographyFinding(context(stop));
-    expect(finding?.value).toBe(formatYears((home?.months ?? 0) - n));
-    expect(finding?.text).toMatch(/^Living in India comes \d+ years before the Netherlands\.$/);
-  });
-
-  it("stopping work: counts the countries already covered", () => {
-    // EUR 120,000 pays EUR 400/month: India (330) and Egypt (370).
-    const finding = geographyFinding(context({ ...stop, invested: 120_000 }));
-    expect(finding).toMatchObject({ value: "2 countries", text: "Your money already covers living costs in 2 countries." });
-  });
-
-  it("stopping work: not shown when home is (nearly) the cheapest", () => {
-    expect(geographyFinding(context({ ...stop, homeCountry: "IN" }))).toBeNull();
-  });
-
-  it("living abroad: compares that country with stopping work at home", () => {
-    const report = small.report;
-    const home = report.statuses.find((status) => status.connection.id === "life:stop-working");
-    const finding = geographyFinding(small);
-    expect(finding?.value).toBe(formatYears((home?.months ?? 0) - n));
-    expect(finding?.text).toMatch(/^Living in India comes \d+ years before stopping work in the Netherlands\.$/);
-    // Switzerland costs more than the Netherlands: it comes after.
-    const swiss = geographyFinding(context({ invested: 50_000, monthlyContribution: 1000, mission: { kind: "live-abroad", country: "CH" } }));
-    expect(swiss?.text).toMatch(/^Living in Switzerland comes \d+ years after stopping work in the Netherlands\.$/);
-  });
-
-  it("is not about a purchase or an amount", () => {
-    expect(geographyFinding(context({ mission: { kind: "buy", item: "used-car" } }))).toBeNull();
-    expect(geographyFinding(context({ mission: { kind: "amount", amount: 100_000 } }))).toBeNull();
+  it("is not shown for less than 5 years", () => {
+    expect(feesFinding(context({ years: 4 }))).toBeNull();
   });
 });
 
@@ -224,48 +192,22 @@ describe("currency", () => {
 });
 
 describe("a bad first decade", () => {
-  it("shows how much later the goal comes after a 1-in-10 start", () => {
+  it("shows how much less there is by the end after a 1-in-10 start", () => {
+    const finding = sequenceFinding(byDefault);
+    expect(finding?.value).toMatch(/^-€[\d,]+$/);
+    expect(finding?.text).toMatch(/^A bad first decade \(1 in 10\) leaves €[\d,]+ less by 2046\.$/);
+  });
+
+  it("shows how much later the first goal comes", () => {
     const finding = sequenceFinding(small);
     expect(finding?.value).toMatch(/^\+\d+ years?$/);
-    expect(finding?.text).toMatch(/^A bad first decade \(1 in 10\) pushes it back \d+ years?\.$/);
+    expect(finding?.text).toMatch(/^A bad first decade \(1 in 10\) delays your first goal \d+ years?\.$/);
   });
 
-  it("is not shown for a goal under 5 years away", () => {
-    expect(sequenceFinding(context({ mission: { kind: "buy", item: "e-bike" } }))).toBeNull();
-  });
-});
-
-describe("withdrawal rate", () => {
-  it("warns when the rate ran out of money in more than 1 history in 10", () => {
-    const finding = withdrawalFinding(context({ withdrawalRate: 0.07 }));
-    expect(finding?.tone).toBe("warning");
-    expect(finding?.text).toMatch(/^At 7% a year, the money ran out in \d+% of histories\.$/);
-  });
-
-  it("shows that 4% ran out in about 1 history in 4 with the World's 1988–2022", () => {
-    expect(withdrawalFinding(context({ investment: { kind: "index", index: "world" } }))).toMatchObject({
-      value: "1 in 4",
-      text: "At 4% a year, the money ran out in 23% of histories.",
-    });
-  });
-
-  it("is not shown when the rate lasted in 9 histories in 10, or for a purchase", () => {
-    // S&P 500, 1988–2022: 4% lasted 30 years in 93% of histories, 3% in 98%.
-    expect(withdrawalFinding(small)).toBeNull();
-    expect(withdrawalFinding(context({ withdrawalRate: 0.03 }))).toBeNull();
-    expect(withdrawalFinding(context({ withdrawalRate: 0.07, mission: { kind: "buy", item: "new-car" } }))).toBeNull();
-  });
-});
-
-describe("growth share", () => {
-  it("says how much of the money is growth by the goal's date", () => {
-    const total = futureValueWithContributions(50_000, 1000, r, 240 / 12);
-    const finding = growthShareFinding(context({ invested: 50_000, monthlyContribution: 1000, horizonYears: 20 }));
-    expect(finding?.value).toBe(`${Math.round(((total - 50_000 - 240_000) / total) * 100)}%`);
-  });
-
-  it("is not shown when growth is less than 30%", () => {
-    expect(growthShareFinding(context({ horizonYears: 5 }))).toBeNull();
+  it("is not shown for less than 5 years", () => {
+    expect(sequenceFinding(context({ years: 4 }))).toBeNull();
+    // A first goal that close is not hit by a bad decade: the finding is about the result.
+    expect(sequenceFinding(context({ goals: [ebike] }))?.text).toBe(sequenceFinding(byDefault)?.text);
   });
 });
 
@@ -300,61 +242,40 @@ describe("a single stock as the investment", () => {
 
 describe("the findings shown", () => {
   const profiles = {
+    byDefault,
     small,
     large: context({ invested: 50_000, monthlyContribution: 1000 }),
     concentrated,
-    horizon: context({ horizonYears: 15 }),
-    purchase: context({ mission: { kind: "buy", item: "new-car" } }),
+    short: context({ years: 3 }),
+    goals: context({ goals: [ebike, india, { id: "c", kind: "amount", amount: 100_000 }] }),
   };
 
-  it("are 3 to 5, in the mission's fixed order", () => {
+  it("are at most 3, in the fixed order", () => {
     for (const [name, ctx] of Object.entries(profiles)) {
-      const shown = topFindings(ctx.report, ctx.holdings);
-      expect(shown.length, name).toBeGreaterThanOrEqual(3);
-      expect(shown.length, name).toBeLessThanOrEqual(5);
-      const order = MISSION_ORDER[ctx.report.goal.status.connection.kind];
-      const positions = shown.map((finding) => order.indexOf(finding.id));
-      expect(positions.every((position) => position >= 0), name).toBe(true);
+      const shown = topFindings(ctx);
+      expect(shown.length, name).toBeGreaterThanOrEqual(1);
+      expect(shown.length, name).toBeLessThanOrEqual(3);
+      const positions = shown.map((finding) => ORDER.indexOf(finding.id));
       expect([...positions].sort((a, b) => a - b), name).toEqual(positions);
     }
-  });
-
-  it("are about each kind of mission", () => {
-    const missions = [
-      { kind: "stop-working" },
-      { kind: "live-abroad", country: "PT" },
-      { kind: "buy", item: "used-car" },
-      { kind: "amount", amount: 100_000 },
-    ] as const;
-    for (const mission of missions) {
-      const shown = topFindings(context({ mission }).report, []);
-      expect(shown.length, mission.kind).toBeGreaterThanOrEqual(3);
-    }
-  });
-
-  it("leave out what does not apply to a purchase or an amount", () => {
-    for (const mission of [{ kind: "buy", item: "new-car" }, { kind: "amount", amount: 100_000 }] as const) {
-      const ids = allFindings(context({ mission, withdrawalRate: 0.07 }).report, []).map((finding) => finding.id);
-      expect(ids).not.toContain("withdrawal");
-      expect(ids).not.toContain("geography");
-    }
+    expect(topFindings(byDefault).map((finding) => finding.id)).toEqual(["lever", "sequence", "inflation"]);
   });
 
   it("keep their order when the numbers change", () => {
-    const orders = [150, 200, 250, 300].map((monthlyContribution) =>
-      topFindings(context({ monthlyContribution }).report, []).map((finding) => finding.id),
-    );
-    const order = MISSION_ORDER.live;
-    for (const ids of orders) expect(ids.map((id) => order.indexOf(id))).toEqual([...ids.map((id) => order.indexOf(id))].sort((a, b) => a - b));
+    for (const monthlyContribution of [150, 200, 250, 300]) {
+      const ids = topFindings(context({ monthlyContribution })).map((finding) => finding.id);
+      const positions = ids.map((id) => ORDER.indexOf(id));
+      expect([...positions].sort((a, b) => a - b)).toEqual(positions);
+    }
   });
 
   it("put the risk of a concentrated portfolio at the top", () => {
-    expect(topFindings(concentrated.report, concentrated.holdings)[0].id).toBe("concentration");
+    expect(topFindings(concentrated)[0].id).toBe("concentration");
   });
 
   it("are short, concrete and never tell the user what to do", () => {
     for (const ctx of Object.values(profiles)) {
-      for (const finding of allFindings(ctx.report, ctx.holdings)) {
+      for (const finding of allFindings(ctx)) {
         expect(finding.text.split(/\s+/).length, finding.text).toBeLessThanOrEqual(13);
         expect(finding.text, finding.id).not.toMatch(/\b(should|must|need to|recommend)\b/i);
         expect(finding.calculation.length, finding.id).toBeGreaterThan(0);

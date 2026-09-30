@@ -1,37 +1,7 @@
 {
-  "description": "What money can pay for, in rough estimates for one person, in today's euros. 'live' items are monthly costs, derived from the home country's living costs in cost-of-living.json. 'buy' items are one-off amounts: a published average, a calculation from published figures (see calc), or months of living costs from cost-of-living.json (see monthsAt). Estimates, not live data, not advice.",
+  "description": "What money can buy, in rough estimates for one person, in today's euros: a published average, a calculation from published figures (see calc), or months of living costs somewhere, with housing, from cost-of-living.json (see monthsAt). Estimates, not live data, not advice.",
   "compiledOn": "2026-09-29",
   "conversion": { "note": "USD figures converted at the rate used in cost-of-living.json.", "usdPerEur": 1.1378 },
-  "live": [
-    {
-      "id": "rent",
-      "name": "Pay your rent",
-      "share": "rent",
-      "source": "Average rent of a 1-bedroom flat outside the centre in your country (Wise, via cost-of-living.json).",
-      "referenceDate": "2026-09"
-    },
-    {
-      "id": "four-days",
-      "name": "Work 4 days a week",
-      "share": 0.2,
-      "source": "One day in five of your country's monthly living costs (Numbeo + Wise, via cost-of-living.json): the income a fifth working day replaces.",
-      "referenceDate": "2026-09"
-    },
-    {
-      "id": "half-time",
-      "name": "Work half-time",
-      "share": 0.5,
-      "source": "Half of your country's monthly living costs (Numbeo + Wise, via cost-of-living.json).",
-      "referenceDate": "2026-09"
-    },
-    {
-      "id": "stop-working",
-      "name": "Stop working",
-      "share": 1,
-      "source": "All of your country's monthly living costs for one person (Numbeo + Wise, via cost-of-living.json).",
-      "referenceDate": "2026-09"
-    }
-  ],
   "buy": [
     {
       "id": "e-bike",
@@ -49,7 +19,7 @@
     },
     {
       "id": "solar-panels",
-      "name": "Solar panels for your roof",
+      "name": "A set of home solar panels",
       "amount": 5000,
       "source": "Milieu Centraal: average price of 10 solar panels installed in the Netherlands.",
       "referenceDate": "2025"
@@ -83,13 +53,6 @@
       "referenceDate": "2026-09"
     },
     {
-      "id": "cushion",
-      "name": "Six months of your costs set aside",
-      "monthsAt": { "countries": "home", "months": 6 },
-      "source": "6 months of your country's living costs (Numbeo + Wise, via cost-of-living.json).",
-      "referenceDate": "2026-09"
-    },
-    {
       "id": "kitchen",
       "name": "A new kitchen",
       "amount": 15000,
@@ -116,13 +79,6 @@
       "amount": 24326,
       "source": "AutoScout24 occasion dashboard: average asking price of a used car in the Netherlands in 2025.",
       "referenceDate": "2025"
-    },
-    {
-      "id": "sabbatical",
-      "name": "A year off",
-      "monthsAt": { "countries": "home", "months": 12 },
-      "source": "12 months of your country's living costs (Numbeo + Wise, via cost-of-living.json).",
-      "referenceDate": "2026-09"
     },
     {
       "id": "masters-nl",
