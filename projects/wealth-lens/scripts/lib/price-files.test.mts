@@ -183,6 +183,16 @@ describe("nextPricesFile", () => {
     expect(Object.keys(file.prices)).toEqual(["NVDA"]);
   });
 
+  it("writes the same text whatever order an entry's keys were built in", () => {
+    const built = entry({ close: 111 });
+    const reordered = Object.fromEntries(Object.entries(built).reverse()) as typeof built;
+    const text = (prices: PricesFile["prices"]) => formatPricesFile({ version: 1, updatedAt: "2026-09-29T22:40:00.000Z", prices });
+    expect(text({ VUAA: reordered })).toBe(text({ VUAA: built }));
+    // Read back from yesterday's file in another key order, nothing has moved.
+    const readBack: PricesFile = { ...previous, prices: { VUAA: Object.fromEntries(Object.entries(entry()).reverse()) as ReturnType<typeof entry>, NVDA: previous.prices.NVDA } };
+    expect(nextPricesFile([VUAA, NVDA], readBack, { VUAA: entry() }, now).changed).toBe(false);
+  });
+
   it("writes a file the app reads back identically, one instrument per line", () => {
     const { file } = nextPricesFile([VUAA, NVDA], previous, { VUAA: entry({ close: 111 }) }, now);
     const text = formatPricesFile(file);

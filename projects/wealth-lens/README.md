@@ -380,6 +380,28 @@ un salto ×5), se conserva lo anterior; los archivos solo se reescriben si
 cambian, y el job nunca falla porque una fuente esté caída. El commit a
 `master` hace que Vercel redespliegue.
 
+**Formato estable y conflictos.** `public/data/` es generado y el Action es
+su único escritor. El texto no depende de cómo se construyó cada entrada:
+una línea por instrumento, en el orden de `instruments.json`, con las
+claves de cada entrada en orden alfabético (`canonical` en
+`scripts/lib/price-files.mts`, con test), y `updatedAt` solo cambia si
+cambió algún número. Así el diff diario muestra solo lo que se movió.
+`.gitattributes` lo marca como generado para que GitHub lo pliegue en las
+PRs.
+
+- Una rama nunca debe commitear `public/data/` (tampoco tras un
+  `npm run update-prices` local): si cambia el código del job, el Action
+  reescribe los archivos en su primer run tras el merge.
+- Si aun así una rama choca con el commit diario, se resuelve quedándose
+  con la copia de `master`, que es la más reciente:
+
+  ```bash
+  git fetch origin master
+  git merge origin/master            # el conflicto aparece en public/data
+  git checkout origin/master -- projects/wealth-lens/public/data
+  git commit                         # cierra el merge con los datos de master
+  ```
+
 **Instalarlo (una vez).** GitHub solo ejecuta workflows que estén en
 `.github/workflows/` en la raíz del repo. Copiar
 `projects/wealth-lens/scripts/update-prices.workflow.yml` a

@@ -147,6 +147,21 @@ export function checkSeries(
  * `updatedAt` only moves when something changes, so an unchanged day
  * produces an identical file and no commit.
  */
+/**
+ * The same value with every object's keys in alphabetical order. An entry
+ * read back from yesterday's file and one just built from a download then
+ * write the very same text, so the file only changes when a number does.
+ */
+export function canonical<T>(value: T): T {
+  if (Array.isArray(value)) return value.map(canonical) as T;
+  if (value === null || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.keys(value)
+      .sort()
+      .map((key) => [key, canonical((value as Record<string, unknown>)[key])]),
+  ) as T;
+}
+
 export function nextPricesFile(
   instruments: readonly Instrument[],
   previous: PricesFile,
@@ -158,11 +173,12 @@ export function nextPricesFile(
   const prices: Record<string, InstrumentPrices> = {};
   for (const { id } of instruments) {
     const entry = fresh[id] ?? previous.prices[id];
-    if (entry) prices[id] = id in stats ? { ...entry, stats: stats[id] } : entry;
+    if (entry) prices[id] = canonical(id in stats ? { ...entry, stats: stats[id] } : entry);
   }
+  const before = Object.fromEntries(Object.entries(previous.prices).map(([id, entry]) => [id, canonical(entry)]));
   const changed =
-    JSON.stringify(prices) !== JSON.stringify(previous.prices) ||
-    JSON.stringify(correlations) !== JSON.stringify(previous.correlations ?? null);
+    JSON.stringify(prices) !== JSON.stringify(before) ||
+    JSON.stringify(canonical(correlations)) !== JSON.stringify(canonical(previous.correlations ?? null));
   return {
     file: { version: 1, updatedAt: changed ? now.toISOString() : previous.updatedAt, prices, ...(correlations ? { correlations } : {}) },
     changed,
@@ -171,7 +187,7 @@ export function nextPricesFile(
 
 /** One instrument per line (and one correlation row per line), so each day's git diff shows exactly what moved. */
 export function formatPricesFile(file: PricesFile): string {
-  const entries = Object.entries(file.prices).map(([id, entry]) => `${JSON.stringify(id)}: ${JSON.stringify(entry)}`);
+  const entries = Object.entries(file.prices).map(([id, entry]) => `${JSON.stringify(id)}: ${JSON.stringify(canonical(entry))}`);
   const prices = entries.length === 0 ? "{}" : `{\n${entries.join(",\n")}\n}`;
   const { correlations } = file;
   const rows = (table: readonly unknown[][]) => `[\n${table.map((row) => JSON.stringify(row)).join(",\n")}\n]`;
