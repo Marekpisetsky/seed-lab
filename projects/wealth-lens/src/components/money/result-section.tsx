@@ -10,6 +10,7 @@ import { beforeInflationText, growsText, moneyLine } from "@/lib/growth";
 import { toNominal } from "@/lib/investment";
 import type { MixFigures } from "@/lib/projections";
 import type { WorstYear } from "@/lib/mix";
+import { WhatIfIndicator, WhatIfRow } from "./what-if-row";
 
 const range = ([low, high]: [number, number]) => `${formatEur(low)} – ${formatEur(high)}`;
 const worst = (year: WorstYear | null) => (year ? `${formatPercent(year.change, { decimals: 0 })} (${year.year})` : "no shared data");
@@ -55,9 +56,9 @@ function noSwingsText(rate: number, realReturn: number): string {
 
 /**
  * The result, in places that never move: what the money is worth after the
- * chosen years and how much it grows, in plain words, and what it could pay
- * a month (at a withdrawal rate the user picks, with how often it lasted in
- * history).
+ * chosen years and how much it grows, in plain words; what it could pay a
+ * month (at a withdrawal rate the user picks, with how often it lasted in
+ * history); and "What if…?", quick scenarios applied to the whole screen.
  */
 export function ResultSection({ bundle }: { bundle: CalculationBundle }) {
   const { calc, rates, state } = bundle;
@@ -68,9 +69,12 @@ export function ResultSection({ bundle }: { bundle: CalculationBundle }) {
   return (
     <section aria-label="Result" className="space-y-3" aria-live="polite">
       <div>
-        <p className="text-base text-muted">
-          In <Changed value={years} /> you&apos;ll have
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+          <p className="text-base text-muted">
+            In <Changed value={years} /> you&apos;ll have
+          </p>
+          <WhatIfIndicator applied={calc.whatIf} />
+        </div>
         <p className="text-4xl font-bold tracking-tight tabular-nums sm:text-5xl">
           <Changed value={formatEur(result.total)} />
         </p>
@@ -127,6 +131,7 @@ export function ResultSection({ bundle }: { bundle: CalculationBundle }) {
           </span>
         </div>
       </div>
+      <WhatIfRow effects={bundle.whatIfs} applied={calc.whatIf} />
       {bundle.mix && <MixFiguresView figures={bundle.mix} years={result.years} />}
     </section>
   );
