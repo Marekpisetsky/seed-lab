@@ -60,7 +60,8 @@ export function withinReach(months: number): boolean {
  * years: something not paid after 20 years never reads "in 20 years".
  */
 export function whenText(months: number, today?: Date): string {
-  if (months <= 0) return "now";
+  // A few billionths of a month is now: never "in 0 months".
+  if (months <= 1e-9) return "now";
   if (!withinReach(months)) return "not at this pace";
   const whole = Math.ceil(months - 1e-9);
   const plural = (n: number, unit: string) => `${n} ${unit}${n === 1 ? "" : "s"}`;
@@ -200,10 +201,19 @@ export interface CountryRow {
 export const FEATURED_COUNTRIES = ["PE", "NL"] as const;
 const CHEAPEST_SHOWN = 5;
 
+/**
+ * ✓ when what the money pays after the chosen years pays it: the table
+ * reads "What €X/month covers". Money that shrinks can pay a country today
+ * and no longer at the end; then it is "not at this pace", never "now".
+ */
 function cell(scenario: Scenario, horizonMonths: number, amount: number): CountryCell {
   const target = requiredCapital(amount * 12, scenario.withdrawalRate);
-  const months = monthsTo(scenario, target);
-  return { amount, target, months, covered: months <= horizonMonths };
+  const atEnd = valueAt(scenario, horizonMonths);
+  const covered = atEnd >= target;
+  const first = monthsTo(scenario, target);
+  // Not paid at the end: when it gets there after that, growing on from the end.
+  const months = covered || first > horizonMonths ? first : horizonMonths + monthsToGoal(Math.max(0, atEnd), scenario.monthly, scenario.realReturn, target);
+  return { amount, target, months, covered };
 }
 
 /** Every country of the list, cheapest first (without housing), each with and without paying for housing. */

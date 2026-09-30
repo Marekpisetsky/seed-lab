@@ -22,7 +22,17 @@ interface MoneyOptions {
   signed?: boolean;
 }
 
+/**
+ * Rounded to what is shown, with −0 turned into 0: −€0.30 shown in whole
+ * euros is "€0", never "-€0".
+ */
+function shown(value: number, decimals: number): number {
+  const rounded = Number(value.toFixed(decimals));
+  return rounded === 0 ? 0 : rounded;
+}
+
 export function formatMoney(amount: number, currency: string, { decimals = 2, signed = false }: MoneyOptions = {}): string {
+  amount = Number.isFinite(amount) ? shown(amount, decimals) : amount;
   return numberFormat(`money|${currency}|${decimals}|${signed}`, {
     style: "currency",
     currency,
@@ -39,6 +49,7 @@ interface PercentOptions {
 
 /** 0.0914 → "9.1%". */
 export function formatPercent(fraction: number, { decimals = 1, signed = false }: PercentOptions = {}): string {
+  fraction = Number.isFinite(fraction) ? shown(fraction, decimals + 2) : fraction;
   return numberFormat(`percent|${decimals}|${signed}`, {
     style: "percent",
     minimumFractionDigits: decimals,
