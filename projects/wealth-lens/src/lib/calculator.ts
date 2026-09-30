@@ -113,13 +113,15 @@ export function resultOf(scenario: Scenario, investment: ResolvedInvestment, yea
   const months = years * 12;
   const total = valueAt(scenario, months);
   const putIn = scenario.capital + scenario.monthly * months;
+  // With the other rates the result offers, in one pass: they are asked for next.
+  const rates = [...new Set([...WITHDRAWAL_CHOICES, scenario.withdrawalRate])];
   return {
     years,
     total,
     putIn,
     growth: total - putIn,
     income: monthlyWithdrawal(Math.max(0, total), scenario.withdrawalRate),
-    lasted: successRatesFor(investment, [scenario.withdrawalRate])[0],
+    lasted: successRatesFor(investment, rates)[rates.indexOf(scenario.withdrawalRate)],
   };
 }
 

@@ -1,10 +1,11 @@
 "use client";
 
 import { ChevronDown, Minus, Plus } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Changed } from "@/components/ui/changed";
 import { SettledNumberInput } from "@/components/ui/form";
 import { useAppState } from "@/hooks/use-app";
+import { offeredRates } from "@/hooks/use-calculation";
 import { setInvestment, updatePlan } from "@/lib/app-store";
 import type { Basis } from "@/lib/assumptions";
 import { priceHoldings } from "@/lib/auto-price";
@@ -12,6 +13,7 @@ import { formatEur } from "@/lib/format";
 import { resolveInvestment } from "@/lib/investment";
 import { startingCapital } from "@/lib/plan";
 import { portfolioAllocation } from "@/lib/portfolio";
+import { warmUp } from "@/lib/warm";
 import { MONTHLY_STEP, stepValue, YEARS_STEP } from "@/lib/step";
 import type { Investment } from "@/lib/types";
 import { AssumptionsPanel } from "./assumptions-panel";
@@ -124,6 +126,8 @@ export function CalculatorCard() {
   const current = resolveInvestment(plan.investment, priced, plan);
   const [picker, setPicker] = useState<{ mode: "choose" | "add"; top: number } | null>(null);
   const [editing, setEditing] = useState(false);
+  // Once the page is up, idle moments work out ahead what the next choice will need.
+  useEffect(() => warmUp(offeredRates(plan.withdrawalRate)), [plan.withdrawalRate]);
   const [basis, setBasis] = useState<Basis>(plan.assumptions.growth?.basis ?? "real");
   const close = useCallback(() => setPicker(null), []);
   const open = (mode: "choose" | "add", anchor: HTMLElement) => setPicker({ mode, top: anchor.offsetTop + anchor.offsetHeight + 4 });
@@ -210,7 +214,6 @@ export function CalculatorCard() {
         <InvestmentPicker
           top={picker.top}
           label={picker.mode === "add" ? "Add to the mix" : "Invested in"}
-          withdrawalRate={plan.withdrawalRate}
           selected={picker.mode === "add" ? null : keyOf(plan.investment)}
           hasPortfolio={picker.mode === "choose" && hasPortfolio}
           holdingsCount={portfolioAllocation(priced).entries.length}

@@ -2,14 +2,10 @@
 
 import { Search } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { offeredRates } from "@/hooks/use-calculation";
 import { GOLD_NOTE, SAVINGS_RATE, type AssetId } from "@/lib/assets";
 import { formatRate } from "@/lib/format";
 import { INDEXES, INDEX_IDS, SERIES } from "@/lib/indexes";
 import { INDEX_TRACKERS } from "@/lib/market-data";
-import { resolveInvestment } from "@/lib/investment";
-import { prepareMixDraws, TEMPLATES } from "@/lib/mix";
-import { mixFigures, successRatesFor } from "@/lib/projections";
 
 /** What the picker can choose. */
 export type PickChoice = { kind: "asset"; asset: AssetId } | { kind: "portfolio" } | { kind: "mix" } | { kind: "custom" };
@@ -70,37 +66,6 @@ function assetOptions(): Option[] {
   ];
 }
 
-let warmed = false;
-
-/**
- * While the user is still choosing, in idle moments one step at a time: a
- * mix's random draws and the 60/40 template's first run, drifting and
- * rebalanced. Choosing then recalculates at once.
- */
-function warmChoices(rates: readonly number[]): void {
-  if (warmed || typeof window === "undefined") return;
-  warmed = true;
-  const steps: (() => void)[] = [
-    () => prepareMixDraws(3),
-    ...[false, true].map((rebalance) => () => {
-      const warm = resolveInvestment({ kind: "mix", parts: [...TEMPLATES[2].parts], rebalance }, []);
-      successRatesFor(warm, rates);
-      mixFigures(warm, { start: 1000, monthly: 100, years: 20 });
-    }),
-  ];
-  const next = () => {
-    const step = steps.shift();
-    if (!step) return;
-    step();
-    schedule();
-  };
-  const schedule = () => {
-    if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(next);
-    else window.setTimeout(next, 30);
-  };
-  schedule();
-}
-
 /**
  * The list behind "Invested in": only what has a long history and a known
  * range (indexes, euro government bonds, gold), a savings account, Custom
@@ -118,13 +83,10 @@ export function InvestmentPicker({
   exclude = [],
   onlyAssets = false,
   label,
-  withdrawalRate,
   onPick,
   onClose,
 }: {
   top: number;
-  /** The plan's; the rates the result offers are worked out ahead. */
-  withdrawalRate: number;
   selected: string | null;
   hasPortfolio: boolean;
   holdingsCount: number;
@@ -154,8 +116,6 @@ export function InvestmentPicker({
       document.removeEventListener("pointerdown", outside);
     };
   }, [onClose]);
-
-  useEffect(() => warmChoices(offeredRates(withdrawalRate)), [withdrawalRate]);
 
   const options = useMemo(() => {
     const all = assetOptions();

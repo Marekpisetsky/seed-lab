@@ -61,7 +61,7 @@ export function StocksContent() {
       )}
 
       <Card title="ETFs and big stocks">
-        <p className="text-sm text-muted">Tap one for its chart, or to use it as your investment.</p>
+        <p className="text-sm text-muted">Tap one for its chart and history. An ETF can be your investment; a single stock is never projected on its own.</p>
         <h3 className="mt-3 text-xs font-medium uppercase tracking-wide text-muted">ETFs</h3>
         <ul className="divide-y divide-border">
           {ETFS.map((instrument) => (

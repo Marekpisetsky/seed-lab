@@ -357,44 +357,61 @@ function residualFactor(stocks: readonly StockPart[], market: PricesFile): numbe
   return matrix.map((row, i) => row.map((_, j) => (i === j ? 1 : 0))).slice(0, n);
 }
 
-const returnsCache = new Map<string, Float64Array[]>();
+const returnsCache = new Map<string, Float64Array>();
+
+/** Kept by what each part's returns depend on, so a changed part leaves the others' as they are. */
+function cachedPart(id: string, market: PricesFile, make: () => Float64Array): Float64Array {
+  if (market !== MARKET) return make();
+  let kept = returnsCache.get(id);
+  if (!kept) {
+    kept = make();
+    // About 0.5 MB each: the five assets, a savings rate and a few stocks.
+    if (returnsCache.size >= 12) returnsCache.delete(returnsCache.keys().next().value as string);
+    returnsCache.set(id, kept);
+  }
+  return kept;
+}
 
 /** Every part's return, per path and year (path × MIX_YEARS + year). */
 export function partReturns(model: MixModel, market: PricesFile = MARKET): Float64Array[] {
-  const cached = returnsCache.get(model.key);
-  if (cached && market === MARKET) return cached;
   const stocks = model.parts.filter((part): part is StockPart => part.kind === "stock");
   const { years, normals } = drawsWith(stocks.length);
-  const lower = residualFactor(stocks, market);
+  // A stock's own part depends on the other stocks (they are correlated), an asset's on nothing else.
+  const stockSet = stocks.map(partId).join(",");
+  let lower: number[][] | null = null;
   const size = MIX_SIMULATIONS * MIX_YEARS;
-  const result = model.parts.map((part) => {
-    const out = new Float64Array(size);
+  return model.parts.map((part) => {
     if (part.kind === "asset") {
-      if (!isSeriesAsset(part.asset)) return out.fill(model.savingsReturn);
+      if (!isSeriesAsset(part.asset)) return cachedPart(`savings@${model.savingsReturn}`, market, () => new Float64Array(size).fill(model.savingsReturn));
       const series = history[part.asset];
-      for (let i = 0; i < size; i++) out[i] = series[years[i]];
-      return out;
+      return cachedPart(part.asset, market, () => {
+        const out = new Float64Array(size);
+        for (let i = 0; i < size; i++) out[i] = series[years[i]];
+        return out;
+      });
     }
-    const series = history[part.asset];
-    const position = stocks.indexOf(part);
-    const { mean, deviation } = logStats(series);
-    const beta = (part.correlation * part.volatility) / deviation;
-    const own = part.volatility * Math.sqrt(1 - part.correlation ** 2);
-    // The index's part of each historical year, in log terms, worked out once.
-    const shared = series.map((value) => mean + beta * (Math.log1p(value) - mean));
-    const row = lower[position];
-    for (let i = 0; i < size; i++) {
-      let shock = 0;
-      for (let k = 0; k <= position; k++) shock += row[k] * normals[k][i];
-      out[i] = Math.expm1(shared[years[i]] + own * shock);
-    }
-    return out;
+    return cachedPart(`${partId(part)}|${stockSet}`, market, () => stockReturns(part, stocks, (lower ??= residualFactor(stocks, market)), years, normals));
   });
-  if (market === MARKET) {
-    if (returnsCache.size >= 16) returnsCache.delete(returnsCache.keys().next().value as string);
-    returnsCache.set(model.key, result);
+}
+
+/** A stock part's returns: its index's move times β, plus its own part, correlated with the other stocks'. */
+function stockReturns(part: StockPart, stocks: readonly StockPart[], lower: number[][], years: Uint8Array, normals: Float64Array[]): Float64Array {
+  const size = MIX_SIMULATIONS * MIX_YEARS;
+  const out = new Float64Array(size);
+  const series = history[part.asset];
+  const position = stocks.indexOf(part);
+  const { mean, deviation } = logStats(series);
+  const beta = (part.correlation * part.volatility) / deviation;
+  const own = part.volatility * Math.sqrt(1 - part.correlation ** 2);
+  // The index's part of each historical year, in log terms, worked out once.
+  const shared = series.map((value) => mean + beta * (Math.log1p(value) - mean));
+  const row = lower[position];
+  for (let i = 0; i < size; i++) {
+    let shock = 0;
+    for (let k = 0; k <= position; k++) shock += row[k] * normals[k][i];
+    out[i] = Math.expm1(shared[years[i]] + own * shock);
   }
-  return result;
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -414,31 +431,10 @@ export function mixPercentiles(
   const returns = partReturns(model, market);
   const span = Math.min(years, MIX_YEARS);
   const totals = Array.from({ length: span + 1 }, () => new Float64Array(MIX_SIMULATIONS));
-  const weights = model.parts.map((part) => part.weight);
-  for (let s = 0; s < MIX_SIMULATIONS; s++) {
-    if (model.rebalance) {
-      let balance = start;
-      totals[0][s] = balance;
-      for (let y = 1; y <= span; y++) {
-        let r = 0;
-        for (let j = 0; j < weights.length; j++) r += weights[j] * returns[j][s * MIX_YEARS + y - 1];
-        balance = (balance + 6 * monthly) * (1 + r) + 6 * monthly;
-        totals[y][s] = balance;
-      }
-    } else {
-      const balances = weights.map((weight) => weight * start);
-      totals[0][s] = start;
-      for (let y = 1; y <= span; y++) {
-        let total = 0;
-        for (let j = 0; j < weights.length; j++) {
-          const r = returns[j][s * MIX_YEARS + y - 1];
-          balances[j] = (balances[j] + 6 * monthly * weights[j]) * (1 + r) + 6 * monthly * weights[j];
-          total += balances[j];
-        }
-        totals[y][s] = total;
-      }
-    }
-  }
+  const weights = Float64Array.from(model.parts, (part) => part.weight);
+  // Each way of holding the weights has its own loop, so each stays fast whichever ran last.
+  if (model.rebalance) balancesRebalanced(returns, weights, start, monthly, totals);
+  else balancesDrifting(returns, weights, start, monthly, totals);
   const result: WealthPercentiles = { p10: [], p50: [], p90: [] };
   for (const column of totals) {
     column.sort();
@@ -449,44 +445,95 @@ export function mixPercentiles(
   return result;
 }
 
+function balancesRebalanced(returns: readonly Float64Array[], weights: Float64Array, start: number, monthly: number, totals: Float64Array[]): void {
+  const span = totals.length - 1;
+  for (let s = 0; s < MIX_SIMULATIONS; s++) {
+    const offset = s * MIX_YEARS;
+    let balance = start;
+    totals[0][s] = balance;
+    for (let y = 1; y <= span; y++) {
+      let r = 0;
+      for (let j = 0; j < weights.length; j++) r += weights[j] * returns[j][offset + y - 1];
+      balance = (balance + 6 * monthly) * (1 + r) + 6 * monthly;
+      totals[y][s] = balance;
+    }
+  }
+}
+
+function balancesDrifting(returns: readonly Float64Array[], weights: Float64Array, start: number, monthly: number, totals: Float64Array[]): void {
+  const span = totals.length - 1;
+  const balances = new Float64Array(weights.length);
+  for (let s = 0; s < MIX_SIMULATIONS; s++) {
+    const offset = s * MIX_YEARS;
+    for (let j = 0; j < weights.length; j++) balances[j] = weights[j] * start;
+    totals[0][s] = start;
+    for (let y = 1; y <= span; y++) {
+      let total = 0;
+      for (let j = 0; j < weights.length; j++) {
+        const added = 6 * monthly * weights[j];
+        balances[j] = (balances[j] + added) * (1 + returns[j][offset + y - 1]) + added;
+        total += balances[j];
+      }
+      totals[y][s] = total;
+    }
+  }
+}
+
 /** How often each withdrawal rate lasted 30 years (withdrawals taken from the parts in proportion). */
 export function mixSuccessRates(model: MixModel, rates: readonly number[], market: PricesFile = MARKET, years = 30): number[] {
   const returns = partReturns(model, market);
-  const weights = model.parts.map((part) => part.weight);
-  const successes = rates.map(() => 0);
+  const weights = Float64Array.from(model.parts, (part) => part.weight);
+  const counts = model.rebalance ? lastedRebalanced(returns, weights, Float64Array.from(rates), years) : lastedDrifting(returns, weights, Float64Array.from(rates), years);
+  return Array.from(counts, (count) => count / MIX_SIMULATIONS);
+}
+
+/** Back at the weights every year: one return a year, the rates played over it. */
+function lastedRebalanced(returns: readonly Float64Array[], weights: Float64Array, rates: Float64Array, years: number): Float64Array {
+  const successes = new Float64Array(rates.length);
   const sequence = new Array<number>(years);
-  const balances = new Float64Array(weights.length);
   for (let s = 0; s < MIX_SIMULATIONS; s++) {
-    if (model.rebalance) {
-      for (let y = 0; y < years; y++) {
-        let r = 0;
-        for (let j = 0; j < weights.length; j++) r += weights[j] * returns[j][s * MIX_YEARS + y];
-        sequence[y] = r;
-      }
-      rates.forEach((rate, index) => {
-        if (survives(sequence, rate)) successes[index] += 1;
-      });
-      continue;
+    const offset = s * MIX_YEARS;
+    for (let y = 0; y < years; y++) {
+      let r = 0;
+      for (let j = 0; j < weights.length; j++) r += weights[j] * returns[j][offset + y];
+      sequence[y] = r;
+    }
+    for (let index = 0; index < rates.length; index++) if (survives(sequence, rates[index])) successes[index] += 1;
+  }
+  return successes;
+}
+
+/** Weights drifting: each part earns its own return, withdrawals taken from the parts in proportion. */
+function lastedDrifting(returns: readonly Float64Array[], weights: Float64Array, rates: Float64Array, years: number): Float64Array {
+  const parts = weights.length;
+  const successes = new Float64Array(rates.length);
+  const balances = new Float64Array(parts);
+  // One path's returns, read once from the big arrays and replayed for every rate.
+  const path = new Float64Array(parts * years);
+  for (let s = 0; s < MIX_SIMULATIONS; s++) {
+    const offset = s * MIX_YEARS;
+    for (let j = 0; j < parts; j++) {
+      const source = returns[j];
+      for (let y = 0; y < years; y++) path[j * years + y] = source[offset + y];
     }
     for (let index = 0; index < rates.length; index++) {
       const rate = rates[index];
-      balances.set(weights);
-      let lasted = true;
-      for (let y = 0; y < years && lasted; y++) {
+      for (let j = 0; j < parts; j++) balances[j] = weights[j];
+      let lasted = 1;
+      for (let y = 0; y < years; y++) {
         let total = 0;
-        for (let j = 0; j < balances.length; j++) total += balances[j];
+        for (let j = 0; j < parts; j++) total += balances[j];
         if (total <= rate) {
-          lasted = false;
+          lasted = 0;
           break;
         }
-        // Withdrawn from every part in proportion, then each part earns its own return.
         const keep = 1 - rate / total;
-        for (let j = 0; j < balances.length; j++) balances[j] *= keep * (1 + returns[j][s * MIX_YEARS + y]);
+        for (let j = 0; j < parts; j++) balances[j] *= keep * (1 + path[j * years + y]);
       }
-      if (lasted) successes[index] += 1;
+      successes[index] += lasted;
     }
   }
-  return successes.map((count) => count / MIX_SIMULATIONS);
+  return successes;
 }
 
 const volatilityCache = new Map<string, number>();
@@ -500,19 +547,37 @@ export function mixVolatility(model: MixModel, market: PricesFile = MARKET): num
   const id = `${model.key}|${model.parts.map((part) => part.weight.toFixed(6)).join(",")}`;
   const kept = market === MARKET ? volatilityCache.get(id) : undefined;
   if (kept !== undefined) return kept;
-  const rows: number[] = [];
+  // Running sums of the log returns: no arrays of rows.
+  let count = 0;
+  let sum = 0;
+  let squares = 0;
+  const add = (r: number) => {
+    const value = Math.log1p(r);
+    count += 1;
+    sum += value;
+    squares += value * value;
+  };
+  const weights = model.parts.map((part) => part.weight);
   if (model.parts.every((part) => part.kind === "asset")) {
-    const count = SERIES.sp500.years.length;
-    for (let t = 0; t < count; t++) {
-      rows.push(model.parts.reduce((sum, part) => sum + part.weight * (isSeriesAsset(part.asset) ? history[part.asset][t] : model.savingsReturn), 0));
+    const series = model.parts.map((part) => (isSeriesAsset(part.asset) ? history[part.asset] : null));
+    for (let t = 0; t < SERIES.sp500.years.length; t++) {
+      let r = 0;
+      for (let j = 0; j < weights.length; j++) r += weights[j] * (series[j]?.[t] ?? model.savingsReturn);
+      add(r);
     }
   } else {
+    // A fifth of the simulated years is plenty for one figure to show.
     const returns = partReturns(model, market);
-    for (let i = 0; i < MIX_SIMULATIONS * MIX_YEARS; i++) rows.push(model.parts.reduce((sum, part, j) => sum + part.weight * returns[j][i], 0));
+    for (let i = 0; i < (MIX_SIMULATIONS / 5) * MIX_YEARS; i++) {
+      let r = 0;
+      for (let j = 0; j < weights.length; j++) r += weights[j] * returns[j][i];
+      add(r);
+    }
   }
+  const mean = sum / count;
+  const deviation = Math.sqrt(Math.max(0, (squares - count * mean * mean) / (count - 1)));
   // Rounding leaves a constant series (all savings) a hair above zero: no swings is zero.
-  const deviation = logStats(rows).deviation;
-  const value = deviation < 1e-9 ? 0 : deviation;
+  const value = deviation < 1e-7 ? 0 : deviation;
   if (market === MARKET) {
     if (volatilityCache.size >= 64) volatilityCache.clear();
     volatilityCache.set(id, value);
