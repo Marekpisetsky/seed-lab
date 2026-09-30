@@ -7,7 +7,6 @@
 import { GOLD_NOTE, SAVINGS_RATE } from "./assets";
 import { formatPercent, formatRate } from "./format";
 import { dividendNote, periodText, toNominal, type ResolvedInvestment } from "./investment";
-import { PORTFOLIO_LABEL } from "./portfolio";
 
 export type Basis = "real" | "nominal";
 
@@ -40,11 +39,10 @@ export function assumptionsLine(investment: ResolvedInvestment, basis: Basis): s
   return [growthText(investment, basis), swingsText(investment.volatility), sourceText(investment)].filter(Boolean).join(" · ");
 }
 
-/** The short note under the line: what matters about this choice. */
+/** The short note under the line: what matters about this choice (My portfolio's label sits over its holdings). */
 export function assumptionsNote(investment: ResolvedInvestment): string {
   const notes: string[] = [];
   const { investment: chosen } = investment;
-  if (chosen.kind === "portfolio") notes.push(PORTFOLIO_LABEL);
   if (chosen.kind === "asset" && chosen.asset === "gold") notes.push(`${GOLD_NOTE}: gold protects, it hardly grows.`);
   const dividends = dividendNote(investment);
   if (dividends) notes.push(`${dividends.charAt(0).toUpperCase()}${dividends.slice(1)}.`);

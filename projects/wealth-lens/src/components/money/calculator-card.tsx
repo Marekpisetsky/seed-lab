@@ -17,6 +17,7 @@ import type { Investment } from "@/lib/types";
 import { AssumptionsPanel } from "./assumptions-panel";
 import { InvestmentPicker, type PickChoice } from "./investment-picker";
 import { MixEditor } from "./mix-editor";
+import { PortfolioEditor } from "./portfolio-editor";
 import { MAX_AMOUNT, MAX_YEARS_AHEAD, MIN_YEARS } from "@/lib/validation";
 
 const labelClass = "block text-xs font-medium text-muted";
@@ -204,6 +205,7 @@ export function CalculatorCard() {
         </button>
       </div>
       {mix && <MixEditor mix={mix} onAddPart={(anchor) => open("add", anchor)} />}
+      {current.investment.kind === "portfolio" && current.allocation && <PortfolioEditor allocation={current.allocation} model={current.model} />}
       {picker && (
         <InvestmentPicker
           top={picker.top}

@@ -49,10 +49,8 @@ describe("the note under it", () => {
     expect(assumptionsNote(resolveInvestment({ kind: "asset", asset: "gold" }, []))).toMatch(/^Low long-term growth, big swings: gold protects, it hardly grows\. Past, not a promise\./);
   });
 
-  it("says My portfolio is a simple projection", () => {
-    expect(assumptionsNote(resolveInvestment({ kind: "portfolio" }, [holding]))).toMatch(
-      /^Simple projection: each stock grows like its index\. Stocks can't be predicted\./,
-    );
+  it("says My portfolio's figures come from the past", () => {
+    expect(assumptionsNote(resolveInvestment({ kind: "portfolio" }, [holding]))).toBe("Past, not a promise. Amounts in today's euros.");
   });
 
   it("says when dividends are left out, and that amounts are in today's euros", () => {

@@ -42,6 +42,11 @@ export function assetName(asset: AssetId): string {
   return asset === "savings" ? "Savings account" : SERIES[asset].name;
 }
 
+/** Short enough for a narrow list: "Euro gov. bonds", "Savings". */
+export function assetShortName(asset: AssetId): string {
+  return asset === "bonds" ? "Euro gov. bonds" : asset === "savings" ? "Savings" : assetName(asset);
+}
+
 /** As it reads before "histories": "S&P 500", "euro government bond", "gold". */
 export function historyName(asset: SeriesId): string {
   return asset === "bonds" ? "euro government bond" : asset === "gold" ? "gold" : SERIES[asset].name;
