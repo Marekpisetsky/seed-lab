@@ -162,7 +162,7 @@ export const en = {
       {
         heading: "This site",
         body: [
-          "No cookies, no analytics, no tracking. It is plain HTML and CSS.",
+          "No cookies, no analytics, no tracking. It is plain HTML and CSS, plus one line of script that picks your language.",
           "For now it is hosted on Vercel, in the US, like Wealth Lens. We plan to move both to a European host.",
         ],
       },

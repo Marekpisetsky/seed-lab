@@ -6,7 +6,7 @@ export const es: Messages = {
   site: {
     name: "seed-lab",
     skip: "Saltar al contenido",
-    nav: { label: "Páginas", principles: "Principios", about: "Sobre seed-lab" },
+    nav: { label: "Páginas", principles: "Principios", about: "Acerca de" },
     language: "Idioma",
     footerNav: "Más",
     github: "Código en GitHub",
@@ -157,7 +157,7 @@ export const es: Messages = {
       {
         heading: "Esta web",
         body: [
-          "Sin cookies, sin analítica, sin rastreo. Es HTML y CSS, nada más.",
+          "Sin cookies, sin analítica, sin rastreo. Es HTML y CSS, más una línea de script que elige tu idioma.",
           "Por ahora está alojada en Vercel, en EE. UU., igual que Wealth Lens. Queremos llevar las dos a un alojamiento europeo.",
         ],
       },
