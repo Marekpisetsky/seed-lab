@@ -1,15 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { decodeHistory, parsePricesFile, type Instrument, type InstrumentPrices, type PricesFile } from "../../src/lib/market-format.ts";
+import { parsePricesFile, type Instrument, type InstrumentPrices, type PricesFile } from "../../src/lib/market-format.ts";
 import {
   changeOverYear,
   checkSeries,
-  encodeHistory,
   formatPricesFile,
   growthPerYear,
   lastYears,
   maxDrawdown,
   nextPricesFile,
-  sparkline,
   summarize,
 } from "./price-files.mts";
 import type { PricePoint } from "./series.mts";
@@ -44,40 +42,12 @@ const entry = (overrides: Partial<InstrumentPrices> = {}): InstrumentPrices => (
   date: "2026-09-25",
   close: 110,
   change1y: 0.1,
-  spark: [100, 110],
   growth: null,
   drawdown: null,
   ...overrides,
 });
 
-describe("history files", () => {
-  it("encode to day offsets and decode back to the same points (rounded)", () => {
-    const points = [
-      { time: "2026-09-24", close: 112.33999633789062 },
-      { time: "2026-09-25", close: 113 },
-      { time: "2026-09-28", close: 113.5 },
-    ];
-    const file = encodeHistory(VUAA, points);
-    expect(file).toEqual({
-      id: "VUAA",
-      symbol: "VUAA.DE",
-      currency: "EUR",
-      start: "2026-09-24",
-      days: [0, 1, 3],
-      closes: [112.34, 113, 113.5],
-    });
-    expect(decodeHistory(JSON.parse(JSON.stringify(file)))).toEqual([
-      { time: "2026-09-24", close: 112.34 },
-      { time: "2026-09-25", close: 113 },
-      { time: "2026-09-28", close: 113.5 },
-    ]);
-  });
-
-  it("round-trips ten years of weekdays, across month and leap-year boundaries", () => {
-    const points = weekdays("2016-09-26", "2026-09-25").map(({ time, close }) => ({ time, close: Number(close.toFixed(4)) }));
-    expect(decodeHistory(encodeHistory(VUAA, points))).toEqual(points);
-  });
-
+describe("the series downloaded", () => {
   it("keeps the last N years only", () => {
     const points = weekdays("2010-01-04", "2026-09-25");
     const kept = lastYears(points, 10);
@@ -100,11 +70,12 @@ describe("summary figures", () => {
     expect(changeOverYear(months)).toBeNull();
   });
 
-  it("keeps about one close a week for the 12-month line, ending on the latest", () => {
-    const spark = sparkline(tenYears);
-    expect(spark).toHaveLength(53);
-    expect(spark.at(-1)).toBe(Number(tenYears.at(-1)?.close.toFixed(4)));
-    expect(spark[0]).toBeLessThan(spark.at(-1) ?? 0);
+  it("publishes figures only: no series of closes goes into the file", () => {
+    const summary = summarize(VUAA, tenYears, "yahoo");
+    expect(Object.values(summary).some(Array.isArray)).toBe(false);
+    const text = formatPricesFile({ version: 1, updatedAt: null, prices: { VUAA: summary } });
+    // One number per figure: the ten years of closes would be thousands.
+    expect((text.match(/\d+\.\d+/g) ?? []).length).toBeLessThan(10);
   });
 
   it("summarizes the latest close in the instrument's currency", () => {

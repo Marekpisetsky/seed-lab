@@ -51,7 +51,7 @@ export function StocksContent() {
 
       {holdings.length > 0 && (
         <Card title="How they moved">
-          <p className="text-sm text-muted">Last 12 months. Tap one for its full chart.</p>
+          <p className="text-sm text-muted">Tap one to see how it did each year.</p>
           <ul className="divide-y divide-border">
             {holdings.map((holding) => (
               <HoldingChartRow key={holding.id} holding={holding} />
@@ -61,7 +61,7 @@ export function StocksContent() {
       )}
 
       <Card title="ETFs and big stocks">
-        <p className="text-sm text-muted">Tap one for its chart and history. An ETF can be your investment; a single stock is never projected on its own.</p>
+        <p className="text-sm text-muted">Tap one to see how it did each year. An ETF can be your investment; a single stock is never projected on its own.</p>
         <h3 className="mt-3 text-xs font-medium uppercase tracking-wide text-muted">ETFs</h3>
         <ul className="divide-y divide-border">
           {ETFS.map((instrument) => (

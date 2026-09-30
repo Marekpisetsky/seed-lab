@@ -3,7 +3,6 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAppState } from "@/hooks/use-app";
-import { useHistory } from "@/hooks/use-history";
 import { setUploadedPrices } from "@/lib/app-store";
 import { averageCost } from "@/lib/finance";
 import { formatMoney, formatPercent, formatPrice } from "@/lib/format";
@@ -12,14 +11,18 @@ import { parsePriceCsv, summarizeSeries, type PricePoint } from "@/lib/prices";
 import { lastDays, periodChange } from "@/lib/sparkline";
 import type { Holding } from "@/lib/types";
 import { ChartRow } from "./chart-row";
+import { InstrumentFigures } from "./instrument-figures";
 import { PriceChart } from "./price-chart";
+import { Sparkline } from "./sparkline";
+import { YearStrip } from "./year-changes";
 
 const PERIOD_DAYS = 365;
 
 /**
- * One holding in the Charts list. Prices come from the daily downloaded
- * data when the ticker is on the curated list, or from a CSV the user
- * uploads; the app never asks a price source.
+ * One holding in the My stocks list. When its ticker is on the curated list,
+ * the figures the daily job worked out (never the closes themselves); when
+ * the user uploaded a CSV of prices, the full chart of their own file. The
+ * app never asks a price source.
  */
 export function HoldingChartRow({ holding }: { holding: Holding }) {
   const uploaded = useAppState().uploadedPrices[holding.ticker] ?? null;
@@ -28,65 +31,39 @@ export function HoldingChartRow({ holding }: { holding: Holding }) {
   const market = instrument ? MARKET.prices[instrument.id] : undefined;
 
   const recent = uploaded ? lastDays(uploaded.points, PERIOD_DAYS) : null;
-  const closes = recent ? recent.map((point) => point.close) : (market?.spark ?? []);
   const change = recent ? periodChange(recent) : (market?.change1y ?? null);
   const subtitle = uploaded ? "your prices" : instrument && market ? instrument.name : "no downloaded prices";
-
-  return (
-    <ChartRow title={holding.ticker} subtitle={subtitle} closes={closes} change={change}>
-      <HoldingChart holding={holding} historyId={market && instrument ? instrument.id : null} uploaded={uploaded?.points ?? null} />
-      {uploaded ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="text-xs text-muted">Prices from your file {uploaded.fileName}.</p>
-          {market && (
-            <Button size="sm" variant="ghost" onClick={() => setUploaded(null)}>
-              Use downloaded prices
-            </Button>
-          )}
-        </div>
-      ) : null}
-      {!market && (
-        <UploadPrices
-          ticker={holding.ticker}
-          onLoaded={(fileName, points) => setUploaded({ fileName, points })}
-        />
-      )}
-    </ChartRow>
-  );
-}
-
-function HoldingChart({
-  holding,
-  historyId,
-  uploaded,
-}: {
-  holding: Holding;
-  historyId: string | null;
-  uploaded: readonly PricePoint[] | null;
-}) {
-  const history = useHistory(uploaded ? null : historyId);
-  const points = uploaded ?? (history.status === "ready" ? history.points : null);
-  if (points) {
-    return (
-      <>
-        <PriceChart
-          points={points}
-          averageCost={averageCost(holding)}
-          label={`Daily closing prices of ${holding.ticker} with a line at your average cost`}
-        />
-        <Summary points={points} holding={holding} />
-      </>
+  const visual =
+    recent && recent.length > 1 ? (
+      <Sparkline closes={recent.map((point) => point.close)} rising={(change ?? 0) >= 0} />
+    ) : (
+      <YearStrip years={market?.stats?.years} />
     );
-  }
-  if (history.status === "loading") {
-    return <div className="h-64 animate-pulse rounded-lg bg-border/40" aria-label="Loading prices" />;
-  }
+
   return (
-    <p className="rounded-lg border border-border bg-background px-3 py-2 text-sm">
-      {historyId
-        ? "The price history could not be loaded. Reload the page to try again."
-        : `No downloaded prices for ${holding.ticker}. Upload a CSV with its daily prices to see a chart.`}
-    </p>
+    <ChartRow title={holding.ticker} subtitle={subtitle} visual={visual} change={change}>
+      {uploaded ? (
+        <>
+          <PriceChart points={uploaded.points} averageCost={averageCost(holding)} label={`Daily closing prices of ${holding.ticker} with a line at your average cost`} />
+          <Summary points={uploaded.points} holding={holding} />
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs text-muted">Prices from your file {uploaded.fileName}.</p>
+            {market && (
+              <Button size="sm" variant="ghost" onClick={() => setUploaded(null)}>
+                Use the downloaded figures
+              </Button>
+            )}
+          </div>
+        </>
+      ) : market ? (
+        <InstrumentFigures prices={market} averageCost={averageCost(holding)} />
+      ) : (
+        <p className="rounded-lg border border-border bg-background px-3 py-2 text-sm">
+          No downloaded prices for {holding.ticker}. Upload a CSV with its daily prices to see a chart.
+        </p>
+      )}
+      {!market && <UploadPrices ticker={holding.ticker} onLoaded={(fileName, points) => setUploaded({ fileName, points })} />}
+    </ChartRow>
   );
 }
 

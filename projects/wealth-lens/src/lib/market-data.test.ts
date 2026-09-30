@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import catalogue from "@/data/instruments.json";
 import { INDEX_TRACKERS, INSTRUMENTS, instrumentForHolding, latestPriceDate, MARKET } from "./market-data";
-import { decodeHistory, parseCatalogue, parsePricesFile } from "./market-format";
+import { parseCatalogue, parsePricesFile } from "./market-format";
 
 describe("curated instrument list", () => {
   it("has the three well-known ETFs, one per index, in EUR", () => {
@@ -56,7 +56,6 @@ describe("parsePricesFile", () => {
     date: "2026-09-29",
     close: 113.96,
     change1y: 0.12,
-    spark: [100, 113.96],
     growth: { from: "2019-05-14", perYear: 0.14 },
   };
 
@@ -71,8 +70,13 @@ describe("parsePricesFile", () => {
   });
 
   it("reads missing optional figures as null", () => {
-    const file = parsePricesFile({ prices: { VUAA: { ...good, change1y: "x", growth: {}, spark: [1, -2, "3"] } } });
-    expect(file.prices.VUAA).toMatchObject({ change1y: null, growth: null, spark: [1] });
+    const file = parsePricesFile({ prices: { VUAA: { ...good, change1y: "x", growth: {} } } });
+    expect(file.prices.VUAA).toMatchObject({ change1y: null, growth: null });
+  });
+
+  it("never keeps the closes an older file carried: only figures are used", () => {
+    const file = parsePricesFile({ prices: { VUAA: { ...good, spark: [100, 113.96] } } });
+    expect(file.prices.VUAA).not.toHaveProperty("spark");
   });
 
   it("turns anything unreadable into an empty file", () => {
@@ -88,15 +92,5 @@ describe("parsePricesFile", () => {
   it("reads the committed file", () => {
     expect(MARKET.version).toBe(1);
     for (const id of Object.keys(MARKET.prices)) expect(INSTRUMENTS.some((item) => item.id === id)).toBe(true);
-  });
-});
-
-describe("decodeHistory", () => {
-  it("rejects malformed files", () => {
-    expect(decodeHistory(null)).toBeNull();
-    expect(decodeHistory({ start: "2026-09-24", days: [0, 1], closes: [1] })).toBeNull();
-    expect(decodeHistory({ start: "2026-09-24", days: [0, -1], closes: [1, 2] })).toBeNull();
-    expect(decodeHistory({ start: "2026-09-24", days: [0, 1], closes: [1, 0] })).toBeNull();
-    expect(decodeHistory({ start: "2026-09-24", days: [], closes: [] })).toBeNull();
   });
 });

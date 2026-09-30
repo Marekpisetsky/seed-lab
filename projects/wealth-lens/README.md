@@ -247,7 +247,7 @@ mano desde las cifras publicadas (ver "Retornos").
   un activo y con una mezcla 60/40, se quedó por debajo de 15 ms; el más lento es la primera vez que se aplica
   *Grows 1% more / less*, porque sus simulaciones son nuevas.
   Los hallazgos y las compras se calculan al abrirlos; los parsers de CSV,
-  la librería de gráficos y el historial de precios, al usarlos.
+  la librería de gráficos, al usarla (solo para los precios que sube el usuario).
 - Sin credenciales de bróker ni APIs de pago — respeta la regla de
   costo cero de seed-lab.
 
@@ -359,21 +359,20 @@ Orden sugerido de implementación técnica (no de prioridad de producto):
 La app nunca llama a Yahoo ni a Stooq. Un job diario
 (`scripts/update-prices.mts`, Node 22 sin dependencias) descarga 10 años
 de cierres diarios de la lista curada `src/data/instruments.json` —Yahoo
-Finance primero (dos hosts) y Stooq como respaldo— y escribe:
-
-- `public/data/prices.json`: último cierre, fecha, moneda, mini-serie de
-  12 meses, cambio a 1 año y crecimiento pasado por instrumento (una línea
-  por instrumento), y cómo se mueve (`scripts/lib/stats.mts`, desde los
-  cierres guardados): volatilidad anual (desviación de los retornos
-  logarítmicos diarios × √ retornos al año), el cambio de cada año natural
-  completo y, al final, las correlaciones de retornos semanales entre
-  instrumentos (semanales porque las bolsas cierran a horas distintas;
-  `null` con menos de 3 años compartidos). Se importa en el build, así que
-  va dentro de la página. `npm run update-stats` recalcula esas cifras
-  desde el historial guardado, sin descargar nada.
-- `public/data/history/<ID>.json`: la serie diaria compacta (desplazamiento
-  en días + cierre), que la app pide a su propio sitio solo al abrir el
-  gráfico.
+Finance primero (dos hosts) y Stooq como respaldo— y publica **solo cifras
+derivadas** en `public/data/prices.json`, nunca los cierres (las
+condiciones de esas fuentes no permiten redistribuir sus datos; ver
+"Licencias de los datos"): último cierre, fecha y moneda, cambio a 1 año,
+crecimiento anual pasado, peor caída desde un máximo y cómo se mueve
+(`scripts/lib/stats.mts`, calculado de la descarga del día): volatilidad
+anual (desviación de los retornos logarítmicos diarios × √ retornos al
+año), el cambio de cada año natural completo y, al final, las
+correlaciones de retornos semanales entre instrumentos (semanales porque
+las bolsas cierran a horas distintas; `null` con menos de 3 años
+compartidos; si un instrumento falla ese día, se conservan las del día
+anterior). Una línea por instrumento. Se importa en el build, así que va
+dentro de la página. La carpeta `public/data/history/` que publicaban
+versiones anteriores la borra el primer run tras el merge.
 
 Si un instrumento falla o la respuesta es rara (otra moneda, datos viejos,
 un salto ×5), se conserva lo anterior; los archivos solo se reescriben si
@@ -546,15 +545,14 @@ la limpieza de datos antiguos, el importador de Trading 212, el parser de
 CSV, el precio automático desde datos estáticos o CSV (nunca pisa un
 precio escrito a mano), el Monte Carlo (semilla fija) y el costo de vida.
 Del job de precios: parsers de Yahoo y Stooq contra fixtures, la cadena
-de respaldo con `fetch` simulado, la codificación del historial (ida y
-vuelta con el lector de la app) y las reglas para conservar los datos
-anteriores.
+de respaldo con `fetch` simulado, las cifras derivadas (y que ningún
+cierre se publica) y las reglas para conservar los datos anteriores.
 
 ## Mapa del código
 
 ```
 scripts/
-  update-prices.mts            job diario: descarga y escribe public/data/ (--stats-only: solo cifras)
+  update-prices.mts            job diario: descarga y escribe public/data/prices.json (solo cifras derivadas)
   update-prices.workflow.yml   el GitHub Action (copiar a .github/workflows/)
   lib/                         yahoo, stooq, cadena de respaldo, armado de archivos
 public/data/                   precios generados por el job (no editar a mano)
@@ -568,7 +566,7 @@ src/
                                lo que cambió); money/explainers.tsx (los "i"
                                plegados) y plain-language.test.ts (sin jerga)
   hooks/                       use-app (estado), use-calculation (todo por cambio),
-                               use-plan, use-history (historial al abrir un gráfico)
+                               use-plan
   lib/
     app-store.ts        estado en memoria (plan, holdings, CSV subidos)
     calculator.ts       resultado, metas, tabla de países, compras, tope de 60 años

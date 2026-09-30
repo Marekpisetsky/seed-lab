@@ -4,14 +4,14 @@ import { Check } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useAppState } from "@/hooks/use-app";
-import { useHistory } from "@/hooks/use-history";
 import { setInvestment } from "@/lib/app-store";
-import { formatDayMonth, formatMoney, formatPercent, formatRate } from "@/lib/format";
+import { formatRate } from "@/lib/format";
 import { INDEXES } from "@/lib/indexes";
 import { MARKET, type Instrument } from "@/lib/market-data";
 import type { Investment } from "@/lib/types";
 import { ChartRow } from "./chart-row";
-import { PriceChart } from "./price-chart";
+import { InstrumentFigures } from "./instrument-figures";
+import { YearStrip } from "./year-changes";
 
 /** The investment a plan gets from an ETF: the index it tracks. A single stock is never projected on its own. */
 export function investmentFor(instrument: Instrument): Investment | null {
@@ -23,11 +23,11 @@ function isChosen(current: Investment, instrument: Instrument): boolean {
   return investment !== null && JSON.stringify(current) === JSON.stringify(investment);
 }
 
-/** One ETF or stock of the curated list; opening it shows its chart and lets the plan use it. */
+/** One ETF or stock of the curated list; opening it shows its figures and lets the plan use it. */
 export function InstrumentRow({ instrument }: { instrument: Instrument }) {
   const prices = MARKET.prices[instrument.id];
   return (
-    <ChartRow title={instrument.id} subtitle={instrument.name} closes={prices?.spark ?? []} change={prices?.change1y ?? null}>
+    <ChartRow title={instrument.id} subtitle={instrument.name} visual={<YearStrip years={prices?.stats?.years} />} change={prices?.change1y ?? null}>
       <InstrumentPanel instrument={instrument} />
     </ChartRow>
   );
@@ -36,7 +36,6 @@ export function InstrumentRow({ instrument }: { instrument: Instrument }) {
 function InstrumentPanel({ instrument }: { instrument: Instrument }) {
   const { plan } = useAppState();
   const prices = MARKET.prices[instrument.id];
-  const history = useHistory(prices ? instrument.id : null);
   const index = INDEXES[instrument.index];
   const period = `${index.firstYear}–${index.lastYear}`;
   const priceOnly = index.priceOnly ? ", price only, without dividends" : "";
@@ -45,29 +44,7 @@ function InstrumentPanel({ instrument }: { instrument: Instrument }) {
 
   return (
     <>
-      {history.status === "ready" ? (
-        <PriceChart points={history.points} averageCost={null} label={`Daily closing prices of ${instrument.name}`} />
-      ) : history.status === "loading" ? (
-        <div className="h-64 animate-pulse rounded-lg bg-border/40" aria-label="Loading prices" />
-      ) : (
-        <p className="rounded-lg border border-border bg-background px-3 py-2 text-sm">
-          {prices ? "The price history could not be loaded. Reload the page to try again." : "No prices downloaded yet."}
-        </p>
-      )}
-
-      {prices && (
-        <p className="text-sm">
-          Last close {formatMoney(prices.close, prices.currency)} on {formatDayMonth(prices.date)}.
-          {prices.growth && (
-            <>
-              {" "}
-              Grew <strong className="tabular-nums">{formatPercent(prices.growth.perYear, { signed: true })} a year</strong>{" "}
-              since {prices.growth.from.slice(0, 4)} (price, before inflation):{" "}
-              <em className="not-italic text-muted">past, not a forecast.</em>
-            </>
-          )}
-        </p>
-      )}
+      {prices ? <InstrumentFigures prices={prices} /> : <p className="rounded-lg border border-border bg-background px-3 py-2 text-sm">No prices downloaded yet.</p>}
 
       <p className="text-sm text-muted">
         {instrument.kind === "etf"

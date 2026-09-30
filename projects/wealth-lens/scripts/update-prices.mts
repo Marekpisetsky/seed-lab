@@ -3,42 +3,34 @@
  * (or by hand: `npm run update-prices`, which needs internet access).
  *
  * For every instrument in src/data/instruments.json it downloads ten years of
- * daily closes (Yahoo Finance, Stooq as fallback) and writes:
- *   public/data/prices.json          latest close, 12-month line, past growth
- *   public/data/history/<ID>.json    the full daily series, for the chart
- *
- * Each entry of prices.json also carries how the instrument moves (volatility,
- * calendar-year changes) and the file ends with the weekly correlations
- * between instruments, all worked out from the stored histories
- * (scripts/lib/stats.mts). `--stats-only` recomputes just those from the
- * committed histories, without downloading anything.
+ * daily closes (Yahoo Finance, Stooq as fallback) and writes only figures
+ * worked out from them into public/data/prices.json: the latest close, the
+ * change over a year, past growth, the worst fall, how much it moves
+ * (volatility, calendar-year changes; scripts/lib/stats.mts) and, at the end,
+ * the weekly correlations between instruments. The closes themselves are
+ * never published: the sources' terms do not allow passing their data on.
+ * A folder of daily histories left by earlier versions is removed.
  *
  * When an instrument cannot be downloaded, or the download looks wrong, its
- * previous data is kept untouched. Files are only rewritten when their
- * content changes, so a day without new closes leaves the tree clean and the
- * Action commits nothing. The job never fails because a source is down: it
- * logs a warning and exits 0.
+ * previous figures are kept untouched (and the correlations, unless every
+ * instrument came in fresh). The file is only rewritten when its content
+ * changes, so a day without new closes leaves the tree clean and the Action
+ * commits nothing. The job never fails because a source is down: it logs a
+ * warning and exits 0.
  */
 
-import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
-import { decodeHistory, parseCatalogue, parsePricesFile, type Instrument, type InstrumentPrices, type InstrumentStats } from "../src/lib/market-format.ts";
+import { readFile, rm, writeFile } from "node:fs/promises";
+import { parseCatalogue, parsePricesFile, type InstrumentPrices } from "../src/lib/market-format.ts";
 import { downloadInstrument } from "./lib/download.mts";
-import {
-  checkSeries,
-  encodeHistory,
-  formatPricesFile,
-  HISTORY_YEARS,
-  lastYears,
-  nextPricesFile,
-  summarize,
-} from "./lib/price-files.mts";
+import { checkSeries, formatPricesFile, HISTORY_YEARS, lastYears, nextPricesFile, summarize } from "./lib/price-files.mts";
 import type { PricePoint } from "./lib/series.mts";
 import { instrumentStats, weeklyCorrelations } from "./lib/stats.mts";
 
 const root = new URL("../", import.meta.url);
 const catalogueUrl = new URL("src/data/instruments.json", root);
 const pricesUrl = new URL("public/data/prices.json", root);
-const historyDir = new URL("public/data/history/", root);
+/** Daily histories an earlier version published; removed on the next run. */
+const oldHistoryDir = new URL("public/data/history/", root);
 
 async function readJson(url: URL): Promise<unknown> {
   try {
@@ -58,26 +50,15 @@ async function writeIfChanged(url: URL, content: string): Promise<boolean> {
 
 const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/** Every instrument's stored daily closes, as the app would read them. */
-async function storedHistories(instruments: readonly Instrument[]): Promise<Record<string, PricePoint[]>> {
-  const histories: Record<string, PricePoint[]> = {};
-  for (const { id } of instruments) {
-    const points = decodeHistory(await readJson(new URL(`${encodeURIComponent(id)}.json`, historyDir)));
-    if (points) histories[id] = points;
-  }
-  return histories;
-}
-
 async function main(): Promise<void> {
   const { instruments } = parseCatalogue(await readJson(catalogueUrl));
   const previous = parsePricesFile(await readJson(pricesUrl));
   const now = new Date();
   const fresh: Record<string, InstrumentPrices> = {};
+  const series: Record<string, PricePoint[]> = {};
   const report: string[] = [];
-  const statsOnly = process.argv.includes("--stats-only");
-  await mkdir(historyDir, { recursive: true });
 
-  for (const instrument of statsOnly ? [] : instruments) {
+  for (const instrument of instruments) {
     const download = await downloadInstrument(instrument);
     if (!download.ok) {
       console.log(`::warning::${instrument.id}: kept previous data. ${download.errors.join(" | ")}`);
@@ -89,9 +70,8 @@ async function main(): Promise<void> {
         console.log(`::warning::${instrument.id}: kept previous data, ${download.source} answer rejected: ${check.reason}`);
         report.push(`| ${instrument.id} | kept previous | ${download.source}: ${check.reason} |`);
       } else {
-        fresh[instrument.id] = summarize(instrument, points, download.source);
-        const history = `${JSON.stringify(encodeHistory(instrument, points))}\n`;
-        await writeIfChanged(new URL(`${encodeURIComponent(instrument.id)}.json`, historyDir), history);
+        fresh[instrument.id] = { ...summarize(instrument, points, download.source), stats: instrumentStats(points) };
+        series[instrument.id] = points;
         const { date, close } = fresh[instrument.id];
         console.log(`${instrument.id}: ${points.length} closes from ${download.source}, last ${close} on ${date}`);
         report.push(`| ${instrument.id} | ${close} ${instrument.currency} on ${date} | ${download.source}, ${points.length} closes |`);
@@ -100,24 +80,18 @@ async function main(): Promise<void> {
     await pause(500); // be gentle with free sources
   }
 
-  // History of instruments no longer in the list.
-  const known = new Set(instruments.map((instrument) => `${encodeURIComponent(instrument.id)}.json`));
-  for (const name of await readdir(historyDir)) {
-    if (name.endsWith(".json") && !known.has(name)) await rm(new URL(name, historyDir));
-  }
+  await rm(oldHistoryDir, { recursive: true, force: true });
 
-  const histories = await storedHistories(instruments);
-  const stats: Record<string, InstrumentStats | null> = {};
-  for (const [id, points] of Object.entries(histories)) stats[id] = instrumentStats(points);
-  const { file, changed } = nextPricesFile(instruments, previous, fresh, now, stats, weeklyCorrelations(histories));
+  // Correlations need every series of the day; with one missing, yesterday's are kept.
+  const everyone = instruments.every((instrument) => instrument.id in series);
+  const correlations = everyone ? weeklyCorrelations(series) : (previous.correlations ?? null);
+  const { file, changed } = nextPricesFile(instruments, previous, fresh, now, correlations);
   if (changed) await writeIfChanged(pricesUrl, formatPricesFile(file));
 
   const updated = Object.keys(fresh).length;
-  const summary = statsOnly
-    ? `Stats recomputed from ${Object.keys(histories).length} stored histories; prices file ${changed ? "updated" : "unchanged"}.`
-    : `${updated} of ${instruments.length} instruments downloaded; prices file ${changed ? "updated" : "unchanged"}.`;
+  const summary = `${updated} of ${instruments.length} instruments downloaded; prices file ${changed ? "updated" : "unchanged"}.`;
   console.log(summary);
-  if (updated === 0 && !statsOnly) console.log("::warning::No instrument could be downloaded; the previous data is kept.");
+  if (updated === 0) console.log("::warning::No instrument could be downloaded; the previous data is kept.");
   if (process.env.GITHUB_STEP_SUMMARY) {
     const table = ["| Instrument | Result | Details |", "| --- | --- | --- |", ...report].join("\n");
     await writeFile(process.env.GITHUB_STEP_SUMMARY, `### Prices\n\n${summary}\n\n${table}\n`, { flag: "a" });
