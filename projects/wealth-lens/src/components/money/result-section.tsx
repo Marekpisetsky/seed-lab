@@ -6,6 +6,8 @@ import { updatePlan } from "@/lib/app-store";
 import { formatSmallEur } from "@/lib/calculator";
 import { yearsLasting } from "@/lib/monte-carlo";
 import { formatEur, formatPercent, formatRate } from "@/lib/format";
+import { beforeInflationText, growsText, moneyLine } from "@/lib/growth";
+import { toNominal } from "@/lib/investment";
 import type { MixFigures } from "@/lib/projections";
 import type { WorstYear } from "@/lib/mix";
 
@@ -53,15 +55,16 @@ function noSwingsText(rate: number, realReturn: number): string {
 
 /**
  * The result, in places that never move: what the money is worth after the
- * chosen years, what it could pay a month (at a withdrawal rate the user
- * picks, with how often it lasted in history), and how much of it was put
- * in versus added by growth.
+ * chosen years and how much it grows, in plain words, and what it could pay
+ * a month (at a withdrawal rate the user picks, with how often it lasted in
+ * history).
  */
 export function ResultSection({ bundle }: { bundle: CalculationBundle }) {
   const { calc, rates, state } = bundle;
   const { result, investment } = calc;
   const selected = rates.find((entry) => Math.abs(entry.rate - state.plan.withdrawalRate) < 1e-9) ?? rates[0];
   const years = `${result.years} year${result.years === 1 ? "" : "s"}`;
+  const money = moneyLine(result, investment.volatility > 0);
   return (
     <section aria-label="Result" className="space-y-3" aria-live="polite">
       <div>
@@ -71,6 +74,21 @@ export function ResultSection({ bundle }: { bundle: CalculationBundle }) {
         <p className="text-4xl font-bold tracking-tight tabular-nums sm:text-5xl">
           <Changed value={formatEur(result.total)} />
         </p>
+        <p className="mt-1 text-xl font-semibold tabular-nums sm:text-2xl">
+          <Changed value={growsText(investment.realReturn)} />{" "}
+          <span className="text-sm font-normal text-muted">
+            <Changed value={beforeInflationText(toNominal(investment.realReturn, investment.inflation))} />
+          </span>
+        </p>
+        {money && (
+          <p className="mt-1 text-sm tabular-nums">
+            <Changed value={money} />
+            <span className="text-muted">
+              {" "}
+              · put in <Changed value={formatEur(result.putIn)} />
+            </span>
+          </p>
+        )}
       </div>
       <div className="space-y-2">
         <p className="text-lg">
@@ -109,11 +127,6 @@ export function ResultSection({ bundle }: { bundle: CalculationBundle }) {
           </span>
         </div>
       </div>
-      <p className="text-sm text-muted tabular-nums">
-        You put in <Changed value={formatEur(result.putIn)} className="text-foreground" /> ·{" "}
-        {result.growth >= 0 ? "growth added " : investment.volatility > 0 ? "the market took " : "inflation took "}
-        <Changed value={formatEur(Math.abs(result.growth))} className="text-foreground" />
-      </p>
       {bundle.mix && <MixFiguresView figures={bundle.mix} years={result.years} />}
     </section>
   );
