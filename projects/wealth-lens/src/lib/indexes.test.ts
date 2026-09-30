@@ -92,47 +92,53 @@ describe("INDEXES", () => {
 });
 
 /**
- * The files keep the published nominal figures next to inflation. Recomputing
- * the real return from them catches a hand edit that breaks the link.
+ * The files publish only the real returns worked out from each source's
+ * figures, with the inflation used (the sources' terms do not allow
+ * redistributing their own figures). Putting inflation back and compounding
+ * must give well-known published results, which catches a hand edit that
+ * breaks the link.
  */
+const beforeInflation = (years: readonly { year: number; inflation: number; realReturn: number }[]) =>
+  new Map(years.map((entry) => [entry.year, (1 + entry.realReturn) * (1 + entry.inflation) - 1]));
+const compounded = (returns: ReadonlyMap<number, number>, from: number, to: number) => {
+  let growth = 1;
+  for (let year = from; year <= to; year++) growth *= 1 + (returns.get(year) ?? NaN);
+  return growth - 1;
+};
+
 describe("MSCI World dataset", () => {
-  it("derives each real return from the nominal return and inflation", () => {
-    for (const { year, nominalReturn, inflation, realReturn } of msciWorld.years) {
-      expect(realReturn, String(year)).toBeCloseTo((1 + nominalReturn) / (1 + inflation) - 1, 4);
-    }
+  it("publishes only real returns and the inflation behind them", () => {
+    for (const entry of msciWorld.years) expect(Object.keys(entry).sort()).toEqual(["inflation", "realReturn", "year"]);
   });
 
   it("compounds to the annualized returns printed on MSCI's factsheets", () => {
-    const nominal = new Map(msciWorld.years.map((entry) => [entry.year, entry.nominalReturn]));
+    const nominal = beforeInflation(msciWorld.years);
     const annualized = (from: number, to: number) => {
       const returns = [];
       for (let year = from; year <= to; year++) returns.push(nominal.get(year) ?? NaN);
       return annualizedReturn(returns);
     };
-    // Factsheet of December 2024: 3, 5 and 10 years.
-    expect(annualized(2022, 2024)).toBeCloseTo(0.0634, 4);
-    expect(annualized(2020, 2024)).toBeCloseTo(0.1117, 4);
-    expect(annualized(2015, 2024)).toBeCloseTo(0.0995, 4);
+    // Factsheet of December 2024: 3, 5 and 10 years (to about 0.01 point: real returns keep 4 decimals).
+    expect(annualized(2022, 2024)).toBeCloseTo(0.0634, 3);
+    expect(annualized(2020, 2024)).toBeCloseTo(0.1117, 3);
+    expect(annualized(2015, 2024)).toBeCloseTo(0.0995, 3);
     // Factsheets of December 2019 and December 2014.
-    expect(annualized(2010, 2019)).toBeCloseTo(0.0947, 4);
-    expect(annualized(2005, 2014)).toBeCloseTo(0.0603, 4);
+    expect(annualized(2010, 2019)).toBeCloseTo(0.0947, 3);
+    expect(annualized(2005, 2014)).toBeCloseTo(0.0603, 3);
   });
 });
 
 describe("Nasdaq-100 dataset", () => {
-  it("derives each real return from consecutive year-end closes and inflation", () => {
-    let previous = nasdaq100.baseYear.close;
-    for (const { year, close, inflation, realReturn } of nasdaq100.years) {
-      expect(realReturn, String(year)).toBeCloseTo(close / previous / (1 + inflation) - 1, 4);
-      previous = close;
-    }
+  it("publishes only real returns and the inflation behind them", () => {
+    for (const entry of nasdaq100.years) expect(Object.keys(entry).sort()).toEqual(["inflation", "realReturn", "year"]);
   });
 
-  it("matches well-known closes", () => {
-    const close = new Map(nasdaq100.years.map((entry) => [entry.year, entry.close]));
-    expect(close.get(1999)).toBe(3707.83); // dot-com peak year
-    expect(close.get(2002)).toBe(984.36);
-    expect(close.get(2024)).toBe(21012.17);
+  it("matches well-known moves of the index", () => {
+    const nominal = beforeInflation(nasdaq100.years);
+    // The dot-com crash: from the 1999 close to the 2002 close, about −73.5%.
+    expect(compounded(nominal, 2000, 2002)).toBeCloseTo(-0.7345, 2);
+    // 2008: about −41.9%.
+    expect(nominal.get(2008)).toBeCloseTo(-0.4189, 3);
   });
 });
 
@@ -197,12 +203,8 @@ describe("Euro government bonds dataset", () => {
 });
 
 describe("Gold dataset", () => {
-  it("derives each real return from consecutive year-end prices and US inflation", () => {
-    let previous = gold.baseYear.price;
-    for (const { year, price, inflation, realReturn } of gold.years) {
-      expect(realReturn, String(year)).toBeCloseTo(price / previous / (1 + inflation) - 1, 4);
-      previous = price;
-    }
+  it("publishes only real returns and the inflation behind them", () => {
+    for (const entry of gold.years) expect(Object.keys(entry).sort()).toEqual(["inflation", "realReturn", "year"]);
   });
 
   it("deflates by the same US inflation as the index datasets", () => {
@@ -211,13 +213,14 @@ describe("Gold dataset", () => {
   });
 
   it("shows gold's long flat spells and big swings", () => {
-    const price = new Map(gold.years.map((entry) => [entry.year, entry.price]));
+    const nominal = beforeInflation(gold.years);
     const real = new Map(gold.years.map((entry) => [entry.year, entry.realReturn]));
-    // Under its 1987 price for about twenty years, then the 2013 crash.
-    expect(price.get(1999)).toBeLessThan(gold.baseYear.price);
-    expect(price.get(2005)).toBeGreaterThan(gold.baseYear.price);
+    // Under its end-of-1987 price for about twenty years, then the 2013 crash.
+    expect(compounded(nominal, 1988, 1999)).toBeLessThan(0);
+    expect(compounded(nominal, 1988, 2005)).toBeGreaterThan(0);
     expect(real.get(2013)).toBeLessThan(-0.25);
-    expect(price.get(2011)).toBe(1531);
+    // From the end of 2000 to the end of 2011, the price rose about 5.6 times (×5.62).
+    expect(compounded(nominal, 2001, 2011)).toBeCloseTo(4.615, 1);
   });
 });
 
