@@ -1,14 +1,8 @@
-import type { Metadata } from "next";
-import { PageHeader } from "@/components/page-header";
-import { StocksModule } from "@/components/stocks/stocks-module";
+import { StocksPage } from "@/components/pages/stocks-page";
+import { pageMetadata } from "@/i18n/metadata";
 
-export const metadata: Metadata = { title: "My stocks" };
+export const metadata = pageMetadata("en", "stocks");
 
-export default function StocksPage() {
-  return (
-    <>
-      <PageHeader title="My stocks" question="What do I hold, and how did it move?" />
-      <StocksModule />
-    </>
-  );
+export default function Page() {
+  return <StocksPage locale="en" />;
 }

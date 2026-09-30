@@ -2,31 +2,29 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useI18n } from "@/components/i18n";
+import { localePath, PAGES, splitPath } from "@/i18n/locales";
 
-const LINKS = [
-  { href: "/", label: "My money" },
-  { href: "/stocks", label: "My stocks" },
-] as const;
+const LINKS = ["money", "stocks"] as const;
 
 export function MainNav() {
-  const pathname = usePathname();
+  const { locale, m } = useI18n();
+  const { path } = splitPath(usePathname() ?? "/");
   return (
-    <nav aria-label="Modules" className="-mx-1 overflow-x-auto">
+    <nav aria-label={m.site.nav.label} className="-mx-1 overflow-x-auto">
       <ul className="flex gap-1 text-sm whitespace-nowrap">
-        {LINKS.map(({ href, label }) => {
-          const active = pathname === href;
+        {LINKS.map((page) => {
+          const active = path === PAGES[page];
           return (
-            <li key={href}>
+            <li key={page}>
               <Link
-                href={href}
+                href={localePath(PAGES[page], locale)}
                 aria-current={active ? "page" : undefined}
                 className={`flex min-h-11 items-center rounded-md px-3 py-2 font-medium transition-colors ${
-                  active
-                    ? "bg-foreground text-background"
-                    : "text-muted hover:bg-border/60 hover:text-foreground"
+                  active ? "bg-foreground text-background" : "text-muted hover:bg-border/60 hover:text-foreground"
                 }`}
               >
-                {label}
+                {m.site.nav[page]}
               </Link>
             </li>
           );
