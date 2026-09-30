@@ -1,27 +1,33 @@
 /**
- * The three indexes a plan can grow with, each backed by a static dataset of
- * historical annual real (after inflation) returns in src/data/:
+ * The assets a plan can be projected with that have a long history, each
+ * backed by a static dataset of annual real (after inflation) returns in
+ * src/data/:
  *
  * - S&P 500: total return, 1928 onwards (Robert Shiller, Yale).
  * - MSCI World: net total return in USD, 1988 onwards (MSCI factsheets).
  * - Nasdaq-100: price return in USD, 1986 onwards (Nasdaq year-end closes).
+ * - Euro government bonds: a 10-year German Bund, total return in euros
+ *   after German inflation, 1988 onwards (OECD / Bundesbank yields, Destatis).
+ * - Gold: in USD after US inflation, 1988 onwards (LBMA year-end prices).
  *
- * The three are compared over the same years: the longest period every
+ * All five are compared over the same years: the longest period every
  * dataset covers (COMMON_PERIOD). Those years feed the expected return
- * (their average), the Monte Carlo simulation, the portfolio mix and every
- * lever, so an index never looks better just because its data starts in a
- * better decade. The whole datasets stay available as `dataset`.
+ * (their average), the Monte Carlo simulation, the mixes and every lever,
+ * so an asset never looks better just because its data starts in a better
+ * decade. The whole datasets stay available as `dataset`.
  *
  * Datasets are validated when the module loads, so a bad edit fails loudly
  * instead of rendering NaN.
  */
 
+import euroBonds from "@/data/euro-bonds-real-returns.json";
+import gold from "@/data/gold-real-returns.json";
 import msciWorld from "@/data/msci-world-real-returns.json";
 import nasdaq100 from "@/data/nasdaq100-real-returns.json";
 import sp500 from "@/data/sp500-real-returns.json";
-import type { IndexId } from "./index-ids";
+import { INDEX_IDS, SERIES_IDS, type IndexId, type SeriesId } from "./index-ids";
 
-export { INDEX_IDS, isIndexId, type IndexId } from "./index-ids";
+export { INDEX_IDS, isIndexId, isSeriesId, SERIES_IDS, type IndexId, type SeriesId } from "./index-ids";
 
 export interface AnnualReturn {
   year: number;
@@ -38,10 +44,10 @@ export interface ReturnSeries {
 }
 
 export interface IndexInfo extends ReturnSeries {
-  id: IndexId;
+  id: SeriesId;
   /** Short name for the UI: "S&P 500". */
   name: string;
-  /** The well-known European ETF that tracks it, as shown in the UI. */
+  /** A well-known European ETF (or ETC, for gold) that holds it, as shown in the UI. */
   etf: string;
   /** What the returns include, in plain words. */
   returnType: string;
@@ -107,6 +113,18 @@ const DATASETS: readonly [IndexDescription, Dataset][] = [
     { id: "nasdaq100", name: "Nasdaq-100", etf: "EQQQ", returnType: "price only, without dividends", priceOnly: true, sourceName: "Nasdaq" },
     nasdaq100,
   ],
+  [
+    {
+      id: "bonds",
+      name: "Euro government bonds",
+      etf: "IEGA",
+      returnType: "10-year German Bund, interest reinvested",
+      priceOnly: false,
+      sourceName: "OECD, Bundesbank and Destatis",
+    },
+    euroBonds,
+  ],
+  [{ id: "gold", name: "Gold", etf: "4GLD", returnType: "price in US dollars", priceOnly: false, sourceName: "LBMA" }, gold],
 ];
 
 /** The longest run of years every dataset covers. */
@@ -119,10 +137,11 @@ export function commonPeriod(all: readonly (readonly AnnualReturn[])[]): [number
 
 const parsed = DATASETS.map(([info, data]) => [info, parseReturns(info.name, data)] as const);
 
-/** The years every index is compared over, e.g. [1988, 2022]. */
+/** The years every asset is compared over, e.g. [1988, 2022]. */
 export const COMMON_PERIOD: readonly [number, number] = commonPeriod(parsed.map(([, years]) => years));
 
-export const INDEXES = Object.fromEntries(
+/** Every asset with a history: the stock indexes, euro government bonds and gold. */
+export const SERIES = Object.fromEntries(
   parsed.map(([info, years]) => [
     info.id,
     {
@@ -131,7 +150,12 @@ export const INDEXES = Object.fromEntries(
       dataset: series(years),
     },
   ]),
-) as Readonly<Record<IndexId, IndexInfo>>;
+) as Readonly<Record<SeriesId, IndexInfo>>;
+
+if (SERIES_IDS.some((id) => !SERIES[id])) throw new Error("A series has no dataset");
+
+/** The three stock indexes. */
+export const INDEXES = Object.fromEntries(INDEX_IDS.map((id) => [id, SERIES[id]])) as Readonly<Record<IndexId, IndexInfo>>;
 
 /**
  * US consumer prices, December to December, by year (from the Nasdaq-100

@@ -63,7 +63,7 @@ function Swatch({ color, dashed = false }: { color: string; dashed?: boolean }) 
   );
 }
 
-function Plot({ points, band, startYear }: { points: YearPoint[]; band: WealthPercentiles; startYear: number }) {
+function Plot({ points, band, startYear, swings }: { points: YearPoint[]; band: WealthPercentiles; startYear: number; swings: boolean }) {
   const [hover, setHover] = useState<number | null>(null);
   const [frame, width] = useWidth<HTMLDivElement>(320);
   const clip = useId();
@@ -71,7 +71,7 @@ function Plot({ points, band, startYear }: { points: YearPoint[]; band: WealthPe
   const end = points[years];
   const projected = Math.max(...points.map((point) => point.total), ...points.map((point) => point.putIn));
   const upper = Math.max(...band.p90);
-  const top = Math.max(projected, Math.max(...band.p10), Math.min(upper, projected * MAX_OVER_PROJECTION)) * 1.04 || 1;
+  const top = (swings ? Math.max(projected, Math.max(...band.p10), Math.min(upper, projected * MAX_OVER_PROJECTION)) : projected) * 1.04 || 1;
   const clipped = upper > top;
   // Never narrower than a readable plot, even while the frame is being measured.
   const plotRight = Math.max(PAD.left + 40, width - PAD.right);
@@ -107,7 +107,7 @@ function Plot({ points, band, startYear }: { points: YearPoint[]; band: WealthPe
         viewBox={`0 0 ${width} ${HEIGHT}`}
         className="block touch-pan-y select-none"
         role="img"
-        aria-label={`Year by year to ${startYear + years}: ${formatEur(end.putIn)} put in, ${formatEur(growthEnd)} of growth. 8 in 10 histories ended between ${formatEur(band.p10[years])} and ${formatEur(band.p90[years])}.`}
+        aria-label={`Year by year to ${startYear + years}: ${formatEur(end.putIn)} put in, ${formatEur(growthEnd)} of growth.${swings ? ` 8 in 10 simulations ended between ${formatEur(band.p10[years])} and ${formatEur(band.p90[years])}.` : ""}`}
         onPointerMove={(event) => {
           const box = event.currentTarget.getBoundingClientRect();
           const year = Math.round(((event.clientX - box.left - PAD.left) / (plotRight - PAD.left)) * years);
@@ -134,10 +134,12 @@ function Plot({ points, band, startYear }: { points: YearPoint[]; band: WealthPe
         <path d={growthArea} fill="var(--chart-growth)" />
         {/* A 2px gap in the surface colour between the two areas. */}
         <path d={line(putInTop)} fill="none" stroke="var(--card)" strokeWidth={2} strokeLinejoin="round" />
-        <g clipPath={`url(#${clip})`} fill="none" stroke="var(--foreground)" strokeOpacity={0.55} strokeWidth={1.5} strokeDasharray="4 3">
-          <path d={line(band.p10)} />
-          <path d={line(band.p90)} />
-        </g>
+        {swings && (
+          <g clipPath={`url(#${clip})`} fill="none" stroke="var(--foreground)" strokeOpacity={0.55} strokeWidth={1.5} strokeDasharray="4 3">
+            <path d={line(band.p10)} />
+            <path d={line(band.p90)} />
+          </g>
+        )}
         {labelsFit && (
           <>
             <text x={plotRight + 6} y={growthLabelY + FONT / 3} fontSize={FONT} fill="var(--foreground)">
@@ -174,12 +176,14 @@ function Plot({ points, band, startYear }: { points: YearPoint[]; band: WealthPe
           <p>
             <Swatch color="var(--chart-growth)" /> Growth {formatEur(shown.total - Math.min(shown.putIn, shown.total))}
           </p>
-          <p className="text-muted">
-            8 in 10: {formatEur(band.p10[shown.year])} – {formatEur(band.p90[shown.year])}
-          </p>
+          {swings && (
+            <p className="text-muted">
+              8 in 10: {formatEur(band.p10[shown.year])} – {formatEur(band.p90[shown.year])}
+            </p>
+          )}
         </div>
       )}
-      {clipped && (
+      {swings && clipped && (
         <p className="mt-1 text-xs text-muted">
           The upper dashed line leaves the chart: 1 in 10 histories ended above {compactEur(band.p90[years])}.
         </p>
@@ -188,7 +192,7 @@ function Plot({ points, band, startYear }: { points: YearPoint[]; band: WealthPe
   );
 }
 
-function YearTable({ points, band, startYear }: { points: YearPoint[]; band: WealthPercentiles | null; startYear: number }) {
+function YearTable({ points, band, startYear, swings }: { points: YearPoint[]; band: WealthPercentiles | null; startYear: number; swings: boolean }) {
   const [open, setOpen] = useState(false);
   return (
     <details className="text-xs" onToggle={(event) => setOpen(event.currentTarget.open)}>
@@ -210,9 +214,11 @@ function YearTable({ points, band, startYear }: { points: YearPoint[]; band: Wea
               <th scope="col" className="py-1 font-medium">
                 Total
               </th>
-              <th scope="col" className="py-1 pl-2 font-medium">
-                8 in 10
-              </th>
+              {swings && (
+                <th scope="col" className="py-1 pl-2 font-medium">
+                  8 in 10
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -224,9 +230,11 @@ function YearTable({ points, band, startYear }: { points: YearPoint[]; band: Wea
                 <td>{formatEur(point.putIn)}</td>
                 <td>{formatEur(point.total - Math.min(point.putIn, point.total))}</td>
                 <td>{formatEur(point.total)}</td>
-                <td className="pl-2 text-muted">
-                  {compactEur(band.p10[point.year])}–{compactEur(band.p90[point.year])}
-                </td>
+                {swings && (
+                  <td className="pl-2 text-muted">
+                    {compactEur(band.p10[point.year])}–{compactEur(band.p90[point.year])}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -264,12 +272,16 @@ export function GrowthChart({ bundle }: { bundle: CalculationBundle }) {
         <span>
           <Swatch color="var(--chart-growth)" /> Growth
         </span>
-        <span>
-          <Swatch color="var(--foreground)" dashed /> 8 in 10 {investment.modelShort} ended between the lines
-        </span>
+        {investment.volatility > 0 ? (
+          <span>
+            <Swatch color="var(--foreground)" dashed /> 8 in 10 {investment.modelShort} ended between the lines
+          </span>
+        ) : (
+          <span>No swings: every year grows the same</span>
+        )}
       </figcaption>
-      {band ? <Plot points={points} band={band} startYear={startYear} /> : <div style={{ height: HEIGHT }} aria-hidden="true" />}
-      <YearTable points={points} band={band} startYear={startYear} />
+      {band ? <Plot points={points} band={band} startYear={startYear} swings={investment.volatility > 0} /> : <div style={{ height: HEIGHT }} aria-hidden="true" />}
+      <YearTable points={points} band={band} startYear={startYear} swings={investment.volatility > 0} />
     </figure>
   );
 }

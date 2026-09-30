@@ -16,10 +16,10 @@ import { costOfLiving, countryInSentence, type CountryCost } from "./cost-of-liv
 import { addMonths } from "./dates";
 import { futureValueWithContributions, monthlyWithdrawal, monthsToGoal, requiredCapital, requiredMonthlyContribution } from "./finance";
 import { formatDuration, formatEur, formatMonthYear, formatRate } from "./format";
-import { dividendNote, periodText, resolveInvestment, type ResolvedInvestment } from "./investment";
+import { dividendNote, resolveInvestment, type ResolvedInvestment } from "./investment";
 import { startingCapital, type StartingCapital } from "./plan";
 import { successRatesFor } from "./projections";
-import type { Goal, Holding, Investment } from "./types";
+import type { AssumptionOverrides, Goal, Holding, Investment } from "./types";
 
 /** What the calculator reads from the plan. */
 export interface CalculatorPlan {
@@ -29,6 +29,8 @@ export interface CalculatorPlan {
   /** How many years ahead the result looks (1-60). */
   years: number;
   withdrawalRate: number;
+  pricesOf: string;
+  assumptions: AssumptionOverrides;
   goals: readonly Goal[];
 }
 
@@ -111,13 +113,15 @@ export function resultOf(scenario: Scenario, investment: ResolvedInvestment, yea
   const months = years * 12;
   const total = valueAt(scenario, months);
   const putIn = scenario.capital + scenario.monthly * months;
+  // With the other rates the result offers, in one pass: they are asked for next.
+  const rates = [...new Set([...WITHDRAWAL_CHOICES, scenario.withdrawalRate])];
   return {
     years,
     total,
     putIn,
     growth: total - putIn,
     income: monthlyWithdrawal(Math.max(0, total), scenario.withdrawalRate),
-    lasted: successRatesFor(investment, [scenario.withdrawalRate])[0],
+    lasted: successRatesFor(investment, rates)[rates.indexOf(scenario.withdrawalRate)],
   };
 }
 
@@ -307,7 +311,7 @@ function shapeOf(goal: Goal, items: ReadonlyMap<string, PricedItem>, countries: 
 
 function growthLine({ realReturn }: Scenario, investment: ResolvedInvestment): string {
   const dividends = dividendNote(investment);
-  return `growing ${formatRate(realReturn)} a year after inflation (${investment.growthSource}, ${periodText(investment)} average${dividends ? `; ${dividends}` : ""})`;
+  return `growing ${formatRate(realReturn)} a year after inflation (${investment.growthText}${dividends ? `; ${dividends}` : ""})`;
 }
 
 /** Each goal against the same plan, in the order the user added them. */
@@ -388,7 +392,7 @@ export interface Calculation {
 /** `holdings` must already carry their prices (lib/auto-price.ts). */
 export function calculate(plan: CalculatorPlan, holdings: readonly Holding[], today: Date): Calculation {
   const capital = startingCapital(holdings, plan.invested);
-  const investment = resolveInvestment(plan.investment, holdings);
+  const investment = resolveInvestment(plan.investment, holdings, plan);
   const scenario: Scenario = {
     capital: capital.amount,
     monthly: plan.monthlyContribution,

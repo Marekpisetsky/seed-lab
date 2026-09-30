@@ -4,6 +4,7 @@ import { Changed } from "@/components/ui/changed";
 import type { CalculationBundle } from "@/hooks/use-calculation";
 import { updatePlan } from "@/lib/app-store";
 import { formatSmallEur } from "@/lib/calculator";
+import { yearsLasting } from "@/lib/monte-carlo";
 import { formatEur, formatPercent, formatRate } from "@/lib/format";
 import type { MixFigures } from "@/lib/projections";
 import type { WorstYear } from "@/lib/mix";
@@ -40,6 +41,14 @@ function MixFiguresView({ figures, years }: { figures: MixFigures; years: number
       </div>
     </dl>
   );
+}
+
+/** With no swings the answer is certain: how long the withdrawals last at this growth. */
+function noSwingsText(rate: number, realReturn: number): string {
+  const years = yearsLasting(rate, realReturn);
+  if (!Number.isFinite(years)) return `with no swings and ${formatRate(realReturn)} a year after inflation, it never runs out`;
+  const whole = Math.floor(years);
+  return `with no swings and ${formatRate(realReturn)} a year after inflation, it runs out after ${whole} year${whole === 1 ? "" : "s"}`;
 }
 
 /**
@@ -89,14 +98,20 @@ export function ResultSection({ bundle }: { bundle: CalculationBundle }) {
             })}
           </div>
           <span>
-            taken out a year: lasted 30 years in <Changed value={formatPercent(selected.lasted, { decimals: 0 })} /> of{" "}
-            <Changed value={investment.modelText} />
+            taken out a year:{" "}
+            {investment.volatility > 0 ? (
+              <>
+                lasted 30 years in <Changed value={formatPercent(selected.lasted, { decimals: 0 })} /> of <Changed value={investment.modelText} />
+              </>
+            ) : (
+              <Changed value={noSwingsText(selected.rate, investment.realReturn)} />
+            )}
           </span>
         </div>
       </div>
       <p className="text-sm text-muted tabular-nums">
         You put in <Changed value={formatEur(result.putIn)} className="text-foreground" /> ·{" "}
-        {result.growth >= 0 ? "growth added " : "the market took "}
+        {result.growth >= 0 ? "growth added " : investment.volatility > 0 ? "the market took " : "inflation took "}
         <Changed value={formatEur(Math.abs(result.growth))} className="text-foreground" />
       </p>
       {bundle.mix && <MixFiguresView figures={bundle.mix} years={result.years} />}

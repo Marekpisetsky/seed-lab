@@ -6,10 +6,10 @@
 
 import { INITIAL_STATE, type AppState } from "./app-store";
 import { toIsoDate } from "./dates";
-import { isRecord, parseHoldings, parsePlan, parseUploadedPrices, type UploadedPrices } from "./validation";
+import { isRecord, parseHoldings, parsePlan, parseUploadedPrices, type Notices, type UploadedPrices } from "./validation";
 
 export const DATA_FILE_KIND = "wealth-lens-data";
-export const DATA_FILE_VERSION = 5;
+export const DATA_FILE_VERSION = 6;
 
 export function dataFileName(savedAt: Date): string {
   return `wealth-lens-${toIsoDate(savedAt)}.json`;
@@ -27,10 +27,11 @@ export function serializeState(state: AppState, savedAt: Date): string {
   return `${JSON.stringify(file, null, 2)}\n`;
 }
 
-export type DataFileResult = { ok: true; state: AppState } | { ok: false; error: string };
+/** A loaded file, with one-line notices for what it had that the app no longer does (a single stock projected on its own). */
+export type DataFileResult = { ok: true; state: AppState; notices: Notices } | { ok: false; error: string };
 
 /**
- * Reads a file made by "Download my data" (versions 1 to 5); anything invalid
+ * Reads a file made by "Download my data" (versions 1 to 6); anything invalid
  * inside falls back field by field.
  */
 export function parseDataFile(text: string): DataFileResult {
@@ -53,12 +54,15 @@ export function parseDataFile(text: string): DataFileResult {
       if (prices) uploadedPrices[ticker] = prices;
     }
   }
+  const holdings = parseHoldings(json.holdings) ?? [];
+  const notices: Notices = [];
   return {
     ok: true,
     state: {
-      plan: parsePlan(json.plan) ?? INITIAL_STATE.plan,
-      holdings: parseHoldings(json.holdings) ?? [],
+      plan: parsePlan(json.plan, holdings, notices) ?? INITIAL_STATE.plan,
+      holdings,
       uploadedPrices,
     },
+    notices,
   };
 }

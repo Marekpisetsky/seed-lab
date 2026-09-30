@@ -41,6 +41,7 @@ export function DownloadDataButton() {
 export function LoadDataButton({ variant = "secondary" }: { variant?: "secondary" | "ghost" }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notices, setNotices] = useState<string[]>([]);
 
   const load = async (file: File) => {
     let text: string;
@@ -53,9 +54,11 @@ export function LoadDataButton({ variant = "secondary" }: { variant?: "secondary
     const result = parseDataFile(text);
     if (!result.ok) {
       setError(result.error);
+      setNotices([]);
       return;
     }
     setError(null);
+    setNotices(result.notices);
     replaceState(result.state);
   };
 
@@ -81,6 +84,11 @@ export function LoadDataButton({ variant = "secondary" }: { variant?: "secondary
           {error}
         </span>
       )}
+      {notices.map((notice) => (
+        <span key={notice} role="status" className="max-w-md text-xs text-muted">
+          {notice}
+        </span>
+      ))}
     </span>
   );
 }

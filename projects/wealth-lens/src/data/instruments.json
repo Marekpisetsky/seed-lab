@@ -20,6 +20,8 @@
   "trackers": {
     "sp500": ["VUAA", "VUSA", "CSPX", "SXR8", "IUSA", "SPYL", "SPY", "VOO", "IVV"],
     "world": ["VWCE", "VWRL", "VWRA", "VGWL", "IWDA", "SWDA", "EUNL", "URTH", "XDWD", "SSAC"],
-    "nasdaq100": ["EQQQ", "EQAC", "CNDX", "SXRV", "QQQ", "QQQM"]
+    "nasdaq100": ["EQQQ", "EQAC", "CNDX", "SXRV", "QQQ", "QQQM"],
+    "bonds": ["IEGA", "EUNH", "XGLE", "VETY", "VGEA"],
+    "gold": ["4GLD", "EGLN", "SGLN", "IGLN", "PHAU", "SGLD", "8PSG", "GLD", "IAU"]
   }
 }

@@ -14,7 +14,7 @@ import { parseIsoDate } from "./dates";
 import { futureValueWithContributions, monthsToGoal, requiredMonthlyContribution } from "./finance";
 import { INDEXES } from "./indexes";
 import { cachedSuccessRate } from "./simulation";
-import type { Goal } from "./types";
+import { STANDARD_ASSUMPTIONS, type Goal } from "./types";
 
 const today = parseIsoDate("2026-09-29");
 const r = INDEXES.sp500.averageReturn;
@@ -22,9 +22,11 @@ const r = INDEXES.sp500.averageReturn;
 const plan = (overrides: Partial<CalculatorPlan> = {}): CalculatorPlan => ({
   invested: 1000,
   monthlyContribution: 200,
-  investment: { kind: "index", index: "sp500" },
+  investment: { kind: "asset", asset: "sp500" },
   years: 20,
   withdrawalRate: 0.04,
+  pricesOf: "NL",
+  assumptions: STANDARD_ASSUMPTIONS,
   goals: [],
   ...overrides,
 });
@@ -37,13 +39,13 @@ describe("the result", () => {
     expect(result.putIn).toBe(1000 + 200 * 240);
     expect(result.growth).toBeCloseTo(total - 49_000, 6);
     expect(result.income).toBeCloseTo((total * 0.04) / 12, 6);
-    expect(result.lasted).toBe(cachedSuccessRate("index:sp500", INDEXES.sp500.years.map((y) => y.realReturn), 0.04));
+    expect(result.lasted).toBe(cachedSuccessRate("asset:sp500", INDEXES.sp500.years.map((y) => y.realReturn), 0.04));
   });
 
   it("follows the years, the investment and the withdrawal rate", () => {
     const base = calculate(plan(), [], today).result;
     expect(calculate(plan({ years: 30 }), [], today).result.total).toBeGreaterThan(base.total);
-    expect(calculate(plan({ investment: { kind: "index", index: "world" } }), [], today).result.total).toBeLessThan(base.total);
+    expect(calculate(plan({ investment: { kind: "asset", asset: "world" } }), [], today).result.total).toBeLessThan(base.total);
     const three = calculate(plan({ withdrawalRate: 0.03 }), [], today).result;
     expect(three.total).toBe(base.total);
     expect(three.income).toBeCloseTo((base.total * 0.03) / 12, 6);

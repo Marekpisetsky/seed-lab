@@ -1,20 +1,25 @@
 "use client";
 
 import { ChevronDown, Minus, Plus } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Changed } from "@/components/ui/changed";
 import { SettledNumberInput } from "@/components/ui/form";
 import { useAppState } from "@/hooks/use-app";
-import { updatePlan } from "@/lib/app-store";
+import { offeredRates } from "@/hooks/use-calculation";
+import { setInvestment, updatePlan } from "@/lib/app-store";
+import type { Basis } from "@/lib/assumptions";
 import { priceHoldings } from "@/lib/auto-price";
 import { formatEur } from "@/lib/format";
-import { assumptionLines, portfolioMix, resolveInvestment } from "@/lib/investment";
-import { indexRef, stockRef } from "@/lib/mix";
+import { resolveInvestment } from "@/lib/investment";
 import { startingCapital } from "@/lib/plan";
+import { portfolioAllocation } from "@/lib/portfolio";
+import { warmUp } from "@/lib/warm";
 import { MONTHLY_STEP, stepValue, YEARS_STEP } from "@/lib/step";
 import type { Investment } from "@/lib/types";
+import { AssumptionsPanel } from "./assumptions-panel";
 import { InvestmentPicker, type PickChoice } from "./investment-picker";
 import { MixEditor } from "./mix-editor";
+import { PortfolioEditor } from "./portfolio-editor";
 import { MAX_AMOUNT, MAX_YEARS_AHEAD, MIN_YEARS } from "@/lib/validation";
 
 const labelClass = "block text-xs font-medium text-muted";
@@ -85,32 +90,21 @@ function Stepped({
   );
 }
 
-/** The picker's key for the plan's choice: "index:sp500", "stock:NVDA", "portfolio", "mix". */
-function keyOf(investment: Investment): string | null {
-  switch (investment.kind) {
-    case "index":
-      return indexRef(investment.index);
-    case "stock":
-      return stockRef(investment.id);
-    case "portfolio":
-    case "mix":
-      return investment.kind;
-    case "custom":
-      return null;
-  }
+/** The picker's key for the plan's choice: "asset:sp500", "portfolio", "mix", "custom". */
+function keyOf(investment: Investment): string {
+  return investment.kind === "asset" ? `asset:${investment.asset}` : investment.kind;
 }
 
 /** A choice from the picker as the plan's investment; "A mix…" starts from what is chosen now. */
 function investmentFor(choice: PickChoice, current: Investment): Investment {
   switch (choice.kind) {
-    case "index":
-    case "stock":
+    case "asset":
     case "portfolio":
+    case "custom":
       return choice;
     case "mix": {
       if (current.kind === "mix") return current;
-      const start = current.kind === "index" || current.kind === "stock" ? keyOf(current) : null;
-      return { kind: "mix", parts: [{ ref: start ?? indexRef("sp500"), weight: 100 }], rebalance: false };
+      return { kind: "mix", parts: [{ asset: current.kind === "asset" ? current.asset : "sp500", weight: 100 }], rebalance: false };
     }
   }
 }
@@ -128,14 +122,22 @@ export function CalculatorCard() {
   const { plan, holdings, uploadedPrices } = useAppState();
   const priced = useMemo(() => priceHoldings(holdings, uploadedPrices), [holdings, uploadedPrices]);
   const capital = startingCapital(priced, plan.invested);
-  const hasPortfolio = portfolioMix(priced).weights.length > 0;
-  const current = resolveInvestment(plan.investment, priced);
+  const hasPortfolio = portfolioAllocation(priced).entries.length > 0;
+  const current = resolveInvestment(plan.investment, priced, plan);
   const [picker, setPicker] = useState<{ mode: "choose" | "add"; top: number } | null>(null);
+  const [editing, setEditing] = useState(false);
+  // Once the user starts using the page, idle moments work out ahead what the next choice will need
+  // (not before: a page only looked at does no extra work).
+  useEffect(() => {
+    const start = () => warmUp(offeredRates(plan.withdrawalRate));
+    const events = ["pointerdown", "keydown", "focusin"] as const;
+    events.forEach((name) => window.addEventListener(name, start, { once: true, passive: true }));
+    return () => events.forEach((name) => window.removeEventListener(name, start));
+  }, [plan.withdrawalRate]);
+  const [basis, setBasis] = useState<Basis>(plan.assumptions.growth?.basis ?? "real");
   const close = useCallback(() => setPicker(null), []);
   const open = (mode: "choose" | "add", anchor: HTMLElement) => setPicker({ mode, top: anchor.offsetTop + anchor.offsetHeight + 4 });
   const mix = plan.investment.kind === "mix" ? plan.investment : null;
-  const shownName = mix ? `Mix of ${mix.parts.length}` : current.name;
-  const ticker = plan.investment.kind === "stock" ? plan.investment.id : null;
 
   return (
     <section aria-label="Calculator" className="relative grid grid-cols-2 gap-x-3 gap-y-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-4">
@@ -207,43 +209,36 @@ export function CalculatorCard() {
           className="flex w-full items-center justify-between gap-1 rounded-md border border-border bg-background px-2.5 py-2 text-left text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 sm:px-3"
         >
           <span id="invested-in-value" className="min-w-0 truncate">
-            <Changed value={shownName} />
-            {/* The ticker only where there is room for it. */}
-            {ticker && <span className="hidden text-muted sm:inline"> ({ticker})</span>}
+            <Changed value={current.name} />
           </span>
           <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted" />
         </button>
       </div>
       {mix && <MixEditor mix={mix} onAddPart={(anchor) => open("add", anchor)} />}
+      {current.investment.kind === "portfolio" && current.allocation && <PortfolioEditor allocation={current.allocation} model={current.model} />}
       {picker && (
         <InvestmentPicker
           top={picker.top}
           label={picker.mode === "add" ? "Add to the mix" : "Invested in"}
-          withdrawalRate={plan.withdrawalRate}
           selected={picker.mode === "add" ? null : keyOf(plan.investment)}
           hasPortfolio={picker.mode === "choose" && hasPortfolio}
-          holdingsCount={priced.length}
-          withMix={picker.mode === "choose"}
-          exclude={picker.mode === "add" && mix ? mix.parts.map((part) => part.ref) : EMPTY}
+          holdingsCount={portfolioAllocation(priced).entries.length}
+          onlyAssets={picker.mode === "add"}
+          exclude={picker.mode === "add" && mix ? mix.parts.map((part) => `asset:${part.asset}`) : EMPTY}
           onClose={close}
           onPick={(choice) => {
             if (picker.mode === "add" && mix) {
-              const ref = choice.kind === "index" ? indexRef(choice.index) : choice.kind === "stock" ? stockRef(choice.id) : null;
-              if (ref) updatePlan({ investment: { ...mix, parts: [...mix.parts, { ref, weight: 0 }] } });
+              if (choice.kind === "asset") setInvestment({ ...mix, parts: [...mix.parts, { asset: choice.asset, weight: 0 }] });
             } else {
-              updatePlan({ investment: investmentFor(choice, plan.investment) });
+              setInvestment(investmentFor(choice, plan.investment));
+              // Custom growth is only its figures: open them to be typed.
+              if (choice.kind === "custom") setEditing(true);
             }
             close();
           }}
         />
       )}
-      <div className="order-5 col-span-2 space-y-0.5 text-xs text-muted sm:order-6 sm:col-span-4">
-        {assumptionLines(current).map((line, index) => (
-          <p key={index}>
-            <Changed value={line} />
-          </p>
-        ))}
-      </div>
+      <AssumptionsPanel investment={current} assumptions={plan.assumptions} basis={basis} onBasis={setBasis} open={editing} onOpen={setEditing} />
     </section>
   );
 }

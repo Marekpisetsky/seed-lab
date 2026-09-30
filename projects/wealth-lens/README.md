@@ -29,22 +29,35 @@ son resultados en posiciones fijas, y las metas son opcionales. La app no
 supone nada sobre la vida del usuario: no pregunta país, ni si alquila o
 es propietario, ni qué quiere hacer con su dinero. Nada se guarda ni se
 envía, y la app no llama a ningún servicio mientras se usa. La lógica
-vive en funciones puras con unos 420 tests unitarios (Vitest). Todavía
-sin validar con uso propio sostenido.
+vive en funciones puras con unos 470 tests unitarios (Vitest). Todavía
+sin validar con uso propio sostenido. Solo se proyecta lo que tiene una
+historia larga y un rango conocido; nada se presenta como predecible, y
+todo supuesto viene relleno con un valor estándar documentado y se puede
+cambiar.
 
 - **My money — `/`**, de arriba abajo:
   1. **La calculadora**: una tarjeta con cuatro campos: *You have* (€),
      *You add each month* (€, con − / + de €50), *Invested in* y *For
      (years)* (1-60, con − / + de un año; los botones se aplican al
-     instante). *Invested in* abre la lista completa, agrupada y con
-     buscador por nombre o ticker: Indexes (S&P 500, World, Nasdaq-100),
-     Stocks (las 12 de `instruments.json`, con cuánto oscilan), My
-     portfolio (si hay holdings) y "A mix…" (ver abajo). Arranca con valores
-     reales editables (€1.000, €200, S&P 500, 20 años), así que hay
-     resultado desde el primer segundo. Se recalcula cuando el usuario
-     termina de escribir (500 ms sin teclear, al salir del campo o con
-     Enter), nunca con cada tecla; tras un cambio se marcan un momento
-     solo las cifras que cambiaron y nada cambia de sitio.
+     instante). *Invested in* abre la lista, agrupada y con buscador por
+     nombre o ticker de fondo: Indexes (S&P 500, World, Nasdaq-100), Bonds
+     (bonos gubernamentales de la zona euro), Gold ("Low long-term growth,
+     big swings: protection, not growth"), Savings (cuenta de ahorro),
+     Custom growth, My portfolio (si hay holdings) y "A mix…" (con
+     plantillas 100% stocks, 80/20 y 60/40). Las acciones sueltas no se
+     proyectan. Arranca con valores reales editables (€1.000, €200, S&P
+     500, 20 años), así que hay resultado desde el primer segundo. Se
+     recalcula cuando el usuario termina de escribir (500 ms sin teclear,
+     al salir del campo o con Enter), nunca con cada tecla; tras un cambio
+     se marcan un momento solo las cifras que cambiaron y nada cambia de
+     sitio. Debajo, los supuestos en una línea ("7.5% a year after
+     inflation · swings ±16% · 1988–2022") con **Edit**: crecimiento anual
+     (con conmutador *After inflation (real)* / *Before inflation
+     (nominal)*), oscilación e inflación, cada uno con su estándar al
+     lado, y *Prices of* (país, Países Bajos por defecto), que rellena la
+     inflación. Un cambio marca la línea como **Custom** y aparece *Reset to
+     standard*; un "i" plegado explica cómo usan las simulaciones esas
+     cifras.
   2. **El resultado**, siempre en el mismo sitio: "In 20 years you'll have
      €112,288" (grande); "It could pay you €374/month" con un selector
      pequeño de retiro (3/4/5 %) y cuántas historias aguantó 30 años
@@ -74,16 +87,21 @@ sin validar con uso propio sostenido.
      su fuente al tocarlas y un "+" para añadirlas a My goals).
 - **My stocks — `/stocks`** (antes Charts): ganancia, holdings (añadir,
   editar, importar CSV), cómo se movió cada uno, y los 3 ETFs (VUAA,
-  VWCE, EQQQ) y 12 acciones grandes con su gráfico, su pasado ("past, not
-  a forecast") y "Use as my investment". `/charts` y `/fire` redirigen.
+  VWCE, EQQQ) y 12 acciones grandes con su gráfico y su pasado ("past, not
+  a forecast"). Un ETF puede ser la inversión ("Use as my investment");
+  una acción no se proyecta sola, y su fila dice cómo cuenta en My
+  portfolio. `/charts` y `/fire` redirigen.
 
 Limitaciones conocidas: no convierte entre monedas (la meta, el ingreso
 y la cartera ponderada solo cuentan holdings en EUR); las ganancias
 realizadas (ventas) no se muestran; el costo de vida es por país (las
 ciudades varían mucho); Yahoo y Stooq son fuentes no
 oficiales que pueden fallar (el Action conserva los datos anteriores);
-los retornos de los índices están en dólares y se comparan en 1988–2022,
-porque el S&P 500 de Shiller llega a 2022; el Nasdaq-100 es solo precio.
+los retornos de los índices y el oro están en dólares (después de la
+inflación de EE. UU.) y los bonos en euros (después de la alemana), y todo
+se compara en 1988–2022, porque el S&P 500 de Shiller llega a 2022; el
+Nasdaq-100 es solo precio. Las series de bonos y oro se introdujeron a
+mano desde las cifras publicadas (ver "Retornos").
 
 ## Arquitectura
 
@@ -101,70 +119,88 @@ porque el S&P 500 de Shiller llega a 2022; el Nasdaq-100 es solo precio.
   estáticos del propio sitio (ver "Precios diarios"); los retornos de
   los índices y el costo de vida son JSON dentro del bundle.
 - Un solo plan (`Plan` en `src/lib/types.ts`): dos importes, la
-  inversión, los años, la tasa de retiro, la inflación y las metas (una
-  lista, vacía al empezar). `src/lib/calculator.ts` deriva de él todo lo
+  inversión, los años, la tasa de retiro, *Prices of*, lo que el usuario
+  cambió de los supuestos (crecimiento real o nominal, oscilación,
+  inflación; `null` = estándar) y las metas (una lista, vacía al empezar). `src/lib/calculator.ts` deriva de él todo lo
   que se ve (resultado, metas, tabla de países, compras) y
   `src/hooks/use-calculation.ts` lo calcula una vez por cambio para todas
   las secciones (medido como `performance.measure("wealth-lens:report")`:
-  0,3 ms por cambio con un índice; con una mezcla, menos de 16 ms incluso la
-  primera vez, porque al abrir la lista se precalculan en ratos libres las
-  tasas de éxito de cada acción y los sorteos de las mezclas). El archivo
-  de datos va por la versión 5 (las metas mensuales "income" de la 4 pasan
-  a *A monthly amount* con su nombre como etiqueta; la mezcla viaja en
-  el archivo) y lee las anteriores: la misión guardada (v3), la conexión
+  0,2-0,3 ms por cambio con un activo; 2-10 ms con una mezcla, cifras
+  propias o la cartera, ver "Velocidad"). El archivo de datos va por la
+  versión 6: lleva *Prices of*, los supuestos cambiados y, en cada holding,
+  a qué activo se asignó si el usuario lo cambió. Lee las anteriores: un
+  índice (v1-v5) es ese activo; una acción proyectada sola (v5) pasa a My
+  portfolio si el archivo la tiene, si no a su índice, y las acciones de
+  una mezcla cuentan como su índice, cada cambio con un aviso de una línea
+  bajo "Load my data"; un % propio pasa a Custom growth; una inflación
+  distinta del antiguo 2 % queda como inflación escrita. Las metas
+  mensuales "income" de la v4 pasan a *A monthly amount* con su nombre
+  como etiqueta; la misión guardada (v3), la conexión
   fijada (v2) o la meta en euros (v1) pasan a ser la primera meta de My
   goals, y los elementos propios las siguientes. "Stop working" se
   convierte en vivir en el país que aquella versión preguntaba, con
   vivienda si alquilaba; lo que no se puede decir sin suponer un país
   propio (4 días, media jornada, "la app elegía") se omite.
-- En qué crece el plan (`src/lib/investment.ts`):
-  - **Un índice**: su promedio real en el periodo común (ver abajo); el
-    Monte Carlo sortea sus años.
-  - **Una acción** (`src/lib/volatility.ts`): crece al promedio de su
-    índice de referencia, dicho en la línea de supuestos ("Growth:
-    Nasdaq-100 average … One stock's future can't be predicted."), pero
-    oscila como ella: los años del índice se estiran alrededor de su media
-    (en logaritmos) hasta tener la volatilidad de la acción, calculada de
-    sus cierres diarios. La media geométrica es la del índice, así que la
-    proyección y, para una suma invertida una vez, la mediana coinciden; la
-    banda se ensancha y la tasa de retiro dura menos (NVIDIA: 50 % al año
-    frente al 30 % de los años del Nasdaq-100; €10.000 a 20 años: misma
-    mediana, percentil 10 de €3.400 en vez de €11.100). Con aportes
-    mensuales la mediana simulada sube algo con la dispersión (los años
-    comprados barato pesan más: NVIDIA con €300/mes, un 15 % a 20 años);
-    la cifra principal, que es la proyección, es la misma. Con menos de 3 años de datos se toma el
-    doble de la volatilidad del índice (factor documentado en el código) y
-    la página lo dice. Su pasado se muestra aparte: "Past 10 years: +63% a
-    year (price, before inflation). Past, not a forecast.". Las etiquetas dicen el modelo exacto
-    ("simulations using Nasdaq-100 years scaled to NVIDIA's volatility").
+- En qué crece el plan (`src/lib/assets.ts`, `src/lib/investment.ts`).
+  Solo activos con historia larga y un rango conocido; los supuestos
+  estándar salen de los datos y siempre se pueden cambiar:
+  - **Un índice, bonos o el oro**: su crecimiento medio después de
+    inflación en 1988–2022 y su oscilación (desviación de los retornos
+    anuales en logaritmos); el Monte Carlo sortea sus años históricos.
+  - **Cuenta de ahorro**: un tipo típico de 1,5 % (cifra redonda para
+    cuentas de ahorro a la vista en euros en 2025–2026, por debajo del 2 %
+    de depósito del BCE desde junio de 2025; editable) menos la inflación
+    de *Prices of*: −0,5 % al año con la de Países Bajos. Sin oscilación:
+    el resultado dice cuántos años dura el retiro ("it runs out after 23
+    years") y el gráfico no dibuja banda.
   - **Una mezcla** (`src/lib/mix.ts`, documentado arriba del archivo y en
-    un "i" plegado): hasta 10 partes (índices y acciones) con % que suman
-    100, indicador del total, "Split evenly" y un conmutador *Let weights
-    drift* (por defecto) / *Rebalance every year*. Crecimiento: la media
-    ponderada de los índices de referencia. Incertidumbre: 1.000 caminos
-    de 60 años; cada año se sortea un año histórico común a los tres
-    índices (se mueven juntos como lo hicieron) y cada acción es su índice
-    × β más una parte propia, con su volatilidad y su correlación semanal
-    con el ETF del índice; dos acciones van juntas lo que fueron sus
-    precios semanales. Junto al resultado: "Range (8 in 10)" y "Worst
-    year in the data" (su peor año natural, reequilibrado cada enero, en
-    los años con datos de todas las partes, después de inflación), con las
-    mismas cifras del S&P 500 solo en pequeño. Ninguna optimización ni
-    sugerencia de pesos.
-  - **My portfolio**: una mezcla de los holdings por su valor en EUR, cada
-    acción de la lista como ella misma, los ETF por su índice.
-  - **Un % propio**: los altibajos del S&P 500 escalados a ese promedio.
+    un "i" plegado): hasta 10 de esos activos con % que suman 100,
+    indicador del total, "Split evenly", plantillas (100 % acciones,
+    80/20, 60/40: World y bonos euro, puntos de partida de manual, no
+    consejo) y *Let weights drift* / *Rebalance every year*. Crecimiento:
+    la media ponderada. Incertidumbre: 1.000 caminos de 60 años; cada año
+    se sortea un año histórico común a todos los activos (acciones, bonos y
+    oro se mueven juntos como lo hicieron; en 2022 cayeron acciones y
+    bonos a la vez). Junto al resultado: "Range (8 in 10)" y "Worst year
+    in the data", con las mismas cifras del S&P 500 solo, sobre los mismos
+    años. Ninguna optimización ni sugerencia de pesos.
+  - **My portfolio** (`src/lib/portfolio.ts`): "Simple projection: each
+    stock grows like its index. Stocks can't be predicted." Cada holding
+    en EUR crece como un activo: una acción de la lista, el índice de su
+    mercado (tecnológicas de EE. UU. el Nasdaq-100, otras de EE. UU. el
+    S&P 500, europeas World); un fondo, lo que tiene (índice, bonos, oro,
+    por `trackers`); otro ticker, World marcado como suposición. El
+    usuario lo cambia en la calculadora y queda guardado en el holding. Se
+    pondera por valor y se simula con el motor de mezclas; una acción de
+    la lista conserva sus propios altibajos (volatilidad de sus cierres
+    diarios, correlación semanal con el ETF de su índice).
+  - **Custom growth**: el % anual y la oscilación que escriba el usuario
+    (arranca en los del S&P 500), sin ningún activo detrás.
+  - **Supuestos cambiados**: con el crecimiento o la oscilación del
+    usuario la historia ya no los describe, así que cada año se sortea de
+    una normal en logaritmos, log(1 + r) ~ N(log(1 + g), σ²) (el año típico
+    crece exactamente g; `src/lib/normal.ts`, 2.000 cuantiles
+    equiespaciados); con oscilación 0, todos los años iguales. Cambiar solo
+    la inflación no toca las simulaciones: solo convierte nominal ↔ real.
+- **Inflación por país**: cada país de `cost-of-living.json` lleva una
+  inflación de referencia con su base y fecha (septiembre de 2026): el
+  objetivo de su banco central (el 2 % del BCE para los países del euro;
+  el centro del rango cuando es un rango), que es hacia donde convergen
+  las previsiones a largo plazo como las del FMI; Malasia y Marruecos, sin
+  objetivo numérico, llevan su media 2015–2024 aproximada.
 - Velocidad: las dos pantallas se prerenderizan con sus valores de
-  llegada (la calculadora con su resultado, la lista de acciones), así
-  que se ven antes de que corra el JavaScript. Las tasas de éxito de
-  3/4/5 % de cada índice están precalculadas (`src/lib/success-table.ts`,
-  un test las recalcula exactas), así que la primera pantalla no simula
-  nada; el gráfico calcula su banda (~7 ms) después de hidratar, en una
-  caja de la misma altura. Los hallazgos y las compras se calculan al
-  abrirlos. Los parsers de CSV se cargan al elegir un archivo, y la
-  librería de gráficos y el historial de precios al abrir un gráfico. El
-  Monte Carlo guarda las trayectorias aleatorias por historia (el saldo es
-  lineal en el capital y el aporte), así que teclear no vuelve a simular.
+  llegada, así que se ven antes de que corra el JavaScript. Las tasas de
+  éxito de 3/4/5 % de los cinco activos con historia están precalculadas
+  (`src/lib/success-table.ts`, un test las recalcula exactas). Los
+  retornos simulados de una mezcla se guardan por parte (cambiar un peso o
+  a qué crece un holding reutiliza el resto), la simulación de éxito
+  reutiliza los mismos índices sorteados para cualquier conjunto de
+  cifras propias, y en cuanto el usuario empieza a usar la página, en
+  ratos libres y en pasos de menos de 50 ms, se precalculan los sorteos,
+  los años simulados de cada activo y una primera pasada de una mezcla,
+  de una cartera con una acción y de cifras propias (`src/lib/warm.ts`).
+  Los hallazgos y las compras se calculan al abrirlos; los parsers de CSV,
+  la librería de gráficos y el historial de precios, al usarlos.
 - Sin credenciales de bróker ni APIs de pago — respeta la regla de
   costo cero de seed-lab.
 
@@ -204,7 +240,6 @@ años elegidos; los de "llegar" hablan de la primera meta cuando está a
 | Inflación | 5+ años y un resultado de €1.000 o más | lo que mostrará la cuenta en euros de ese año (la app cuenta en euros de hoy) |
 | Coste de esperar | 2+ años y empezar un año más tarde cuesta ≥ €500 y ≥ 2 % | € de menos al final |
 | Comisiones | 5+ años y la diferencia ≥ €1.000 | fondo al 1 % vs al 0,2 % |
-| Pasado de una acción | se invierte en una acción | su crecimiento pasado vs su índice |
 | Duplicación | crecimiento ≥ 2 % al año | cada cuántos años se duplica |
 
 **Compras** (`src/data/connections.json` + `src/lib/connections.ts`): 19
@@ -328,12 +363,13 @@ A mano en local (necesita salida a internet): `npm run update-prices`.
 - `currency`: moneda en la que cotiza ese listado (si Yahoo informa otra,
   el job lo rechaza).
 - `kind` + `index`: un ETF indica el índice que sigue; una acción, el
-  índice más cercano con el que se proyecta (`sp500`, `world` o `nasdaq100`).
+  índice de su mercado, con el que crece en My portfolio (`sp500`,
+  `world` o `nasdaq100`). Una acción nunca se proyecta sola.
 
 Los tests (`src/lib/market-data.test.ts`) validan la lista; el próximo
-run del Action descarga el nuevo instrumento. Para que la cartera
-ponderada reconozca otro ETF sin descargar sus precios, basta con añadir
-su ticker a `trackers` en el mismo archivo.
+run del Action descarga el nuevo instrumento. Para que My portfolio
+reconozca otro fondo sin descargar sus precios, basta con añadir su
+ticker a `trackers` en el mismo archivo (índices, `bonds` o `gold`).
 
 **Retornos de los índices** (`src/data/*-real-returns.json`, con fuente y
 fecha): S&P 500 1928–2022 (Robert Shiller, retorno total real), MSCI World
@@ -345,16 +381,37 @@ y se verificaron contra los retornos anualizados a 3/5/10 años de las
 fichas de MSCI y contra los % anuales publicados; los tests recalculan
 cada retorno real desde las cifras nominales guardadas.
 
-**Periodo común.** Los tres índices se comparan sobre los mismos años, el
-periodo más largo que cubren los tres: hoy **1988–2022** (35 años;
+**Bonos y oro** (introducidos a mano desde las cifras publicadas: sus
+fuentes no se podían descargar desde el entorno que los compiló; cada
+archivo guarda las cifras de origen y los tests recalculan cada año):
+
+- `euro-bonds-real-returns.json`, **bonos gubernamentales de la zona
+  euro**, 1988–2024: un Bund alemán a 10 años, la referencia de la zona.
+  Retorno total por el método de vencimiento constante (el de Shiller y
+  Damodaran para el Tesoro de EE. UU.): se compra a la par al rendimiento
+  medio de diciembre y se valora un año después, con 9 años por delante,
+  al rendimiento del diciembre siguiente, más el cupón. Rendimientos de la
+  OCDE (serie IRLTLT01DEM156N, datos del Bundesbank); inflación alemana de
+  diciembre a diciembre (Destatis; Alemania Occidental hasta 1991). Las
+  medias de diciembre suavizan el cierre del año (2022: −19,8 % nominal
+  aquí, unos −22 % de cierre a cierre).
+- `gold-real-returns.json`, **oro**, 1988–2024: el precio LBMA de la
+  última fijación de cada año en dólares (publicado por la LBMA y tabulado
+  por el World Gold Council), después de la misma inflación de EE. UU. que
+  los índices. Un año en que la fijación de la mañana y la de la tarde
+  difieren puede desviarse un 1 %.
+
+
+**Periodo común.** Los cinco activos se comparan sobre los mismos años, el
+periodo más largo que cubren todos: hoy **1988–2022** (35 años;
 `COMMON_PERIOD` en `src/lib/indexes.ts`, calculado de los datos). Esas
-rentabilidades alimentan todo: palancas, proyecciones, cartera
-ponderada, % propio y Monte Carlo, y la app muestra el periodo junto a
-cada cifra. Promedio real anual en 1988–2022: S&P 500 7,5 %, World
-4,5 %, Nasdaq-100 9,9 % (solo precio: la tarjeta dice "no dividends";
-los dividendos sumarían aproximadamente un 1 % anual). Los datasets
-completos (1928–2022, 1988–2024, 1986–2024) se conservan y se validan
-igual. Para alargar el periodo hace falta el S&P 500 de 2023 en adelante
+rentabilidades alimentan todo: palancas, proyecciones, mezclas, cartera
+y Monte Carlo, y la app muestra el periodo junto a cada cifra. Promedio
+real anual y oscilación en 1988–2022: S&P 500 7,5 % (±16 %), World 4,5 %,
+Nasdaq-100 9,9 % (solo precio: la tarjeta lo dice; los dividendos
+sumarían aproximadamente un 1 % anual), bonos euro 2,5 % (±8 %; peor año
+2022, −26 % después de inflación) y oro 1,1 % (±14 %; peor año 2013). Los
+datasets completos se conservan y se validan igual. Para alargar el periodo hace falta el S&P 500 de 2023 en adelante
 con el mismo método (enero a enero, de los datos de Shiller).
 
 ## Cómo correrlo
@@ -397,10 +454,18 @@ ingreso lo paga, filas por defecto), las metas (cada tipo, varias,
 independientes, orden estable al añadir y quitar, tope de 60 años con el
 aporte para 30), las compras, el motor de hallazgos (cada regla: cuándo
 aparece, cuándo no y su número, con y sin metas), las tasas de éxito
-precalculadas (recalculadas exactas), el plan v4 y la conversión de
-archivos v1, v2 y v3 a metas, la ponderación de la cartera por índice,
-los datasets de índices (cada retorno real recalculado; MSCI contra sus
-fichas), el archivo de datos (ida y vuelta, archivos dañados o ajenos),
+precalculadas (recalculadas exactas), el plan v6 y la conversión de
+archivos v1 a v5 (metas; una acción proyectada sola que pasa a My
+portfolio o a su índice con su aviso; un % propio y una inflación), los
+datasets (cada retorno real recalculado desde las cifras de origen: MSCI
+contra sus fichas, bonos desde los rendimientos y el IPC, oro desde los
+precios LBMA; la inflación de referencia de cada país), los supuestos
+editables (real/nominal con la inflación de cada país, oscilación, solo
+inflación, reset, Custom growth, la normal: mediana y dispersión), las
+plantillas 60/40 y 80/20, las mezclas con bonos, oro y ahorro (el mismo
+año sorteado para todos, peor año 2022 para 60/40, efecto de
+diversificar), la asignación de holdings a activos, el archivo de datos
+(ida y vuelta, archivos dañados o ajenos),
 la limpieza de datos antiguos, el importador de Trading 212, el parser de
 CSV, el precio automático desde datos estáticos o CSV (nunca pisa un
 precio escrito a mano), el Monte Carlo (semilla fija) y el costo de vida.
@@ -420,8 +485,9 @@ public/data/                   precios generados por el job (no editar a mano)
 src/
   app/                         rutas: / (My money), /stocks (My stocks);
                                /charts y /fire redirigen
-  components/                  money/ (calculadora, resultado, gráfico, metas,
-                               países, hallazgos, compras), stocks/, charts/,
+  components/                  money/ (calculadora, selector, supuestos, mezcla,
+                               cartera, resultado, gráfico, metas, países,
+                               hallazgos, compras), stocks/, charts/,
                                portfolio/ (holdings, CSV), ui/ (changed: marca
                                lo que cambió)
   hooks/                       use-app (estado), use-calculation (todo por cambio),
@@ -433,13 +499,18 @@ src/
     findings.ts         "What you should know": una regla por hallazgo
     connections.ts      la lista de compras, con fuentes
     simulation.ts       bandas de Monte Carlo y cachés de simulación
-    success-table.ts    tasas de éxito de 3/4/5 % precalculadas por índice
-    volatility.ts       una acción: el crecimiento de su índice, su propia volatilidad
+    success-table.ts    tasas de éxito de 3/4/5 % precalculadas por activo
+    assets.ts           lo que se puede proyectar: índices, bonos, oro, ahorro
+    investment.ts       supuestos estándar y cambiados: crecimiento, oscilación, simulación
+    assumptions.ts      la línea de supuestos y lo que muestra el panel Edit
+    normal.ts           años sorteados de una normal para cifras propias
+    portfolio.ts        a qué activo crece cada holding, ponderado por valor
     mix.ts              mezclas con pesos: modelo conjunto, deriva/reequilibrio, peor año
-    projections.ts      una sola entrada a bandas y tasas de éxito, sea índice, acción o mezcla
+    volatility.ts       la volatilidad propia de una acción (en My portfolio)
+    projections.ts      una sola entrada a bandas y tasas de éxito
+    warm.ts             lo que se precalcula en ratos libres
     step.ts             los botones − / + (pasos de €50 y de un año)
-    investment.ts       en qué crece el plan: índice, cartera ponderada, acción, % propio
-    indexes.ts          datasets de retornos reales de los 3 índices
+    indexes.ts          datasets de retornos reales: 3 índices, bonos euro, oro
     market-data.ts      lista curada + precios estáticos (formato en market-format.ts)
     auto-price.ts       precio actual de un holding desde datos estáticos o CSV
     data-file.ts        "Download my data" / "Load my data"
@@ -452,7 +523,8 @@ src/
     instruments.json            lista curada de ETFs y acciones
     sp500-real-returns.json     S&P 500 (Shiller)
     msci-world-real-returns.json, nasdaq100-real-returns.json
-    cost-of-living.json         dataset curado (30 países, EUR, con/sin alquiler)
+    euro-bonds-real-returns.json, gold-real-returns.json
+    cost-of-living.json         dataset curado (30 países, EUR, con/sin alquiler, inflación de referencia)
     connections.json            las compras, con fuente y fecha
 ```
 

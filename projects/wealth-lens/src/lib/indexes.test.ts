@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import euroBonds from "@/data/euro-bonds-real-returns.json";
+import gold from "@/data/gold-real-returns.json";
 import msciWorld from "@/data/msci-world-real-returns.json";
 import nasdaq100 from "@/data/nasdaq100-real-returns.json";
-import { annualizedReturn, COMMON_PERIOD, commonPeriod, INDEXES, INDEX_IDS, parseReturns } from "./indexes";
+import { annualizedReturn, COMMON_PERIOD, commonPeriod, INDEXES, INDEX_IDS, parseReturns, SERIES, SERIES_IDS } from "./indexes";
 
 describe("annualizedReturn", () => {
   it("is the constant yearly return that compounds to the same result", () => {
@@ -131,6 +133,91 @@ describe("Nasdaq-100 dataset", () => {
     expect(close.get(1999)).toBe(3707.83); // dot-com peak year
     expect(close.get(2002)).toBe(984.36);
     expect(close.get(2024)).toBe(21012.17);
+  });
+});
+
+describe("SERIES: the other assets with a history", () => {
+  it("has euro government bonds and gold beside the three indexes, over the same years", () => {
+    expect(SERIES_IDS).toEqual(["sp500", "world", "nasdaq100", "bonds", "gold"]);
+    for (const id of SERIES_IDS) {
+      expect([SERIES[id].firstYear, SERIES[id].lastYear], id).toEqual([1988, 2022]);
+      expect(SERIES[id].years, id).toHaveLength(35);
+    }
+    expect([SERIES.bonds.dataset.firstYear, SERIES.bonds.dataset.lastYear]).toEqual([1988, 2024]);
+    expect([SERIES.gold.dataset.firstYear, SERIES.gold.dataset.lastYear]).toEqual([1988, 2024]);
+  });
+
+  it("gives bonds a modest real return and gold a low one, both below stocks", () => {
+    expect(SERIES.bonds.averageReturn).toBeCloseTo(0.0247, 3);
+    expect(SERIES.gold.averageReturn).toBeCloseTo(0.0106, 3);
+    for (const id of INDEX_IDS) {
+      expect(SERIES.bonds.averageReturn).toBeLessThan(INDEXES[id].averageReturn);
+      expect(SERIES.gold.averageReturn).toBeLessThan(INDEXES[id].averageReturn);
+    }
+  });
+});
+
+/** The price of a bond paying `coupon` a year for `years` more years, at `rate`, per 1 of face value. */
+function bondPrice(coupon: number, rate: number, years: number): number {
+  if (Math.abs(rate) < 1e-12) return coupon * years + 1;
+  const discount = Math.pow(1 + rate, -years);
+  return (coupon * (1 - discount)) / rate + discount;
+}
+
+describe("Euro government bonds dataset", () => {
+  it("derives each year from the December yields and German inflation stored beside it", () => {
+    let previous = euroBonds.baseYear.yield;
+    for (const { year, yield: rate, inflation, nominalReturn, realReturn } of euroBonds.years) {
+      // Bought at par at last December's yield, sold a year later with 9 years left at this December's.
+      const expected = previous + bondPrice(previous, rate, 9) - 1;
+      expect(nominalReturn, String(year)).toBeCloseTo(expected, 4);
+      expect(realReturn, String(year)).toBeCloseTo((1 + nominalReturn) / (1 + inflation) - 1, 4);
+      previous = rate;
+    }
+  });
+
+  it("shows the well-known bond years", () => {
+    const real = new Map(euroBonds.years.map((entry) => [entry.year, entry.realReturn]));
+    const nominal = new Map(euroBonds.years.map((entry) => [entry.year, entry.nominalReturn]));
+    // 1994 and 1999: rates jumped; 2022: the worst year for euro bonds in decades, with 8.6 % inflation.
+    expect(nominal.get(1994)).toBeLessThan(-0.04);
+    expect(nominal.get(1999)).toBeLessThan(-0.04);
+    expect(Math.min(...real.values())).toBe(real.get(2022));
+    expect(real.get(2022)).toBeLessThan(-0.25);
+    // 2008 and 2014: flight to safety, then falling rates.
+    expect(nominal.get(2008)).toBeGreaterThan(0.12);
+    expect(nominal.get(2014)).toBeGreaterThan(0.12);
+  });
+
+  it("records yields that went below zero, as Bunds' did from 2019 to 2021", () => {
+    const yields = new Map(euroBonds.years.map((entry) => [entry.year, entry.yield]));
+    for (const year of [2019, 2020, 2021]) expect(yields.get(year), String(year)).toBeLessThan(0);
+    expect(euroBonds.years.find((entry) => entry.year === 2022)?.inflation).toBe(0.086); // Destatis, December 2022
+  });
+});
+
+describe("Gold dataset", () => {
+  it("derives each real return from consecutive year-end prices and US inflation", () => {
+    let previous = gold.baseYear.price;
+    for (const { year, price, inflation, realReturn } of gold.years) {
+      expect(realReturn, String(year)).toBeCloseTo(price / previous / (1 + inflation) - 1, 4);
+      previous = price;
+    }
+  });
+
+  it("deflates by the same US inflation as the index datasets", () => {
+    const us = new Map(nasdaq100.years.map((entry) => [entry.year, entry.inflation]));
+    for (const { year, inflation } of gold.years) expect(inflation, String(year)).toBe(us.get(year));
+  });
+
+  it("shows gold's long flat spells and big swings", () => {
+    const price = new Map(gold.years.map((entry) => [entry.year, entry.price]));
+    const real = new Map(gold.years.map((entry) => [entry.year, entry.realReturn]));
+    // Under its 1987 price for about twenty years, then the 2013 crash.
+    expect(price.get(1999)).toBeLessThan(gold.baseYear.price);
+    expect(price.get(2005)).toBeGreaterThan(gold.baseYear.price);
+    expect(real.get(2013)).toBeLessThan(-0.25);
+    expect(price.get(2011)).toBe(1531);
   });
 });
 

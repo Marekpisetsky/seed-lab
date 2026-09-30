@@ -6,7 +6,7 @@
  * validation as the app.
  */
 
-import { isIndexId, type IndexId } from "./index-ids.ts";
+import { isIndexId, SERIES_IDS, type IndexId, type SeriesId } from "./index-ids.ts";
 import type { PricePoint } from "./prices";
 
 export interface Instrument {
@@ -105,8 +105,12 @@ function parseInstrument(value: unknown): Instrument | null {
   return { id, name, kind, index, symbol, stooq, currency };
 }
 
-/** The curated list; a bad entry fails loudly, since it is edited by hand. */
-export function parseCatalogue(value: unknown): { instruments: Instrument[]; trackers: Record<IndexId, string[]> } {
+/**
+ * The curated list, and the tickers of well-known funds that hold each asset
+ * with a history (index ETFs, bond ETFs, gold ETCs). A bad entry fails
+ * loudly, since it is edited by hand.
+ */
+export function parseCatalogue(value: unknown): { instruments: Instrument[]; trackers: Record<SeriesId, string[]> } {
   if (!isRecord(value) || !Array.isArray(value.instruments) || !isRecord(value.trackers)) {
     throw new Error("Invalid instruments.json: expected instruments and trackers");
   }
@@ -119,8 +123,8 @@ export function parseCatalogue(value: unknown): { instruments: Instrument[]; tra
     throw new Error("Invalid instruments.json: duplicate ids");
   }
   const trackers = value.trackers;
-  const list = (id: IndexId) => (Array.isArray(trackers[id]) ? trackers[id].filter((t): t is string => typeof t === "string") : []);
-  return { instruments, trackers: { sp500: list("sp500"), world: list("world"), nasdaq100: list("nasdaq100") } };
+  const list = (id: SeriesId) => (Array.isArray(trackers[id]) ? trackers[id].filter((t): t is string => typeof t === "string") : []);
+  return { instruments, trackers: Object.fromEntries(SERIES_IDS.map((id) => [id, list(id)])) as Record<SeriesId, string[]> };
 }
 
 function parseStats(value: unknown): InstrumentStats | null {

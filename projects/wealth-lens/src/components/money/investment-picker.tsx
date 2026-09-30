@@ -2,97 +2,78 @@
 
 import { Search } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { formatPercent, formatRate } from "@/lib/format";
-import { INDEXES, INDEX_IDS, type IndexId } from "@/lib/indexes";
-import { INSTRUMENTS, MARKET } from "@/lib/market-data";
-import { offeredRates } from "@/hooks/use-calculation";
-import { resolveInvestment } from "@/lib/investment";
-import { prepareMixDraws } from "@/lib/mix";
-import { mixFigures, successRatesFor } from "@/lib/projections";
-import { stockVolatility } from "@/lib/volatility";
+import { GOLD_NOTE, SAVINGS_RATE, type AssetId } from "@/lib/assets";
+import { formatRate } from "@/lib/format";
+import { INDEXES, INDEX_IDS, SERIES } from "@/lib/indexes";
+import { INDEX_TRACKERS } from "@/lib/market-data";
 
 /** What the picker can choose. */
-export type PickChoice = { kind: "index"; index: IndexId } | { kind: "stock"; id: string } | { kind: "portfolio" } | { kind: "mix" };
+export type PickChoice = { kind: "asset"; asset: AssetId } | { kind: "portfolio" } | { kind: "mix" } | { kind: "custom" };
+
+type Group = "Indexes" | "Bonds" | "Gold" | "Savings" | "Your own figures" | "My portfolio" | "A mix";
 
 interface Option {
   key: string;
-  group: "Indexes" | "Stocks" | "My portfolio" | "A mix";
+  group: Group;
   choice: PickChoice;
   label: string;
   detail: string;
-  /** Lower-case text the search looks in: name and tickers. */
+  /** Lower-case text the search looks in: name, tickers of funds that hold it, a few words. */
   haystack: string;
 }
 
-const STOCKS = INSTRUMENTS.filter((instrument) => instrument.kind === "stock").sort((a, b) => a.name.localeCompare(b.name));
+const tickers = (asset: keyof typeof INDEX_TRACKERS) => INDEX_TRACKERS[asset].join(" ");
 
-function baseOptions(): Option[] {
+/** Every asset a plan or a mix can be projected with. */
+function assetOptions(): Option[] {
   const indexes: Option[] = INDEX_IDS.map((index) => {
     const info = INDEXES[index];
     return {
-      key: `index:${index}`,
+      key: `asset:${index}`,
       group: "Indexes",
-      choice: { kind: "index", index },
+      choice: { kind: "asset", asset: index },
       label: info.name,
       detail: `${formatRate(info.averageReturn)} a year after inflation · e.g. ${info.etf}`,
-      haystack: `${info.name} ${info.etf} ${info.returnType}`.toLowerCase(),
+      haystack: `${info.name} ${info.returnType} stocks index ${tickers(index)}`.toLowerCase(),
     };
   });
-  const stocks: Option[] = STOCKS.map((instrument) => {
-    const own = stockVolatility(instrument, MARKET);
-    const index = INDEXES[instrument.index].name;
-    return {
-      key: `stock:${instrument.id}`,
-      group: "Stocks",
-      choice: { kind: "stock", id: instrument.id },
-      label: instrument.name,
-      detail: `${instrument.id} · grows like the ${index}, swings ${formatPercent(own.volatility, { decimals: 0 })} a year`,
-      haystack: `${instrument.name} ${instrument.id} ${instrument.symbol}`.toLowerCase(),
-    };
-  });
-  return [...indexes, ...stocks];
-}
-
-let warmed = false;
-
-/**
- * While the user is still choosing, in idle moments one step at a time:
- * each stock's withdrawal success rates (5,000 simulations each) and the
- * mixes' random draws and first run. Choosing then recalculates at once.
- */
-function warmChoices(rates: readonly number[]): void {
-  if (warmed || typeof window === "undefined") return;
-  warmed = true;
-  const steps: (() => void)[] = [
-    () => prepareMixDraws(3),
-    () => {
-      for (const rebalance of [false, true]) {
-        const warm = resolveInvestment({ kind: "mix", parts: [{ ref: "index:world", weight: 50 }, { ref: "stock:NVDA", weight: 50 }], rebalance }, []);
-        successRatesFor(warm, rates);
-        mixFigures(warm, { start: 1000, monthly: 100, years: 20 });
-      }
+  return [
+    ...indexes,
+    {
+      key: "asset:bonds",
+      group: "Bonds",
+      choice: { kind: "asset", asset: "bonds" },
+      label: SERIES.bonds.name,
+      detail: `${formatRate(SERIES.bonds.averageReturn)} a year after inflation · 10-year German Bund · e.g. ${SERIES.bonds.etf}`,
+      haystack: `euro government bonds bund germany ${tickers("bonds")}`.toLowerCase(),
     },
-    ...STOCKS.map((instrument) => () => {
-      successRatesFor(resolveInvestment({ kind: "stock", id: instrument.id }, []), rates);
-    }),
+    {
+      key: "asset:gold",
+      group: "Gold",
+      choice: { kind: "asset", asset: "gold" },
+      label: SERIES.gold.name,
+      detail: `${GOLD_NOTE}: protection, not growth · ${formatRate(SERIES.gold.averageReturn)} a year after inflation`,
+      haystack: `gold ${tickers("gold")}`.toLowerCase(),
+    },
+    {
+      key: "asset:savings",
+      group: "Savings",
+      choice: { kind: "asset", asset: "savings" },
+      label: "Savings account",
+      detail: `${formatRate(SAVINGS_RATE)} interest less inflation, no swings · your bank's rate can be typed in`,
+      haystack: "savings account bank deposit cash interest",
+    },
   ];
-  const next = () => {
-    const step = steps.shift();
-    if (!step) return;
-    step();
-    schedule();
-  };
-  const schedule = () => {
-    if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(next);
-    else window.setTimeout(next, 30);
-  };
-  schedule();
 }
 
 /**
- * The list behind "Invested in": every index and stock on the list, the
- * portfolio when there are holdings, and "A mix…", grouped, with a search
- * by name or ticker. Opens under `top` (px from the calculator's top).
+ * The list behind "Invested in": only what has a long history and a known
+ * range (indexes, euro government bonds, gold), a savings account, Custom
+ * growth (the user's own figures), the portfolio when there are holdings,
+ * and "A mix…";
+ * grouped, with a search by name or fund ticker. Single stocks are not on
+ * it: they are never projected on their own. Opens under `top` (px from
+ * the calculator's top).
  */
 export function InvestmentPicker({
   top,
@@ -100,21 +81,19 @@ export function InvestmentPicker({
   hasPortfolio,
   holdingsCount,
   exclude = [],
-  withMix = true,
+  onlyAssets = false,
   label,
-  withdrawalRate,
   onPick,
   onClose,
 }: {
   top: number;
-  /** The plan's; the rates the result offers are worked out ahead for every stock. */
-  withdrawalRate: number;
   selected: string | null;
   hasPortfolio: boolean;
   holdingsCount: number;
   /** Options not offered (the parts a mix already has). */
   exclude?: readonly string[];
-  withMix?: boolean;
+  /** For a mix's parts: the assets only. */
+  onlyAssets?: boolean;
   label: string;
   onPick: (choice: PickChoice) => void;
   onClose: () => void;
@@ -138,36 +117,42 @@ export function InvestmentPicker({
     };
   }, [onClose]);
 
-  useEffect(() => warmChoices(offeredRates(withdrawalRate)), [withdrawalRate]);
-
   const options = useMemo(() => {
-    const all = baseOptions();
-    if (hasPortfolio) {
+    const all = assetOptions();
+    if (!onlyAssets) {
       all.push({
-        key: "portfolio",
-        group: "My portfolio",
-        choice: { kind: "portfolio" },
-        label: "My portfolio",
-        detail: `${holdingsCount} holding${holdingsCount === 1 ? "" : "s"}, weighted by value`,
-        haystack: "my portfolio holdings",
+        key: "custom",
+        group: "Your own figures",
+        choice: { kind: "custom" },
+        label: "Custom growth",
+        detail: "Type your own % a year and swings, without choosing an asset",
+        haystack: "custom growth own rate figures",
       });
-    }
-    if (withMix) {
+      if (hasPortfolio) {
+        all.push({
+          key: "portfolio",
+          group: "My portfolio",
+          choice: { kind: "portfolio" },
+          label: "My portfolio",
+          detail: `${holdingsCount} holding${holdingsCount === 1 ? "" : "s"} by value, each growing like its index`,
+          haystack: "my portfolio holdings",
+        });
+      }
       all.push({
         key: "mix",
         group: "A mix",
         choice: { kind: "mix" },
         label: "A mix…",
-        detail: "Several indexes and stocks, with weights you set",
-        haystack: "a mix weights several combine",
+        detail: "Several of these with weights you set; quick 100% stocks, 80/20, 60/40",
+        haystack: "a mix weights several combine 60/40 80/20 stocks bonds",
       });
     }
     return all.filter((option) => !exclude.includes(option.key));
-  }, [hasPortfolio, holdingsCount, withMix, exclude]);
+  }, [hasPortfolio, holdingsCount, onlyAssets, exclude]);
 
   const shown = useMemo(() => {
     const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    return words.length === 0 ? options : options.filter((option) => words.every((word) => option.haystack.includes(word)));
+    return words.length === 0 ? options : options.filter((option) => words.every((word) => `${option.label.toLowerCase()} ${option.haystack}`.includes(word)));
   }, [options, query]);
   const current = Math.min(active, Math.max(0, shown.length - 1));
 
@@ -198,7 +183,7 @@ export function InvestmentPicker({
           aria-activedescendant={shown[current] ? `${listId}-${shown[current].key}` : undefined}
           aria-autocomplete="list"
           value={query}
-          placeholder="Search by name or ticker"
+          placeholder="Search by name or fund ticker"
           autoComplete="off"
           className="w-full rounded-md bg-background py-2 pl-8 pr-3 text-base outline-none focus:ring-2 focus:ring-accent/30"
           onChange={(event) => {
@@ -219,8 +204,8 @@ export function InvestmentPicker({
           }}
         />
       </div>
-      <ul id={listId} role="listbox" aria-label={label} className="max-h-[min(60vh,26rem)] overflow-y-auto p-1">
-        {shown.length === 0 && <li className="px-3 py-4 text-sm text-muted">Nothing on the list matches “{query}”.</li>}
+      <ul id={listId} role="listbox" aria-label={label} className="max-h-[min(60vh,28rem)] overflow-y-auto p-1">
+        {shown.length === 0 && <li className="px-3 py-4 text-sm text-muted">Nothing on the list matches “{query}”. Single stocks are not projected on their own.</li>}
         {shown.map((option, index) => (
           <li key={option.key} role="presentation">
             {(index === 0 || shown[index - 1].group !== option.group) && (

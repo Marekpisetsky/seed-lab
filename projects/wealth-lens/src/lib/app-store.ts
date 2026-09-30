@@ -9,8 +9,9 @@
  * until something changes, and every change notifies all screens at once.
  */
 
+import type { AssetId } from "./assets";
 import { createId } from "./id";
-import type { Holding, NewGoal, Plan } from "./types";
+import { STANDARD_ASSUMPTIONS, type AssumptionOverrides, type Holding, type Investment, type NewGoal, type Plan } from "./types";
 import { DEFAULT_PLAN, type UploadedPrices } from "./validation";
 
 export interface AppState {
@@ -58,6 +59,43 @@ export function updatePlan(patch: Partial<Plan> | ((plan: Plan) => Partial<Plan>
     ...state,
     plan: { ...state.plan, ...(typeof patch === "function" ? patch(state.plan) : patch) },
   }));
+}
+
+/**
+ * Chooses what the plan invests in. Its standard growth and swings come
+ * with it: growth or swings the user typed for the previous choice are
+ * dropped (their own inflation is kept: it is about prices, not the choice).
+ */
+export function setInvestment(investment: Investment): void {
+  updatePlan((plan) => ({ investment, assumptions: { ...plan.assumptions, growth: null, volatility: null } }));
+}
+
+/** Changes some of the assumptions; the rest keep their value. */
+export function setAssumptions(patch: Partial<AssumptionOverrides>): void {
+  updatePlan((plan) => ({ assumptions: { ...plan.assumptions, ...patch } }));
+}
+
+/** "Reset to standard": the investment's own figures and the country's inflation again. */
+export function resetAssumptions(): void {
+  updatePlan({ assumptions: STANDARD_ASSUMPTIONS });
+}
+
+/** "Prices of": the country's reference inflation replaces any typed one. */
+export function setPricesOf(pricesOf: string): void {
+  updatePlan((plan) => ({ pricesOf, assumptions: { ...plan.assumptions, inflation: null } }));
+}
+
+/** What a holding grows like in My portfolio; `null` goes back to what its ticker says. */
+export function setHoldingReference(id: string, reference: AssetId | null): void {
+  setHoldings((holdings) =>
+    holdings.map((holding) => {
+      if (holding.id !== id) return holding;
+      const next = { ...holding };
+      if (reference) next.reference = reference;
+      else delete next.reference;
+      return next;
+    }),
+  );
 }
 
 /** Adds a goal at the end of "My goals": goals keep the order they were added in. */

@@ -4,7 +4,7 @@
  * modules.
  */
 
-import type { IndexId } from "./index-ids";
+import type { AssetId } from "./assets";
 
 /** ISO 4217 currency code, upper case (e.g. "EUR", "USD"). */
 export type CurrencyCode = string;
@@ -38,10 +38,15 @@ export interface Holding {
   priceSource: "auto" | "manual";
   /** Trading day of an automatic price (`YYYY-MM-DD`); `null` otherwise. */
   priceDate: string | null;
+  /**
+   * What it grows like in "My portfolio", when the user chose it; absent:
+   * worked out from the ticker (lib/portfolio.ts).
+   */
+  reference?: AssetId;
 }
 
 /** The fields a user or a file provides; price bookkeeping is added on top. */
-export type HoldingInput = Omit<Holding, "id" | "priceSource" | "priceDate">;
+export type HoldingInput = Omit<Holding, "id" | "priceSource" | "priceDate" | "reference">;
 
 /** The euro goal of version 1 plans, in BASE_CURRENCY and in today's money. */
 export interface LegacyGoal {
@@ -51,28 +56,44 @@ export interface LegacyGoal {
 }
 
 /**
- * What the plan's money is invested in; it sets the growth used for every
- * projection and the history used by the Monte Carlo simulation.
- * - index: one of the three indexes (bought through its well-known ETF);
- * - stock: a curated stock, projected with its closest index (a single
- *   stock's past is shown, never projected);
- * - portfolio: the user's holdings, weighted by value (a mix, see below);
- * - mix: indexes and stocks with weights in percent the user sets
- *   (lib/mix.ts), drifting with growth or rebalanced every year;
- * - custom: a growth rate the user types.
+ * What the plan's money is invested in; it sets the standard growth and
+ * swings of every projection (lib/investment.ts). Only what has a long
+ * history and a known range is projected; a single stock never is.
+ * - asset: an index, euro government bonds, gold or a savings account
+ *   (lib/assets.ts);
+ * - portfolio: the user's holdings, weighted by value, each growing like
+ *   the asset it is assigned to (lib/portfolio.ts);
+ * - mix: assets with weights in percent the user sets (lib/mix.ts),
+ *   drifting with growth or rebalanced every year;
+ * - custom: "Custom growth", the growth and swings the user types
+ *   (Plan.assumptions), with no asset behind them.
  */
 export type Investment =
-  | { kind: "index"; index: IndexId }
-  | { kind: "stock"; id: string }
+  | { kind: "asset"; asset: AssetId }
   | { kind: "portfolio" }
   | { kind: "mix"; parts: MixPart[]; rebalance: boolean }
-  | { kind: "custom"; realReturn: number };
+  | { kind: "custom" };
 
-/** A part of a mix: "index:sp500" or "stock:NVDA", and its weight in percent. */
+/** A part of a mix: an asset and its weight in percent. */
 export interface MixPart {
-  ref: string;
+  asset: AssetId;
   weight: number;
 }
+
+/**
+ * What the user changed of the standard assumptions (the investment's own
+ * figures and the country's inflation); `null` keeps the standard one.
+ */
+export interface AssumptionOverrides {
+  /** Growth a year, as typed: after inflation ("real") or before ("nominal"). */
+  growth: { rate: number; basis: "real" | "nominal" } | null;
+  /** Swings a year: the standard deviation of yearly log returns. */
+  volatility: number | null;
+  /** Inflation a year, instead of the "Prices of" country's reference. */
+  inflation: number | null;
+}
+
+export const STANDARD_ASSUMPTIONS: AssumptionOverrides = { growth: null, volatility: null, inflation: null };
 
 /**
  * A goal the user adds to "My goals": optional, as many as they like, each
@@ -111,18 +132,13 @@ export interface Plan {
   years: number;
   /** Share of the money taken out per year for "It could pay you". */
   withdrawalRate: number;
-  /** Expected annual inflation, used to translate real figures to nominal. */
-  inflation: number;
+  /**
+   * "Prices of": the country (a code of the cost-of-living list) whose
+   * reference inflation turns growth before inflation into growth after it.
+   */
+  pricesOf: string;
+  /** What the user changed of the standard assumptions. */
+  assumptions: AssumptionOverrides;
   /** Goals the user added, in that order; none at first. */
   goals: Goal[];
-}
-
-/** Growth assumptions of a projection. */
-export interface Assumptions {
-  /** Expected annual return AFTER inflation (real, not nominal). */
-  realReturn: number;
-  /** Monthly contribution in BASE_CURRENCY, constant in today's money. */
-  monthlyContribution: number;
-  /** Expected annual inflation, used to translate real figures to nominal. */
-  inflation: number;
 }

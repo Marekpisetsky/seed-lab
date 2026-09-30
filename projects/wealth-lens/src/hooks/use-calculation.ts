@@ -57,7 +57,7 @@ let lastFindings: { bundle: CalculationBundle; findings: Finding[] } | null = nu
 /** The findings of a calculation, worked out only when their section is open. */
 export function findingsFor(bundle: CalculationBundle): Finding[] {
   if (lastFindings?.bundle === bundle) return lastFindings.findings;
-  const findings = topFindings({ calc: bundle.calc, inflation: bundle.state.plan.inflation, today: bundle.today, holdings: bundle.holdings });
+  const findings = topFindings({ calc: bundle.calc, inflation: bundle.calc.investment.inflation, today: bundle.today, holdings: bundle.holdings });
   lastFindings = { bundle, findings };
   return findings;
 }

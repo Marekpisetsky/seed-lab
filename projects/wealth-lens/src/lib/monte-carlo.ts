@@ -42,6 +42,21 @@ export function survives(returns: readonly number[], withdrawalRate: number): bo
   return true;
 }
 
+/**
+ * With the same return every year (no swings): how many years a withdrawal
+ * rate lasts, by the same rules as `survives`; `Infinity` if it is still
+ * there after `max` years.
+ */
+export function yearsLasting(withdrawalRate: number, annualReturn: number, max = 100): number {
+  let balance = 1;
+  for (let year = 0; year < max; year++) {
+    balance -= withdrawalRate;
+    if (balance <= 0) return year + (balance + withdrawalRate) / withdrawalRate;
+    balance *= 1 + annualReturn;
+  }
+  return Infinity;
+}
+
 export interface SuccessRateOptions {
   withdrawalRate: number;
   /** Pool of annual real returns to draw from. */
@@ -77,6 +92,27 @@ export function successRate({
   return successes / simulations;
 }
 
+const drawnIndexes = new Map<string, Uint16Array>();
+
+/**
+ * Which of `length` historical years each simulated year draws: the same
+ * seeded sequence `successRate` draws, made once per pool size and kept, so
+ * a new pool of the same size (the user's own figures, lib/normal.ts)
+ * does not draw again.
+ */
+function indexesFor(length: number, simulations: number, years: number, seed: number): Uint16Array {
+  const id = `${length}|${simulations}|${years}|${seed}`;
+  let indexes = drawnIndexes.get(id);
+  if (!indexes) {
+    const random = mulberry32(seed);
+    indexes = new Uint16Array(simulations * years);
+    for (let i = 0; i < indexes.length; i++) indexes[i] = Math.floor(random() * length);
+    if (drawnIndexes.size >= 8) drawnIndexes.delete(drawnIndexes.keys().next().value as string);
+    drawnIndexes.set(id, indexes);
+  }
+  return indexes;
+}
+
 /**
  * `successRate` for several withdrawal rates at once, over the very same
  * simulated sequences: drawing the returns is most of the work, so this
@@ -91,12 +127,13 @@ export function successRates({
   seed = DEFAULT_SEED,
 }: Omit<SuccessRateOptions, "withdrawalRate"> & { withdrawalRates: readonly number[] }): number[] {
   if (returns.length === 0) throw new RangeError("returns must not be empty");
-  const random = mulberry32(seed);
+  const indexes = returns.length <= 65536 ? indexesFor(returns.length, simulations, years, seed) : null;
+  const random = indexes ? null : mulberry32(seed);
   const sequence = new Array<number>(years);
   const successes = withdrawalRates.map(() => 0);
   for (let run = 0; run < simulations; run++) {
     for (let year = 0; year < years; year++) {
-      sequence[year] = returns[Math.floor(random() * returns.length)];
+      sequence[year] = returns[indexes ? indexes[run * years + year] : Math.floor((random as () => number)() * returns.length)];
     }
     withdrawalRates.forEach((rate, index) => {
       if (survives(sequence, rate)) successes[index] += 1;

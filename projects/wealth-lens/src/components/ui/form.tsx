@@ -185,6 +185,8 @@ interface SettledNumberInputProps extends Omit<NativeInputProps, "value" | "onCh
   onCommit: (value: number) => void;
   /** Largest accepted value; more is marked invalid. */
   max?: number;
+  /** Smallest accepted value (0 unless a figure can be negative); less is marked invalid. */
+  min?: number;
 }
 
 /**
@@ -194,7 +196,7 @@ interface SettledNumberInputProps extends Omit<NativeInputProps, "value" | "onCh
  * user's fingers. Accepts "1,234.5" or "1.234,5"; the typed text stays as
  * typed until the field is left. Emptied and left, it reads 0.
  */
-export function SettledNumberInput({ value, onCommit, max = Infinity, className = "", onBlur, onKeyDown, ...rest }: SettledNumberInputProps) {
+export function SettledNumberInput({ value, onCommit, max = Infinity, min = 0, className = "", onBlur, onKeyDown, ...rest }: SettledNumberInputProps) {
   const [draft, setDraft] = useState<string | null>(null);
   const [invalid, setInvalid] = useState(false);
   const commit = useRef(onCommit);
@@ -222,7 +224,7 @@ export function SettledNumberInput({ value, onCommit, max = Infinity, className 
           return;
         }
         const parsed = parseLooseNumber(text);
-        const ok = parsed !== null && parsed >= 0 && parsed <= max;
+        const ok = parsed !== null && parsed >= min && parsed <= max;
         setInvalid(!ok);
         if (ok) settler().typed(parsed);
         else settler().cancel();
@@ -234,7 +236,7 @@ export function SettledNumberInput({ value, onCommit, max = Infinity, className 
       onBlur={(event) => {
         if (draft !== null && draft.trim() === "") {
           settler().cancel();
-          commit.current(0);
+          commit.current(Math.max(0, min));
         } else {
           settler().flush();
         }

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useAppState } from "@/hooks/use-app";
 import { useHistory } from "@/hooks/use-history";
-import { updatePlan } from "@/lib/app-store";
+import { setInvestment } from "@/lib/app-store";
 import { formatDayMonth, formatMoney, formatPercent, formatRate } from "@/lib/format";
 import { INDEXES } from "@/lib/indexes";
 import { MARKET, type Instrument } from "@/lib/market-data";
@@ -13,13 +13,14 @@ import type { Investment } from "@/lib/types";
 import { ChartRow } from "./chart-row";
 import { PriceChart } from "./price-chart";
 
-/** The investment a plan gets from an instrument: an ETF's index, or the stock itself. */
-export function investmentFor(instrument: Instrument): Investment {
-  return instrument.kind === "etf" ? { kind: "index", index: instrument.index } : { kind: "stock", id: instrument.id };
+/** The investment a plan gets from an ETF: the index it tracks. A single stock is never projected on its own. */
+export function investmentFor(instrument: Instrument): Investment | null {
+  return instrument.kind === "etf" ? { kind: "asset", asset: instrument.index } : null;
 }
 
 function isChosen(current: Investment, instrument: Instrument): boolean {
-  return JSON.stringify(current) === JSON.stringify(investmentFor(instrument));
+  const investment = investmentFor(instrument);
+  return investment !== null && JSON.stringify(current) === JSON.stringify(investment);
 }
 
 /** One ETF or stock of the curated list; opening it shows its chart and lets the plan use it. */
@@ -40,6 +41,7 @@ function InstrumentPanel({ instrument }: { instrument: Instrument }) {
   const period = `${index.firstYear}–${index.lastYear}`;
   const priceOnly = index.priceOnly ? ", price only, without dividends" : "";
   const chosen = isChosen(plan.investment, instrument);
+  const investment = investmentFor(instrument);
 
   return (
     <>
@@ -70,21 +72,21 @@ function InstrumentPanel({ instrument }: { instrument: Instrument }) {
       <p className="text-sm text-muted">
         {instrument.kind === "etf"
           ? `Tracks the ${index.name}: ${formatRate(index.averageReturn)} a year after inflation on average, ${period}${priceOnly}.`
-          : `As your investment it grows at the ${index.name}'s average (${formatRate(index.averageReturn)} a year after inflation, ${period}${priceOnly}), with ${instrument.name}'s own ups and downs; its own past growth is not projected.`}
+          : `Not projected on its own: one company's future can't be predicted. In My portfolio it grows like the ${index.name} (${formatRate(index.averageReturn)} a year after inflation, ${period}${priceOnly}), with its own ups and downs: a simple projection.`}
       </p>
 
-      {chosen ? (
+      {!investment ? null : chosen ? (
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium" aria-live="polite">
           <span className="inline-flex items-center gap-1 text-positive">
             <Check aria-hidden="true" className="size-4" />
-            Your money grows like {instrument.kind === "etf" ? `the ${index.name}` : instrument.name}.
+            Your money grows like the {index.name}.
           </span>
           <Link href="/" className="text-accent underline-offset-2 hover:underline">
             See what it means
           </Link>
         </p>
       ) : (
-        <Button variant="primary" onClick={() => updatePlan({ investment: investmentFor(instrument) })}>
+        <Button variant="primary" onClick={() => setInvestment(investment)}>
           Use as my investment
         </Button>
       )}
