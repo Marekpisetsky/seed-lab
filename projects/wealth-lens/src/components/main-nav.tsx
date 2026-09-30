@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useI18n } from "@/components/i18n";
 import { localePath, PAGES, splitPath } from "@/i18n/locales";
 
-const LINKS = ["money", "stocks"] as const;
+const LINKS = ["money", "test", "stocks"] as const;
 
 export function MainNav() {
   const { locale, m } = useI18n();
@@ -20,7 +20,7 @@ export function MainNav() {
               <Link
                 href={localePath(PAGES[page], locale)}
                 aria-current={active ? "page" : undefined}
-                className={`flex min-h-11 items-center rounded-md px-3 py-2 font-medium transition-colors ${
+                className={`flex min-h-11 items-center rounded-md px-2.5 py-2 font-medium transition-colors ${
                   active ? "bg-foreground text-background" : "text-muted hover:bg-border/60 hover:text-foreground"
                 }`}
               >

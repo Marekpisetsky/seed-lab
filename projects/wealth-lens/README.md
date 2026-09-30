@@ -341,6 +341,37 @@ meses en Portugal, un máster en NL) se calculan con el costo de vida de
 ese país, con vivienda. Importes en euros de hoy; los de USD se
 convierten con el tipo guardado en el archivo.
 
+## Test my plan (`/test`, `/es/test`)
+
+El plan tal cual está en My money (mismo activo o mezcla, mismos importes,
+sin *What if…?*) pasado por la historia real de los datos, año a año, sin
+simulación (`src/lib/history-test.ts`, tests en `history-test.test.ts`):
+
+- **Seis crisis** (`CRISES`): Great Depression (1929, 1929–1931), Oil
+  crisis (1973, 1973–1974), Dot-com crash (2000, 2000–2002), Financial
+  crisis (2008), Covid (2020) e Inflation shock (2022). Cada una empieza el
+  año anterior ("If you had started in 2007"). Solo se activan las que el
+  activo o todas las partes de la mezcla tienen en sus datos: el S&P 500
+  llega a 1928, el resto a 1986/1988, así que 1929 y 1973 son solo del
+  S&P 500; las demás tarjetas dicen "no data for this". Una cuenta de
+  ahorro o un crecimiento propio no tienen historia que probar.
+- **La caída** se mide sobre el dinero que había en lo más alto, sin los
+  aportes que llegan después (que la esconderían): "de 1.000 € a 608 €
+  (−39 %)", y "tardó N años en volver" es lo que tardó ese dinero en
+  recuperarse. El resultado a N años sí incluye los aportes, y se compara
+  en pequeño con el crecimiento medio del plan. Los datos son anuales: una
+  caída que se recupera dentro del año (Covid en 2020) no aparece, y se
+  dice así.
+- **Cada año de inicio**: los años del plan empezando en cada año posible
+  de los datos (o tramos más cortos si los datos no dan para dos), con el
+  peor, el del medio y el mejor marcados, y la línea del crecimiento medio.
+- **Mezclas y cartera**: cada parte sigue su propia historia
+  (reequilibrada cada año si la mezcla se reequilibra; las acciones de la
+  cartera siguen a su índice), y se muestra al lado lo que hizo el S&P 500
+  solo: su caída en cada crisis y su peor año de inicio. Sin sugerir pesos.
+- Aportes como en las simulaciones: la mitad de los del año al empezarlo y
+  la mitad al acabarlo. Cifras a final de año, en euros de hoy.
+
 ## Módulo 1 — Tracker de ganancia + tiempo a la meta
 
 - Entrada: cartera actual (holdings + costo base, ingresado a mano o

@@ -1,43 +1,22 @@
 "use client";
 
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useI18n } from "@/components/i18n";
 import { Help } from "@/components/ui/help";
 import type { CalculationBundle } from "@/hooks/use-calculation";
+import { useWidth } from "@/hooks/use-width";
 import { simulationsText } from "@/i18n/investment-text";
 import { yearlyPath, type YearPoint } from "@/lib/calculator";
 import { endLabel, yearTooltip } from "@/lib/growth";
 import { bandsFor } from "@/lib/projections";
 import type { WealthPercentiles } from "@/lib/simulation";
+import { ticks } from "@/lib/ticks";
 
 const HEIGHT = 200;
 const PAD = { left: 2, right: 58, top: 10, bottom: 22 };
 const FONT = 11;
 /** The upper dashed line may leave the chart: past this multiple of the projection it would squash the areas. */
 const MAX_OVER_PROJECTION = 2.2;
-
-/** Round axis ticks: 0 and two to four more at a clean step. */
-function ticks(max: number): number[] {
-  if (max <= 0) return [0];
-  const rough = max / 4;
-  const magnitude = Math.pow(10, Math.floor(Math.log10(rough)));
-  const step = [1, 2, 2.5, 5, 10].map((m) => m * magnitude).find((candidate) => candidate >= rough) ?? rough;
-  return [0, step, step * 2, step * 3, step * 4].filter((value) => value <= max * 1.001);
-}
-
-/** The element's width in CSS pixels, so the chart is drawn at its real size and its text stays legible. */
-function useWidth<T extends HTMLElement>(fallback: number) {
-  const ref = useRef<T>(null);
-  const [width, setWidth] = useState(fallback);
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-    const observer = new ResizeObserver(([entry]) => setWidth(Math.round(entry.contentRect.width)));
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-  return [ref, width] as const;
-}
 
 const noSubscribe = () => () => {};
 /** False on the server and during hydration: the chart's calendar years depend on today. */
