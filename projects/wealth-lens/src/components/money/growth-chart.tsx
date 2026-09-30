@@ -263,7 +263,7 @@ export function GrowthChart({ bundle }: { bundle: CalculationBundle }) {
           <Swatch color="var(--chart-growth)" /> Growth
         </span>
         <span>
-          <Swatch color="var(--foreground)" dashed /> 8 in 10 {investment.name} histories ended between the lines
+          <Swatch color="var(--foreground)" dashed /> 8 in 10 {investment.modelShort} ended between the lines
         </span>
       </figcaption>
       {band ? <Plot points={points} band={band} startYear={startYear} /> : <div style={{ height: HEIGHT }} aria-hidden="true" />}

@@ -307,7 +307,7 @@ function shapeOf(goal: Goal, items: ReadonlyMap<string, PricedItem>, countries: 
 
 function growthLine({ realReturn }: Scenario, investment: ResolvedInvestment): string {
   const dividends = dividendNote(investment);
-  return `growing ${formatRate(realReturn)} a year after inflation (${investment.name}, ${periodText(investment)} average${dividends ? `; ${dividends}` : ""})`;
+  return `growing ${formatRate(realReturn)} a year after inflation (${investment.growthSource}, ${periodText(investment)} average${dividends ? `; ${dividends}` : ""})`;
 }
 
 /** Each goal against the same plan, in the order the user added them. */

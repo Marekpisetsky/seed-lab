@@ -6,9 +6,9 @@ import { inputClass, SettledNumberInput } from "@/components/ui/form";
 import { useAppState } from "@/hooks/use-app";
 import { updatePlan } from "@/lib/app-store";
 import { priceHoldings } from "@/lib/auto-price";
-import { formatEur, formatRate } from "@/lib/format";
+import { formatEur } from "@/lib/format";
 import { INDEXES, INDEX_IDS } from "@/lib/indexes";
-import { dividendNote, periodText, portfolioMix, resolveInvestment } from "@/lib/investment";
+import { assumptionLines, portfolioMix, resolveInvestment } from "@/lib/investment";
 import { startingCapital } from "@/lib/plan";
 import type { Investment } from "@/lib/types";
 import { MAX_AMOUNT, MAX_YEARS_AHEAD, MIN_YEARS } from "@/lib/validation";
@@ -54,7 +54,6 @@ export function CalculatorCard() {
   const capital = startingCapital(priced, plan.invested);
   const hasPortfolio = portfolioMix(priced).weights.length > 0;
   const current = resolveInvestment(plan.investment, priced);
-  const dividends = dividendNote(current);
   const other = plan.investment.kind === "stock" || plan.investment.kind === "custom";
 
   return (
@@ -109,10 +108,13 @@ export function CalculatorCard() {
           </span>
         </span>
       </Field>
-      <p className="col-span-2 text-xs text-muted sm:col-span-4">
-        <Changed value={`${current.name}: ${formatRate(current.realReturn)} a year after inflation, ${periodText(current)} average`} />
-        {dividends ? ` (${dividends})` : ""}. Past, not a promise. All amounts in today&apos;s euros.
-      </p>
+      <div className="col-span-2 space-y-0.5 text-xs text-muted sm:col-span-4">
+        {assumptionLines(current).map((line, index) => (
+          <p key={index}>
+            <Changed value={line} />
+          </p>
+        ))}
+      </div>
     </section>
   );
 }

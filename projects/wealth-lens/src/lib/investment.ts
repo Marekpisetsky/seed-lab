@@ -7,8 +7,10 @@
  * story, and the indexes are compared like for like.
  *
  * - An index: its history over the common period, averaged.
- * - A single stock: its closest index. A stock's own past growth is shown
- *   elsewhere as "past, not a forecast", never projected for decades.
+ * - A single stock: the growth of its reference index, and its own ups and
+ *   downs: the index's years scaled to the stock's volatility
+ *   (lib/volatility.ts). Its own past growth is shown apart as "past, not
+ *   a forecast", never projected.
  * - My portfolio: each holding counts towards the index it tracks (or its
  *   closest one), weighted by its value in euros; the yearly returns are
  *   blended year by year, rebalanced yearly.
@@ -16,8 +18,10 @@
  *   exactly the rate typed by the user.
  */
 
+import { formatPercent, formatRate } from "./format";
 import { annualizedReturn, INDEXES, INDEX_IDS, type IndexId } from "./indexes";
-import { INDEX_TRACKERS, instrumentById, instrumentForHolding, type Instrument } from "./market-data";
+import { INDEX_TRACKERS, instrumentById, instrumentForHolding, MARKET, type Instrument, type PricesFile } from "./market-data";
+import { indexVolatility, scaleVolatility, stockVolatility } from "./volatility";
 import { holdingValue } from "./finance";
 import { BASE_CURRENCY, type Holding, type Investment } from "./types";
 
@@ -104,11 +108,38 @@ export function scaleToAverage(returns: readonly number[], target: number): numb
   return returns.map((value) => (1 + value) * factor - 1);
 }
 
+/** A single stock's own figures, next to the index it is projected with. */
+export interface StockFigures {
+  id: string;
+  name: string;
+  index: IndexId;
+  /** Yearly volatility used for its ups and downs. */
+  volatility: number;
+  /** The index's, over the years its returns come from. */
+  indexVolatility: number;
+  /** True when it has under MIN_DATA_YEARS of closes and the fallback is used. */
+  fallback: boolean;
+  /** Years of daily closes behind `volatility`. */
+  dataYears: number;
+  from: string | null;
+  to: string | null;
+  /** Its price growth per year over its stored closes: shown, never projected. */
+  past: { years: number; perYear: number } | null;
+}
+
 export interface ResolvedInvestment {
   /** What the plan says, or the default when that cannot be used (e.g. an empty portfolio). */
   investment: Investment;
   /** "S&P 500", "My portfolio", "NVIDIA", "Your own rate". */
   name: string;
+  /** What the growth figure is the average of: "S&P 500"; for a stock, its index ("Nasdaq-100"). */
+  growthSource: string;
+  /** What the simulations draw, to end "lasted 30 years in 93% of …". */
+  modelText: string;
+  /** The same, shorter, for a chart legend. */
+  modelShort: string;
+  /** A single stock's own figures; `null` otherwise. */
+  stock: StockFigures | null;
   /** Identifies the history in `returns` (same key, same numbers), for caching simulations. */
   key: string;
   /** Expected growth per year after inflation, used for every projection. */
@@ -142,6 +173,10 @@ function fromIndex(index: IndexId, investment: Investment, name = INDEXES[index]
   return {
     investment,
     name,
+    growthSource: info.name,
+    modelText: `${info.name} histories`,
+    modelShort: `${info.name} histories`,
+    stock: null,
     key: `index:${index}`,
     realReturn: info.averageReturn,
     returns: info.years.map((entry) => entry.realReturn),
@@ -149,6 +184,46 @@ function fromIndex(index: IndexId, investment: Investment, name = INDEXES[index]
     proxyIndex: null,
     mix: null,
     withoutDividends: info.priceOnly ? 1 : 0,
+  };
+}
+
+const YEAR_MS = 365.25 * 24 * 60 * 60 * 1000;
+
+/**
+ * A single stock: the growth of its index, its own ups and downs. Its
+ * returns are the index's years, scaled to the stock's volatility.
+ */
+export function fromStock(instrument: Instrument, investment: Investment, market: PricesFile = MARKET): ResolvedInvestment {
+  const base = fromIndex(instrument.index, investment, instrument.name);
+  const index = INDEXES[instrument.index];
+  const own = stockVolatility(instrument, market);
+  const ofIndex = indexVolatility(instrument.index);
+  const factor = own.volatility / ofIndex;
+  const growth = market.prices[instrument.id]?.growth ?? null;
+  const last = market.prices[instrument.id]?.date;
+  const pastYears = growth && last ? (Date.parse(last) - Date.parse(growth.from)) / YEAR_MS : 0;
+  const volatility = `${Math.round(own.volatility * 100)}% a year`;
+  return {
+    ...base,
+    key: `stock:${instrument.id}:${factor.toFixed(4)}`,
+    returns: scaleVolatility(base.returns, factor),
+    proxyIndex: instrument.index,
+    modelText: own.fallback
+      ? `simulations using ${index.name} years at twice its ups and downs (too little data for ${instrument.name})`
+      : `simulations using ${index.name} years scaled to ${instrument.name}'s volatility (${volatility})`,
+    modelShort: `simulations with ${instrument.name}'s volatility`,
+    stock: {
+      id: instrument.id,
+      name: instrument.name,
+      index: instrument.index,
+      volatility: own.volatility,
+      indexVolatility: ofIndex,
+      fallback: own.fallback,
+      dataYears: own.dataYears,
+      from: own.from,
+      to: own.to,
+      past: growth && pastYears >= 1 ? { years: pastYears, perYear: growth.perYear } : null,
+    },
   };
 }
 
@@ -160,7 +235,7 @@ export function resolveInvestment(investment: Investment, holdings: readonly Hol
     case "stock": {
       const instrument = instrumentById(investment.id);
       if (!instrument || instrument.kind !== "stock") break;
-      return { ...fromIndex(instrument.index, investment, instrument.name), proxyIndex: instrument.index };
+      return fromStock(instrument, investment);
     }
     case "portfolio": {
       const mix = portfolioMix(holdings);
@@ -170,6 +245,10 @@ export function resolveInvestment(investment: Investment, holdings: readonly Hol
       return {
         investment,
         name: "My portfolio",
+        growthSource: "your portfolio's indexes",
+        modelText: "histories of your portfolio's indexes",
+        modelShort: "histories of your portfolio's indexes",
+        stock: null,
         key: `mix:${mix.weights.map(({ index, weight }) => `${index}=${weight.toFixed(3)}`).join(",")}`,
         realReturn: annualizedReturn(returns),
         returns,
@@ -183,6 +262,9 @@ export function resolveInvestment(investment: Investment, holdings: readonly Hol
       const base = fromIndex(DEFAULT_INDEX, investment, "Your own rate");
       return {
         ...base,
+        growthSource: "your own rate",
+        modelText: "S&P 500 histories scaled to your rate",
+        modelShort: "S&P 500 histories scaled to your rate",
         key: `custom:${investment.realReturn.toFixed(4)}`,
         realReturn: investment.realReturn,
         returns: scaleToAverage(base.returns, investment.realReturn),
@@ -191,4 +273,32 @@ export function resolveInvestment(investment: Investment, holdings: readonly Hol
   }
   // A stock no longer on the list, or a portfolio with nothing priced in euros.
   return fromIndex(DEFAULT_INDEX, { kind: "index", index: DEFAULT_INDEX });
+}
+
+function monthsOrYears(years: number): string {
+  if (years >= 1.5) return `${Math.round(years)} years`;
+  const months = Math.max(1, Math.round(years * 12));
+  return `${months} month${months === 1 ? "" : "s"}`;
+}
+
+/**
+ * The assumptions under the calculator, one sentence each: where the
+ * growth comes from and, for a single stock, where its ups and downs come
+ * from and its own past, apart.
+ */
+export function assumptionLines(investment: ResolvedInvestment): string[] {
+  const dividends = dividendNote(investment);
+  const growth = `${formatRate(investment.realReturn)} a year after inflation, ${periodText(investment)} average${dividends ? ` (${dividends})` : ""}`;
+  const { stock } = investment;
+  if (!stock) return [`${investment.name}: ${growth}. Past, not a promise. All amounts in today's euros.`];
+  const lines = [`Growth: ${investment.growthSource} average, ${growth}. One stock's future can't be predicted.`];
+  lines.push(
+    stock.fallback
+      ? `Ups and downs: only ${monthsOrYears(stock.dataYears)} of closes for ${stock.name}, so they are taken as twice the ${investment.growthSource}'s (${formatPercent(stock.volatility, { decimals: 0 })} a year).`
+      : `Ups and downs: ${stock.name}'s own, ${formatPercent(stock.volatility, { decimals: 0 })} a year (daily closes ${stock.from?.slice(0, 4)}–${stock.to?.slice(0, 4)}), against ${formatPercent(stock.indexVolatility, { decimals: 0 })} for the ${investment.growthSource}.`,
+  );
+  if (stock.past) {
+    lines.push(`Past ${monthsOrYears(stock.past.years)}: ${formatPercent(stock.past.perYear, { signed: true, decimals: 0 })} a year (price, before inflation). Past, not a forecast.`);
+  }
+  return lines;
 }

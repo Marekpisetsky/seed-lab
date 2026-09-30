@@ -83,7 +83,7 @@ function yearOf(today: Date, months: number): number {
 
 function growthAssumption(scenario: Scenario, investment: ResolvedInvestment): string {
   const dividends = dividendNote(investment);
-  return `Growth ${formatRate(scenario.realReturn)} a year after inflation: ${investment.name}, ${periodText(investment)} average${dividends ? ` (${dividends})` : ""}. Past, not a promise.`;
+  return `Growth ${formatRate(scenario.realReturn)} a year after inflation: ${investment.growthSource}, ${periodText(investment)} average${dividends ? ` (${dividends})` : ""}. Past, not a promise.`;
 }
 
 function monthlyAssumption(scenario: Scenario): string {
@@ -333,7 +333,7 @@ export function sequenceFinding(context: FindingContext): Finding | null {
     "From then on, growth at the average rate.",
   ];
   const assumptions = [
-    `1,000 simulations drawing each year's return from the ${investment.name} history (${periodText(investment)}).`,
+    `1,000 simulations drawing each year's return from the ${investment.growthSource}'s ${periodText(investment)} history${investment.stock ? `, scaled to ${investment.name}'s volatility (${formatPercent(investment.stock.volatility, { decimals: 0 })} a year)` : ""}.`,
     monthlyAssumption(scenario),
   ];
 

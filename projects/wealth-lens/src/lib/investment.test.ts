@@ -121,7 +121,8 @@ describe("resolveInvestment", () => {
 
   it("keys each history, so simulations can be cached", () => {
     expect(resolveInvestment({ kind: "index", index: "world" }, []).key).toBe("index:world");
-    expect(resolveInvestment({ kind: "stock", id: "NVDA" }, []).key).toBe("index:nasdaq100");
+    // A stock's history is its index's, scaled to its volatility: a key of its own.
+    expect(resolveInvestment({ kind: "stock", id: "NVDA" }, []).key).toMatch(/^stock:NVDA:\d\.\d{4}$/);
     expect(resolveInvestment({ kind: "custom", realReturn: 0.05 }, []).key).toBe("custom:0.0500");
     expect(resolveInvestment({ kind: "portfolio" }, [holding("VUAA", 3000), holding("EQQQ", 1000)]).key).toBe(
       "mix:sp500=0.750,nasdaq100=0.250",

@@ -54,7 +54,7 @@ export function ResultSection({ bundle }: { bundle: CalculationBundle }) {
           </div>
           <span>
             taken out a year: lasted 30 years in <Changed value={formatPercent(selected.lasted, { decimals: 0 })} /> of{" "}
-            {investment.name} histories
+            <Changed value={investment.modelText} />
           </span>
         </div>
       </div>
