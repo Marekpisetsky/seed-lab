@@ -34,10 +34,29 @@ function assertNonNegative(value: number, name: string): void {
   }
 }
 
-/** Effective monthly rate whose 12-month compounding equals `annualRate`. */
+/**
+ * Effective monthly rate whose 12-month compounding equals `annualRate`.
+ * Through log1p/expm1, so a rate a hair from zero (1e-17, left over from
+ * taking inflation off a growth equal to it) keeps its precision.
+ */
 export function monthlyRate(annualRate: number): number {
   assertAnnualRate(annualRate);
-  return Math.pow(1 + annualRate, 1 / 12) - 1;
+  return Math.expm1(Math.log1p(annualRate) / 12);
+}
+
+/** (1 + rate)^years, through log1p so a tiny rate keeps its precision. */
+function growthOver(annualRate: number, years: number): number {
+  return Math.exp(years * Math.log1p(annualRate));
+}
+
+/**
+ * What €1 a month for `months` months has become at the monthly rate `i`:
+ * ((1+i)^m − 1) / i, worked out without cancelling digits, so a tiny rate
+ * gives about `months` and not 0 or twice that.
+ */
+function annuityFactor(i: number, months: number): number {
+  if (Math.abs(i) < 1e-15) return months;
+  return Math.expm1(months * Math.log1p(i)) / i;
 }
 
 /** Lump sum compounded yearly: PV × (1 + r)^years. */
@@ -63,9 +82,7 @@ export function futureValueWithContributions(
   assertNonNegative(years, "years");
   const months = years * 12;
   const i = monthlyRate(annualRate);
-  if (i === 0) return presentValue + monthlyContribution * months;
-  const growth = Math.pow(1 + i, months);
-  return presentValue * growth + (monthlyContribution * (growth - 1)) / i;
+  return presentValue * growthOver(annualRate, years) + monthlyContribution * annuityFactor(i, months);
 }
 
 /**
@@ -92,7 +109,7 @@ export function monthsToGoal(
 
   if (goal <= presentValue) return 0;
 
-  if (i === 0) {
+  if (Math.abs(i) < 1e-15) {
     return monthlyContribution > 0 ? (goal - presentValue) / monthlyContribution : Infinity;
   }
 
@@ -103,7 +120,8 @@ export function monthsToGoal(
   // which is below the goal.
   if (denominator <= 0 || numerator <= 0) return Infinity;
 
-  return Math.log(numerator / denominator) / Math.log1p(i);
+  // ln(numerator / denominator), as log1p of how far the ratio is from 1: precise when the growth is tiny.
+  return Math.log1p(((goal - presentValue) * i) / denominator) / Math.log1p(i);
 }
 
 /** `monthsToGoal` expressed in years. */
@@ -134,12 +152,10 @@ export function requiredMonthlyContribution(
   assertFiniteNumber(goal, "goal");
   const i = monthlyRate(annualRate);
 
-  const growth = Math.pow(1 + i, months);
-  const shortfall = goal - presentValue * growth;
+  const shortfall = goal - presentValue * growthOver(annualRate, months / 12);
   if (shortfall <= 0) return 0;
   if (months === 0) return Infinity;
-  if (i === 0) return shortfall / months;
-  return (shortfall * i) / (growth - 1);
+  return shortfall / annuityFactor(i, months);
 }
 
 /** Fisher relation: nominal = (1 + real)(1 + inflation) − 1. */

@@ -124,9 +124,11 @@ export function findColumn(header: readonly string[], ...candidates: (string | R
  *
  * With a single separator kind, a comma followed by exactly three digits in
  * every group is read as thousands ("1,234" → 1234) unless the number starts
- * with "0," ("0,123" → 0.123); any other comma is a decimal comma.
+ * with "0," ("0,123" → 0.123); any other comma is a decimal comma. With
+ * `decimalComma` (a page in a language that writes 1.234,5, like Spanish) it
+ * is the other way round: "10.000" is ten thousand and "1,234" is 1.234.
  */
-export function parseLooseNumber(raw: string | undefined): number | null {
+export function parseLooseNumber(raw: string | undefined, decimalComma = false): number | null {
   if (raw === undefined) return null;
   let text = raw.trim().replace(/[\s  ']/g, "");
   text = text.replace(/^[^\d.,+-]+|[^\d.,]+$/g, ""); // currency symbols, %, codes
@@ -142,9 +144,9 @@ export function parseLooseNumber(raw: string | undefined): number | null {
         : text.replace(/,/g, "");
   } else if (lastComma !== -1) {
     const unsigned = text.replace(/^[+-]/, "");
-    const isThousands = /^[1-9]\d{0,2}(,\d{3})+$/.test(unsigned);
+    const isThousands = decimalComma ? /^[1-9]\d{0,2}(,\d{3}){2,}$/.test(unsigned) : /^[1-9]\d{0,2}(,\d{3})+$/.test(unsigned);
     text = isThousands ? text.replace(/,/g, "") : text.replace(",", ".");
-  } else if (lastDot !== -1 && /^[+-]?[1-9]\d{0,2}(\.\d{3}){2,}$/.test(text)) {
+  } else if (lastDot !== -1 && (decimalComma ? /^[+-]?[1-9]\d{0,2}(\.\d{3})+$/ : /^[+-]?[1-9]\d{0,2}(\.\d{3}){2,}$/).test(text)) {
     // "1.234.567": dots can only be thousands separators when there are several.
     text = text.replace(/\./g, "");
   }

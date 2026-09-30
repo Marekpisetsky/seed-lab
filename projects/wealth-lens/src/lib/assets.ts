@@ -29,33 +29,12 @@ export function isSeriesAsset(asset: AssetId): asset is SeriesId {
  * Every bank pays its own rate: the user can type theirs.
  */
 export const SAVINGS_RATE = 0.015;
-export const SAVINGS_RATE_NOTE =
-  "a round figure for easy-access euro savings accounts in 2025–2026, below the ECB's 2% deposit rate (since June 2025); your bank's may differ";
-
 /** A savings account's growth after inflation: can be below zero. */
 export function savingsRealReturn(inflation: number, rate: number = SAVINGS_RATE): number {
   return (1 + rate) / (1 + inflation) - 1;
-}
-
-/** "S&P 500", "Euro government bonds", "Gold", "Savings account". */
-export function assetName(asset: AssetId): string {
-  return asset === "savings" ? "Savings account" : SERIES[asset].name;
-}
-
-/** Short enough for a narrow list: "Euro gov. bonds", "Savings". */
-export function assetShortName(asset: AssetId): string {
-  return asset === "bonds" ? "Euro gov. bonds" : asset === "savings" ? "Savings" : assetName(asset);
-}
-
-/** As it reads before "histories": "S&P 500", "euro government bond", "gold". */
-export function historyName(asset: SeriesId): string {
-  return asset === "bonds" ? "euro government bond" : asset === "gold" ? "gold" : SERIES[asset].name;
 }
 
 /** Yearly swings of an asset with a history: the standard deviation of its yearly log returns over the common period. */
 export function seriesVolatility(asset: SeriesId): number {
   return logStats(SERIES[asset].years.map((entry) => entry.realReturn)).deviation;
 }
-
-/** Said with gold wherever it can be chosen: it protects, it does not grow much. */
-export const GOLD_NOTE = "Low long-term growth, big ups and downs";

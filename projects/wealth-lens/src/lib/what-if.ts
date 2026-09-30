@@ -38,15 +38,6 @@ export const BAD_YEARS = 10;
 /** The most years a plan looks ahead. */
 const MAX_YEARS = 60;
 
-/** On its chip, and after "What if:" once applied. */
-export const WHAT_IF_LABELS: Readonly<Record<WhatIfId, { chip: string; applied: string }>> = {
-  "grow-more": { chip: "Grows 1% more", applied: "grows 1% more" },
-  "grow-less": { chip: "Grows 1% less", applied: "grows 1% less" },
-  "monthly-50": { chip: "+€50 a month", applied: "+€50 a month" },
-  "years-5": { chip: "5 more years", applied: "5 more years" },
-  "bad-decade": { chip: "A bad first decade", applied: "a bad first decade" },
-};
-
 /** What a scenario changes in the plan's inputs. */
 export interface WhatIfInputs {
   monthly: number;

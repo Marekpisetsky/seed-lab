@@ -90,11 +90,11 @@ describe("weights", () => {
 
 describe("templates", () => {
   it("are 100% stocks, 80/20 and 60/40: world stocks and euro government bonds", () => {
-    expect(TEMPLATES.map((template) => template.label)).toEqual(["100% stocks", "80/20", "60/40"]);
+    expect(TEMPLATES.map((template) => template.id)).toEqual(["stocks-100", "80-20", "60-40"]);
     expect(TEMPLATES[0].parts).toEqual([{ asset: "world", weight: 100 }]);
     expect(TEMPLATES[1].parts).toEqual([{ asset: "world", weight: 80 }, { asset: "bonds", weight: 20 }]);
     expect(TEMPLATES[2].parts).toEqual([{ asset: "world", weight: 60 }, { asset: "bonds", weight: 40 }]);
-    for (const template of TEMPLATES) expect(sumsTo100(template.parts), template.label).toBe(true);
+    for (const template of TEMPLATES) expect(sumsTo100(template.parts), template.id).toBe(true);
   });
 
   it("are recognized whatever the order of the parts, and not once a weight changes", () => {

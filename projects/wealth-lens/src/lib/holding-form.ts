@@ -4,7 +4,8 @@
  * so "1.234,50" and "1,234.50" both work.
  */
 
-import { parseLooseNumber } from "./csv";
+import { parseLooseNumber as parseNumber } from "./csv";
+import { problem, type Problem } from "./problems";
 import type { Holding, HoldingInput } from "./types";
 
 export interface HoldingFormValues {
@@ -15,7 +16,7 @@ export interface HoldingFormValues {
   currentPrice: string;
 }
 
-export type HoldingFormErrors = Partial<Record<keyof HoldingFormValues, string>>;
+export type HoldingFormErrors = Partial<Record<keyof HoldingFormValues, Problem>>;
 
 export type HoldingFormResult =
   | { ok: true; value: HoldingInput }
@@ -29,36 +30,39 @@ export const EMPTY_HOLDING_FORM: HoldingFormValues = {
   currentPrice: "",
 };
 
-export function holdingToFormValues(holding: Holding): HoldingFormValues {
+/** `show` writes a number the page language's way ("1250,4" in Spanish). */
+export function holdingToFormValues(holding: Holding, show: (value: number) => string = String): HoldingFormValues {
   return {
     ticker: holding.ticker,
-    quantity: String(holding.quantity),
-    costBasis: String(holding.costBasis),
+    quantity: show(holding.quantity),
+    costBasis: show(holding.costBasis),
     currency: holding.currency,
-    currentPrice: holding.currentPrice === null ? "" : String(holding.currentPrice),
+    currentPrice: holding.currentPrice === null ? "" : show(holding.currentPrice),
   };
 }
 
-export function validateHoldingForm(values: HoldingFormValues): HoldingFormResult {
+/** `decimalComma`: the page's language writes 1,5 for 1.5, so "10.000" is ten thousand. */
+export function validateHoldingForm(values: HoldingFormValues, decimalComma = false): HoldingFormResult {
+  const parseLooseNumber = (text: string) => parseNumber(text, decimalComma);
   const errors: HoldingFormErrors = {};
 
   const ticker = values.ticker.trim().toUpperCase();
-  if (ticker === "") errors.ticker = "Enter a ticker.";
-  else if (ticker.length > 20) errors.ticker = "Use at most 20 characters.";
+  if (ticker === "") errors.ticker = problem("form-ticker-empty");
+  else if (ticker.length > 20) errors.ticker = problem("form-ticker-long");
 
   const quantity = parseLooseNumber(values.quantity);
-  if (quantity === null || quantity <= 0) errors.quantity = "Enter a number of shares above 0.";
+  if (quantity === null || quantity <= 0) errors.quantity = problem("form-quantity");
 
   const costBasis = parseLooseNumber(values.costBasis);
-  if (costBasis === null || costBasis < 0) errors.costBasis = "Enter the total amount paid (0 or more).";
+  if (costBasis === null || costBasis < 0) errors.costBasis = problem("form-cost");
 
   const currency = values.currency.trim().toUpperCase();
-  if (!/^[A-Z]{3}$/.test(currency)) errors.currency = "Use a 3-letter code such as EUR or USD.";
+  if (!/^[A-Z]{3}$/.test(currency)) errors.currency = problem("form-currency");
 
   let currentPrice: number | null = null;
   if (values.currentPrice.trim() !== "") {
     currentPrice = parseLooseNumber(values.currentPrice);
-    if (currentPrice === null || currentPrice < 0) errors.currentPrice = "Enter a price of 0 or more, or leave it empty.";
+    if (currentPrice === null || currentPrice < 0) errors.currentPrice = problem("form-price");
   }
 
   // The null checks are implied by `errors` being empty; they narrow the types.

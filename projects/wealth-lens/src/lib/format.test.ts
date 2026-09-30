@@ -1,18 +1,20 @@
 import { describe, expect, it } from "vitest";
-import {
-  formatApproxDuration,
-  formatDayMonth,
-  formatDuration,
-  formatEur,
-  formatEurRounded,
-  formatMoney,
-  formatMonthYear,
-  formatNumber,
-  formatPercent,
-  formatPrice,
-  formatRate,
-  formatYears,
-} from "./format";
+import { EN, getI18n } from "@/i18n";
+
+const ES = getI18n("es");
+const {
+  dayMonth: formatDayMonth,
+  duration: formatDuration,
+  eur: formatEur,
+  eurRounded: formatEurRounded,
+  money: formatMoney,
+  monthYear: formatMonthYear,
+  number: formatNumber,
+  percent: formatPercent,
+  price: formatPrice,
+  rate: formatRate,
+  span: formatYears,
+} = EN.f;
 
 describe("formatRate", () => {
   it("drops needless decimals", () => {
@@ -84,18 +86,9 @@ describe("formatMonthYear", () => {
   });
 });
 
-describe("formatDayMonth / formatApproxDuration", () => {
+describe("formatDayMonth", () => {
   it("formats a trading day as DD/MM", () => {
     expect(formatDayMonth("2026-09-05")).toBe("05/09");
-  });
-
-  it("rounds long durations to whole years for headlines", () => {
-    expect(formatApproxDuration(115.17)).toBe("~10 years");
-    expect(formatApproxDuration(190)).toBe("~16 years");
-    expect(formatApproxDuration(12)).toBe("~1 year");
-    expect(formatApproxDuration(4.2)).toBe("~5 months");
-    expect(formatApproxDuration(1)).toBe("~1 month");
-    expect(formatApproxDuration(Infinity)).toBe("never");
   });
 });
 
@@ -129,3 +122,30 @@ describe("formatEurRounded", () => {
   });
 });
 
+
+describe("in Spanish", () => {
+  const nbsp = "\u00a0";
+
+  it("writes money, percents and numbers the Spanish way", () => {
+    expect(ES.f.eur(112_288)).toBe(`112.288${nbsp}€`);
+    expect(ES.f.eur(5400, { signed: true })).toBe(`+5400${nbsp}€`);
+    expect(ES.f.money(1967.1513, "EUR")).toBe(`1967,15${nbsp}€`);
+    expect(ES.f.percent(0.0914)).toBe(`9,1${nbsp}%`);
+    expect(ES.f.rate(0.045)).toBe(`4,5${nbsp}%`);
+    expect(ES.f.number(1500.5)).toBe("1500,5");
+    expect(ES.f.fixed(0.9, 2)).toBe("0,90");
+    expect(ES.f.eurRounded(66_827)).toBe(`67.000${nbsp}€`);
+  });
+
+  it("writes spans of time and months in Spanish", () => {
+    expect(ES.f.duration(115.17)).toBe("9 años 8 meses");
+    expect(ES.f.duration(1)).toBe("1 mes");
+    expect(ES.f.span(18)).toBe("2 años");
+    expect(ES.f.monthYear(new Date(Date.UTC(2036, 5, 1)))).toMatch(/^jun\.? 2036$/);
+  });
+
+  it("never writes a minus zero", () => {
+    expect(ES.f.eur(-0.3)).toBe(`0${nbsp}€`);
+    expect(ES.f.rate(-0.000001)).toBe(`0${nbsp}%`);
+  });
+});

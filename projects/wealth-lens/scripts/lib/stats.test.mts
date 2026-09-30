@@ -90,27 +90,30 @@ describe("the prices file", () => {
     date: "2024-12-31",
     close: 130,
     change1y: 1.7,
-    spark: [100, 130],
     growth: null,
     drawdown: null,
   };
   const previous: PricesFile = { version: 1, updatedAt: "2024-12-30T00:00:00.000Z", prices: { NVDA: entry } };
   const points = weekdays("2020-01-01", "2024-12-31", (index) => (index % 3 === 0 ? 0.02 : -0.009));
-  const stats = { NVDA: instrumentStats(points) };
+  const stats = instrumentStats(points);
   const correlations = weeklyCorrelations({ NVDA: points });
+  // As the job builds it: the day's figures, with the stats worked out from the same download.
+  const fresh = { NVDA: { ...entry, date: "2025-01-01", stats } };
 
   it("carries each instrument's stats and the correlations, and reads them back", () => {
-    const { file, changed } = nextPricesFile([instrument], previous, {}, new Date("2025-01-01T00:00:00Z"), stats, correlations);
+    const { file, changed } = nextPricesFile([instrument], previous, fresh, new Date("2025-01-01T00:00:00Z"), correlations);
     expect(changed).toBe(true);
-    expect(file.prices.NVDA.stats?.volatility).toBe(stats.NVDA?.volatility);
+    expect(file.prices.NVDA.stats?.volatility).toBe(stats?.volatility);
     const text = formatPricesFile(file);
     expect(text).toContain('"correlations": {');
     expect(parsePricesFile(JSON.parse(text))).toEqual(file);
   });
 
   it("is unchanged when neither prices nor stats move", () => {
-    const { file } = nextPricesFile([instrument], previous, {}, new Date("2025-01-01T00:00:00Z"), stats, correlations);
-    expect(nextPricesFile([instrument], file, {}, new Date("2025-01-02T00:00:00Z"), stats, correlations).changed).toBe(false);
+    const { file } = nextPricesFile([instrument], previous, fresh, new Date("2025-01-01T00:00:00Z"), correlations);
+    expect(nextPricesFile([instrument], file, fresh, new Date("2025-01-02T00:00:00Z"), correlations).changed).toBe(false);
+    // A failed download keeps yesterday's figures, stats included.
+    expect(nextPricesFile([instrument], file, {}, new Date("2025-01-02T00:00:00Z"), correlations).file.prices.NVDA.stats).toEqual(stats);
   });
 
   it("drops malformed stats and correlations instead of failing", () => {

@@ -10,10 +10,12 @@
  */
 
 import type { AssetId } from "./assets";
+import { priceHoldings } from "./auto-price";
 import { createId } from "./id";
+import { resolveInvestment } from "./investment";
 import { STANDARD_ASSUMPTIONS, type AssumptionOverrides, type Holding, type Investment, type NewGoal, type Plan } from "./types";
 import { DEFAULT_PLAN, type UploadedPrices } from "./validation";
-import type { WhatIfId } from "./what-if";
+import { whatIfAvailable, type WhatIfId } from "./what-if";
 
 export interface AppState {
   plan: Plan;
@@ -36,14 +38,15 @@ export interface Store<T> {
   subscribe(listener: () => void): () => void;
 }
 
-export function createStore<T>(initial: T): Store<T> {
+/** `settle` fixes up every new value before it is kept (the app's: a "What if…?" that no longer applies goes). */
+export function createStore<T>(initial: T, settle: (value: T) => T = (value) => value): Store<T> {
   let value = initial;
   const listeners = new Set<() => void>();
   return {
     get: () => value,
     getServerSnapshot: () => initial,
     set(next) {
-      const updated = typeof next === "function" ? (next as (previous: T) => T)(value) : next;
+      const updated = settle(typeof next === "function" ? (next as (previous: T) => T)(value) : next);
       if (Object.is(updated, value)) return;
       value = updated;
       listeners.forEach((listener) => listener());
@@ -55,7 +58,19 @@ export function createStore<T>(initial: T): Store<T> {
   };
 }
 
-export const appStore = createStore<AppState>(INITIAL_STATE);
+/**
+ * A "What if…?" the plan can no longer take (five more years past 60, a bad
+ * decade once the money has no ups and downs) is taken away, not kept
+ * waiting: going back to 50 years must not bring it back on its own.
+ */
+function withWhatIfThatApplies(state: AppState): AppState {
+  if (state.whatIf === null) return state;
+  const holdings = priceHoldings(state.holdings, state.uploadedPrices);
+  const investment = resolveInvestment(state.plan.investment, holdings, state.plan);
+  return whatIfAvailable(state.whatIf, state.plan.years, investment) ? state : { ...state, whatIf: null };
+}
+
+export const appStore = createStore<AppState>(INITIAL_STATE, withWhatIfThatApplies);
 
 export function updatePlan(patch: Partial<Plan> | ((plan: Plan) => Partial<Plan>)): void {
   appStore.set((state) => ({

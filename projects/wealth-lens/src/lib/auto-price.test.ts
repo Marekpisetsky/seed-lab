@@ -10,7 +10,6 @@ const entry = (currency: string, close: number) => ({
   date: "2026-09-25",
   close,
   change1y: null,
-  spark: [],
   growth: null,
 });
 const market = parsePricesFile({ prices: { VWCE: entry("EUR", 131.5), NVDA: entry("USD", 180.2) } });

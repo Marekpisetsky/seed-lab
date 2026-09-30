@@ -41,7 +41,7 @@
  * US inflation, a savings part at today's rate.
  */
 
-import { assetName, isSeriesAsset, type AssetId } from "./assets";
+import { isSeriesAsset, type AssetId } from "./assets";
 import { isIndexId, SERIES, SERIES_IDS, US_INFLATION, type IndexId, type SeriesId } from "./indexes";
 import { INSTRUMENTS, MARKET, type Instrument, type PricesFile } from "./market-data";
 import { mulberry32, survives } from "./monte-carlo";
@@ -79,8 +79,11 @@ export function splitEvenly<T extends { weight: number }>(parts: readonly T[]): 
 // Templates
 // ---------------------------------------------------------------------------
 
+export type TemplateId = "stocks-100" | "80-20" | "60-40";
+
 export interface MixTemplate {
-  label: string;
+  /** Its name on the button comes from the dictionary: "100% stocks", "80/20", "60/40". */
+  id: TemplateId;
   parts: readonly MixPart[];
 }
 
@@ -89,16 +92,16 @@ export interface MixTemplate {
  * government bonds. Textbook mixes, not advice; every weight stays editable.
  */
 export const TEMPLATES: readonly MixTemplate[] = [
-  { label: "100% stocks", parts: [{ asset: "world", weight: 100 }] },
+  { id: "stocks-100", parts: [{ asset: "world", weight: 100 }] },
   {
-    label: "80/20",
+    id: "80-20",
     parts: [
       { asset: "world", weight: 80 },
       { asset: "bonds", weight: 20 },
     ],
   },
   {
-    label: "60/40",
+    id: "60-40",
     parts: [
       { asset: "world", weight: 60 },
       { asset: "bonds", weight: 40 },
@@ -239,11 +242,6 @@ export function mixModel(
 /** "bonds", or "stock:NVDA@nasdaq100". */
 function partId(part: ModelPart): string {
   return part.kind === "stock" ? `stock:${part.instrument.id}@${part.asset}` : part.asset;
-}
-
-/** "Euro government bonds", "NVIDIA". */
-export function partName(part: ModelPart): string {
-  return part.kind === "stock" ? part.instrument.name : assetName(part.asset);
 }
 
 // ---------------------------------------------------------------------------

@@ -1,19 +1,13 @@
 /**
- * Display formatting. A fixed locale keeps server and client output identical
- * and the UI consistently in English.
+ * Numbers, money, percents and dates, in the formats of each language
+ * ("€112,288" in English, "112.288 €" in Spanish). The words around them
+ * ("3 years", "in 2 months") belong to the dictionaries (src/i18n).
+ *
+ * The same code formats on the server (the static HTML) and in the browser,
+ * and their ICU data may use different spaces (a no-break space or a narrow
+ * one before "€" and "%"): every result uses the no-break space, so the page
+ * never changes between the two.
  */
-
-const LOCALE = "en-US";
-const formatters = new Map<string, Intl.NumberFormat>();
-
-function numberFormat(key: string, options: Intl.NumberFormatOptions): Intl.NumberFormat {
-  let formatter = formatters.get(key);
-  if (!formatter) {
-    formatter = new Intl.NumberFormat(LOCALE, options);
-    formatters.set(key, formatter);
-  }
-  return formatter;
-}
 
 interface MoneyOptions {
   /** Fraction digits; defaults to 2. */
@@ -22,115 +16,126 @@ interface MoneyOptions {
   signed?: boolean;
 }
 
-export function formatMoney(amount: number, currency: string, { decimals = 2, signed = false }: MoneyOptions = {}): string {
-  return numberFormat(`money|${currency}|${decimals}|${signed}`, {
-    style: "currency",
-    currency,
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-    signDisplay: signed ? "exceptZero" : "auto",
-  }).format(amount);
-}
-
 interface PercentOptions {
   decimals?: number;
   signed?: boolean;
 }
 
-/** 0.0914 → "9.1%". */
-export function formatPercent(fraction: number, { decimals = 1, signed = false }: PercentOptions = {}): string {
-  return numberFormat(`percent|${decimals}|${signed}`, {
-    style: "percent",
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-    signDisplay: signed ? "exceptZero" : "auto",
-  }).format(fraction);
-}
-
-/** Plain number with up to `maxDecimals` fraction digits (share counts, prices). */
-export function formatNumber(value: number, maxDecimals = 4): string {
-  return numberFormat(`number|${maxDecimals}`, { maximumFractionDigits: maxDecimals }).format(value);
-}
-
-/** Price per share without a currency symbol: always 2 decimals, up to 4 for small prices. */
-export function formatPrice(value: number): string {
-  const maxDecimals = Math.abs(value) < 1 ? 4 : 2;
-  return numberFormat(`price|${maxDecimals}`, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: maxDecimals,
-  }).format(value);
-}
-
-/**
- * Months → "9 years 8 months". Partial months round up, because monthly
- * contributions only reach the goal at the end of a month.
- */
-export function formatDuration(months: number): string {
-  if (!Number.isFinite(months)) return "never";
-  const total = Math.max(0, Math.ceil(months - 1e-9));
-  const years = Math.floor(total / 12);
-  const rest = total % 12;
-  const plural = (n: number, unit: string) => `${n} ${unit}${n === 1 ? "" : "s"}`;
-  if (years === 0) return plural(rest, "month");
-  if (rest === 0) return plural(years, "year");
-  return `${plural(years, "year")} ${plural(rest, "month")}`;
-}
-
-const monthYear = new Intl.DateTimeFormat(LOCALE, { month: "short", year: "numeric", timeZone: "UTC" });
-
-/** "Jun 2036". */
-export function formatMonthYear(date: Date): string {
-  return monthYear.format(date);
-}
-
-/** "2026-09-25" → "25/09" (day/month, as in "price from 25/09"). */
-export function formatDayMonth(isoDate: string): string {
-  const [, month, day] = isoDate.split("-");
-  return `${day}/${month}`;
-}
-
-/** Months → "~16 years" or "~5 months": the rough figure for a headline. */
-export function formatApproxDuration(months: number): string {
-  if (!Number.isFinite(months)) return "never";
-  const whole = Math.max(0, Math.ceil(months - 1e-9));
-  if (whole < 12) return `~${whole} month${whole === 1 ? "" : "s"}`;
-  const years = Math.round(whole / 12);
-  return `~${years} year${years === 1 ? "" : "s"}`;
-}
-
-/** A rate without needless decimals: 0.04 → "4%", 0.045 → "4.5%". */
-export function formatRate(rate: number): string {
-  const tenths = Math.round(rate * 1000);
-  return formatPercent(rate, { decimals: tenths % 10 === 0 ? 0 : 1 });
-}
-
-/** Whole euros: 1234.5 → "€1,235". */
-export function formatEur(amount: number, { signed = false }: { signed?: boolean } = {}): string {
-  return formatMoney(amount, "EUR", { decimals: 0, signed });
+export interface NumberFormats {
+  /** 1234.5, "EUR" → "€1,234.50". */
+  money(amount: number, currency: string, options?: MoneyOptions): string;
+  /** Whole euros: 1234.5 → "€1,235". */
+  eur(amount: number, options?: { signed?: boolean }): string;
+  /** Rounded the way a brief says it: €8,429 → "€8,400", €66,827 → "€67,000". */
+  eurRounded(amount: number, options?: { signed?: boolean }): string;
+  /** Short, for an axis: "€1.2M", "€99K" ("1,2 M €", "99 mil €"). */
+  eurCompact(amount: number): string;
+  /** 0.0914 → "9.1%". */
+  percent(fraction: number, options?: PercentOptions): string;
+  /** A rate without needless decimals: 0.04 → "4%", 0.045 → "4.5%". */
+  rate(rate: number): string;
+  /** Plain number with up to `maxDecimals` fraction digits (share counts). */
+  number(value: number, maxDecimals?: number): string;
+  /** "." or ",": how this language writes 1.5, so typed numbers are read its way. */
+  decimalSeparator: string;
+  /** Exactly `decimals` fraction digits: 0.9, 2 → "0.90" ("0,90"). */
+  fixed(value: number, decimals: number): string;
+  /** Price per share without a currency: 2 decimals, up to 4 for small prices. */
+  price(value: number): string;
+  /** "Jun 2036". */
+  monthYear(date: Date): string;
+  /** "2026-09-25" → "25/09". */
+  dayMonth(isoDate: string): string;
 }
 
 /**
- * A span of time for a sentence, rounded to what a person would say:
- * 3 → "3 months", 18 → "2 years" (from 12 months on, whole years),
- * Infinity → "never".
+ * Rounded to what is shown, with −0 turned into 0: −€0.30 shown in whole
+ * euros is "€0", never "-€0".
  */
-export function formatYears(months: number): string {
-  if (!Number.isFinite(months)) return "never";
-  const abs = Math.abs(months);
-  if (abs < 11.5) {
-    const whole = Math.max(1, Math.round(abs));
-    return `${whole} month${whole === 1 ? "" : "s"}`;
+function shown(value: number, decimals: number): number {
+  const rounded = Number(value.toFixed(decimals));
+  return rounded === 0 ? 0 : rounded;
+}
+
+const spaces = (text: string) => text.replace(/[  ]/g, " ");
+
+function createFormats(intl: string): NumberFormats {
+  const cache = new Map<string, Intl.NumberFormat>();
+  const numberFormat = (key: string, options: Intl.NumberFormatOptions) => {
+    let formatter = cache.get(key);
+    if (!formatter) {
+      formatter = new Intl.NumberFormat(intl, options);
+      cache.set(key, formatter);
+    }
+    return formatter;
+  };
+  const money: NumberFormats["money"] = (amount, currency, { decimals = 2, signed = false } = {}) =>
+    spaces(
+      numberFormat(`money|${currency}|${decimals}|${signed}`, {
+        style: "currency",
+        currency,
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+        signDisplay: signed ? "exceptZero" : "auto",
+      }).format(Number.isFinite(amount) ? shown(amount, decimals) : amount),
+    );
+  const percent: NumberFormats["percent"] = (fraction, { decimals = 1, signed = false } = {}) =>
+    spaces(
+      numberFormat(`percent|${decimals}|${signed}`, {
+        style: "percent",
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+        signDisplay: signed ? "exceptZero" : "auto",
+      }).format(Number.isFinite(fraction) ? shown(fraction, decimals + 2) : fraction),
+    );
+  const eur: NumberFormats["eur"] = (amount, { signed = false } = {}) => money(amount, "EUR", { decimals: 0, signed });
+  const monthYear = new Intl.DateTimeFormat(intl, { month: "short", year: "numeric", timeZone: "UTC" });
+  return {
+    decimalSeparator: new Intl.NumberFormat(intl).formatToParts(1.5).find((part) => part.type === "decimal")?.value ?? ".",
+    money,
+    eur,
+    eurRounded(amount, { signed = false } = {}) {
+      const abs = Math.abs(amount);
+      const step = abs >= 10_000 ? 1000 : abs >= 1000 ? 100 : abs >= 100 ? 10 : 1;
+      return eur(Math.round(amount / step) * step, { signed });
+    },
+    eurCompact(amount) {
+      const digits = amount >= 1e6 && amount < 1e7 ? 1 : 0;
+      return spaces(numberFormat(`compact|${digits}`, { style: "currency", currency: "EUR", notation: "compact", maximumFractionDigits: digits }).format(amount));
+    },
+    percent,
+    rate(rate) {
+      const tenths = Math.round(rate * 1000);
+      return percent(rate, { decimals: tenths % 10 === 0 ? 0 : 1 });
+    },
+    number(value, maxDecimals = 4) {
+      return spaces(numberFormat(`number|${maxDecimals}`, { maximumFractionDigits: maxDecimals }).format(value));
+    },
+    fixed(value, decimals) {
+      return spaces(numberFormat(`fixed|${decimals}`, { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(shown(value, decimals)));
+    },
+    price(value) {
+      const maxDecimals = Math.abs(value) < 1 ? 4 : 2;
+      return spaces(numberFormat(`price|${maxDecimals}`, { minimumFractionDigits: 2, maximumFractionDigits: maxDecimals }).format(value));
+    },
+    monthYear(date) {
+      return spaces(monthYear.format(date));
+    },
+    dayMonth(isoDate) {
+      const [, month, day] = isoDate.split("-");
+      return `${day}/${month}`;
+    },
+  };
+}
+
+const byIntl = new Map<string, NumberFormats>();
+
+/** The formats of a language ("en-US", "es-ES"), made once. */
+export function numberFormats(intl: string): NumberFormats {
+  let formats = byIntl.get(intl);
+  if (!formats) {
+    formats = createFormats(intl);
+    byIntl.set(intl, formats);
   }
-  const years = Math.round(abs / 12);
-  return `${years} year${years === 1 ? "" : "s"}`;
-}
-
-/**
- * A euro amount rounded the way a brief would say it, for headline numbers
- * (calculations keep the exact figure): €8,429 → "€8,400", €66,827 → "€67,000".
- */
-export function formatEurRounded(amount: number, { signed = false }: { signed?: boolean } = {}): string {
-  const abs = Math.abs(amount);
-  const step = abs >= 10_000 ? 1000 : abs >= 1000 ? 100 : abs >= 100 ? 10 : 1;
-  return formatEur(Math.round(amount / step) * step, { signed });
+  return formats;
 }

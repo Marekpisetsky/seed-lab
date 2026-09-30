@@ -14,6 +14,7 @@
  */
 
 import { findColumn, parseLooseNumber, type CsvTable } from "../csv";
+import { problem } from "../problems";
 import type { IgnoredRows, ImportedPosition, ImportIssue, ImportOutcome } from "./types";
 
 const EPSILON = 1e-9;
@@ -99,12 +100,12 @@ export function parseTrading212(table: CsvTable): ImportOutcome {
   if (missing.length > 0) {
     return {
       ok: false,
-      error: `This looks like a Trading 212 export, but it is missing the column(s): ${missing.join(", ")}.`,
+      error: problem("t212-missing-columns", { columns: missing.join(", ") }),
     };
   }
 
   const issues: ImportIssue[] = [];
-  const ignored = new Map<string, number>();
+  const ignored = new Map<string | null, number>();
   const trades: TradeRow[] = [];
   const cell = (fields: string[], index: number) => (index === -1 ? "" : (fields[index] ?? "").trim());
 
@@ -113,15 +114,12 @@ export function parseTrading212(table: CsvTable): ImportOutcome {
     const kind = classifyAction(action);
     // Unknown actions without a share count cannot change a position either.
     if (kind === "ignore" || (kind === "unsupported" && cell(fields, columns.shares) === "")) {
-      const label = action || "(no action)";
+      const label = action || null;
       ignored.set(label, (ignored.get(label) ?? 0) + 1);
       continue;
     }
     if (kind === "unsupported") {
-      issues.push({
-        line,
-        message: `Unsupported action "${action || "(empty)"}" (e.g. a split or transfer) changes a position; check that position by hand.`,
-      });
+      issues.push({ line, problem: problem("t212-unsupported", { action }) });
       continue;
     }
     const time = Date.parse(cell(fields, columns.time).replace(" ", "T"));
@@ -144,28 +142,25 @@ export function parseTrading212(table: CsvTable): ImportOutcome {
     const currency = cell(fields, columns.priceCurrency).toUpperCase();
 
     if (ticker === "") {
-      issues.push({ line, message: "Missing ticker." });
+      issues.push({ line, problem: problem("missing-ticker") });
       continue;
     }
     if (shares === null || shares <= 0) {
-      issues.push({ line, message: `${ticker}: could not read the number of shares ("${sharesRaw}").` });
+      issues.push({ line, problem: problem("bad-shares", { ticker, raw: sharesRaw }) });
       continue;
     }
     if (price === null || price < 0) {
-      issues.push({ line, message: `${ticker}: could not read the price per share ("${priceRaw}").` });
+      issues.push({ line, problem: problem("bad-share-price", { ticker, raw: priceRaw }) });
       continue;
     }
     if (!/^[A-Z]{3}$/.test(currency)) {
-      issues.push({ line, message: `${ticker}: missing or invalid price currency ("${currency}").` });
+      issues.push({ line, problem: problem("bad-currency", { ticker, raw: currency }) });
       continue;
     }
 
     const position = positions.get(ticker);
     if (position && position.currency !== currency) {
-      issues.push({
-        line,
-        message: `${ticker}: price currency ${currency} differs from earlier trades (${position.currency}).`,
-      });
+      issues.push({ line, problem: problem("currency-differs", { ticker, currency, earlier: position.currency }) });
       continue;
     }
 
@@ -185,10 +180,7 @@ export function parseTrading212(table: CsvTable): ImportOutcome {
 
     if (!position || shares > position.quantity + EPSILON) {
       const held = position?.quantity ?? 0;
-      issues.push({
-        line,
-        message: `${ticker}: sells ${shares} shares but only ${held} are held at that point. Is the export missing older trades?`,
-      });
+      issues.push({ line, problem: problem("oversold", { ticker, shares, held }) });
       continue;
     }
     const averageCost = position.costBasis / position.quantity;

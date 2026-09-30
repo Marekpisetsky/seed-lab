@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EN, getI18n } from "@/i18n";
+import { goalDetail, goalExplain, goalName } from "@/i18n/goal-text";
 import {
   calculate,
   countryRows,
@@ -6,7 +8,6 @@ import {
   goalStatuses,
   itemStatuses,
   pricedItems,
-  whenText,
   yearlyPath,
   type CalculatorPlan,
 } from "./calculator";
@@ -77,29 +78,31 @@ describe("the country table", () => {
   const { countries, result } = calculate(plan(), [], today);
 
   it("lists every country cheapest first, with and without housing side by side", () => {
-    expect(countries).toHaveLength(30);
+    // 30 detailed countries and the rest estimated from their price levels.
+    expect(countries.length).toBeGreaterThanOrEqual(150);
+    expect(countries.filter((row) => !row.estimated)).toHaveLength(30);
     const costs = countries.map((row) => row.withoutHousing.amount);
     expect([...costs].sort((a, b) => a - b)).toEqual(costs);
     for (const row of countries) expect(row.withHousing.amount).toBeGreaterThan(row.withoutHousing.amount);
     expect(countries.find((row) => row.code === "PE")).toMatchObject({ withoutHousing: { amount: 470 }, withHousing: { amount: 700 } });
-    expect(countries.find((row) => row.code === "NL")).toMatchObject({ label: "Netherlands", name: "the Netherlands" });
+    expect(countries.find((row) => row.code === "NL")).toBeDefined();
   });
 
   it("says, per cell, ✓ or when the plan gets there, and never past 60 years", () => {
     const tiny = calculate(plan({ invested: 1, monthlyContribution: 5 }), [], today).countries;
     const peru = tiny.find((row) => row.code === "PE");
     expect(peru?.withoutHousing.covered).toBe(false);
-    expect(whenText(peru?.withHousing.months ?? 0)).toBe("not at this pace");
+    expect(EN.f.when(peru?.withHousing.months ?? 0)).toBe("not at this pace");
     const rich = calculate(plan({ invested: 2_000_000 }), [], today).countries;
     expect(rich.every((row) => row.withoutHousing.covered && row.withHousing.covered)).toBe(true);
-    expect(whenText(countries.at(-1)?.withHousing.months ?? 0)).toMatch(/^in \d+ years$/);
+    expect(EN.f.when(countries.at(-1)?.withHousing.months ?? 0)).toMatch(/^in \d+ years$/);
   });
 
   it("follows the withdrawal rate: at 3% the same money pays less", () => {
     const at3 = calculate(plan({ withdrawalRate: 0.03 }), [], today).countries;
     const covered = (rows: typeof countries) => rows.filter((row) => row.withoutHousing.covered).length;
     expect(covered(at3)).toBeLessThanOrEqual(covered(countries));
-    expect(at3[0].withoutHousing.target).toBeCloseTo((250 * 12) / 0.03, 6);
+    expect(at3.find((row) => row.code === "IN")?.withoutHousing.target).toBeCloseTo((250 * 12) / 0.03, 6);
   });
 
   it("ticks what the income after 20 years pays, and says when the rest comes", () => {
@@ -111,11 +114,11 @@ describe("the country table", () => {
       }
     }
     // India without housing (EUR 250) is paid; Switzerland with housing (EUR 2,950) is not.
-    expect(countries[0]).toMatchObject({ code: "IN", withoutHousing: { covered: true } });
-    expect(countries.at(-1)).toMatchObject({ code: "CH", withHousing: { covered: false } });
+    expect(countries.find((row) => row.code === "IN")).toMatchObject({ withoutHousing: { covered: true } });
+    expect(countries.find((row) => row.code === "CH")).toMatchObject({ withHousing: { covered: false } });
   });
 
-  it("shows the five cheapest, Peru and the Netherlands first", () => {
+  it("shows the five cheapest detailed countries, Peru and the Netherlands first: seven rows", () => {
     expect(featuredRows(countries).map((row) => row.code)).toEqual(["IN", "EG", "ID", "VN", "MA", "PE", "NL"]);
   });
 
@@ -137,17 +140,26 @@ describe("goals", () => {
   });
 
   it("work out each kind: its name, amount and the capital that gets there", () => {
-    const [a, b, c, d, e] = calculate(plan({ goals: [live, car, boat, amount, income] }), [], today).goals;
-    expect(a).toMatchObject({ name: "Live in Peru", detail: "with housing", kind: "monthly", amount: 700, target: (700 * 12) / 0.04 });
-    expect(b).toMatchObject({ name: "A used car", kind: "once", amount: 24_326, target: 24_326 });
-    expect(c).toMatchObject({ name: "A boat", kind: "once", target: 15_000 });
-    expect(d).toMatchObject({ name: "Reach €100,000", kind: "once", target: 100_000 });
-    expect(e).toMatchObject({ name: "My rent", detail: null, kind: "monthly", amount: 1500, target: (1500 * 12) / 0.04 });
+    const statuses = calculate(plan({ goals: [live, car, boat, amount, income] }), [], today).goals;
+    const [a, b, c, d, e] = statuses;
+    expect(statuses.map((status) => goalName(status, EN))).toEqual(["Live in Peru", "A used car", "A boat", "Reach €100,000", "My rent"]);
+    expect(goalDetail(a, EN)).toBe("with housing");
+    expect(goalDetail(e, EN)).toBeNull();
+    expect(a).toMatchObject({ kind: "monthly", amount: 700, target: (700 * 12) / 0.04 });
+    expect(b).toMatchObject({ kind: "once", amount: 24_326, target: 24_326 });
+    expect(c).toMatchObject({ kind: "once", target: 15_000 });
+    expect(d).toMatchObject({ kind: "once", target: 100_000 });
+    expect(e).toMatchObject({ kind: "monthly", amount: 1500, target: (1500 * 12) / 0.04 });
     // Without a label it is just what it is.
     const [unnamed] = calculate(plan({ goals: [{ id: "u", kind: "monthly", amount: 900, label: null }] }), [], today).goals;
-    expect(unnamed).toMatchObject({ name: "A monthly amount", kind: "monthly", target: (900 * 12) / 0.04 });
+    expect(goalName(unnamed, EN)).toBe("A monthly amount");
+    expect(unnamed).toMatchObject({ kind: "monthly", target: (900 * 12) / 0.04 });
     const withoutHousing = calculate(plan({ goals: [{ ...live, housing: false }] }), [], today).goals[0];
-    expect(withoutHousing).toMatchObject({ detail: "without housing", amount: 470 });
+    expect(goalDetail(withoutHousing, EN)).toBe("without housing");
+    expect(withoutHousing).toMatchObject({ amount: 470 });
+    // In Spanish, the same goals in Spanish.
+    const ES = getI18n("es");
+    expect(statuses.map((status) => goalName(status, ES))).toEqual(["Vivir en Perú", ES.m.things.items["used-car"].name, "A boat", "Llegar a 100.000\u00a0€", "My rent"]);
   });
 
   it("say when each is reached with the plan, and the year", () => {
@@ -180,29 +192,32 @@ describe("goals", () => {
   });
 
   it("more than 60 years away: not at this pace, with the monthly amount for 30 years", () => {
-    const [status] = calculate(plan({ monthlyContribution: 20, goals: [income] }), [], today).goals;
+    const calc = calculate(plan({ monthlyContribution: 20, goals: [income] }), [], today);
+    const [status] = calc.goals;
     expect(status.months).toBeGreaterThan(60 * 12);
     expect(status).toMatchObject({ reachable: false, date: null });
     const needed = requiredMonthlyContribution(1000, r, 360, (1500 * 12) / 0.04);
     expect(status.needed).toBeCloseTo(needed, 6);
     expect(monthsToGoal(1000, needed, r, status.target)).toBeCloseTo(360, 6);
-    expect(status.explain[1]).toMatch(/more than 60 years\. In 30 years it would take €[\d,]+ a month\.$/);
+    expect(goalExplain(status, calc.scenario, calc.investment, EN)[1]).toMatch(/It takes more than 60 years\. To get there in 30 years: €[\d,]+ a month\.$/);
   });
 
   it("explain their calculation", () => {
-    const [a] = calculate(plan({ goals: [live] }), [], today).goals;
-    expect(a.explain[0]).toBe("€700 a month × 12 ÷ 4% taken out a year = €210,000 needed.");
-    expect(a.explain[1]).toMatch(/^€1,000 now \+ €200 a month, growing 7\.5% a year after inflation \(S&P 500, 1988–2022 average\): €210,000 in /);
-    expect(a.explain[2]).toMatch(/^One person, with housing: Numbeo/);
+    const calc = calculate(plan({ goals: [live] }), [], today);
+    const explain = goalExplain(calc.goals[0], calc.scenario, calc.investment, EN);
+    expect(explain[0]).toBe("€700 a month × 12 ÷ 4% taken out a year = €210,000 needed.");
+    expect(explain[1]).toMatch(/^You have €1,000 and add €200 a month\. It grows 7\.5% a year after rising prices \(S&P 500, 1988–2022 average\)\. €210,000 in /);
+    expect(explain[2]).toMatch(/^One person, with housing: Numbeo/);
   });
 
   it("keep an item a file names but the list no longer has, so it can be removed", () => {
     const [gone] = calculate(plan({ goals: [{ id: "x", kind: "buy", item: "sabbatical" }] }), [], today).goals;
-    expect(gone).toMatchObject({ known: false, name: "Not in the list any more", reachable: false });
+    expect(gone).toMatchObject({ known: false, reachable: false });
+    expect(goalName(gone, EN)).toBe(EN.m.goals.unknown);
   });
 
   it("follow the withdrawal rate when they are monthly", () => {
-    const at4 = goalStatuses([income], calculate(plan(), [], today).scenario, calculate(plan(), [], today).investment, today)[0];
+    const at4 = goalStatuses([income], calculate(plan(), [], today).scenario, today)[0];
     const at3 = calculate(plan({ withdrawalRate: 0.03, goals: [income] }), [], today).goals[0];
     expect(at3.target).toBeGreaterThan(at4.target);
   });

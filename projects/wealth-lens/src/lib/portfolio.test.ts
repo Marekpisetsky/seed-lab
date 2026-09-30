@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { EN } from "@/i18n";
 import { SERIES } from "./indexes";
 import { resolveInvestment } from "./investment";
 import { MARKET } from "./market-data";
-import { defaultReference, PORTFOLIO_LABEL, portfolioAllocation, portfolioInputs, referenceFor } from "./portfolio";
+import { defaultReference, portfolioAllocation, portfolioInputs, referenceFor } from "./portfolio";
 import type { Holding } from "./types";
 
 const holding = (ticker: string, value: number, currency = "EUR", reference?: Holding["reference"]): Holding => ({
@@ -90,6 +91,6 @@ describe("the portfolio as a projection", () => {
   });
 
   it("says it is a simple projection", () => {
-    expect(PORTFOLIO_LABEL).toBe("Simple projection: each stock grows like its index. Stocks can't be predicted.");
+    expect(EN.m.portfolio.label).toBe("Simple projection: each stock grows like its index. Stocks can't be predicted.");
   });
 });

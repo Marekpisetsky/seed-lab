@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EN, getI18n } from "@/i18n";
+import { problemText } from "../problems";
 import type { Holding } from "../types";
 import { importHoldingsCsv, mergeImportedHoldings, type ImportOutcome } from "./index";
 
@@ -22,7 +24,7 @@ const T212_EXPORT = [
 ].join("\n");
 
 function expectOk(outcome: ImportOutcome) {
-  if (!outcome.ok) throw new Error(`expected ok, got: ${outcome.error}`);
+  if (!outcome.ok) throw new Error(`expected ok, got: ${outcome.error.code}`);
   return outcome;
 }
 
@@ -43,12 +45,8 @@ describe("Trading 212 import", () => {
   it("lists every row it could not read, with line numbers", () => {
     const result = expectOk(importHoldingsCsv(T212_EXPORT));
     expect(result.issues).toEqual([
-      { line: 9, message: 'VWCE: could not read the number of shares ("abc").' },
-      {
-        line: 10,
-        message:
-          'Unsupported action "Stock split open" (e.g. a split or transfer) changes a position; check that position by hand.',
-      },
+      { line: 9, problem: { code: "bad-shares", ticker: "VWCE", raw: "abc" } },
+      { line: 10, problem: { code: "t212-unsupported", action: "Stock split open" } },
     ]);
   });
 
@@ -92,7 +90,9 @@ describe("Trading 212 import", () => {
     ]);
     expect(result.issues).toHaveLength(1);
     expect(result.issues[0].line).toBe(3);
-    expect(result.issues[0].message).toMatch(/sells 3 shares but only 1 are held/);
+    expect(result.issues[0].problem).toEqual({ code: "oversold", ticker: "MSFT", shares: 3, held: 1 });
+    expect(problemText(result.issues[0].problem, EN.m.problems)).toBe("MSFT: sells 3 shares, but only 1 were held. Are older trades missing?");
+    expect(problemText(result.issues[0].problem, getI18n("es").m.problems)).toBe("MSFT: vende 3, pero solo había 1. ¿Faltan operaciones antiguas?");
   });
 
   it("reads legacy exports with a 'Total (EUR)' column and negative buy totals", () => {
@@ -109,8 +109,7 @@ describe("Trading 212 import", () => {
     const outcome = importHoldingsCsv("Action,Time,Ticker,No. of shares\nMarket buy,2024-01-01,AAPL,1");
     expect(outcome).toEqual({
       ok: false,
-      error:
-        "This looks like a Trading 212 export, but it is missing the column(s): Price / share, Currency (Price / share).",
+      error: { code: "t212-missing-columns", columns: "Price / share, Currency (Price / share)" },
     });
   });
 });
@@ -143,28 +142,26 @@ describe("simple holdings CSV import", () => {
     const result = expectOk(importHoldingsCsv(csv));
     expect(result.positions.map((p) => p.ticker)).toEqual(["GOOD"]);
     expect(result.issues.map((issue) => issue.line)).toEqual([3, 4, 5, 6]);
+    expect(result.issues.map((issue) => issue.problem.code)).toEqual(["missing-ticker", "bad-quantity", "bad-currency", "bad-price"]);
   });
 
   it("names the missing columns", () => {
     const outcome = importHoldingsCsv("ticker,quantity\nAAPL,1");
     expect(outcome.ok).toBe(false);
-    if (!outcome.ok) expect(outcome.error).toMatch(/missing the column\(s\): cost_basis or avg_price, currency/);
+    if (!outcome.ok) expect(outcome.error).toMatchObject({ code: "holdings-missing-columns", columns: "cost_basis or avg_price, currency" });
   });
 });
 
 describe("importHoldingsCsv", () => {
   it("rejects empty and header-only files", () => {
-    expect(importHoldingsCsv("")).toEqual({ ok: false, error: "The file is empty." });
-    expect(importHoldingsCsv("ticker,quantity\n")).toEqual({
-      ok: false,
-      error: "The file has a header but no data rows.",
-    });
+    expect(importHoldingsCsv("")).toEqual({ ok: false, error: { code: "file-empty" } });
+    expect(importHoldingsCsv("ticker,quantity\n")).toEqual({ ok: false, error: { code: "file-no-rows" } });
   });
 
   it("rejects unrecognized files instead of guessing", () => {
     const outcome = importHoldingsCsv("date,amount\n2024-01-01,5");
     expect(outcome.ok).toBe(false);
-    if (!outcome.ok) expect(outcome.error).toMatch(/Unrecognized CSV/);
+    if (!outcome.ok) expect(outcome.error.code).toBe("file-unknown");
   });
 });
 

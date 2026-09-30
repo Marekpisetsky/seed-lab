@@ -2,20 +2,20 @@
 
 import { RotateCcw } from "lucide-react";
 import { useId } from "react";
+import { useI18n } from "@/components/i18n";
 import { Changed } from "@/components/ui/changed";
 import { SettledNumberInput } from "@/components/ui/form";
+import { RadioGroup } from "@/components/ui/radio-group";
 import { resetAssumptions, setAssumptions, setPricesOf } from "@/lib/app-store";
 import { assumptionsLine, assumptionsNote, growthIn, upsAndDownsExample, type Basis } from "@/lib/assumptions";
-import { SAVINGS_RATE_NOTE } from "@/lib/assets";
 import { costOfLiving, referenceInflation } from "@/lib/cost-of-living";
-import { formatPercent, formatRate } from "@/lib/format";
+import { byCountryName, countryName } from "@/i18n/countries";
 import { COMMON_PERIOD } from "@/lib/indexes";
 import { toNominal, type ResolvedInvestment } from "@/lib/investment";
 import type { AssumptionOverrides } from "@/lib/types";
 import { MAX_VOLATILITY } from "@/lib/validation";
 import { HowTheSimulationsWork } from "./explainers";
 
-const COUNTRIES = [...costOfLiving.countries].sort((a, b) => a.name.localeCompare(b.name));
 const labelClass = "block text-xs font-medium text-muted";
 /** Percent with at most two decimals, as a field shows it. */
 const asPercent = (fraction: number) => Number((fraction * 100).toFixed(2));
@@ -97,6 +97,9 @@ export function AssumptionsPanel({
   open: boolean;
   onOpen: (open: boolean) => void;
 }) {
+  const i18n = useI18n();
+  const { m, f } = i18n;
+  const t = m.assumptions;
   const panelId = useId();
   const { standard, inflation } = investment;
   const reference = referenceInflation(investment.pricesOf);
@@ -106,66 +109,63 @@ export function AssumptionsPanel({
   const isCustomGrowth = investment.investment.kind === "custom";
 
   return (
-    <div className="order-5 col-span-2 space-y-1 sm:order-6 sm:col-span-4">
+    <div className="col-span-2 space-y-1 sm:col-span-4">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <p className="text-sm tabular-nums">
-          <Changed value={assumptionsLine(investment, basis)} />
+          <Changed value={assumptionsLine(investment, basis, i18n)} />
         </p>
         {(investment.custom || investment.customInflation) && (
-          <span className="rounded bg-accent/10 px-1.5 py-0.5 text-xs font-medium text-accent">Custom</span>
+          <span className="rounded bg-accent/10 px-1.5 py-0.5 text-xs font-medium text-accent">{t.custom}</span>
         )}
         <button
           type="button"
           aria-expanded={open}
           aria-controls={panelId}
           onClick={() => onOpen(!open)}
-          className="rounded-md px-1.5 py-0.5 text-sm font-medium text-accent underline-offset-2 hover:underline"
+          className="min-h-11 rounded-md px-3 py-1 text-sm font-medium text-accent underline-offset-2 hover:underline"
         >
-          {open ? "Done" : "Edit"}
+          {open ? t.done : t.edit}
         </button>
       </div>
       <p className="text-xs text-muted">
-        <Changed value={assumptionsNote(investment)} />
+        <Changed value={assumptionsNote(investment, i18n)} />
       </p>
       {open && (
         <div id={panelId} className="mt-2 space-y-3 rounded-lg bg-background p-3">
           <div className="grid grid-cols-2 gap-x-3 gap-y-3 sm:grid-cols-4">
             <div className="col-span-2 space-y-1">
               <PercentField
-                label="How much it grows a year"
+                label={t.growth}
                 value={growthIn(investment, basis)}
                 min={-0.5}
                 max={0.5}
                 onCommit={(rate) => setAssumptions({ growth: same(rate, standardGrowth) && !isCustomGrowth ? null : { rate, basis } })}
                 hint={
                   isCustomGrowth
-                    ? "Your own figure, with no asset behind it."
+                    ? t.hintCustom
                     : isSavings
-                      ? `Standard: ${formatRate(standard.nominalRate ?? 0)} before rising prices, ${SAVINGS_RATE_NOTE}.`
+                      ? t.hintSavings(f.rate(standard.nominalRate ?? 0))
                       : basis === "real"
-                        ? `Standard: ${formatRate(standardGrowth)}, the ${COMMON_PERIOD[0]}–${COMMON_PERIOD[1]} average.`
-                        : `Standard: ${formatRate(standardGrowth)}: the ${COMMON_PERIOD[0]}–${COMMON_PERIOD[1]} average of ${formatRate(standard.realReturn)} after rising prices, with prices rising ${formatRate(inflation)} a year.`
+                        ? t.hintReal(f.rate(standardGrowth), `${COMMON_PERIOD[0]}–${COMMON_PERIOD[1]}`)
+                        : t.hintNominal(f.rate(standardGrowth), f.rate(standard.realReturn), f.rate(inflation))
                 }
               />
-              <div role="radiogroup" aria-label="Growth shown" className="inline-flex rounded-md border border-border p-0.5 text-xs">
-                {(["real", "nominal"] as const).map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    role="radio"
-                    aria-checked={basis === option}
-                    onClick={() => onBasis(option)}
-                    className={`rounded px-2 py-1 font-medium ${basis === option ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
-                  >
-                    {option === "real" ? "After rising prices" : "Before rising prices"}
-                  </button>
-                ))}
-              </div>
-              <p className="text-xs text-muted">After rising prices = what your money can really buy.</p>
+              <RadioGroup
+                label={t.basis}
+                options={[
+                  { value: "real" as const, label: t.after },
+                  { value: "nominal" as const, label: t.before },
+                ]}
+                value={basis}
+                onChange={onBasis}
+                className="inline-flex rounded-md border border-border p-0.5 text-xs"
+                optionClassName={(checked) => `min-h-11 rounded px-3 py-1 font-medium ${checked ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
+              />
+              <p className="text-xs text-muted">{t.afterHelp}</p>
             </div>
             <div className="col-span-2 sm:col-span-2">
               <PercentField
-                label="How much it can go up or down in a normal year"
+                label={t.upsAndDowns}
                 prefix="±"
                 value={investment.volatility}
                 min={0}
@@ -173,36 +173,38 @@ export function AssumptionsPanel({
                 onCommit={(volatility) => setAssumptions({ volatility: same(volatility, standard.volatility) && !isCustomGrowth ? null : volatility })}
                 hint={
                   <>
-                    <Changed value={upsAndDownsExample(investment.volatility)} />{" "}
+                    <Changed value={upsAndDownsExample(investment.volatility, i18n)} />{" "}
                     {isCustomGrowth
-                      ? `Starts at the S&P 500's: ±${formatPercent(standard.volatility, { decimals: 0 })}.`
-                      : `Standard: ${standard.volatility > 0 ? `±${formatPercent(standard.volatility, { decimals: 1 })}` : "0, the same every year"}.`}
+                      ? t.hintVolCustom(f.percent(standard.volatility, { decimals: 0 }))
+                      : standard.volatility > 0
+                        ? t.hintVol(f.percent(standard.volatility, { decimals: 1 }))
+                        : t.hintVolNone}
                   </>
                 }
               />
             </div>
             <label className="col-span-2 min-w-0 space-y-1">
-              <span className={labelClass}>Rising prices in</span>
+              <span className={labelClass}>{t.risingIn}</span>
               <select
                 value={investment.pricesOf}
                 onChange={(event) => setPricesOf(event.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
+                className="min-h-11 w-full rounded-md border border-border bg-background px-3 py-2 text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
               >
-                {COUNTRIES.map((country) => (
+                {byCountryName(costOfLiving.countries, i18n).map((country) => (
                   <option key={country.code} value={country.code}>
-                    {country.name}
+                    {countryName(country.code, i18n)}
                   </option>
                 ))}
               </select>
             </label>
             <div className="col-span-2">
               <PercentField
-                label="Prices rise per year"
+                label={t.pricesRise}
                 value={inflation}
                 min={-0.1}
                 max={0.5}
                 onCommit={(rate) => setAssumptions({ inflation: same(rate, reference.rate) ? null : rate })}
-                hint={`Standard: ${formatRate(reference.rate)}, ${reference.basis} (${reference.asOf}).`}
+                hint={(/average/i.test(reference.basis) ? t.hintAverage : t.hintTarget)(f.rate(reference.rate), reference.asOf)}
               />
             </div>
           </div>
@@ -212,9 +214,9 @@ export function AssumptionsPanel({
               <button
                 type="button"
                 onClick={resetAssumptions}
-                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-accent hover:bg-accent/10"
+                className="inline-flex min-h-11 items-center gap-1 rounded-md px-3 py-1 text-sm font-medium text-accent hover:bg-accent/10"
               >
-                <RotateCcw aria-hidden="true" className="size-4" /> Reset to standard
+                <RotateCcw aria-hidden="true" className="size-4" /> {t.reset}
               </button>
             )}
           </div>

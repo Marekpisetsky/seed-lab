@@ -2,7 +2,9 @@
 
 import type { AutoscaleInfo } from "lightweight-charts";
 import { useEffect, useRef } from "react";
+import { useI18n } from "@/components/i18n";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { LOCALE_SETTINGS } from "@/i18n/locales";
 import { includePriceInRange, visibleRangeStart, type PricePoint } from "@/lib/prices";
 
 interface PriceChartProps {
@@ -25,6 +27,9 @@ function cssVariable(name: string): string {
  * runs on the server. The chart is rebuilt when the data or theme changes.
  */
 export function PriceChart({ points, averageCost, label }: PriceChartProps) {
+  const { locale, m } = useI18n();
+  const paidLabel = m.stocks.paidLine;
+  const intl = LOCALE_SETTINGS[locale].intl;
   const containerRef = useRef<HTMLDivElement>(null);
   const colorScheme = useColorScheme();
 
@@ -52,9 +57,9 @@ export function PriceChart({ points, averageCost, label }: PriceChartProps) {
         rightPriceScale: { borderVisible: false },
         timeScale: { borderVisible: false },
         crosshair: { horzLine: { labelBackgroundColor: foreground }, vertLine: { labelBackgroundColor: foreground } },
-        // The app formats everything in en-US; the browser's own tag can be one
+        // The page's language, never the browser's own tag: that can be one
         // Intl rejects (e.g. "en-US@posix"), which would leave the chart blank.
-        localization: { locale: "en-US" },
+        localization: { locale: intl },
       });
 
       const series = chart.addSeries(LineSeries, {
@@ -76,7 +81,7 @@ export function PriceChart({ points, averageCost, label }: PriceChartProps) {
           lineWidth: 1,
           lineStyle: LineStyle.Dashed,
           axisLabelVisible: true,
-          title: "Your avg cost",
+          title: paidLabel,
         });
       }
 
@@ -92,7 +97,7 @@ export function PriceChart({ points, averageCost, label }: PriceChartProps) {
       disposed = true;
       remove();
     };
-  }, [points, averageCost, colorScheme]);
+  }, [points, averageCost, paidLabel, intl, colorScheme]);
 
   return <div ref={containerRef} role="img" aria-label={label} className="h-64 w-full sm:h-72" />;
 }

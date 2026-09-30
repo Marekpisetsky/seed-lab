@@ -8,6 +8,7 @@
  */
 
 import { findColumn, parseLooseNumber, type CsvTable } from "../csv";
+import { problem } from "../problems";
 import type { ImportedPosition, ImportIssue, ImportOutcome } from "./types";
 
 export const SIMPLE_HOLDINGS_COLUMNS = "ticker, quantity, cost_basis (or avg_price), currency, current_price (optional)";
@@ -44,7 +45,7 @@ export function parseSimpleHoldings(table: CsvTable): ImportOutcome {
   if (missing.length > 0) {
     return {
       ok: false,
-      error: `Holdings CSV is missing the column(s): ${missing.join(", ")}. Expected: ${SIMPLE_HOLDINGS_COLUMNS}.`,
+      error: problem("holdings-missing-columns", { columns: missing.join(", "), expected: SIMPLE_HOLDINGS_COLUMNS }),
     };
   }
 
@@ -63,29 +64,29 @@ export function parseSimpleHoldings(table: CsvTable): ImportOutcome {
     const currentPrice = currentPriceRaw === "" ? null : parseLooseNumber(currentPriceRaw);
 
     if (ticker === "") {
-      issues.push({ line, message: "Missing ticker." });
+      issues.push({ line, problem: problem("missing-ticker") });
       continue;
     }
     if (quantity === null || quantity <= 0) {
-      issues.push({ line, message: `${ticker}: could not read the quantity ("${quantityRaw}").` });
+      issues.push({ line, problem: problem("bad-quantity", { ticker, raw: quantityRaw }) });
       continue;
     }
     const costBasis =
       costBasisValue ?? (averagePrice === null ? null : averagePrice * quantity);
     if (costBasis === null || costBasis < 0) {
-      issues.push({ line, message: `${ticker}: could not read the cost basis or average price.` });
+      issues.push({ line, problem: problem("bad-cost", { ticker }) });
       continue;
     }
     if (!/^[A-Z]{3}$/.test(currency)) {
-      issues.push({ line, message: `${ticker}: missing or invalid currency ("${currency}").` });
+      issues.push({ line, problem: problem("bad-currency", { ticker, raw: currency }) });
       continue;
     }
     if (currentPrice !== null && currentPrice < 0) {
-      issues.push({ line, message: `${ticker}: current price cannot be negative.` });
+      issues.push({ line, problem: problem("negative-price", { ticker }) });
       continue;
     }
     if (currentPriceRaw !== "" && currentPrice === null) {
-      issues.push({ line, message: `${ticker}: could not read the current price ("${currentPriceRaw}").` });
+      issues.push({ line, problem: problem("bad-price", { ticker, raw: currentPriceRaw }) });
       continue;
     }
 

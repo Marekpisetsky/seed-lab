@@ -22,7 +22,6 @@ import { INDEX_TRACKERS, instrumentForHolding, type Instrument } from "./market-
 import type { ModelInput } from "./mix";
 import { BASE_CURRENCY, type Holding } from "./types";
 
-export const PORTFOLIO_LABEL = "Simple projection: each stock grows like its index. Stocks can't be predicted.";
 
 /** What a holding grows like when the user has not chosen, and whether that is a guess. */
 export function defaultReference(holding: Pick<Holding, "ticker" | "currency">): { asset: AssetId; assumed: boolean } {

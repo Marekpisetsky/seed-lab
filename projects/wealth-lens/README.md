@@ -217,19 +217,35 @@ mano desde las cifras publicadas (ver "Retornos").
   que se ve al tocarla. El escenario activo vive en el estado en memoria,
   sigue puesto mientras cambia el plan y nunca se guarda. Los hallazgos
   siempre hablan del plan sin escenario.
-- **Palabras simples**: los "i" plegados viven en
-  `src/components/money/explainers.tsx`, el único sitio donde pueden
-  aparecer "real", "nominal", "volatility", "swings" o "percentile";
-  `src/components/plain-language.test.ts` lee todos los componentes y el
-  código que escribe sus textos con el parser de TypeScript (texto JSX,
-  atributos de texto y cadenas con espacios) y falla si aparecen en
-  cualquier otro sitio.
-- **Inflación por país**: cada país de `cost-of-living.json` lleva una
-  inflación de referencia con su base y fecha (septiembre de 2026): el
-  objetivo de su banco central (el 2 % del BCE para los países del euro;
+- **Palabras simples, en inglés y español**: todo texto visible vive en
+  los diccionarios (`src/i18n/messages/en.ts` y `es.ts`, del mismo tipo:
+  una clave que falte en español no compila); la lógica devuelve números
+  y códigos de problema (`src/lib/problems.ts`) y cada idioma los
+  redacta. `src/components/plain-language.test.ts` lee los dos
+  diccionarios con el parser de TypeScript y falla si hay jerga ("real",
+  "nominal", "volatility"… y "real", "volatilidad", "percentil"… en
+  español) fuera de `explain` (los "i" plegados), si una frase pasa de
+  unas 12 palabras (22 en las páginas largas; las citas de fuentes no
+  cuentan), o si un componente escribe texto visible por su cuenta.
+  Añadir un idioma: un archivo más en `src/i18n/messages`, su entrada en
+  `src/i18n/locales.ts` y sus nombres de país en
+  `scripts/country-names.mts`; ningún componente cambia.
+- **Inflación por país**: cada país lleva una inflación de referencia con
+  su base y fecha (septiembre de 2026): el objetivo de su banco central
+  (el 2 % del BCE en la zona euro, Bulgaria incluida desde enero de 2026;
   el centro del rango cuando es un rango), que es hacia donde convergen
-  las previsiones a largo plazo como las del FMI; Malasia y Marruecos, sin
-  objetivo numérico, llevan su media 2015–2024 aproximada.
+  las previsiones a largo plazo como las del FMI; sin objetivo (o sin uno
+  que hayamos podido confirmar, en los estimados), su media 2015–2024
+  (FMI para los detallados, Banco Mundial para los estimados).
+  **Inflación alta**: `recentAverage` marca los países cuyos precios
+  subieron un 10 % al año o más de media en 2015–2024 (Irán 27 %, Angola
+  21,5 %, Haití, Sierra Leona, Etiopía, Malaui, Nigeria, Liberia, Burundi,
+  Santo Tomé); donde hay objetivo se usa igualmente el objetivo, aunque
+  quede lejos de la media reciente (Turquía 5 % frente a 25,6 %, Ghana,
+  Ucrania, Uzbekistán, Pakistán, Zambia). Los que superan el 30 % anual
+  de media (Argentina, Zimbabue, Sudán, Sudán del Sur, Líbano, Surinam)
+  quedan fuera: un coste en euros calculado con un nivel de precios no
+  aguantaría.
 - Velocidad: las dos pantallas se prerenderizan con sus valores de
   llegada, así que se ven antes de que corra el JavaScript. Las tasas de
   éxito de 3/4/5 % de los cinco activos con historia están precalculadas
@@ -239,15 +255,23 @@ mano desde las cifras publicadas (ver "Retornos").
   reutiliza los mismos índices sorteados para cualquier conjunto de
   cifras propias, y en cuanto el usuario empieza a usar la página, en
   ratos libres y en pasos de menos de 50 ms, se precalculan los sorteos,
-  los años simulados de cada activo y una primera pasada de una mezcla,
-  de una cartera con una acción y de cifras propias (`src/lib/warm.ts`).
+  los años simulados de cada activo y una primera pasada de cada plantilla
+  de mezcla (100 % acciones, 80/20, 60/40, con y sin reequilibrio), de una
+  cartera con una acción y de cifras propias (`src/lib/warm.ts`). La banda
+  del S&P 500 que acompaña a una mezcla y los peores años se guardan
+  mientras no cambien los importes o la mezcla (cachés acotadas en
+  `src/lib/projections.ts`). Medido en el navegador en la ronda 10 (108
+  recálculos, EN y ES: aportes, años, activos, plantillas, los cinco
+  *What if…?* y cargar un archivo con cartera, dos veces cada uno):
+  mediana 4,0 ms, p90 7,8 ms, máximo 13,9 ms (la primera carga de una
+  cartera nueva, que simula sus posiciones).
   Con los cinco *What if…?* (sus efectos se calculan en cada cambio, con
   fórmulas cerradas salvo *A bad first decade*, que lee las bandas ya
   calculadas) el recálculo medido en el navegador al tocar cada uno, con
   un activo y con una mezcla 60/40, se quedó por debajo de 15 ms; el más lento es la primera vez que se aplica
   *Grows 1% more / less*, porque sus simulaciones son nuevas.
   Los hallazgos y las compras se calculan al abrirlos; los parsers de CSV,
-  la librería de gráficos y el historial de precios, al usarlos.
+  la librería de gráficos, al usarla (solo para los precios que sube el usuario).
 - Sin credenciales de bróker ni APIs de pago — respeta la regla de
   costo cero de seed-lab.
 
@@ -265,9 +289,37 @@ any more" y se puede quitar. Las entradas extremas (€1, €0, €0 al mes,
 tienen sus tests en `src/lib/edge-cases.test.ts`: "under €1/month" en
 vez de €0, sin "-€0", sin años de más de 60.
 
-**Países** (`countryRows`): una fila por país del dataset de costo de
-vida, ordenadas por coste sin vivienda; "con vivienda" suma el alquiler
-de un 1 dormitorio fuera del centro. ✓ cuando el ingreso al cabo de los
+**Países** (`countryRows`): una fila por país, 172 en total, ordenadas
+por coste sin vivienda; "con vivienda" suma el alquiler de un 1
+dormitorio fuera del centro. Por defecto se ven 7 (los cinco detallados
+más baratos, Perú y Países Bajos); un buscador (en la tabla y al añadir
+la meta "vivir en…") encuentra cualquiera por su nombre en el idioma de
+la página o en inglés, sin importar tildes.
+
+- **30 detallados** (`src/data/cost-of-living.json`), compilados a mano:
+  Numbeo (sin alquiler) + Wise (1 dormitorio fuera del centro),
+  convertidos a euros y redondeados a 10. Solo se publican esas cifras
+  derivadas, nunca las de las fuentes (ver licencias en *How it works*).
+- **142 estimados por nivel de precios** (`src/data/estimated-countries.json`,
+  marcados con "≈"): la cesta de Países Bajos × el *price level ratio*
+  del país frente al de Países Bajos (Banco Mundial, WDI
+  `PA.NUS.PPPC.RF`: PPP del PIB entre el tipo de cambio de mercado;
+  referencia ICP 2021, extrapolada por el Banco Mundial hasta 2024, el
+  último año disponible) sin vivienda, y el alquiler de Países Bajos × ese
+  ratio **al cuadrado** con vivienda: el alquiler varía más que el resto
+  de precios entre países ricos y pobres, y el exponente que mejor ajusta
+  sobre los 29 detallados (sin contar Países Bajos) es 2,03. Contra esos
+  29, la estimación se desvía una mediana del 9 % sin vivienda y del 15 %
+  con vivienda; uno de cada diez, un 26 % / 41 % o más. Se elige Países
+  Bajos como cesta porque es el país por defecto de la app y un país de
+  precios medios-altos con datos completos en ambas fuentes.
+  Regenerar: descargar en una carpeta
+  `https://raw.githubusercontent.com/datasets/world-development-indicators/main/indicators/pa.nus.pppc.rf/data.csv`
+  (como `pa.nus.pppc.rf.csv`), `…/indicators/fp.cpi.totl.zg/data.csv`
+  (como `fp.cpi.totl.zg.csv`) y
+  `https://raw.githubusercontent.com/datasets/country-codes/main/data/country-codes.csv`,
+  y correr `node scripts/estimate-countries.mts <carpeta>` y luego
+  `node scripts/country-names.mts` (nombres en cada idioma, con CLDR). ✓ cuando el ingreso al cabo de los
 años elegidos lo paga; si no, cuándo llega el plan. Los estados se
 redondean hacia arriba a años enteros, así que una celda sin ✓ a 20 años
 nunca dice "in 20 years".
@@ -296,6 +348,86 @@ Las estancias (tres meses en Japón, un año por el sudeste asiático, seis
 meses en Portugal, un máster en NL) se calculan con el costo de vida de
 ese país, con vivienda. Importes en euros de hoy; los de USD se
 convierten con el tipo guardado en el archivo.
+
+## Páginas del sitio
+
+About, How it works, Privacy y Terms (`/about`, `/how-it-works`,
+`/privacy`, `/terms` y sus versiones `/es/…`), más una 404 en los dos
+idiomas (`src/app/not-found.tsx`). Sus textos viven en los diccionarios
+(`about`, `howItWorks`, `privacy`, `terms`, `notFound`), con frases de hasta
+unas 22 palabras; *How it works* cita cifras sacadas de los datos (países,
+errores de la estimación, países excluidos, inflación alta), así que no se
+desactualiza. El pie enlaza las cuatro, GitHub y "Part of seed-lab".
+Contacto: solo GitHub Issues, sin correo publicado. Código con licencia
+MIT (`LICENSE`). Icono propio (`src/app/icon.svg`, y `favicon.ico` y
+`apple-icon.png` dibujados a partir de él) e imagen para compartir de
+1200×630 generada en el build (`src/app/og.png/route.tsx`, estática, la
+misma para todas las páginas y los dos idiomas).
+
+## Lanzador de seed-lab
+
+En la cabecera, junto a EN/ES, un botón de rejilla abre un panel pequeño:
+"seed-lab" (enlace al hub) y la lista de proyectos, con Wealth Lens
+marcado como actual. La URL del hub es una constante única
+(`SEED_LAB_HUB_URL` en `src/lib/seed-lab.ts`, hoy
+`https://seed-lab-hub.vercel.app`, provisional) y la lista sale de
+`src/data/seed-lab-projects.json` (`id`, `name`, `url`, `current`): para
+añadir un proyecto o cambiar el hub no hace falta tocar componentes. Se
+cierra con Escape (el foco vuelve al botón) o tocando fuera.
+
+## Licencias de los datos
+
+Revisión fuente por fuente (las páginas de condiciones de cada una no se
+pudieron abrir desde el entorno que compiló esto; la conclusión se basa en
+sus condiciones publicadas conocidas y se aplica la opción más prudente):
+
+| Fuente | Condiciones | Qué se publica |
+| --- | --- | --- |
+| Yahoo Finance, Stooq | No permiten redistribuir sus datos | Solo cifras derivadas en `prices.json` (último cierre por fondo, cambio a 1 año, crecimiento anual, peor caída, cambio de cada año, volatilidad, correlaciones); nunca el historial de cierres |
+| Numbeo, Wise | No permiten copiar sus datos | Solo el coste mensual en euros, combinado y redondeado a 10, con atribución; se quitaron las cifras originales que citaba `cost-of-living.json` |
+| MSCI, Nasdaq, LBMA | Datos propietarios | Solo la rentabilidad anual real derivada y la inflación usada; se quitaron las rentabilidades nominales de MSCI, los cierres del Nasdaq-100 y los precios del oro |
+| Robert Shiller (Yale) | Libre con atribución | Rentabilidad real anual derivada del S&P 500 |
+| OCDE, Bundesbank, Destatis | CC BY 4.0 / uso libre con atribución / dl-de/by-2-0 | Rendimientos del Bund y precios alemanes, con atribución |
+| US BLS | Dominio público | IPC de EE. UU. 2023–2024 |
+| Banco Mundial (WDI) | CC BY 4.0 | Ratios de nivel de precios e inflación, derivados y con atribución |
+| Unicode CLDR | Licencia Unicode | Nombres de países |
+
+Riesgo residual: el último cierre de cada fondo es una cotización tal cual
+(como la de cualquier web de noticias); hace falta para valorar las
+posiciones. Si una fuente lo objetara, el job puede dejar de publicarlo y
+pedir el precio al usuario. *How it works* explica todo esto en lenguaje
+llano.
+
+## Test my plan (`/test`, `/es/test`)
+
+El plan tal cual está en My money (mismo activo o mezcla, mismos importes,
+sin *What if…?*) pasado por la historia real de los datos, año a año, sin
+simulación (`src/lib/history-test.ts`, tests en `history-test.test.ts`):
+
+- **Seis crisis** (`CRISES`): Great Depression (1929, 1929–1931), Oil
+  crisis (1973, 1973–1974), Dot-com crash (2000, 2000–2002), Financial
+  crisis (2008), Covid (2020) e Inflation shock (2022). Cada una empieza el
+  año anterior ("If you had started in 2007"). Solo se activan las que el
+  activo o todas las partes de la mezcla tienen en sus datos: el S&P 500
+  llega a 1928, el resto a 1986/1988, así que 1929 y 1973 son solo del
+  S&P 500; las demás tarjetas dicen "no data for this". Una cuenta de
+  ahorro o un crecimiento propio no tienen historia que probar.
+- **La caída** se mide sobre el dinero que había en lo más alto, sin los
+  aportes que llegan después (que la esconderían): "de 1.000 € a 608 €
+  (−39 %)", y "tardó N años en volver" es lo que tardó ese dinero en
+  recuperarse. El resultado a N años sí incluye los aportes, y se compara
+  en pequeño con el crecimiento medio del plan. Los datos son anuales: una
+  caída que se recupera dentro del año (Covid en 2020) no aparece, y se
+  dice así.
+- **Cada año de inicio**: los años del plan empezando en cada año posible
+  de los datos (o tramos más cortos si los datos no dan para dos), con el
+  peor, el del medio y el mejor marcados, y la línea del crecimiento medio.
+- **Mezclas y cartera**: cada parte sigue su propia historia
+  (reequilibrada cada año si la mezcla se reequilibra; las acciones de la
+  cartera siguen a su índice), y se muestra al lado lo que hizo el S&P 500
+  solo: su caída en cada crisis y su peor año de inicio. Sin sugerir pesos.
+- Aportes como en las simulaciones: la mitad de los del año al empezarlo y
+  la mitad al acabarlo. Cifras a final de año, en euros de hoy.
 
 ## Módulo 1 — Tracker de ganancia + tiempo a la meta
 
@@ -359,26 +491,47 @@ Orden sugerido de implementación técnica (no de prioridad de producto):
 La app nunca llama a Yahoo ni a Stooq. Un job diario
 (`scripts/update-prices.mts`, Node 22 sin dependencias) descarga 10 años
 de cierres diarios de la lista curada `src/data/instruments.json` —Yahoo
-Finance primero (dos hosts) y Stooq como respaldo— y escribe:
-
-- `public/data/prices.json`: último cierre, fecha, moneda, mini-serie de
-  12 meses, cambio a 1 año y crecimiento pasado por instrumento (una línea
-  por instrumento), y cómo se mueve (`scripts/lib/stats.mts`, desde los
-  cierres guardados): volatilidad anual (desviación de los retornos
-  logarítmicos diarios × √ retornos al año), el cambio de cada año natural
-  completo y, al final, las correlaciones de retornos semanales entre
-  instrumentos (semanales porque las bolsas cierran a horas distintas;
-  `null` con menos de 3 años compartidos). Se importa en el build, así que
-  va dentro de la página. `npm run update-stats` recalcula esas cifras
-  desde el historial guardado, sin descargar nada.
-- `public/data/history/<ID>.json`: la serie diaria compacta (desplazamiento
-  en días + cierre), que la app pide a su propio sitio solo al abrir el
-  gráfico.
+Finance primero (dos hosts) y Stooq como respaldo— y publica **solo cifras
+derivadas** en `public/data/prices.json`, nunca los cierres (las
+condiciones de esas fuentes no permiten redistribuir sus datos; ver
+"Licencias de los datos"): último cierre, fecha y moneda, cambio a 1 año,
+crecimiento anual pasado, peor caída desde un máximo y cómo se mueve
+(`scripts/lib/stats.mts`, calculado de la descarga del día): volatilidad
+anual (desviación de los retornos logarítmicos diarios × √ retornos al
+año), el cambio de cada año natural completo y, al final, las
+correlaciones de retornos semanales entre instrumentos (semanales porque
+las bolsas cierran a horas distintas; `null` con menos de 3 años
+compartidos; si un instrumento falla ese día, se conservan las del día
+anterior). Una línea por instrumento. Se importa en el build, así que va
+dentro de la página. La carpeta `public/data/history/` que publicaban
+versiones anteriores la borra el primer run tras el merge.
 
 Si un instrumento falla o la respuesta es rara (otra moneda, datos viejos,
 un salto ×5), se conserva lo anterior; los archivos solo se reescriben si
 cambian, y el job nunca falla porque una fuente esté caída. El commit a
 `master` hace que Vercel redespliegue.
+
+**Formato estable y conflictos.** `public/data/` es generado y el Action es
+su único escritor. El texto no depende de cómo se construyó cada entrada:
+una línea por instrumento, en el orden de `instruments.json`, con las
+claves de cada entrada en orden alfabético (`canonical` en
+`scripts/lib/price-files.mts`, con test), y `updatedAt` solo cambia si
+cambió algún número. Así el diff diario muestra solo lo que se movió.
+`.gitattributes` lo marca como generado para que GitHub lo pliegue en las
+PRs.
+
+- Una rama nunca debe commitear `public/data/` (tampoco tras un
+  `npm run update-prices` local): si cambia el código del job, el Action
+  reescribe los archivos en su primer run tras el merge.
+- Si aun así una rama choca con el commit diario, se resuelve quedándose
+  con la copia de `master`, que es la más reciente:
+
+  ```bash
+  git fetch origin master
+  git merge origin/master            # el conflicto aparece en public/data
+  git checkout origin/master -- projects/wealth-lens/public/data
+  git commit                         # cierra el merge con los datos de master
+  ```
 
 **Instalarlo (una vez).** GitHub solo ejecuta workflows que estén en
 `.github/workflows/` en la raíz del repo. Copiar
@@ -524,15 +677,14 @@ la limpieza de datos antiguos, el importador de Trading 212, el parser de
 CSV, el precio automático desde datos estáticos o CSV (nunca pisa un
 precio escrito a mano), el Monte Carlo (semilla fija) y el costo de vida.
 Del job de precios: parsers de Yahoo y Stooq contra fixtures, la cadena
-de respaldo con `fetch` simulado, la codificación del historial (ida y
-vuelta con el lector de la app) y las reglas para conservar los datos
-anteriores.
+de respaldo con `fetch` simulado, las cifras derivadas (y que ningún
+cierre se publica) y las reglas para conservar los datos anteriores.
 
 ## Mapa del código
 
 ```
 scripts/
-  update-prices.mts            job diario: descarga y escribe public/data/ (--stats-only: solo cifras)
+  update-prices.mts            job diario: descarga y escribe public/data/prices.json (solo cifras derivadas)
   update-prices.workflow.yml   el GitHub Action (copiar a .github/workflows/)
   lib/                         yahoo, stooq, cadena de respaldo, armado de archivos
 public/data/                   precios generados por el job (no editar a mano)
@@ -546,7 +698,7 @@ src/
                                lo que cambió); money/explainers.tsx (los "i"
                                plegados) y plain-language.test.ts (sin jerga)
   hooks/                       use-app (estado), use-calculation (todo por cambio),
-                               use-plan, use-history (historial al abrir un gráfico)
+                               use-plan
   lib/
     app-store.ts        estado en memoria (plan, holdings, CSV subidos)
     calculator.ts       resultado, metas, tabla de países, compras, tope de 60 años
@@ -581,7 +733,9 @@ src/
     sp500-real-returns.json     S&P 500 (Shiller)
     msci-world-real-returns.json, nasdaq100-real-returns.json
     euro-bonds-real-returns.json, gold-real-returns.json
-    cost-of-living.json         dataset curado (30 países, EUR, con/sin alquiler, inflación de referencia)
+    cost-of-living.json         30 países detallados (EUR, con/sin alquiler, inflación de referencia)
+    estimated-countries.json    142 países estimados por nivel de precios (scripts/estimate-countries.mts)
+    country-names.json          nombres de los 172 países en cada idioma (scripts/country-names.mts)
     connections.json            las compras, con fuente y fecha
 ```
 

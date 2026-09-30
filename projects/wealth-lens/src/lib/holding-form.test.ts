@@ -23,11 +23,11 @@ describe("validateHoldingForm", () => {
     ).toEqual({
       ok: false,
       errors: {
-        ticker: "Enter a ticker.",
-        quantity: "Enter a number of shares above 0.",
-        costBasis: "Enter the total amount paid (0 or more).",
-        currency: "Use a 3-letter code such as EUR or USD.",
-        currentPrice: "Enter a price of 0 or more, or leave it empty.",
+        ticker: { code: "form-ticker-empty" },
+        quantity: { code: "form-quantity" },
+        costBasis: { code: "form-cost" },
+        currency: { code: "form-currency" },
+        currentPrice: { code: "form-price" },
       },
     });
   });

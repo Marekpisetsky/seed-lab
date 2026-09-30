@@ -7,9 +7,10 @@
 
 import { isAssetId, type AssetId } from "./assets";
 import { countryByCode, DEFAULT_PRICES_OF, referenceInflation } from "./cost-of-living";
-import { isIndexId, SERIES, type IndexId } from "./indexes";
+import { isIndexId, type IndexId } from "./indexes";
 import { instrumentById, instrumentForHolding } from "./market-data";
 import { MAX_PARTS } from "./mix";
+import { problem, type Problem } from "./problems";
 import type { PricePoint } from "./prices";
 import { STANDARD_ASSUMPTIONS, type AssumptionOverrides, type Goal, type Holding, type Investment, type LegacyGoal, type MixPart, type NewGoal, type Plan } from "./types";
 
@@ -121,7 +122,7 @@ export function parseGoal(value: unknown): LegacyGoal | null {
 }
 
 /** One-line notices for things a file had that the app no longer does, said once it is loaded. */
-export type Notices = string[];
+export type Notices = Problem[];
 
 /** The index a stock of the list grows like, or `null` for a ticker not on the list. */
 function stockIndex(id: unknown): { name: string; index: IndexId } | null {
@@ -151,7 +152,7 @@ function parseMixParts(value: unknown[], notices: Notices): MixPart[] {
     if (!asset || (!weights.has(asset) && weights.size === MAX_PARTS)) continue;
     weights.set(asset, Math.min(100, (weights.get(asset) ?? 0) + part.weight));
   }
-  if (hadStock) notices.push("Your mix had single stocks, which are no longer projected: each now counts as its index.");
+  if (hadStock) notices.push(problem("mix-had-stocks"));
   return [...weights].map(([asset, weight]) => ({ asset, weight }));
 }
 
@@ -171,11 +172,7 @@ export function parseInvestment(value: unknown, holdings: readonly Holding[] = [
       const stock = stockIndex(value.id);
       if (!stock) return null;
       const held = holdings.some((holding) => instrumentForHolding(holding.ticker, holding.currency)?.id === value.id);
-      notices.push(
-        held
-          ? `Your file projected ${stock.name} on its own. Single stocks are no longer projected, so it now uses My portfolio, where each stock grows like its index.`
-          : `Your file projected ${stock.name} on its own. Single stocks are no longer projected, so it now grows like the ${SERIES[stock.index].name}.`,
-      );
+      notices.push(held ? problem("stock-now-portfolio", { name: stock.name }) : problem("stock-now-index", { name: stock.name, index: stock.index }));
       return held ? { kind: "portfolio" } : { kind: "asset", asset: stock.index };
     }
     case "portfolio":

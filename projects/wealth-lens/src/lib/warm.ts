@@ -1,9 +1,9 @@
 /**
  * Work done ahead, in idle moments once the user starts using the page, one
  * short step at a time (each well under 50 ms, so the page never stutters): the mixes'
- * random draws, every asset's simulated years, a first run of the 60/40
- * template drifting and rebalanced, of a portfolio with a stock and of the
- * user's own figures.
+ * random draws, every asset's simulated years, a first run of each mix
+ * template (100% stocks, 80/20, 60/40) drifting and rebalanced, of a
+ * portfolio with a stock and of the user's own figures.
  * Choosing any of them, or loading a file, then recalculates at once.
  */
 
@@ -27,11 +27,14 @@ export function warmUp(rates: readonly number[]): void {
       const all = mixModel(SERIES_IDS.map((asset) => ({ asset, weight: 1 })), false);
       if (all) partReturns(all);
     },
-    ...[false, true].map((rebalance) => () => {
-      const mix = resolveInvestment({ kind: "mix", parts: [...TEMPLATES[2].parts], rebalance }, []);
-      successRatesFor(mix, rates);
-      mixFigures(mix, amounts);
-    }),
+    // The 60/40 first: it is the one a mix starts with.
+    ...[TEMPLATES[2], TEMPLATES[1], TEMPLATES[0]].flatMap((template) =>
+      [false, true].map((rebalance) => () => {
+        const mix = resolveInvestment({ kind: "mix", parts: [...template.parts], rebalance }, []);
+        successRatesFor(mix, rates);
+        mixFigures(mix, amounts);
+      }),
+    ),
     () => {
       const stock = instrumentById("NVDA");
       const model = mixModel([{ asset: "world", weight: 70 }, { asset: "nasdaq100", weight: 30, ...(stock ? { stock } : {}) }], false);

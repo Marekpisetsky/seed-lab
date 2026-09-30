@@ -1,13 +1,14 @@
 /**
- * The assumptions as the calculator shows them, in plain words: one compact
- * line ("Grows 7.5% a year after rising prices · can move ±17% in a year ·
- * data 1988–2022"), a short note, and the figures the Edit panel shows,
- * after or before rising prices.
+ * The assumptions as the calculator shows them, in plain words and in the
+ * page's language: one compact line ("Grows 7.5% a year after rising
+ * prices · can move ±17% in a year · data 1988–2022"), a short note, and
+ * the figures the Edit panel shows, after or before rising prices.
  */
 
-import { GOLD_NOTE, SAVINGS_RATE } from "./assets";
-import { formatEur, formatPercent, formatRate } from "./format";
-import { dividendNote, periodText, toNominal, type ResolvedInvestment } from "./investment";
+import type { I18n } from "@/i18n";
+import { dividendNote } from "@/i18n/investment-text";
+import { SAVINGS_RATE } from "./assets";
+import { periodText, toNominal, type ResolvedInvestment } from "./investment";
 
 export type Basis = "real" | "nominal";
 
@@ -17,46 +18,47 @@ export function growthIn(investment: Pick<ResolvedInvestment, "realReturn" | "in
 }
 
 /** "Grows 7.5% a year after rising prices"; "Shrinks 0.5% a year …" below zero. */
-export function growthText(investment: Pick<ResolvedInvestment, "realReturn" | "inflation">, basis: Basis): string {
+export function growthText(investment: Pick<ResolvedInvestment, "realReturn" | "inflation">, basis: Basis, { m, f }: I18n): string {
   const rate = growthIn(investment, basis);
-  return `${rate < 0 ? "Shrinks" : "Grows"} ${formatRate(Math.abs(rate))} a year ${basis === "real" ? "after" : "before"} rising prices`;
+  const say = rate < 0 ? m.assumptions.shrinks : m.assumptions.grows;
+  return say(f.rate(Math.abs(rate)), basis === "real");
 }
 
 /** "can move ±17% in a year", or "the same every year" with no ups and downs. */
-export function upsAndDownsText(volatility: number): string {
-  return volatility > 0 ? `can move ±${formatPercent(volatility, { decimals: 0 })} in a year` : "the same every year";
+export function upsAndDownsText(volatility: number, { m, f }: I18n): string {
+  return volatility > 0 ? m.assumptions.canMove(f.percent(volatility, { decimals: 0 })) : m.assumptions.sameEveryYear;
 }
 
-/** "e.g. a €10,000 year could end between €9,200 and €10,800": a normal year's ups and downs, in euros. */
-export function upsAndDownsExample(volatility: number): string {
-  if (volatility <= 0) return "0: it grows the same every year.";
-  const low = formatEur(Math.max(0, 10_000 * (1 - volatility)));
-  return `e.g. a €10,000 year could end between ${low} and ${formatEur(10_000 * (1 + volatility))}.`;
+/** "So €10,000 could end the year at €9,200 to €10,800.": a normal year's ups and downs, in euros. */
+export function upsAndDownsExample(volatility: number, { m, f }: I18n): string {
+  if (volatility <= 0) return m.assumptions.exampleNone;
+  return m.assumptions.example(f.eur(10_000), f.eur(Math.max(0, 10_000 * (1 - volatility))), f.eur(10_000 * (1 + volatility)));
 }
 
-/** Where the figures come from: "data 1988–2022", "1.5% interest, prices rise 2%", "your figures". */
-export function sourceText(investment: ResolvedInvestment): string {
-  if (investment.custom) return investment.investment.kind === "custom" ? "your figures" : "your figures, not the data";
+/** Where the figures come from: "data 1988–2022", "1.5% interest, prices rise 2%", "your numbers". */
+export function sourceText(investment: ResolvedInvestment, { m, f }: I18n): string {
+  if (investment.custom) return investment.investment.kind === "custom" ? m.assumptions.yourNumbers : m.assumptions.yourNumbersNotData;
   if (investment.investment.kind === "asset" && investment.investment.asset === "savings") {
-    return `${formatRate(SAVINGS_RATE)} interest, prices rise ${formatRate(investment.inflation)}`;
+    return m.assumptions.savingsSource(f.rate(SAVINGS_RATE), f.rate(investment.inflation));
   }
   const period = periodText(investment);
-  return period && `data ${period}`;
+  return period && m.assumptions.data(period);
 }
 
 /** The compact line: growth · ups and downs · where from. */
-export function assumptionsLine(investment: ResolvedInvestment, basis: Basis): string {
-  return [growthText(investment, basis), upsAndDownsText(investment.volatility), sourceText(investment)].filter(Boolean).join(" · ");
+export function assumptionsLine(investment: ResolvedInvestment, basis: Basis, i18n: I18n): string {
+  return [growthText(investment, basis, i18n), upsAndDownsText(investment.volatility, i18n), sourceText(investment, i18n)].filter(Boolean).join(" · ");
 }
 
 /** The short note under the line: what matters about this choice (My portfolio's label sits over its holdings). */
-export function assumptionsNote(investment: ResolvedInvestment): string {
-  const notes: string[] = [];
+export function assumptionsNote(investment: ResolvedInvestment, i18n: I18n): string {
+  const { notes } = i18n.m.assumptions;
+  const said: string[] = [];
   const { investment: chosen } = investment;
-  if (chosen.kind === "asset" && chosen.asset === "gold") notes.push(`${GOLD_NOTE}: gold protects, it hardly grows.`);
-  const dividends = dividendNote(investment);
-  if (dividends) notes.push(`${dividends.charAt(0).toUpperCase()}${dividends.slice(1)}.`);
-  notes.push(investment.custom ? "Your own figures, not a promise." : investment.period ? "Past, not a promise." : "Not a promise.");
-  notes.push("Amounts in today's euros.");
-  return notes.join(" ");
+  if (chosen.kind === "asset" && chosen.asset === "gold") said.push(notes.gold);
+  const dividends = dividendNote(investment, i18n);
+  if (dividends) said.push(`${dividends.charAt(0).toUpperCase()}${dividends.slice(1)}.`);
+  said.push(investment.custom ? notes.yours : investment.period ? notes.past : notes.notPromise);
+  said.push(notes.todaysEuros);
+  return said.join(" ");
 }

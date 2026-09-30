@@ -4,13 +4,11 @@
  * download can replace what is already committed. Nothing here does I/O.
  */
 
-import type { Correlations, HistoryFile, Instrument, InstrumentPrices, InstrumentStats, PricesFile } from "../../src/lib/market-format.ts";
+import type { Correlations, Instrument, InstrumentPrices, PricesFile } from "../../src/lib/market-format.ts";
 import type { PricePoint } from "./series.mts";
 
-/** Years of daily closes kept per instrument. */
+/** Years of daily closes the figures are worked out from. Only the figures are published, never the closes. */
 export const HISTORY_YEARS = 10;
-/** Closes kept in the 12-month line of the summary (about one a week). */
-export const SPARK_POINTS = 53;
 /** A download whose latest close is older than this is treated as stale. */
 export const MAX_AGE_DAYS = 30;
 
@@ -31,29 +29,6 @@ export function lastYears(points: readonly PricePoint[], years: number): PricePo
   from.setUTCFullYear(from.getUTCFullYear() - years);
   const start = from.toISOString().slice(0, 10);
   return points.filter((point) => point.time >= start);
-}
-
-/** Compact daily series: day offsets between consecutive closes (see HistoryFile). */
-export function encodeHistory(instrument: Instrument, points: readonly PricePoint[]): HistoryFile {
-  const first = points[0];
-  if (!first) throw new RangeError("cannot encode an empty series");
-  return {
-    id: instrument.id,
-    symbol: instrument.symbol,
-    currency: instrument.currency,
-    start: first.time,
-    days: points.map((point, index) => (index === 0 ? 0 : dayNumber(point.time) - dayNumber(points[index - 1].time))),
-    closes: points.map((point) => roundClose(point.close)),
-  };
-}
-
-/** About one close a week over the last 12 months, evenly spaced, always ending on the latest. */
-export function sparkline(points: readonly PricePoint[], count = SPARK_POINTS): number[] {
-  const year = lastYears(points, 1);
-  if (year.length <= count) return year.map((point) => roundClose(point.close));
-  return Array.from({ length: count }, (_, index) =>
-    roundClose(year[Math.round((index * (year.length - 1)) / (count - 1))].close),
-  );
 }
 
 /** Change from the last close at least a year before the latest one; `null` with less history. */
@@ -102,7 +77,6 @@ export function summarize(
     date: last.time,
     close: roundClose(last.close),
     change1y: changeOverYear(points),
-    spark: sparkline(points),
     growth: growthPerYear(points),
     drawdown: maxDrawdown(points),
   };
@@ -140,10 +114,24 @@ export function checkSeries(
 }
 
 /**
+ * The same value with every object's keys in alphabetical order. An entry
+ * read back from yesterday's file and one just built from a download then
+ * write the very same text, so the file only changes when a number does.
+ */
+export function canonical<T>(value: T): T {
+  if (Array.isArray(value)) return value.map(canonical) as T;
+  if (value === null || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.keys(value)
+      .sort()
+      .map((key) => [key, canonical((value as Record<string, unknown>)[key])]),
+  ) as T;
+}
+
+/**
  * The next prices file: fresh entries where a download succeeded, the
  * previous entry where it failed, in catalogue order (instruments removed
- * from the catalogue are dropped), each with its stats worked out from the
- * stored history (`stats`, by id), and the correlations between them.
+ * from the catalogue are dropped), and the correlations between them.
  * `updatedAt` only moves when something changes, so an unchanged day
  * produces an identical file and no commit.
  */
@@ -152,17 +140,17 @@ export function nextPricesFile(
   previous: PricesFile,
   fresh: Readonly<Record<string, InstrumentPrices>>,
   now: Date,
-  stats: Readonly<Record<string, InstrumentStats | null>> = {},
   correlations: Correlations | null = previous.correlations ?? null,
 ): { file: PricesFile; changed: boolean } {
   const prices: Record<string, InstrumentPrices> = {};
   for (const { id } of instruments) {
     const entry = fresh[id] ?? previous.prices[id];
-    if (entry) prices[id] = id in stats ? { ...entry, stats: stats[id] } : entry;
+    if (entry) prices[id] = canonical(entry);
   }
+  const before = Object.fromEntries(Object.entries(previous.prices).map(([id, entry]) => [id, canonical(entry)]));
   const changed =
-    JSON.stringify(prices) !== JSON.stringify(previous.prices) ||
-    JSON.stringify(correlations) !== JSON.stringify(previous.correlations ?? null);
+    JSON.stringify(prices) !== JSON.stringify(before) ||
+    JSON.stringify(canonical(correlations)) !== JSON.stringify(canonical(previous.correlations ?? null));
   return {
     file: { version: 1, updatedAt: changed ? now.toISOString() : previous.updatedAt, prices, ...(correlations ? { correlations } : {}) },
     changed,
@@ -171,7 +159,7 @@ export function nextPricesFile(
 
 /** One instrument per line (and one correlation row per line), so each day's git diff shows exactly what moved. */
 export function formatPricesFile(file: PricesFile): string {
-  const entries = Object.entries(file.prices).map(([id, entry]) => `${JSON.stringify(id)}: ${JSON.stringify(entry)}`);
+  const entries = Object.entries(file.prices).map(([id, entry]) => `${JSON.stringify(id)}: ${JSON.stringify(canonical(entry))}`);
   const prices = entries.length === 0 ? "{}" : `{\n${entries.join(",\n")}\n}`;
   const { correlations } = file;
   const rows = (table: readonly unknown[][]) => `[\n${table.map((row) => JSON.stringify(row)).join(",\n")}\n]`;

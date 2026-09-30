@@ -10,8 +10,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "update-prices": "node scripts/update-prices.mts",
-    "update-stats": "node scripts/update-prices.mts --stats-only"
+    "update-prices": "node scripts/update-prices.mts"
   },
   "dependencies": {
     "lightweight-charts": "^5.2.1",
@@ -27,6 +26,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.7",
+    "fast-check": "^4.10.2",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^5.0.2"

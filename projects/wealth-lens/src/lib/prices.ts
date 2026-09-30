@@ -4,6 +4,7 @@
  */
 
 import { findColumn, parseCsv, parseLooseNumber } from "./csv";
+import { problem, type Problem } from "./problems";
 
 export interface PricePoint {
   /** Trading day, `YYYY-MM-DD`. */
@@ -14,7 +15,7 @@ export interface PricePoint {
 
 export type PriceParseResult =
   | { ok: true; points: PricePoint[]; skippedRows: number }
-  | { ok: false; error: string };
+  | { ok: false; error: Problem };
 
 /** Accepts 2024-01-31, 2024/01/31 and 20240131, optionally followed by a time. */
 function normalizeDate(raw: string): string | null {
@@ -38,7 +39,7 @@ export function parsePriceCsv(text: string): PriceParseResult {
   const dateColumn = findColumn(table.header, "date", "time", "datetime", "day");
   const closeColumn = findColumn(table.header, "close", "adjclose", "closeprice", "price", "last");
   if (dateColumn === -1 || closeColumn === -1) {
-    return { ok: false, error: "Expected a header with a date column and a close (or price) column." };
+    return { ok: false, error: problem("prices-no-columns") };
   }
 
   const byDate = new Map<string, number>();
@@ -53,7 +54,7 @@ export function parsePriceCsv(text: string): PriceParseResult {
     byDate.set(time, close);
   }
 
-  if (byDate.size === 0) return { ok: false, error: "No rows with a valid date and a positive close price." };
+  if (byDate.size === 0) return { ok: false, error: problem("prices-no-rows") };
   const points = [...byDate]
     .map(([time, close]) => ({ time, close }))
     .sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));

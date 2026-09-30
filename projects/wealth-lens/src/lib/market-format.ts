@@ -7,7 +7,6 @@
  */
 
 import { isIndexId, SERIES_IDS, type IndexId, type SeriesId } from "./index-ids.ts";
-import type { PricePoint } from "./prices";
 
 export interface Instrument {
   /** Ticker as users know it ("VUAA", "NVDA"); also the key in the data files. */
@@ -33,8 +32,6 @@ export interface InstrumentPrices {
   close: number;
   /** Change over the last 12 months as a fraction; `null` with less history. */
   change1y: number | null;
-  /** About one close a week over the last 12 months, oldest first (for the small line). */
-  spark: number[];
   /** Price growth per year over the stored history (not a forecast); `null` under a year. */
   growth: { from: string; perYear: number } | null;
   /** Worst fall from a previous peak over the stored history (0.57 = −57 %); absent in older files. */
@@ -69,17 +66,6 @@ export interface PricesFile {
   prices: Record<string, InstrumentPrices>;
   /** Absent in older files. */
   correlations?: Correlations | null;
-}
-
-/** Compact daily series: day offsets between consecutive closes, from `start`. */
-export interface HistoryFile {
-  id: string;
-  symbol: string;
-  currency: string;
-  start: string;
-  /** Days since the previous point; the first entry is 0 (the `start` day). */
-  days: number[];
-  closes: number[];
 }
 
 // ---------------------------------------------------------------------------
@@ -151,7 +137,8 @@ function parseCorrelations(value: unknown): Correlations | null {
 
 function parseInstrumentPrices(value: unknown): InstrumentPrices | null {
   if (!isRecord(value)) return null;
-  const { symbol, currency, source, date, close, change1y, spark, growth, drawdown, stats } = value;
+  // Older files also carry a 12-month line of closes ("spark"): no longer published or read.
+  const { symbol, currency, source, date, close, change1y, growth, drawdown, stats } = value;
   if (typeof symbol !== "string" || typeof currency !== "string") return null;
   if (source !== "yahoo" && source !== "stooq") return null;
   if (!isDay(date) || !isPositive(close)) return null;
@@ -170,7 +157,6 @@ function parseInstrumentPrices(value: unknown): InstrumentPrices | null {
     date,
     close,
     change1y: isFraction(change1y) ? change1y : null,
-    spark: Array.isArray(spark) ? spark.filter(isPositive) : [],
     growth: growthOk,
     drawdown: drawdownOk,
     ...(stats !== undefined ? { stats: parseStats(stats) } : {}),
@@ -189,21 +175,4 @@ export function parsePricesFile(value: unknown): PricesFile {
   const updatedAt = isRecord(value) && typeof value.updatedAt === "string" ? value.updatedAt : null;
   const correlations = isRecord(value) ? parseCorrelations(value.correlations) : null;
   return { version: 1, updatedAt, prices, ...(correlations ? { correlations } : {}) };
-}
-
-/** Daily points from a history file; `null` if it is not one. */
-export function decodeHistory(value: unknown): PricePoint[] | null {
-  if (!isRecord(value) || !isDay(value.start) || !Array.isArray(value.days) || !Array.isArray(value.closes)) return null;
-  const { days, closes } = value;
-  if (days.length !== closes.length || days.length === 0) return null;
-  const date = new Date(`${value.start}T00:00:00Z`);
-  const points: PricePoint[] = [];
-  for (let index = 0; index < days.length; index++) {
-    const step = days[index];
-    const close = closes[index];
-    if (typeof step !== "number" || !Number.isInteger(step) || step < 0 || !isPositive(close)) return null;
-    date.setUTCDate(date.getUTCDate() + step);
-    points.push({ time: date.toISOString().slice(0, 10), close });
-  }
-  return points;
 }
