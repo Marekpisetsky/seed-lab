@@ -1,0 +1,25 @@
+{
+  "name": "seed-lab-hub",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The seed-lab hub: open, privacy-first tools for Europe. Static pages, no JavaScript framework, no cookies.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "build": "node --experimental-strip-types src/build.ts",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && node --experimental-strip-types --test test/*.test.ts",
+    "check": "npm run lint && npm run typecheck && npm test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.20.4",
+    "eslint": "^10.11.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.0"
+  }
+}

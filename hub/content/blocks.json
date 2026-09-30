@@ -1,0 +1,38 @@
+[
+  {
+    "id": "on-device",
+    "status": "coming",
+    "name": { "en": "On-device calculation", "es": "Cálculo en el dispositivo" },
+    "text": {
+      "en": "Money math that runs in the browser, checked by property tests. No server sees your numbers.",
+      "es": "Cálculos de dinero que corren en el navegador, comprobados con tests de propiedades. Ningún servidor ve tus números."
+    }
+  },
+  {
+    "id": "no-storage",
+    "status": "coming",
+    "name": { "en": "No storage", "es": "Sin almacenamiento" },
+    "text": {
+      "en": "State that lives in memory only. To keep your work, you download a file and load it back yourself.",
+      "es": "Un estado que vive solo en memoria. Para guardar tu trabajo, descargas un archivo y lo vuelves a cargar tú."
+    }
+  },
+  {
+    "id": "multilingual",
+    "status": "coming",
+    "name": { "en": "Multilingual", "es": "Multilingüe" },
+    "text": {
+      "en": "Typed dictionaries, numbers written each language's way, and a test that keeps every language plain.",
+      "es": "Diccionarios con tipos, números escritos a la manera de cada idioma y un test que mantiene cada idioma sencillo."
+    }
+  },
+  {
+    "id": "accessible",
+    "status": "coming",
+    "name": { "en": "Accessible", "es": "Accesible" },
+    "text": {
+      "en": "Controls with 44 px targets, AA contrast, full keyboard use and short announcements for screen readers.",
+      "es": "Controles de 44 px, contraste AA, uso completo con teclado y avisos cortos para lectores de pantalla."
+    }
+  }
+]
