@@ -259,8 +259,8 @@ export function concentrationFinding({ holdings, market }: FindingContext): Find
       ...(prices?.change1y != null ? [`Last 12 months: ${formatPercent(prices.change1y, { signed: true, decimals: 0 })}.`] : []),
       ...(prices?.drawdown ? [`Worst fall from a peak since ${prices.drawdown.from.slice(0, 4)}: ${formatPercent(-prices.drawdown.max, { decimals: 0 })}.`] : []),
       instrument
-        ? `Projections count it as the ${INDEXES[instrument.index].name}; one company can fall much further than an index.`
-        : "Projections count it as world stocks; one company can fall much further than an index.",
+        ? `In My portfolio it grows at the ${INDEXES[instrument.index].name}'s average, with its own ups and downs; one company can fall much further than an index.`
+        : "In My portfolio it counts as world stocks; one company can fall much further than an index.",
     ],
     assumptions: ["Only holdings priced in euros are counted."],
   };
