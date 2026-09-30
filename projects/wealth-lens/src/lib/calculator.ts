@@ -191,9 +191,11 @@ export interface CountryRow {
   withoutHousing: CountryCell;
   withHousing: CountryCell;
   referenceDate: string;
+  /** Estimated from the country's price level, rather than compiled from cost-of-living sources. */
+  estimated: boolean;
 }
 
-/** The rows shown before "Show all": the five cheapest, plus these. */
+/** The rows shown before "Show all": the five cheapest detailed countries, plus these. */
 export const FEATURED_COUNTRIES = ["PE", "NL"] as const;
 const CHEAPEST_SHOWN = 5;
 
@@ -225,12 +227,14 @@ export function countryRows(
       withoutHousing: cell(scenario, horizonMonths, country.monthlyCostEur.withoutRent),
       withHousing: cell(scenario, horizonMonths, country.monthlyCostEur.withRent),
       referenceDate: country.referenceDate,
+      estimated: country.method === "estimated",
     }));
 }
 
-/** The five cheapest and the featured ones, in the table's order. */
+/** The five cheapest detailed countries and the featured ones, in the table's order: seven rows. */
 export function featuredRows(rows: readonly CountryRow[]): CountryRow[] {
-  return rows.filter((row, index) => index < CHEAPEST_SHOWN || (FEATURED_COUNTRIES as readonly string[]).includes(row.code));
+  const cheapest = new Set(rows.filter((row) => !row.estimated).slice(0, CHEAPEST_SHOWN).map((row) => row.code));
+  return rows.filter((row) => cheapest.has(row.code) || (FEATURED_COUNTRIES as readonly string[]).includes(row.code));
 }
 
 /** A purchase of the list; its name and source come from the page's language (things.items). */

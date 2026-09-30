@@ -464,6 +464,7 @@ export const en = {
       search: "Search a country",
       option: (housing: boolean, amount: string) => `${housing ? "With housing" : "Without housing"}: ${amount} a month`,
       onePerson: (country: string, date: string) => `One person in ${country}. Estimates (${date}).`,
+      onePersonEstimated: (country: string, year: number) => `One person in ${country}. Rough estimate from price levels (${year}).`,
       fromList: "From the list",
       chooseThing: "Choose something",
       thingOption: (name: string, amount: string) => `${name} — ${amount}`,
@@ -501,6 +502,9 @@ export const en = {
     note: (date: string) => `Estimates for one person (${date}). With housing adds renting a 1-bedroom outside the centre. Cities differ a lot.`,
     paidBy: (amount: string) => `✓ means ${amount}/month pays it. Otherwise: when this plan gets there.`,
     detailedSource: (date: string) => `Numbeo and Wise, ${date}`,
+    estimated: "estimated",
+    estimatedNote: (year: number) => `≈ Rough estimate from the country's price level (World Bank, ${year}).`,
+    estimatedSource: (year: number) => `a rough estimate from its price level (World Bank, ${year})`,
   },
   things: {
     title: "Things you could buy",

@@ -449,6 +449,7 @@ export const es: Messages = {
       search: "Busca un país",
       option: (housing: boolean, amount: string) => `${housing ? "Con vivienda" : "Sin vivienda"}: ${amount} al mes`,
       onePerson: (country: string, date: string) => `Una persona en ${country}. Estimaciones (${date}).`,
+      onePersonEstimated: (country: string, year: number) => `Una persona en ${country}. Estimación aproximada por precios (${year}).`,
       fromList: "De la lista",
       chooseThing: "Elige algo",
       thingOption: (name: string, amount: string) => `${name} — ${amount}`,
@@ -486,6 +487,9 @@ export const es: Messages = {
     note: (date: string) => `Estimaciones para una persona (${date}). Con vivienda suma alquilar un piso de 1 dormitorio fuera del centro. Las ciudades cambian mucho.`,
     paidBy: (amount: string) => `✓ quiere decir que ${amount}/mes lo paga. Si no: cuándo llega este plan.`,
     detailedSource: (date: string) => `Numbeo y Wise, ${date}`,
+    estimated: "estimado",
+    estimatedNote: (year: number) => `≈ Estimación aproximada según el nivel de precios del país (Banco Mundial, ${year}).`,
+    estimatedSource: (year: number) => `una estimación aproximada según su nivel de precios (Banco Mundial, ${year})`,
   },
   things: {
     title: "Cosas que podrías comprar",

@@ -8,7 +8,14 @@ import type { I18n } from ".";
 import { countryInSentence } from "./countries";
 import { dividendNote, growthSource } from "./investment-text";
 import { MAX_YEARS, NEEDED_WITHIN_YEARS, type GoalStatus, type Scenario } from "@/lib/calculator";
+import { countryByCode } from "@/lib/cost-of-living";
 import type { ResolvedInvestment } from "@/lib/investment";
+
+/** Where a country's figures come from: its sources, or its price level for an estimate. */
+function liveSource(code: string, referenceDate: string | null, { m }: I18n): string {
+  const level = countryByCode(code)?.priceLevel;
+  return level ? m.countryTable.estimatedSource(level.year) : m.countryTable.detailedSource(referenceDate ?? "");
+}
 
 /** "Live in Peru", "A used car", "Reach €100,000", "My rent" (a monthly amount's own label). */
 export function goalName(status: GoalStatus, i18n: I18n): string {
@@ -53,7 +60,7 @@ export function goalExplain(status: GoalStatus, scenario: Scenario, investment: 
   const { goal } = status;
   const where =
     goal.kind === "live"
-      ? t.liveSource(goal.housing, m.countryTable.detailedSource(status.referenceDate ?? ""))
+      ? t.liveSource(goal.housing, liveSource(goal.country, status.referenceDate, i18n))
       : goal.kind === "buy"
         ? t.itemSource(m.things.items[goal.item]?.source ?? "")
         : goal.kind === "buy-own"

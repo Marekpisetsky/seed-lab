@@ -1,14 +1,18 @@
 /**
- * The curated cost-of-living dataset (src/data/cost-of-living.json), validated
- * when the module loads so a bad edit fails loudly instead of rendering NaN.
- *
- * The figures are approximate estimates compiled by hand from public sources
- * on a given date. They are not live data and the UI must say so.
+ * The cost-of-living datasets, validated when the module loads so a bad edit
+ * fails loudly instead of rendering NaN:
+ * - src/data/cost-of-living.json: 30 detailed countries, compiled by hand
+ *   from public sources on a given date;
+ * - src/data/estimated-countries.json: every other country with World Bank
+ *   price data, estimated from its price level next to the Netherlands'
+ *   (scripts/estimate-countries.mts).
+ * Approximate estimates, not live data; the UI says which are which.
  */
 
 import raw from "@/data/cost-of-living.json";
+import estimatedRaw from "@/data/estimated-countries.json";
 
-export const REGIONS = ["Europe", "North America", "Latin America", "Asia", "Africa"] as const;
+export const REGIONS = ["Europe", "North America", "Latin America", "Asia", "Africa", "Oceania"] as const;
 export type Region = (typeof REGIONS)[number];
 
 export interface CountryCost {
@@ -18,7 +22,11 @@ export interface CountryCost {
   region: Region;
   /** One person, per month, in EUR. */
   monthlyCostEur: { withoutRent: number; withRent: number };
-  /** Where the numbers come from, with the original values and currencies. */
+  /** "detailed": compiled from cost-of-living sources; "estimated": from the country's price level. */
+  method: "detailed" | "estimated";
+  /** For an estimate: the country's price level next to the Netherlands', and its year. */
+  priceLevel: { ratio: number; year: number } | null;
+  /** Where the numbers come from. */
   source: string;
   /** Month the source figures refer to, `YYYY-MM`. */
   referenceDate: string;
@@ -27,7 +35,13 @@ export interface CountryCost {
    * inflation target (see the dataset's inflationNote), with where it comes
    * from and when it was checked.
    */
-  inflation: { rate: number; basis: string; asOf: string };
+  inflation: {
+    rate: number;
+    basis: string;
+    asOf: string;
+    /** The 2015–2024 average, for countries whose prices rose 10% a year or more then. */
+    recentAverage?: number;
+  };
 }
 
 export interface CostOfLivingDataset {
@@ -46,11 +60,22 @@ function isPositive(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value > 0;
 }
 
-function parseCountry(value: unknown, index: number): CountryCost {
+/** An estimate has no source or month of its own: they come from its method and from the Netherlands' basket. */
+type EstimateDefaults = { source: (year: number) => string; referenceDate: string };
+
+function parseCountry(value: unknown, index: number, estimate: EstimateDefaults | null = null): CountryCost {
   if (typeof value !== "object" || value === null) fail(`entry ${index} is not an object`);
   const entry = value as Record<string, unknown>;
-  const { code, name, region, monthlyCostEur, source, referenceDate } = entry;
+  const { code, name, region, monthlyCostEur } = entry;
   const label = typeof name === "string" ? name : `entry ${index}`;
+  let priceLevel: CountryCost["priceLevel"] = null;
+  if (estimate) {
+    const level = entry.priceLevel as Record<string, unknown> | undefined;
+    if (!isPositive(level?.ratio) || typeof level.year !== "number" || level.year < 2015) fail(`${label}: an estimate needs its price level and year`);
+    priceLevel = { ratio: level.ratio, year: level.year };
+  }
+  const source = estimate && priceLevel ? estimate.source(priceLevel.year) : entry.source;
+  const referenceDate = estimate ? estimate.referenceDate : entry.referenceDate;
 
   if (typeof code !== "string" || !/^[A-Z]{2}$/.test(code)) fail(`${label}: invalid code`);
   if (typeof name !== "string" || name === "") fail(`entry ${index}: missing name`);
@@ -69,23 +94,55 @@ function parseCountry(value: unknown, index: number): CountryCost {
   if (typeof rate !== "number" || !Number.isFinite(rate) || rate < -0.05 || rate > 0.5) fail(`${label}: inflation rate must be a fraction`);
   if (typeof inflation?.basis !== "string" || inflation.basis === "") fail(`${label}: inflation needs its basis`);
   if (typeof inflation.asOf !== "string" || !/^\d{4}-\d{2}$/.test(inflation.asOf)) fail(`${label}: inflation asOf must be YYYY-MM`);
+  const { recentAverage } = inflation;
+  if (recentAverage !== undefined && (typeof recentAverage !== "number" || !Number.isFinite(recentAverage))) fail(`${label}: recentAverage must be a fraction`);
 
   return {
     code,
     name,
     region: region as Region,
+    method: estimate ? "estimated" : "detailed",
+    priceLevel,
     monthlyCostEur: { withoutRent: costs.withoutRent, withRent: costs.withRent },
     source,
     referenceDate,
-    inflation: { rate, basis: inflation.basis, asOf: inflation.asOf },
+    inflation: { rate, basis: inflation.basis, asOf: inflation.asOf, ...(recentAverage === undefined ? {} : { recentAverage }) },
   };
 }
 
-export function parseDataset(value: unknown): CostOfLivingDataset {
+/** How the estimated countries were worked out (estimated-countries.json), for How it works. */
+export interface EstimateMethod {
+  basket: { country: string; withoutRent: number; rent: number };
+  rentExponent: number;
+  fittedRentExponent: number;
+  checkedOn: string;
+  medianError: { withoutRent: number; withRent: number };
+  oneInTenOffBy: { withoutRent: number; withRent: number };
+}
+
+/**
+ * The detailed countries and, when given, the estimated ones (which must use
+ * the detailed Netherlands as their basket), as one list.
+ */
+export function parseDataset(value: unknown, estimatedValue: unknown = { countries: [] }): CostOfLivingDataset {
   if (typeof value !== "object" || value === null) fail("not an object");
   const data = value as Record<string, unknown>;
   if (!Array.isArray(data.countries) || data.countries.length === 0) fail("no countries");
-  const countries = data.countries.map(parseCountry);
+  const detailed = data.countries.map((entry, index) => parseCountry(entry, index));
+  const estimatedData = estimatedValue as { countries?: unknown; method?: EstimateMethod };
+  if (!Array.isArray(estimatedData.countries)) fail("estimated countries must be a list");
+  const basket = detailed.find((country) => country.code === "NL");
+  if (estimatedData.countries.length > 0) {
+    const method = estimatedData.method;
+    if (!basket || !method || method.basket.withoutRent !== basket.monthlyCostEur.withoutRent || method.basket.rent !== basket.monthlyCostEur.withRent - basket.monthlyCostEur.withoutRent) {
+      fail("estimated countries must use the Netherlands' detailed figures as their basket");
+    }
+  }
+  const defaults: EstimateDefaults = {
+    source: (year) => `World Bank price level (${year}) next to the Netherlands', applied to its figures`,
+    referenceDate: basket?.referenceDate ?? "",
+  };
+  const countries = [...detailed, ...estimatedData.countries.map((entry, index) => parseCountry(entry, detailed.length + index, defaults))];
   const codes = new Set(countries.map((country) => country.code));
   if (codes.size !== countries.length) fail("duplicate country codes");
 
@@ -102,7 +159,10 @@ export function parseDataset(value: unknown): CostOfLivingDataset {
   };
 }
 
-export const costOfLiving: CostOfLivingDataset = parseDataset(raw);
+export const costOfLiving: CostOfLivingDataset = parseDataset(raw, estimatedRaw);
+
+/** The estimates' method and fit, as the script wrote them. */
+export const ESTIMATE_METHOD: EstimateMethod = estimatedRaw.method;
 
 /** The country "Prices of" starts with. */
 export const DEFAULT_PRICES_OF = "NL";

@@ -141,7 +141,11 @@ function LiveForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
               {t.option(housing, f.eur(housing ? country.monthlyCostEur.withRent : country.monthlyCostEur.withoutRent))}
             </Button>
           ))}
-          <p className="text-xs text-muted sm:col-span-2">{t.onePerson(countryInSentence(country.code, i18n), country.referenceDate)}</p>
+          <p className="text-xs text-muted sm:col-span-2">
+            {country.priceLevel
+              ? t.onePersonEstimated(countryInSentence(country.code, i18n), country.priceLevel.year)
+              : t.onePerson(countryInSentence(country.code, i18n), country.referenceDate)}
+          </p>
         </div>
       )}
     </div>

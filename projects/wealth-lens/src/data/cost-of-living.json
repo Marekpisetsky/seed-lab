@@ -1,9 +1,9 @@
 {
-  "description": "Approximate monthly cost of living for one person, in EUR, rounded to the nearest 10. withoutRent is Numbeo's country estimate for a single person excluding rent; withRent adds the average rent of a 1-bedroom apartment outside the city centre as published by Wise. Country averages hide large differences between cities. Estimates, not live data.",
+  "description": "Approximate monthly cost of living for one person, in EUR, rounded to the nearest 10, worked out from two public sources: Numbeo's country estimate for a single person without rent (withoutRent), plus the average rent of a 1-bedroom apartment outside the city centre published by Wise (withRent adds it). Only these derived, rounded figures are published, never the sources' own numbers. Country averages hide large differences between cities. Estimates, not live data.",
   "inflationNote": "Each country's inflation is a long-run reference for each country's consumer prices: the inflation target its central bank publishes (the middle of a range), as of September 2026. Long-run forecasts such as the IMF World Economic Outlook's five-year projections mostly converge on these targets. Where a central bank has no numeric target, the figure is about the 2015–2024 average. Only used to turn growth before inflation into growth after inflation; the user can overwrite it.",
   "compiledOn": "2026-09-29",
   "conversion": {
-    "note": "Figures reported in USD or GBP were converted to EUR at fixed rates.",
+    "note": "Figures the sources reported in USD or GBP were converted to EUR at these fixed rates before rounding.",
     "usdPerEur": 1.1378,
     "gbpPerEur": 0.8564,
     "rateDate": "2026-09-28"
@@ -17,7 +17,7 @@
         "withoutRent": 250,
         "withRent": 330
       },
-      "source": "Numbeo country page: 287.8 USD/month for a single person without rent. Wise cost-of-living page: 68 GBP/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.04,
@@ -33,7 +33,7 @@
         "withoutRent": 290,
         "withRent": 370
       },
-      "source": "Numbeo country page: 325.5 USD/month for a single person without rent. Wise cost-of-living page: 96 USD/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.07,
@@ -49,7 +49,7 @@
         "withoutRent": 360,
         "withRent": 510
       },
-      "source": "Numbeo country page: 358.4 EUR/month for a single person without rent. Wise cost-of-living page: 173 USD/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.025,
@@ -65,7 +65,7 @@
         "withoutRent": 460,
         "withRent": 580
       },
-      "source": "Numbeo country page: 519.0 USD/month for a single person without rent. Wise cost-of-living page: 106 GBP/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.05,
@@ -81,7 +81,7 @@
         "withoutRent": 440,
         "withRent": 600
       },
-      "source": "Numbeo country page: 443.2 EUR/month for a single person without rent. Wise cost-of-living page: 184 USD/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.03,
@@ -97,7 +97,7 @@
         "withoutRent": 390,
         "withRent": 620
       },
-      "source": "Numbeo country page: 386.1 EUR/month for a single person without rent. Wise cost-of-living page: 258 USD/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.045,
@@ -113,7 +113,7 @@
         "withoutRent": 430,
         "withRent": 620
       },
-      "source": "Numbeo country page: 425.0 EUR/month for a single person without rent. Wise cost-of-living page: 217 USD/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.02,
@@ -129,7 +129,7 @@
         "withoutRent": 470,
         "withRent": 700
       },
-      "source": "Numbeo country page: 536.9 USD/month for a single person without rent. Wise cost-of-living page: 257 USD/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.02,
@@ -145,7 +145,7 @@
         "withoutRent": 470,
         "withRent": 710
       },
-      "source": "Numbeo country page: 467.3 EUR/month for a single person without rent. Wise cost-of-living page: 209 GBP/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.02,
@@ -161,7 +161,7 @@
         "withoutRent": 500,
         "withRent": 720
       },
-      "source": "Numbeo country page: 564.9 USD/month for a single person without rent. Wise cost-of-living page: 256 USD/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.03,
@@ -177,7 +177,7 @@
         "withoutRent": 520,
         "withRent": 770
       },
-      "source": "Numbeo country page: 521.0 EUR/month for a single person without rent. Wise cost-of-living page: 211 GBP/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.02,
@@ -193,7 +193,7 @@
         "withoutRent": 570,
         "withRent": 890
       },
-      "source": "Numbeo country page: 574.7 EUR/month for a single person without rent. Wise cost-of-living page: 278 GBP/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.025,
@@ -209,7 +209,7 @@
         "withoutRent": 570,
         "withRent": 890
       },
-      "source": "Numbeo country page: 644.1 USD/month for a single person without rent. Wise cost-of-living page: 365 USD/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.03,
@@ -225,7 +225,7 @@
         "withoutRent": 620,
         "withRent": 920
       },
-      "source": "Numbeo country page: 708.1 USD/month for a single person without rent. Wise cost-of-living page: 341 USD/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.03,
@@ -241,7 +241,7 @@
         "withoutRent": 600,
         "withRent": 940
       },
-      "source": "Numbeo country page: 681.4 USD/month for a single person without rent. Wise cost-of-living page: 292 GBP/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.03,
@@ -257,7 +257,7 @@
         "withoutRent": 740,
         "withRent": 1060
       },
-      "source": "Numbeo country page: 837.0 USD/month for a single person without rent. Wise cost-of-living page: 369 USD/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.02,
@@ -273,7 +273,7 @@
         "withoutRent": 650,
         "withRent": 1100
       },
-      "source": "Numbeo country page: 739.3 USD/month for a single person without rent. Wise cost-of-living page: 511 USD/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-08; converted to EUR and rounded to 10.",
       "referenceDate": "2026-08",
       "inflation": {
         "rate": 0.03,
@@ -289,7 +289,7 @@
         "withoutRent": 790,
         "withRent": 1180
       },
-      "source": "Numbeo country page: 788.9 EUR/month for a single person without rent. Wise cost-of-living page: 333 GBP/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.02,
@@ -305,7 +305,7 @@
         "withoutRent": 720,
         "withRent": 1270
       },
-      "source": "Numbeo country page: 814.3 USD/month for a single person without rent. Wise cost-of-living page: 627 USD/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-07; converted to EUR and rounded to 10.",
       "referenceDate": "2026-07",
       "inflation": {
         "rate": 0.025,
@@ -321,7 +321,7 @@
         "withoutRent": 680,
         "withRent": 1410
       },
-      "source": "Numbeo country page: 677.7 EUR/month for a single person without rent. Wise cost-of-living page: 836 USD/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.02,
@@ -337,7 +337,7 @@
         "withoutRent": 850,
         "withRent": 1430
       },
-      "source": "Numbeo country page: 852.3 EUR/month for a single person without rent. Wise cost-of-living page: 655 USD/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.03,
@@ -353,7 +353,7 @@
         "withoutRent": 720,
         "withRent": 1440
       },
-      "source": "Numbeo country page: 717.7 EUR/month for a single person without rent. Wise cost-of-living page: 818 USD/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.02,
@@ -369,7 +369,7 @@
         "withoutRent": 890,
         "withRent": 1460
       },
-      "source": "Numbeo country page: 890.3 EUR/month for a single person without rent. Wise cost-of-living page: 490 GBP/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.02,
@@ -385,7 +385,7 @@
         "withoutRent": 930,
         "withRent": 1550
       },
-      "source": "Numbeo country page: 927.2 EUR/month for a single person without rent. Wise cost-of-living page: 710 USD/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.02,
@@ -401,7 +401,7 @@
         "withoutRent": 1000,
         "withRent": 1650
       },
-      "source": "Numbeo country page: 999.7 EUR/month for a single person without rent. Wise cost-of-living page: 736 USD/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.02,
@@ -417,7 +417,7 @@
         "withoutRent": 970,
         "withRent": 1930
       },
-      "source": "Numbeo country page: 1,106.6 USD/month for a single person without rent. Wise cost-of-living page: 819 GBP/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.02,
@@ -433,7 +433,7 @@
         "withoutRent": 1020,
         "withRent": 2190
       },
-      "source": "Numbeo country page: 1,020.2 EUR/month for a single person without rent. Wise cost-of-living page: 1,006 GBP/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.02,
@@ -449,7 +449,7 @@
         "withoutRent": 1050,
         "withRent": 2240
       },
-      "source": "Numbeo country page: 1,046.3 EUR/month for a single person without rent. Wise cost-of-living page: 1,351 USD/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.02,
@@ -465,7 +465,7 @@
         "withoutRent": 1020,
         "withRent": 2410
       },
-      "source": "Numbeo country page: 1,019.5 EUR/month for a single person without rent. Wise cost-of-living page: 1,579 USD/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.02,
@@ -481,7 +481,7 @@
         "withoutRent": 1460,
         "withRent": 2950
       },
-      "source": "Numbeo country page: 1,657.4 USD/month for a single person without rent. Wise cost-of-living page: 1,694 USD/month for a 1-bedroom apartment outside the city centre.",
+      "source": "Numbeo (without rent) and Wise (1-bedroom rent outside the centre), 2026-09; converted to EUR and rounded to 10.",
       "referenceDate": "2026-09",
       "inflation": {
         "rate": 0.01,

@@ -11,6 +11,9 @@ import { addGoal } from "@/lib/app-store";
 import { featuredRows, type CountryCell, type CountryRow } from "@/lib/calculator";
 import { costOfLiving } from "@/lib/cost-of-living";
 
+/** The year of the price levels behind most estimates. */
+const ESTIMATES_YEAR = Math.max(...costOfLiving.countries.map((country) => country.priceLevel?.year ?? 0));
+
 function Cell({ cell }: { cell: CountryCell }) {
   const { m, f } = useI18n();
   return (
@@ -124,6 +127,14 @@ export function CountriesSection({ income, rows }: { income: number; rows: reado
                 <tr>
                   <th scope="row" className="px-2 py-2 align-top font-medium">
                     {countryName(row.code, i18n)}
+                    {row.estimated && (
+                      <>
+                        <span aria-hidden="true" className="ml-1 font-normal text-muted">
+                          ≈
+                        </span>
+                        <span className="sr-only">, {t.estimated}</span>
+                      </>
+                    )}
                   </th>
                   <Cell cell={row.withoutHousing} />
                   <Cell cell={row.withHousing} />
@@ -165,6 +176,7 @@ export function CountriesSection({ income, rows }: { income: number; rows: reado
       <p className="text-xs text-muted">
         {t.note(costOfLiving.compiledOn.slice(0, 7))} {t.paidBy(i18n.f.smallEur(income))}
       </p>
+      {shown.some((row) => row.estimated) && <p className="text-xs text-muted">{t.estimatedNote(ESTIMATES_YEAR)}</p>}
     </section>
   );
 }

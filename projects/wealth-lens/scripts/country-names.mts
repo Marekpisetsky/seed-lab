@@ -1,6 +1,7 @@
 /**
  * Writes src/data/country-names.json: every country of
- * src/data/cost-of-living.json by name in each language the app speaks,
+ * src/data/cost-of-living.json and src/data/estimated-countries.json by
+ * name in each language the app speaks,
  * from the CLDR names built into Node (Intl.DisplayNames), with a few
  * shorter or friendlier names where CLDR's would read oddly in a table.
  *
@@ -25,8 +26,9 @@ const OVERRIDES: Record<string, Partial<Record<(typeof LOCALES)[number], string>
   CI: { en: "Côte d’Ivoire", es: "Costa de Marfil" },
 };
 
-const data = JSON.parse(await readFile(new URL("src/data/cost-of-living.json", root), "utf8")) as { countries: { code: string }[] };
-const codes = [...new Set(data.countries.map((country) => country.code))].sort();
+const read = async (file: string) => (JSON.parse(await readFile(new URL(file, root), "utf8")) as { countries: { code: string }[] }).countries;
+const listed = [...(await read("src/data/cost-of-living.json")), ...(await read("src/data/estimated-countries.json"))];
+const codes = [...new Set(listed.map((country) => country.code))].sort();
 const displays = Object.fromEntries(LOCALES.map((locale) => [locale, new Intl.DisplayNames([locale], { type: "region" })]));
 
 const names: Record<string, Record<string, string>> = {};

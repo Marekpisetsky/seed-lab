@@ -78,7 +78,9 @@ describe("the country table", () => {
   const { countries, result } = calculate(plan(), [], today);
 
   it("lists every country cheapest first, with and without housing side by side", () => {
-    expect(countries).toHaveLength(30);
+    // 30 detailed countries and the rest estimated from their price levels.
+    expect(countries.length).toBeGreaterThanOrEqual(150);
+    expect(countries.filter((row) => !row.estimated)).toHaveLength(30);
     const costs = countries.map((row) => row.withoutHousing.amount);
     expect([...costs].sort((a, b) => a - b)).toEqual(costs);
     for (const row of countries) expect(row.withHousing.amount).toBeGreaterThan(row.withoutHousing.amount);
@@ -100,7 +102,7 @@ describe("the country table", () => {
     const at3 = calculate(plan({ withdrawalRate: 0.03 }), [], today).countries;
     const covered = (rows: typeof countries) => rows.filter((row) => row.withoutHousing.covered).length;
     expect(covered(at3)).toBeLessThanOrEqual(covered(countries));
-    expect(at3[0].withoutHousing.target).toBeCloseTo((250 * 12) / 0.03, 6);
+    expect(at3.find((row) => row.code === "IN")?.withoutHousing.target).toBeCloseTo((250 * 12) / 0.03, 6);
   });
 
   it("ticks what the income after 20 years pays, and says when the rest comes", () => {
@@ -112,11 +114,11 @@ describe("the country table", () => {
       }
     }
     // India without housing (EUR 250) is paid; Switzerland with housing (EUR 2,950) is not.
-    expect(countries[0]).toMatchObject({ code: "IN", withoutHousing: { covered: true } });
-    expect(countries.at(-1)).toMatchObject({ code: "CH", withHousing: { covered: false } });
+    expect(countries.find((row) => row.code === "IN")).toMatchObject({ withoutHousing: { covered: true } });
+    expect(countries.find((row) => row.code === "CH")).toMatchObject({ withHousing: { covered: false } });
   });
 
-  it("shows the five cheapest, Peru and the Netherlands first", () => {
+  it("shows the five cheapest detailed countries, Peru and the Netherlands first: seven rows", () => {
     expect(featuredRows(countries).map((row) => row.code)).toEqual(["IN", "EG", "ID", "VN", "MA", "PE", "NL"]);
   });
 

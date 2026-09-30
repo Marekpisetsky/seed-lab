@@ -217,19 +217,35 @@ mano desde las cifras publicadas (ver "Retornos").
   que se ve al tocarla. El escenario activo vive en el estado en memoria,
   sigue puesto mientras cambia el plan y nunca se guarda. Los hallazgos
   siempre hablan del plan sin escenario.
-- **Palabras simples**: los "i" plegados viven en
-  `src/components/money/explainers.tsx`, el único sitio donde pueden
-  aparecer "real", "nominal", "volatility", "swings" o "percentile";
-  `src/components/plain-language.test.ts` lee todos los componentes y el
-  código que escribe sus textos con el parser de TypeScript (texto JSX,
-  atributos de texto y cadenas con espacios) y falla si aparecen en
-  cualquier otro sitio.
-- **Inflación por país**: cada país de `cost-of-living.json` lleva una
-  inflación de referencia con su base y fecha (septiembre de 2026): el
-  objetivo de su banco central (el 2 % del BCE para los países del euro;
+- **Palabras simples, en inglés y español**: todo texto visible vive en
+  los diccionarios (`src/i18n/messages/en.ts` y `es.ts`, del mismo tipo:
+  una clave que falte en español no compila); la lógica devuelve números
+  y códigos de problema (`src/lib/problems.ts`) y cada idioma los
+  redacta. `src/components/plain-language.test.ts` lee los dos
+  diccionarios con el parser de TypeScript y falla si hay jerga ("real",
+  "nominal", "volatility"… y "real", "volatilidad", "percentil"… en
+  español) fuera de `explain` (los "i" plegados), si una frase pasa de
+  unas 12 palabras (22 en las páginas largas; las citas de fuentes no
+  cuentan), o si un componente escribe texto visible por su cuenta.
+  Añadir un idioma: un archivo más en `src/i18n/messages`, su entrada en
+  `src/i18n/locales.ts` y sus nombres de país en
+  `scripts/country-names.mts`; ningún componente cambia.
+- **Inflación por país**: cada país lleva una inflación de referencia con
+  su base y fecha (septiembre de 2026): el objetivo de su banco central
+  (el 2 % del BCE en la zona euro, Bulgaria incluida desde enero de 2026;
   el centro del rango cuando es un rango), que es hacia donde convergen
-  las previsiones a largo plazo como las del FMI; Malasia y Marruecos, sin
-  objetivo numérico, llevan su media 2015–2024 aproximada.
+  las previsiones a largo plazo como las del FMI; sin objetivo (o sin uno
+  que hayamos podido confirmar, en los estimados), su media 2015–2024
+  (FMI para los detallados, Banco Mundial para los estimados).
+  **Inflación alta**: `recentAverage` marca los países cuyos precios
+  subieron un 10 % al año o más de media en 2015–2024 (Irán 27 %, Angola
+  21,5 %, Haití, Sierra Leona, Etiopía, Malaui, Nigeria, Liberia, Burundi,
+  Santo Tomé); donde hay objetivo se usa igualmente el objetivo, aunque
+  quede lejos de la media reciente (Turquía 5 % frente a 25,6 %, Ghana,
+  Ucrania, Uzbekistán, Pakistán, Zambia). Los que superan el 30 % anual
+  de media (Argentina, Zimbabue, Sudán, Sudán del Sur, Líbano, Surinam)
+  quedan fuera: un coste en euros calculado con un nivel de precios no
+  aguantaría.
 - Velocidad: las dos pantallas se prerenderizan con sus valores de
   llegada, así que se ven antes de que corra el JavaScript. Las tasas de
   éxito de 3/4/5 % de los cinco activos con historia están precalculadas
@@ -265,9 +281,37 @@ any more" y se puede quitar. Las entradas extremas (€1, €0, €0 al mes,
 tienen sus tests en `src/lib/edge-cases.test.ts`: "under €1/month" en
 vez de €0, sin "-€0", sin años de más de 60.
 
-**Países** (`countryRows`): una fila por país del dataset de costo de
-vida, ordenadas por coste sin vivienda; "con vivienda" suma el alquiler
-de un 1 dormitorio fuera del centro. ✓ cuando el ingreso al cabo de los
+**Países** (`countryRows`): una fila por país, 172 en total, ordenadas
+por coste sin vivienda; "con vivienda" suma el alquiler de un 1
+dormitorio fuera del centro. Por defecto se ven 7 (los cinco detallados
+más baratos, Perú y Países Bajos); un buscador (en la tabla y al añadir
+la meta "vivir en…") encuentra cualquiera por su nombre en el idioma de
+la página o en inglés, sin importar tildes.
+
+- **30 detallados** (`src/data/cost-of-living.json`), compilados a mano:
+  Numbeo (sin alquiler) + Wise (1 dormitorio fuera del centro),
+  convertidos a euros y redondeados a 10. Solo se publican esas cifras
+  derivadas, nunca las de las fuentes (ver licencias en *How it works*).
+- **142 estimados por nivel de precios** (`src/data/estimated-countries.json`,
+  marcados con "≈"): la cesta de Países Bajos × el *price level ratio*
+  del país frente al de Países Bajos (Banco Mundial, WDI
+  `PA.NUS.PPPC.RF`: PPP del PIB entre el tipo de cambio de mercado;
+  referencia ICP 2021, extrapolada por el Banco Mundial hasta 2024, el
+  último año disponible) sin vivienda, y el alquiler de Países Bajos × ese
+  ratio **al cuadrado** con vivienda: el alquiler varía más que el resto
+  de precios entre países ricos y pobres, y el exponente que mejor ajusta
+  sobre los 29 detallados (sin contar Países Bajos) es 2,03. Contra esos
+  29, la estimación se desvía una mediana del 9 % sin vivienda y del 15 %
+  con vivienda; uno de cada diez, un 26 % / 41 % o más. Se elige Países
+  Bajos como cesta porque es el país por defecto de la app y un país de
+  precios medios-altos con datos completos en ambas fuentes.
+  Regenerar: descargar en una carpeta
+  `https://raw.githubusercontent.com/datasets/world-development-indicators/main/indicators/pa.nus.pppc.rf/data.csv`
+  (como `pa.nus.pppc.rf.csv`), `…/indicators/fp.cpi.totl.zg/data.csv`
+  (como `fp.cpi.totl.zg.csv`) y
+  `https://raw.githubusercontent.com/datasets/country-codes/main/data/country-codes.csv`,
+  y correr `node scripts/estimate-countries.mts <carpeta>` y luego
+  `node scripts/country-names.mts` (nombres en cada idioma, con CLDR). ✓ cuando el ingreso al cabo de los
 años elegidos lo paga; si no, cuándo llega el plan. Los estados se
 redondean hacia arriba a años enteros, así que una celda sin ✓ a 20 años
 nunca dice "in 20 years".
@@ -601,7 +645,9 @@ src/
     sp500-real-returns.json     S&P 500 (Shiller)
     msci-world-real-returns.json, nasdaq100-real-returns.json
     euro-bonds-real-returns.json, gold-real-returns.json
-    cost-of-living.json         dataset curado (30 países, EUR, con/sin alquiler, inflación de referencia)
+    cost-of-living.json         30 países detallados (EUR, con/sin alquiler, inflación de referencia)
+    estimated-countries.json    142 países estimados por nivel de precios (scripts/estimate-countries.mts)
+    country-names.json          nombres de los 172 países en cada idioma (scripts/country-names.mts)
     connections.json            las compras, con fuente y fecha
 ```
 
