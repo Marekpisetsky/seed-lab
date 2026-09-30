@@ -4,6 +4,7 @@ import { RotateCcw } from "lucide-react";
 import { useId } from "react";
 import { Changed } from "@/components/ui/changed";
 import { SettledNumberInput } from "@/components/ui/form";
+import { RadioGroup } from "@/components/ui/radio-group";
 import { resetAssumptions, setAssumptions, setPricesOf } from "@/lib/app-store";
 import { assumptionsLine, assumptionsNote, growthIn, upsAndDownsExample, type Basis } from "@/lib/assumptions";
 import { SAVINGS_RATE_NOTE } from "@/lib/assets";
@@ -147,20 +148,17 @@ export function AssumptionsPanel({
                         : `Standard: ${formatRate(standardGrowth)}: the ${COMMON_PERIOD[0]}–${COMMON_PERIOD[1]} average of ${formatRate(standard.realReturn)} after rising prices, with prices rising ${formatRate(inflation)} a year.`
                 }
               />
-              <div role="radiogroup" aria-label="Growth shown" className="inline-flex rounded-md border border-border p-0.5 text-xs">
-                {(["real", "nominal"] as const).map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    role="radio"
-                    aria-checked={basis === option}
-                    onClick={() => onBasis(option)}
-                    className={`min-h-11 rounded px-3 py-1 font-medium ${basis === option ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
-                  >
-                    {option === "real" ? "After rising prices" : "Before rising prices"}
-                  </button>
-                ))}
-              </div>
+              <RadioGroup
+                label="Growth shown"
+                options={[
+                  { value: "real" as const, label: "After rising prices" },
+                  { value: "nominal" as const, label: "Before rising prices" },
+                ]}
+                value={basis}
+                onChange={onBasis}
+                className="inline-flex rounded-md border border-border p-0.5 text-xs"
+                optionClassName={(checked) => `min-h-11 rounded px-3 py-1 font-medium ${checked ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
+              />
               <p className="text-xs text-muted">After rising prices = what your money can really buy.</p>
             </div>
             <div className="col-span-2 sm:col-span-2">

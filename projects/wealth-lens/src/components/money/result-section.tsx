@@ -1,6 +1,7 @@
 "use client";
 
 import { Changed } from "@/components/ui/changed";
+import { RadioGroup } from "@/components/ui/radio-group";
 import type { CalculationBundle } from "@/hooks/use-calculation";
 import { updatePlan } from "@/lib/app-store";
 import { formatSmallEur } from "@/lib/calculator";
@@ -108,23 +109,14 @@ export function ResultSection({ bundle }: { bundle: CalculationBundle }) {
           </strong>
         </p>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted">
-          <div role="radiogroup" aria-label="Taken out each year" className="inline-flex rounded-md border border-border p-0.5">
-            {rates.map(({ rate }) => {
-              const checked = rate === selected.rate;
-              return (
-                <button
-                  key={rate}
-                  type="button"
-                  role="radio"
-                  aria-checked={checked}
-                  onClick={() => updatePlan({ withdrawalRate: rate })}
-                  className={`min-h-11 min-w-11 rounded px-2 py-1 font-medium tabular-nums ${checked ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
-                >
-                  {formatRate(rate)}
-                </button>
-              );
-            })}
-          </div>
+          <RadioGroup
+            label="Taken out each year"
+            options={rates.map(({ rate }) => ({ value: rate, label: formatRate(rate) }))}
+            value={selected.rate}
+            onChange={(withdrawalRate) => updatePlan({ withdrawalRate })}
+            className="inline-flex rounded-md border border-border p-0.5"
+            optionClassName={(checked) => `min-h-11 min-w-11 rounded px-2 py-1 font-medium tabular-nums ${checked ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
+          />
           <span>
             taken out a year:{" "}
             {investment.volatility > 0 ? (

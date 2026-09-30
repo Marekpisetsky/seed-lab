@@ -5,6 +5,7 @@ import { useId, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Changed } from "@/components/ui/changed";
 import { inputClass, LiveNumberInput } from "@/components/ui/form";
+import { RadioGroup } from "@/components/ui/radio-group";
 import { addGoal, removeGoal } from "@/lib/app-store";
 import { NEEDED_WITHIN_YEARS, pricedItems, whenText, type GoalStatus } from "@/lib/calculator";
 import { costOfLiving, countryInSentence } from "@/lib/cost-of-living";
@@ -89,22 +90,16 @@ function AddGoal({ onDone }: { onDone: () => void }) {
   };
   return (
     <div className="space-y-3 rounded-xl border border-border bg-card p-3">
-      <div role="radiogroup" aria-label="Kind of goal" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {KINDS.map((option) => (
-          <button
-            key={option.id}
-            type="button"
-            role="radio"
-            aria-checked={kind === option.id}
-            onClick={() => setKind(option.id)}
-            className={`min-h-11 rounded-lg border px-3 py-2 text-left text-sm font-medium ${
-              kind === option.id ? "border-accent bg-accent/10" : "border-border hover:border-accent"
-            }`}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
+      <RadioGroup
+        label="Kind of goal"
+        options={KINDS.map((option) => ({ value: option.id, label: option.label }))}
+        value={kind}
+        onChange={setKind}
+        className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+        optionClassName={(checked) =>
+          `min-h-11 rounded-lg border px-3 py-2 text-left text-sm font-medium ${checked ? "border-accent bg-accent/10" : "border-border hover:border-accent"}`
+        }
+      />
       {kind === "live" && <LiveForm onAdd={add} />}
       {kind === "buy" && <BuyForm onAdd={add} />}
       {kind === "amount" && <AmountForm onAdd={add} />}

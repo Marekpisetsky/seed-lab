@@ -3,6 +3,7 @@
 import { Check, Plus, X } from "lucide-react";
 import { useState } from "react";
 import { SettledNumberInput } from "@/components/ui/form";
+import { RadioGroup } from "@/components/ui/radio-group";
 import { setInvestment } from "@/lib/app-store";
 import { assetName, GOLD_NOTE, SAVINGS_RATE, type AssetId } from "@/lib/assets";
 import { formatRate } from "@/lib/format";
@@ -119,20 +120,17 @@ export function MixEditor({ mix, onAddPart }: { mix: Mix; onAddPart: (anchor: HT
           </button>
         </span>
       </div>
-      <div role="radiogroup" aria-label="Weights over time" className="inline-flex rounded-md border border-border p-0.5 text-xs">
-        {[false, true].map((rebalance) => (
-          <button
-            key={String(rebalance)}
-            type="button"
-            role="radio"
-            aria-checked={mix.rebalance === rebalance}
-            onClick={() => setInvestment({ ...mix, rebalance })}
-            className={`min-h-11 rounded px-3 py-1 font-medium ${mix.rebalance === rebalance ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
-          >
-            {rebalance ? "Rebalance every year" : "Let weights drift"}
-          </button>
-        ))}
-      </div>
+      <RadioGroup
+        label="Weights over time"
+        options={[
+          { value: false, label: "Let weights drift" },
+          { value: true, label: "Rebalance every year" },
+        ]}
+        value={mix.rebalance}
+        onChange={(rebalance) => setInvestment({ ...mix, rebalance })}
+        className="inline-flex rounded-md border border-border p-0.5 text-xs"
+        optionClassName={(checked) => `min-h-11 rounded px-3 py-1 font-medium ${checked ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
+      />
       <HowThisMixWorks />
     </div>
   );
