@@ -293,7 +293,7 @@ export function GrowthChart({ bundle }: { bundle: CalculationBundle }) {
             <Swatch color="var(--foreground)" dashed /> 8 in 10 {investment.modelShort} ended between the lines
           </span>
         ) : (
-          <span>No swings: every year grows the same</span>
+          <span>No ups and downs: every year grows the same</span>
         )}
       </figcaption>
       {band ? <Plot points={points} band={band} startYear={startYear} swings={investment.volatility > 0} /> : <div style={{ height: HEIGHT }} aria-hidden="true" />}

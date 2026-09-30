@@ -34,7 +34,7 @@ function MixFiguresView({ figures, years }: { figures: MixFigures; years: number
         </dd>
       </div>
       <div>
-        <dt className="text-xs text-muted">Worst year in the data{span && ` (${span}, after inflation)`}</dt>
+        <dt className="text-xs text-muted">Worst year in the data{span && ` (${span}, after rising prices)`}</dt>
         <dd className="text-base font-semibold">
           <Changed value={worst(figures.worst)} />
         </dd>
@@ -46,12 +46,13 @@ function MixFiguresView({ figures, years }: { figures: MixFigures; years: number
   );
 }
 
-/** With no swings the answer is certain: how long the withdrawals last at this growth. */
-function noSwingsText(rate: number, realReturn: number): string {
+/** With no ups and downs the answer is certain: how long the withdrawals last at this growth. */
+function sameEveryYearText(rate: number, realReturn: number): string {
   const years = yearsLasting(rate, realReturn);
-  if (!Number.isFinite(years)) return `with no swings and ${formatRate(realReturn)} a year after inflation, it never runs out`;
+  const pace = `${realReturn < 0 ? "shrinking" : "growing"} ${formatRate(Math.abs(realReturn))} every year after rising prices`;
+  if (!Number.isFinite(years)) return `${pace}, it never runs out`;
   const whole = Math.floor(years);
-  return `with no swings and ${formatRate(realReturn)} a year after inflation, it runs out after ${whole} year${whole === 1 ? "" : "s"}`;
+  return `${pace}, it runs out after ${whole} year${whole === 1 ? "" : "s"}`;
 }
 
 /**
@@ -126,7 +127,7 @@ export function ResultSection({ bundle }: { bundle: CalculationBundle }) {
                 lasted 30 years in <Changed value={formatPercent(selected.lasted, { decimals: 0 })} /> of <Changed value={investment.modelText} />
               </>
             ) : (
-              <Changed value={noSwingsText(selected.rate, investment.realReturn)} />
+              <Changed value={sameEveryYearText(selected.rate, investment.realReturn)} />
             )}
           </span>
         </div>

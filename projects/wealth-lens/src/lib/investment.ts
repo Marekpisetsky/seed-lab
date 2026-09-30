@@ -163,7 +163,7 @@ function fromAsset(asset: AssetId, inflation: number, investment: Investment = {
       returns: [realReturn],
       model: null,
       allocation: null,
-      modelText: "a savings account, which has no swings",
+      modelText: "a savings account, which has no ups and downs",
       modelShort: "savings",
       growthText: `${formatRate(SAVINGS_RATE)} interest less ${formatRate(inflation)} inflation`,
       withoutDividends: 0,
@@ -291,7 +291,7 @@ export function resolveInvestment(
       growthText: base.growthText,
     };
   }
-  const swings = `swings of ±${formatPercent(volatility, { decimals: 0 })}`;
+  const upsAndDowns = `ups and downs of ±${formatPercent(volatility, { decimals: 0 })}`;
   const fixed = volatility <= 0;
   return {
     ...shared,
@@ -299,7 +299,7 @@ export function resolveInvestment(
     key: fixed ? `fixed:${realReturn.toFixed(6)}` : `normal:${realReturn.toFixed(6)}:${volatility.toFixed(6)}`,
     returns: fixed ? [realReturn] : normalReturns(realReturn, volatility),
     period: null,
-    modelText: fixed ? "your figures, with no swings" : `simulations with ${formatRate(realReturn)} a year after inflation and ${swings}`,
+    modelText: fixed ? "your figures, with no ups and downs" : `simulations with ${formatRate(realReturn)} a year after rising prices and ${upsAndDowns}`,
     modelShort: fixed ? "your figures" : "simulations with your figures",
     growthText: "your own figure",
   };

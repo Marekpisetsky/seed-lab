@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     template: "%s · Wealth Lens",
   },
   description:
-    "What your money pays today, when it is enough, and what it means in real life: where you could live off it and what it buys.",
+    "What your money pays today, when it is enough, and what it means in everyday life: where you could live off it and what it buys.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

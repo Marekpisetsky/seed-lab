@@ -59,7 +59,7 @@ export function HoldingsList({ holdings, onChange }: HoldingsListProps) {
         )}
 
         {holdings.length === 0 ? (
-          <p className="text-sm text-muted">No holdings yet. Add them to see your real gain.</p>
+          <p className="text-sm text-muted">No holdings yet. Add them to see what you have really gained.</p>
         ) : (
           <ul className="divide-y divide-border">
             {holdings.map((holding) => (
