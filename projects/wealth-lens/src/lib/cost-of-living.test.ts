@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import raw from "@/data/cost-of-living.json";
-import { costOfLiving, parseDataset, REGIONS } from "./cost-of-living";
+import { costOfLiving, countryByCode, DEFAULT_PRICES_OF, parseDataset, referenceInflation, REGIONS } from "./cost-of-living";
 
 describe("cost-of-living dataset", () => {
   it("has 25-30 countries across every region, including Peru", () => {
@@ -57,5 +57,39 @@ describe("cost-of-living dataset", () => {
     expect(() => parseDataset({ ...valid, countries: [valid.countries[0], valid.countries[0]] })).toThrow(
       /duplicate/,
     );
+    expect(() => parseDataset(withCountry({ inflation: { rate: 2, basis: "x", asOf: "2026-09" } }))).toThrow(/fraction/);
+    expect(() => parseDataset(withCountry({ inflation: { rate: 0.02, basis: "", asOf: "2026-09" } }))).toThrow(/basis/);
+    expect(() => parseDataset(withCountry({ inflation: undefined }))).toThrow(/inflation/);
+  });
+});
+
+describe("reference inflation", () => {
+  it("gives every country a rate, where it comes from and when it was checked", () => {
+    for (const country of costOfLiving.countries) {
+      expect(country.inflation.rate, country.name).toBeGreaterThanOrEqual(0);
+      expect(country.inflation.rate, country.name).toBeLessThanOrEqual(0.1);
+      expect(country.inflation.basis, country.name).toMatch(/target|average|range/);
+      expect(country.inflation.asOf, country.name).toBe("2026-09");
+    }
+    expect(costOfLiving.inflationNote).toMatch(/central bank/);
+  });
+
+  it("is the ECB's 2% for every euro country, and each other central bank's own target", () => {
+    for (const code of ["NL", "DE", "FR", "ES", "IT", "PT", "GR", "IE"]) {
+      expect(referenceInflation(code).rate, code).toBe(0.02);
+      expect(referenceInflation(code).basis, code).toMatch(/European Central Bank/);
+    }
+    expect(referenceInflation("US").rate).toBe(0.02);
+    expect(referenceInflation("CH").rate).toBe(0.01);
+    expect(referenceInflation("PL").rate).toBe(0.025);
+    expect(referenceInflation("BR").rate).toBe(0.03);
+    expect(referenceInflation("IN").rate).toBe(0.04);
+  });
+
+  it("starts with the Netherlands, and falls back to it for a code not on the list", () => {
+    expect(DEFAULT_PRICES_OF).toBe("NL");
+    expect(countryByCode("NL")?.name).toBe("Netherlands");
+    expect(countryByCode("XX")).toBeUndefined();
+    expect(referenceInflation("XX")).toEqual(referenceInflation("NL"));
   });
 });

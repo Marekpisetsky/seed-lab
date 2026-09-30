@@ -22,10 +22,17 @@ export interface CountryCost {
   source: string;
   /** Month the source figures refer to, `YYYY-MM`. */
   referenceDate: string;
+  /**
+   * A long-run reference for its consumer prices: the central bank's
+   * inflation target (see the dataset's inflationNote), with where it comes
+   * from and when it was checked.
+   */
+  inflation: { rate: number; basis: string; asOf: string };
 }
 
 export interface CostOfLivingDataset {
   description: string;
+  inflationNote: string;
   compiledOn: string;
   conversion: { note: string; usdPerEur: number; gbpPerEur: number; rateDate: string };
   countries: CountryCost[];
@@ -57,6 +64,11 @@ function parseCountry(value: unknown, index: number): CountryCost {
     fail(`${label}: monthly costs must be positive numbers`);
   }
   if (costs.withRent <= costs.withoutRent) fail(`${label}: withRent must exceed withoutRent`);
+  const inflation = entry.inflation as Record<string, unknown> | undefined;
+  const rate = inflation?.rate;
+  if (typeof rate !== "number" || !Number.isFinite(rate) || rate < -0.05 || rate > 0.5) fail(`${label}: inflation rate must be a fraction`);
+  if (typeof inflation?.basis !== "string" || inflation.basis === "") fail(`${label}: inflation needs its basis`);
+  if (typeof inflation.asOf !== "string" || !/^\d{4}-\d{2}$/.test(inflation.asOf)) fail(`${label}: inflation asOf must be YYYY-MM`);
 
   return {
     code,
@@ -65,6 +77,7 @@ function parseCountry(value: unknown, index: number): CountryCost {
     monthlyCostEur: { withoutRent: costs.withoutRent, withRent: costs.withRent },
     source,
     referenceDate,
+    inflation: { rate, basis: inflation.basis, asOf: inflation.asOf },
   };
 }
 
@@ -82,6 +95,7 @@ export function parseDataset(value: unknown): CostOfLivingDataset {
   }
   return {
     description: String(data.description ?? ""),
+    inflationNote: String(data.inflationNote ?? ""),
     compiledOn: String(data.compiledOn ?? ""),
     conversion,
     countries,
@@ -89,6 +103,20 @@ export function parseDataset(value: unknown): CostOfLivingDataset {
 }
 
 export const costOfLiving: CostOfLivingDataset = parseDataset(raw);
+
+/** The country "Prices of" starts with. */
+export const DEFAULT_PRICES_OF = "NL";
+
+/** A country of the list by its code; `undefined` for any other. */
+export function countryByCode(code: string, countries: readonly CountryCost[] = costOfLiving.countries): CountryCost | undefined {
+  return countries.find((country) => country.code === code);
+}
+
+/** The reference inflation of a country of the list, or the default country's for any other code. */
+export function referenceInflation(code: string, countries: readonly CountryCost[] = costOfLiving.countries): CountryCost["inflation"] {
+  const country = countryByCode(code, countries) ?? countryByCode(DEFAULT_PRICES_OF, countries) ?? countries[0];
+  return country.inflation;
+}
 
 /** Country names that read with "the" in a sentence. */
 const WITH_ARTICLE = new Set(["Netherlands", "United States", "United Kingdom", "Philippines"]);
