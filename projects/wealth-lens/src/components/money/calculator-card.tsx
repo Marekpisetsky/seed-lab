@@ -126,8 +126,14 @@ export function CalculatorCard() {
   const current = resolveInvestment(plan.investment, priced, plan);
   const [picker, setPicker] = useState<{ mode: "choose" | "add"; top: number } | null>(null);
   const [editing, setEditing] = useState(false);
-  // Once the page is up, idle moments work out ahead what the next choice will need.
-  useEffect(() => warmUp(offeredRates(plan.withdrawalRate)), [plan.withdrawalRate]);
+  // Once the user starts using the page, idle moments work out ahead what the next choice will need
+  // (not before: a page only looked at does no extra work).
+  useEffect(() => {
+    const start = () => warmUp(offeredRates(plan.withdrawalRate));
+    const events = ["pointerdown", "keydown", "focusin"] as const;
+    events.forEach((name) => window.addEventListener(name, start, { once: true, passive: true }));
+    return () => events.forEach((name) => window.removeEventListener(name, start));
+  }, [plan.withdrawalRate]);
   const [basis, setBasis] = useState<Basis>(plan.assumptions.growth?.basis ?? "real");
   const close = useCallback(() => setPicker(null), []);
   const open = (mode: "choose" | "add", anchor: HTMLElement) => setPicker({ mode, top: anchor.offsetTop + anchor.offsetHeight + 4 });

@@ -1,6 +1,6 @@
 /**
- * Work done ahead, in idle moments once the page is up, one short step at a
- * time (each well under 50 ms, so the page never stutters): the mixes'
+ * Work done ahead, in idle moments once the user starts using the page, one
+ * short step at a time (each well under 50 ms, so the page never stutters): the mixes'
  * random draws, every asset's simulated years, a first run of the 60/40
  * template drifting and rebalanced, of a portfolio with a stock and of the
  * user's own figures.
