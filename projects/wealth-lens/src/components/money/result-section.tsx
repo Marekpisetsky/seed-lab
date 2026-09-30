@@ -81,7 +81,7 @@ export function ResultSection({ bundle }: { bundle: CalculationBundle }) {
         </p>
         <p className="mt-1 text-xl font-semibold tabular-nums sm:text-2xl">
           <Changed value={growsText(investment.realReturn)} />{" "}
-          <span className="text-sm font-normal text-muted">
+          <span className="whitespace-nowrap text-sm font-normal text-muted">
             <Changed value={beforeInflationText(toNominal(investment.realReturn, investment.inflation))} />
           </span>
         </p>
