@@ -3,6 +3,7 @@ import {
   DEFAULT_GOAL,
   DEFAULT_PLAN,
   isIsoDate,
+  parseAssumptions,
   parseGoal,
   parseHoldings,
   parseInvestment,
@@ -50,6 +51,11 @@ describe("parseHoldings", () => {
   it("rejects non-arrays", () => {
     expect(parseHoldings({})).toBeNull();
   });
+
+  it("keeps what a holding grows like when it is an asset on the list", () => {
+    expect(parseHoldings([{ ...valid, reference: "gold" }])?.[0].reference).toBe("gold");
+    expect(parseHoldings([{ ...valid, reference: "silver" }])?.[0]).not.toHaveProperty("reference");
+  });
 });
 
 describe("parseGoal", () => {
@@ -69,19 +75,38 @@ describe("parseGoal", () => {
 });
 
 describe("parseInvestment", () => {
-  it("accepts the four kinds of investment", () => {
-    expect(parseInvestment({ kind: "index", index: "world" })).toEqual({ kind: "index", index: "world" });
-    expect(parseInvestment({ kind: "stock", id: "NVDA" })).toEqual({ kind: "stock", id: "NVDA" });
+  it("accepts the kinds of investment", () => {
+    expect(parseInvestment({ kind: "asset", asset: "bonds" })).toEqual({ kind: "asset", asset: "bonds" });
+    expect(parseInvestment({ kind: "asset", asset: "savings" })).toEqual({ kind: "asset", asset: "savings" });
     expect(parseInvestment({ kind: "portfolio", extra: 1 })).toEqual({ kind: "portfolio" });
-    expect(parseInvestment({ kind: "custom", realReturn: 0.05 })).toEqual({ kind: "custom", realReturn: 0.05 });
+    expect(parseInvestment({ kind: "custom" })).toEqual({ kind: "custom" });
+    // Versions 1 to 5 named an index this way.
+    expect(parseInvestment({ kind: "index", index: "world" })).toEqual({ kind: "asset", asset: "world" });
   });
 
-  it("rejects unknown indexes, kinds and rates", () => {
+  it("rejects unknown assets and kinds, and silver or any other commodity", () => {
     expect(parseInvestment({ kind: "index", index: "dax" })).toBeNull();
+    expect(parseInvestment({ kind: "asset", asset: "silver" })).toBeNull();
     expect(parseInvestment({ kind: "stock", id: "" })).toBeNull();
-    expect(parseInvestment({ kind: "custom", realReturn: 3 })).toBeNull();
     expect(parseInvestment({ kind: "crypto" })).toBeNull();
     expect(parseInvestment("index")).toBeNull();
+  });
+});
+
+describe("parseAssumptions", () => {
+  it("keeps what the user changed and the standard for the rest", () => {
+    expect(parseAssumptions({ growth: { rate: 0.06, basis: "nominal" }, volatility: 0.12, inflation: 0.03 })).toEqual({
+      growth: { rate: 0.06, basis: "nominal" },
+      volatility: 0.12,
+      inflation: 0.03,
+    });
+    expect(parseAssumptions({ growth: { rate: -0.01, basis: "real" } })).toEqual({ growth: { rate: -0.01, basis: "real" }, volatility: null, inflation: null });
+  });
+
+  it("drops a bad field on its own", () => {
+    expect(parseAssumptions({ growth: { rate: 0.06, basis: "gross" }, volatility: -0.1, inflation: 2 })).toEqual({ growth: null, volatility: null, inflation: null });
+    expect(parseAssumptions({ growth: { rate: 5, basis: "real" }, volatility: 1.5 })).toEqual({ growth: null, volatility: null, inflation: null });
+    expect(parseAssumptions("custom")).toEqual({ growth: null, volatility: null, inflation: null });
   });
 });
 
@@ -89,10 +114,11 @@ describe("parsePlan", () => {
   const full = {
     invested: 20_000,
     monthlyContribution: 500,
-    investment: { kind: "index", index: "nasdaq100" },
+    investment: { kind: "asset", asset: "nasdaq100" },
     years: 25,
     withdrawalRate: 0.035,
-    inflation: 0.025,
+    pricesOf: "DE",
+    assumptions: { growth: null, volatility: 0.2, inflation: 0.025 },
     goals: [
       { id: "a", kind: "live", country: "PE", housing: false },
       { id: "b", kind: "buy", item: "used-car" },
@@ -113,6 +139,7 @@ describe("parsePlan", () => {
         invested: -5,
         withdrawalRate: 0,
         investment: { kind: "?" },
+        pricesOf: "Atlantis",
         years: 2.5,
         goals: [...full.goals, { id: "x", kind: "amount", amount: 0 }],
       }),
@@ -122,6 +149,7 @@ describe("parsePlan", () => {
       invested: 0,
       withdrawalRate: DEFAULT_PLAN.withdrawalRate,
       investment: DEFAULT_PLAN.investment,
+      pricesOf: "NL",
       years: DEFAULT_PLAN.years,
     });
   });

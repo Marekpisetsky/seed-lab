@@ -6,7 +6,12 @@ import {
   INITIAL_STATE,
   removeGoal,
   replaceState,
+  resetAssumptions,
+  setAssumptions,
+  setHoldingReference,
   setHoldings,
+  setInvestment,
+  setPricesOf,
   setUploadedPrices,
   updatePlan,
 } from "./app-store";
@@ -61,7 +66,8 @@ describe("createStore", () => {
 describe("the shared app state", () => {
   it("starts with real example numbers and no goals", () => {
     expect(appStore.get()).toBe(INITIAL_STATE);
-    expect(INITIAL_STATE.plan).toMatchObject({ invested: 1000, monthlyContribution: 200, years: 20, investment: { kind: "index", index: "sp500" }, goals: [] });
+    expect(INITIAL_STATE.plan).toMatchObject({ invested: 1000, monthlyContribution: 200, years: 20, investment: { kind: "asset", asset: "sp500" }, pricesOf: "NL", goals: [] });
+    expect(INITIAL_STATE.plan.assumptions).toEqual({ growth: null, volatility: null, inflation: null });
   });
 
   it("updates one plan field and keeps the others", () => {
@@ -99,6 +105,38 @@ describe("the shared app state", () => {
     setUploadedPrices("ABC", prices);
     setUploadedPrices("XYZ", null);
     expect(appStore.get().uploadedPrices).toEqual({ ABC: prices });
+  });
+
+  it("fills in the standard figures of a new choice, keeping a typed inflation", () => {
+    setAssumptions({ growth: { rate: 0.05, basis: "nominal" }, volatility: 0.1, inflation: 0.03 });
+    setInvestment({ kind: "asset", asset: "gold" });
+    expect(appStore.get().plan).toMatchObject({
+      investment: { kind: "asset", asset: "gold" },
+      assumptions: { growth: null, volatility: null, inflation: 0.03 },
+    });
+  });
+
+  it("resets every changed assumption to the standard one", () => {
+    setAssumptions({ growth: { rate: 0.05, basis: "real" } });
+    setAssumptions({ volatility: 0.2 });
+    expect(appStore.get().plan.assumptions).toEqual({ growth: { rate: 0.05, basis: "real" }, volatility: 0.2, inflation: null });
+    resetAssumptions();
+    expect(appStore.get().plan.assumptions).toEqual(INITIAL_STATE.plan.assumptions);
+  });
+
+  it("takes the country's inflation again when Prices of changes", () => {
+    setAssumptions({ inflation: 0.05 });
+    setPricesOf("BR");
+    expect(appStore.get().plan).toMatchObject({ pricesOf: "BR", assumptions: { inflation: null } });
+  });
+
+  it("sets and clears what a holding grows like", () => {
+    setHoldings([holding, { ...holding, id: "2", ticker: "XYZ" }]);
+    setHoldingReference("2", "gold");
+    expect(appStore.get().holdings[1].reference).toBe("gold");
+    expect(appStore.get().holdings[0]).toBe(appStore.get().holdings[0]);
+    setHoldingReference("2", null);
+    expect("reference" in appStore.get().holdings[1]).toBe(false);
   });
 
   it("tells every screen about a change", () => {

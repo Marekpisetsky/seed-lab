@@ -5,10 +5,13 @@
  * while the valid ones are kept.
  */
 
-import { isIndexId } from "./index-ids";
+import { isAssetId, type AssetId } from "./assets";
+import { countryByCode, DEFAULT_PRICES_OF, referenceInflation } from "./cost-of-living";
+import { isIndexId, SERIES, type IndexId } from "./indexes";
+import { instrumentById, instrumentForHolding } from "./market-data";
+import { MAX_PARTS } from "./mix";
 import type { PricePoint } from "./prices";
-import { MAX_PARTS, resolveRef } from "./mix";
-import type { Goal, Holding, Investment, LegacyGoal, MixPart, NewGoal, Plan } from "./types";
+import { STANDARD_ASSUMPTIONS, type AssumptionOverrides, type Goal, type Holding, type Investment, type LegacyGoal, type MixPart, type NewGoal, type Plan } from "./types";
 
 /** The euro goal of version 1 files, which becomes the goal "reach an amount". */
 export const DEFAULT_GOAL: LegacyGoal = { amount: 100_000, targetDate: null };
@@ -18,18 +21,23 @@ export const MAX_AMOUNT = 1e9;
 
 /**
  * A first visit starts with these: real, editable values (EUR 1,000, EUR 200
- * a month, the S&P 500, 20 years), so the calculator shows a result from
- * the first second. No goals: the user adds them if they want.
+ * a month, the S&P 500 with its standard assumptions, prices of the
+ * Netherlands, 20 years), so the calculator shows a result from the first
+ * second. No goals: the user adds them if they want.
  */
 export const DEFAULT_PLAN: Plan = {
   invested: 1000,
   monthlyContribution: 200,
-  investment: { kind: "index", index: "sp500" },
+  investment: { kind: "asset", asset: "sp500" },
   years: 20,
   withdrawalRate: 0.04,
-  inflation: 0.02,
+  pricesOf: DEFAULT_PRICES_OF,
+  assumptions: STANDARD_ASSUMPTIONS,
   goals: [],
 };
+
+/** The most swings a year accepted: 100 % (more says nothing a plan can use). */
+export const MAX_VOLATILITY = 1;
 
 /** Years the calculator accepts. */
 export const MIN_YEARS = 1;
@@ -94,6 +102,7 @@ export function parseHolding(value: unknown): Holding | null {
     currentPrice,
     priceSource: source,
     priceDate: source === "auto" && isIsoDate(priceDate) ? priceDate : null,
+    ...(isAssetId(value.reference) ? { reference: value.reference } : {}),
   };
 }
 
@@ -111,33 +120,87 @@ export function parseGoal(value: unknown): LegacyGoal | null {
   };
 }
 
-export function parseInvestment(value: unknown): Investment | null {
+/** One-line notices for things a file had that the app no longer does, said once it is loaded. */
+export type Notices = string[];
+
+/** The index a stock of the list grows like, or `null` for a ticker not on the list. */
+function stockIndex(id: unknown): { name: string; index: IndexId } | null {
+  const instrument = typeof id === "string" ? instrumentById(id) : undefined;
+  return instrument ? { name: instrument.name, index: instrument.index } : null;
+}
+
+/**
+ * The parts of a mix. Version 5 named them "index:sp500" or "stock:NVDA";
+ * a stock now counts as its index (weights of the same asset add up).
+ */
+function parseMixParts(value: unknown[], notices: Notices): MixPart[] {
+  const weights = new Map<AssetId, number>();
+  let hadStock = false;
+  for (const part of value) {
+    if (!isRecord(part) || !isFiniteNumber(part.weight) || part.weight < 0 || part.weight > 100) continue;
+    let asset: AssetId | null = isAssetId(part.asset) ? part.asset : null;
+    if (!asset && typeof part.ref === "string") {
+      const [kind, id] = part.ref.split(":");
+      if (kind === "index" && isIndexId(id)) asset = id;
+      const stock = kind === "stock" ? stockIndex(id) : null;
+      if (stock) {
+        asset = stock.index;
+        hadStock = true;
+      }
+    }
+    if (!asset || (!weights.has(asset) && weights.size === MAX_PARTS)) continue;
+    weights.set(asset, Math.min(100, (weights.get(asset) ?? 0) + part.weight));
+  }
+  if (hadStock) notices.push("Your mix had single stocks, which are no longer projected: each now counts as its index.");
+  return [...weights].map(([asset, weight]) => ({ asset, weight }));
+}
+
+/**
+ * What the plan invests in. Also reads earlier versions: an index (versions
+ * 1 to 5) is that asset; a single stock (version 5) becomes My portfolio
+ * when the file holds it, else its index, with a notice.
+ */
+export function parseInvestment(value: unknown, holdings: readonly Holding[] = [], notices: Notices = []): Investment | null {
   if (!isRecord(value)) return null;
   switch (value.kind) {
+    case "asset":
+      return isAssetId(value.asset) ? { kind: "asset", asset: value.asset } : null;
     case "index":
-      return isIndexId(value.index) ? { kind: "index", index: value.index } : null;
-    case "stock":
-      return typeof value.id === "string" && value.id !== "" ? { kind: "stock", id: value.id } : null;
+      return isIndexId(value.index) ? { kind: "asset", asset: value.index } : null;
+    case "stock": {
+      const stock = stockIndex(value.id);
+      if (!stock) return null;
+      const held = holdings.some((holding) => instrumentForHolding(holding.ticker, holding.currency)?.id === value.id);
+      notices.push(
+        held
+          ? `Your file projected ${stock.name} on its own. Single stocks are no longer projected, so it now uses My portfolio, where each stock grows like its index.`
+          : `Your file projected ${stock.name} on its own. Single stocks are no longer projected, so it now grows like the ${SERIES[stock.index].name}.`,
+      );
+      return held ? { kind: "portfolio" } : { kind: "asset", asset: stock.index };
+    }
     case "portfolio":
       return { kind: "portfolio" };
     case "mix": {
       if (!Array.isArray(value.parts)) return null;
-      const refs = new Set<string>();
-      const parts: MixPart[] = [];
-      for (const part of value.parts) {
-        if (!isRecord(part) || typeof part.ref !== "string" || !resolveRef(part.ref) || refs.has(part.ref)) continue;
-        if (!isFiniteNumber(part.weight) || part.weight < 0 || part.weight > 100) continue;
-        refs.add(part.ref);
-        parts.push({ ref: part.ref, weight: part.weight });
-        if (parts.length === MAX_PARTS) break;
-      }
+      const parts = parseMixParts(value.parts, notices);
       return parts.length > 0 ? { kind: "mix", parts, rebalance: value.rebalance === true } : null;
     }
     case "custom":
-      return isRate(value.realReturn) ? { kind: "custom", realReturn: value.realReturn } : null;
+      return { kind: "custom" };
     default:
       return null;
   }
+}
+
+/** The user's changes to the standard assumptions; a bad field keeps the standard one. */
+export function parseAssumptions(value: unknown): AssumptionOverrides {
+  if (!isRecord(value)) return STANDARD_ASSUMPTIONS;
+  const typed = isRecord(value.growth) ? value.growth : {};
+  const basis = typed.basis === "real" || typed.basis === "nominal" ? typed.basis : null;
+  const growth: AssumptionOverrides["growth"] = basis && isRate(typed.rate) ? { rate: typed.rate, basis } : null;
+  const volatility = isFiniteNumber(value.volatility) && value.volatility >= 0 && value.volatility <= MAX_VOLATILITY ? value.volatility : null;
+  const inflation = isRate(value.inflation) ? value.inflation : null;
+  return { growth, volatility, inflation };
 }
 
 const ID_PATTERN = /^[A-Za-z0-9-]{1,40}$/;
@@ -261,21 +324,33 @@ function goalsFromEarlierVersions(value: Record<string, unknown>): Goal[] {
 /**
  * Field by field, so one bad or missing field does not reset the others.
  * Amounts missing from a file are 0, never the example values of a first
- * visit. Also reads the plans of versions 1 to 3 (see above).
+ * visit. Also reads the plans of versions 1 to 5 (see above): their
+ * inflation, when it was not the old 2 % default, and a custom growth rate
+ * become changed assumptions. `holdings` are the file's, and what the
+ * app no longer does is said in `notices`.
  */
-export function parsePlan(value: unknown): Plan | null {
+export function parsePlan(value: unknown, holdings: readonly Holding[] = [], notices: Notices = []): Plan | null {
   if (!isRecord(value)) return null;
   const pick = <K extends keyof Plan>(key: K, parse: (v: unknown) => Plan[K] | null | undefined): Plan[K] =>
     parse(value[key]) ?? DEFAULT_PLAN[key];
   const amount = (v: unknown) => (isNonNegativeNumber(v) && v <= MAX_AMOUNT ? v : 0);
+  const pricesOf = typeof value.pricesOf === "string" && countryByCode(value.pricesOf) ? value.pricesOf : DEFAULT_PRICES_OF;
+  let assumptions = parseAssumptions(value.assumptions);
+  if (!("assumptions" in value)) {
+    const inflation = isRate(value.inflation) && Math.abs(value.inflation - referenceInflation(pricesOf).rate) > 1e-9 ? value.inflation : null;
+    const investment = isRecord(value.investment) ? value.investment : {};
+    const growth = investment.kind === "custom" && isRate(investment.realReturn) ? { rate: investment.realReturn, basis: "real" as const } : null;
+    assumptions = { growth, volatility: null, inflation };
+  }
   return {
     invested: amount(value.invested),
     monthlyContribution: amount(value.monthlyContribution),
-    investment: pick("investment", parseInvestment),
+    investment: parseInvestment(value.investment, holdings, notices) ?? DEFAULT_PLAN.investment,
     // Versions 2 and 3 called it horizonYears.
     years: [value.years, value.horizonYears].find(isYears) ?? DEFAULT_PLAN.years,
     withdrawalRate: pick("withdrawalRate", (v) => (isRate(v) && v > 0 ? v : null)),
-    inflation: pick("inflation", (v) => (isRate(v) ? v : null)),
+    pricesOf,
+    assumptions,
     goals: "goals" in value ? parseGoals(value.goals) : goalsFromEarlierVersions(value),
   };
 }

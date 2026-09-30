@@ -15,6 +15,8 @@ const state: AppState = {
     ],
     investment: { kind: "portfolio" },
     withdrawalRate: 0.035,
+    pricesOf: "PT",
+    assumptions: { growth: { rate: 0.06, basis: "nominal" }, volatility: 0.12, inflation: 0.025 },
   },
   holdings: [
     {
@@ -27,26 +29,39 @@ const state: AppState = {
       priceSource: "auto",
       priceDate: null,
     },
+    {
+      id: "2",
+      ticker: "XYZ",
+      quantity: 5,
+      costBasis: 500,
+      currency: "EUR",
+      currentPrice: 120,
+      priceSource: "manual",
+      priceDate: null,
+      reference: "gold",
+    },
   ],
   uploadedPrices: { XYZ: { fileName: "xyz.csv", points: [{ time: "2026-09-25", close: 12.5 }] } },
 };
 
 describe("data file", () => {
-  it("loads back exactly what was downloaded", () => {
+  it("loads back exactly what was downloaded: the changed assumptions, Prices of and what each holding grows like included", () => {
     const text = serializeState(state, new Date("2026-09-29T10:00:00Z"));
-    expect(parseDataFile(text)).toEqual({ ok: true, state });
+    expect(parseDataFile(text)).toEqual({ ok: true, state, notices: [] });
+    const custom = { ...state, plan: { ...state.plan, investment: { kind: "custom" as const } } };
+    expect(parseDataFile(serializeState(custom, new Date()))).toEqual({ ok: true, state: custom, notices: [] });
   });
 
   it("says what the file is and when it was saved", () => {
     const json = JSON.parse(serializeState(state, new Date("2026-09-29T10:00:00Z")));
-    expect(json).toMatchObject({ kind: "wealth-lens-data", version: 5, savedAt: "2026-09-29T10:00:00.000Z" });
+    expect(json).toMatchObject({ kind: "wealth-lens-data", version: 6, savedAt: "2026-09-29T10:00:00.000Z" });
     expect(dataFileName(new Date("2026-09-29T10:00:00Z"))).toBe("wealth-lens-2026-09-29.json");
   });
 
   it("refuses files that are not Wealth Lens data", () => {
     expect(parseDataFile("not json")).toEqual({ ok: false, error: expect.stringMatching(/not valid JSON/) });
     expect(parseDataFile('{"holdings": []}')).toEqual({ ok: false, error: expect.stringMatching(/not a Wealth Lens/) });
-    expect(parseDataFile('{"kind": "wealth-lens-data", "version": 6}')).toEqual({
+    expect(parseDataFile('{"kind": "wealth-lens-data", "version": 7}')).toEqual({
       ok: false,
       error: expect.stringMatching(/newer version/),
     });
@@ -151,13 +166,77 @@ describe("data file", () => {
       kind: "wealth-lens-data",
       version: 1,
       plan: { invested: "lots", monthlyContribution: 300 },
-      holdings: [state.holdings[0], { id: "bad" }],
+      holdings: [state.holdings[0], { id: "bad" }, { ...state.holdings[1], quantity: -1 }],
       uploadedPrices: { XYZ: { fileName: "x.csv", points: [] } },
     });
     const result = parseDataFile(damaged);
-    expect(result.ok && result.state.holdings).toEqual(state.holdings);
+    expect(result.ok && result.state.holdings).toEqual([state.holdings[0]]);
     // What the file lacks is 0, not the example numbers of a first visit.
     expect(result.ok && result.state.plan).toEqual({ ...INITIAL_STATE.plan, invested: 0, monthlyContribution: 300 });
     expect(result.ok && result.state.uploadedPrices).toEqual({});
+  });
+
+  describe("version 5 files that projected a single stock", () => {
+    const v5 = (investment: unknown, holdings: unknown[] = [], plan: Record<string, unknown> = {}) =>
+      parseDataFile(
+        JSON.stringify({
+          kind: "wealth-lens-data",
+          version: 5,
+          plan: { invested: 1000, monthlyContribution: 200, years: 20, withdrawalRate: 0.04, inflation: 0.02, goals: [], investment, ...plan },
+          holdings,
+          uploadedPrices: {},
+        }),
+      );
+    const nvidia = { id: "n", ticker: "NVDA", quantity: 2, costBasis: 200, currency: "USD", currentPrice: 180, priceSource: "manual", priceDate: null };
+
+    it("move to My portfolio when the file holds the stock, with a one-line notice", () => {
+      const result = v5({ kind: "stock", id: "NVDA" }, [nvidia]);
+      expect(result.ok && result.state.plan.investment).toEqual({ kind: "portfolio" });
+      expect(result.ok && result.notices).toEqual([
+        "Your file projected NVIDIA on its own. Single stocks are no longer projected, so it now uses My portfolio, where each stock grows like its index.",
+      ]);
+    });
+
+    it("move to the stock's index otherwise", () => {
+      const result = v5({ kind: "stock", id: "BRK-B" });
+      expect(result.ok && result.state.plan.investment).toEqual({ kind: "asset", asset: "sp500" });
+      expect(result.ok && result.notices).toEqual(["Your file projected Berkshire Hathaway on its own. Single stocks are no longer projected, so it now grows like the S&P 500."]);
+      // A stock no longer on the list: the default, quietly.
+      expect(v5({ kind: "stock", id: "GONE" })).toMatchObject({ ok: true, notices: [], state: { plan: { investment: { kind: "asset", asset: "sp500" } } } });
+    });
+
+    it("count each stock of a mix as its index, adding up weights", () => {
+      const result = v5({
+        kind: "mix",
+        parts: [
+          { ref: "index:nasdaq100", weight: 50 },
+          { ref: "stock:NVDA", weight: 30 },
+          { ref: "stock:SAP", weight: 20 },
+        ],
+        rebalance: true,
+      });
+      expect(result.ok && result.state.plan.investment).toEqual({
+        kind: "mix",
+        parts: [
+          { asset: "nasdaq100", weight: 80 },
+          { asset: "world", weight: 20 },
+        ],
+        rebalance: true,
+      });
+      expect(result.ok && result.notices).toEqual(["Your mix had single stocks, which are no longer projected: each now counts as its index."]);
+    });
+
+    it("read an index as that asset, a custom rate as Custom growth after inflation, and an inflation other than the old default as typed", () => {
+      expect(v5({ kind: "index", index: "world" })).toMatchObject({ ok: true, notices: [], state: { plan: { investment: { kind: "asset", asset: "world" } } } });
+      const custom = v5({ kind: "custom", realReturn: 0.045 }, [], { inflation: 0.03 });
+      expect(custom.ok && custom.state.plan).toMatchObject({
+        investment: { kind: "custom" },
+        pricesOf: "NL",
+        assumptions: { growth: { rate: 0.045, basis: "real" }, volatility: null, inflation: 0.03 },
+      });
+      // The old default of 2% is the Netherlands' reference: nothing typed.
+      const standard = v5({ kind: "index", index: "sp500" });
+      expect(standard.ok && standard.state.plan.assumptions).toEqual(INITIAL_STATE.plan.assumptions);
+    });
   });
 });

@@ -3,19 +3,19 @@
 import { Check, Plus, X } from "lucide-react";
 import { useState } from "react";
 import { SettledNumberInput } from "@/components/ui/form";
-import { updatePlan } from "@/lib/app-store";
-import { formatPercent } from "@/lib/format";
-import { INDEXES } from "@/lib/indexes";
-import { MAX_PARTS, mixModel, refName, resolveRef, splitEvenly, stockTerms, sumsTo100, usesFallback } from "@/lib/mix";
+import { setInvestment } from "@/lib/app-store";
+import { assetName, GOLD_NOTE, SAVINGS_RATE, type AssetId } from "@/lib/assets";
+import { formatRate } from "@/lib/format";
+import { COMMON_PERIOD, SERIES } from "@/lib/indexes";
+import { MAX_PARTS, splitEvenly, sumsTo100, TEMPLATES, templateOf } from "@/lib/mix";
 import type { MixPart } from "@/lib/types";
-import { FALLBACK_FACTOR, MIN_DATA_YEARS } from "@/lib/volatility";
 
 type Mix = { kind: "mix"; parts: MixPart[]; rebalance: boolean };
 
-function partDetail(ref: string): string {
-  const target = resolveRef(ref);
-  if (!target) return "";
-  return target.kind === "index" ? `index, e.g. ${INDEXES[target.index].etf}` : `${target.instrument.id}, grows like the ${INDEXES[target.instrument.index].name}`;
+function partDetail(asset: AssetId): string {
+  if (asset === "savings") return `${formatRate(SAVINGS_RATE)} interest less inflation, no swings`;
+  if (asset === "gold") return `${GOLD_NOTE}, e.g. ${SERIES.gold.etf}`;
+  return `${formatRate(SERIES[asset].averageReturn)} a year after inflation, e.g. ${SERIES[asset].etf}`;
 }
 
 function Total({ parts }: { parts: readonly MixPart[] }) {
@@ -32,10 +32,8 @@ function Total({ parts }: { parts: readonly MixPart[] }) {
   );
 }
 
-/** How the mix is simulated, in plain words, with each stock's figures. */
-function HowItWorks({ mix }: { mix: Mix }) {
-  const model = mixModel(mix.parts, mix.rebalance);
-  const stocks = model ? stockTerms(model) : [];
+/** How the mix is simulated, in plain words. */
+function HowItWorks() {
   return (
     <details className="group rounded-md text-xs text-muted">
       <summary className="cursor-pointer list-none font-medium text-foreground [&::-webkit-details-marker]:hidden">
@@ -46,39 +44,23 @@ function HowItWorks({ mix }: { mix: Mix }) {
       </summary>
       <div className="mt-2 space-y-2">
         <p>
-          <strong className="font-medium text-foreground">Growth:</strong> the weighted average of the index behind each part (a stock&apos;s own past is
-          never projected).
+          <strong className="font-medium text-foreground">Growth:</strong> the weighted average of each part&apos;s growth after inflation (
+          {COMMON_PERIOD[0]}–{COMMON_PERIOD[1]}; a savings part, its rate less inflation).
         </p>
         <p>
-          <strong className="font-medium text-foreground">Ups and downs:</strong> 1,000 simulated paths. Each year, one historical year of 1988–2022 is
-          drawn for the three indexes together, so they rise and fall as they did. A stock moves with its index as much as its weekly prices did, plus a
-          part of its own, so that it swings as much as its daily closes show; two stocks move together as much as their weekly prices did.
+          <strong className="font-medium text-foreground">Ups and downs:</strong> 1,000 simulated paths. Each year, one historical year of {COMMON_PERIOD[0]}–
+          {COMMON_PERIOD[1]} is drawn for every part at once, so stocks, bonds and gold rise and fall together as they did (2022 hit stocks and bonds
+          alike). A savings part earns its rate every year.
         </p>
-        {stocks.length > 0 && (
-          <ul className="space-y-0.5">
-            {stocks.map((term) => (
-              <li key={term.ref}>
-                {refName(term.ref)}: swings {formatPercent(term.volatility, { decimals: 0 })} a year, correlation{" "}
-                {term.correlation.toFixed(2)} with its index.
-              </li>
-            ))}
-          </ul>
-        )}
-        {model && usesFallback(model) && (
-          <p>
-            Where a stock has under {MIN_DATA_YEARS} years of prices, it is taken to swing {FALLBACK_FACTOR} times as much as its index; where it has
-            no three years shared with its index&apos;s ETF, it takes the typical correlation of the stocks that do.
-          </p>
-        )}
         <p>
           <strong className="font-medium text-foreground">Weights:</strong> “Let weights drift” lets each part grow on its own (money added each month is
           split by the weights); “Rebalance every year” goes back to the weights every year.
         </p>
         <p>
           <strong className="font-medium text-foreground">Worst year in the data:</strong> the mix&apos;s worst calendar year, back at its weights each
-          January, over the years every part has data (a stock&apos;s price change less US inflation). Past, not a promise.
+          January, over the years every part has data. Past, not a promise.
         </p>
-        <p>The app does not suggest weights: it shows what the ones you choose do.</p>
+        <p>The quick mixes are textbook starting points (world stocks and euro government bonds), not advice: the app shows what any weights do.</p>
       </div>
     </details>
   );
@@ -86,13 +68,13 @@ function HowItWorks({ mix }: { mix: Mix }) {
 
 /**
  * The parts of a mix and their weights, which must add up to 100%. While
- * they do not, the result keeps the last mix that did. The app never
- * suggests weights.
+ * they do not, the result keeps the last mix that did. Quick templates set
+ * all the weights at once; the app never suggests weights.
  */
 export function MixEditor({ mix, onAddPart }: { mix: Mix; onAddPart: (anchor: HTMLElement) => void }) {
   const [draft, setDraft] = useState<MixPart[]>(mix.parts);
   const [seen, setSeen] = useState<Mix>(mix);
-  // The plan's parts changed elsewhere (a part added, a file loaded): show them. A new
+  // The plan's parts changed elsewhere (a part added, a template, a file loaded): show them. A new
   // "drift or rebalance" alone keeps weights still being typed.
   if (mix !== seen) {
     const parts = JSON.stringify(mix.parts);
@@ -102,21 +84,37 @@ export function MixEditor({ mix, onAddPart }: { mix: Mix; onAddPart: (anchor: HT
 
   const edit = (next: MixPart[]) => {
     setDraft(next);
-    if (sumsTo100(next)) updatePlan({ investment: { kind: "mix", parts: next, rebalance: mix.rebalance } });
+    if (sumsTo100(next)) setInvestment({ kind: "mix", parts: next, rebalance: mix.rebalance });
   };
+  const template = templateOf(mix.parts);
 
   return (
     <div className="order-4 col-span-2 space-y-3 rounded-lg bg-background p-3 sm:order-5 sm:col-span-4">
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        <span className="text-muted">Quick mixes:</span>
+        {TEMPLATES.map((entry) => (
+          <button
+            key={entry.label}
+            type="button"
+            aria-pressed={template === entry}
+            onClick={() => edit(entry.parts.map((part) => ({ ...part })))}
+            className={`rounded-md border px-2 py-1 font-medium ${template === entry ? "border-foreground bg-foreground text-background" : "border-border text-foreground hover:bg-border/40"}`}
+          >
+            {entry.label}
+          </button>
+        ))}
+        <span className="text-muted">world stocks / euro government bonds</span>
+      </div>
       <ul className="space-y-2">
         {draft.map((part, index) => (
-          <li key={part.ref} className="flex items-center gap-2">
+          <li key={part.asset} className="flex items-center gap-2">
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium">{refName(part.ref)}</span>
-              <span className="block truncate text-xs text-muted">{partDetail(part.ref)}</span>
+              <span className="block truncate text-sm font-medium">{assetName(part.asset)}</span>
+              <span className="block truncate text-xs text-muted">{partDetail(part.asset)}</span>
             </span>
             <span className="relative w-24 shrink-0">
               <SettledNumberInput
-                aria-label={`Weight of ${refName(part.ref)}, in percent`}
+                aria-label={`Weight of ${assetName(part.asset)}, in percent`}
                 value={part.weight}
                 max={100}
                 onCommit={(weight) => edit(draft.map((entry, position) => (position === index ? { ...entry, weight: Math.min(100, weight) } : entry)))}
@@ -128,7 +126,7 @@ export function MixEditor({ mix, onAddPart }: { mix: Mix; onAddPart: (anchor: HT
             </span>
             <button
               type="button"
-              aria-label={`Remove ${refName(part.ref)}`}
+              aria-label={`Remove ${assetName(part.asset)}`}
               disabled={draft.length === 1}
               onClick={() => edit(draft.filter((_, position) => position !== index))}
               className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted hover:bg-border/40 hover:text-foreground disabled:opacity-30"
@@ -161,14 +159,14 @@ export function MixEditor({ mix, onAddPart }: { mix: Mix; onAddPart: (anchor: HT
             type="button"
             role="radio"
             aria-checked={mix.rebalance === rebalance}
-            onClick={() => updatePlan({ investment: { ...mix, rebalance } })}
+            onClick={() => setInvestment({ ...mix, rebalance })}
             className={`rounded px-2 py-1 font-medium ${mix.rebalance === rebalance ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
           >
             {rebalance ? "Rebalance every year" : "Let weights drift"}
           </button>
         ))}
       </div>
-      <HowItWorks mix={mix} />
+      <HowItWorks />
     </div>
   );
 }

@@ -10,16 +10,18 @@ import { calculate, formatSmallEur, itemStatuses, whenText, type Calculation, ty
 import { parseIsoDate } from "./dates";
 import { allFindings } from "./findings";
 import { formatEur } from "./format";
-import type { Goal } from "./types";
+import { STANDARD_ASSUMPTIONS, type Goal } from "./types";
 
 const today = parseIsoDate("2026-09-29");
 
 const plan = (overrides: Partial<CalculatorPlan> = {}): CalculatorPlan => ({
   invested: 1000,
   monthlyContribution: 200,
-  investment: { kind: "index", index: "sp500" },
+  investment: { kind: "asset", asset: "sp500" },
   years: 20,
   withdrawalRate: 0.04,
+  pricesOf: "NL",
+  assumptions: STANDARD_ASSUMPTIONS,
   goals: [],
   ...overrides,
 });
@@ -121,9 +123,25 @@ describe("the longest and shortest horizons", () => {
 
 describe("no growth, or a loss, every year", () => {
   it("stays sensible at 0% and at -2% a year", () => {
-    for (const realReturn of [0, -0.02]) {
-      const calc = calculate(plan({ investment: { kind: "custom", realReturn }, goals }), [], today);
+    for (const rate of [0, -0.02]) {
+      const assumptions = { ...STANDARD_ASSUMPTIONS, growth: { rate, basis: "real" as const } };
+      const calc = calculate(plan({ investment: { kind: "custom" }, assumptions, goals }), [], today);
       expect(calc.result.total).toBeGreaterThan(0);
+      expectSensible(calc);
+    }
+  });
+
+  it("stays sensible in a savings account, which loses a little to inflation and never swings", () => {
+    const calc = calculate(plan({ investment: { kind: "asset", asset: "savings" }, goals }), [], today);
+    expect(calc.investment.realReturn).toBeLessThan(0);
+    expect(calc.investment.volatility).toBe(0);
+    expect(calc.result.lasted === 0 || calc.result.lasted === 1).toBe(true);
+    expectSensible(calc);
+  });
+
+  it("stays sensible with no swings at all, or huge ones", () => {
+    for (const volatility of [0, 0.9]) {
+      const calc = calculate(plan({ investment: { kind: "asset", asset: "gold" }, assumptions: { ...STANDARD_ASSUMPTIONS, volatility }, goals }), [], today);
       expectSensible(calc);
     }
   });

@@ -83,10 +83,13 @@ export function readLegacyData(storage: LegacyStorage | null): AppState | null {
     const { monthlyContribution, withdrawalRate, inflation, realReturn } = assumptions;
     if (typeof monthlyContribution === "number" && monthlyContribution >= 0) plan.monthlyContribution = monthlyContribution;
     if (typeof withdrawalRate === "number" && withdrawalRate > 0 && withdrawalRate < 1) plan.withdrawalRate = withdrawalRate;
-    if (typeof inflation === "number" && inflation > -1 && inflation < 1) plan.inflation = inflation;
-    // A growth rate other than the old 7 % default was chosen on purpose.
+    // Inflation or a growth rate other than the old defaults (2 %, 7 %) was chosen on purpose.
+    if (typeof inflation === "number" && inflation > -1 && inflation < 1 && Math.abs(inflation - 0.02) > 1e-9) {
+      plan.assumptions = { ...plan.assumptions, inflation };
+    }
     if (typeof realReturn === "number" && realReturn > -1 && realReturn < 1 && Math.abs(realReturn - 0.07) > 1e-9) {
-      plan.investment = { kind: "custom", realReturn };
+      plan.investment = { kind: "custom" };
+      plan.assumptions = { ...plan.assumptions, growth: { rate: realReturn, basis: "real" } };
     }
   }
   const uploadedPrices: Record<string, UploadedPrices> = {};

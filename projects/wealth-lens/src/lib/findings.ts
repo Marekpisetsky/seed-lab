@@ -17,13 +17,14 @@ import { valueAt, withinReach, type Calculation, type GoalStatus, type Scenario 
 import { addMonths } from "./dates";
 import { holdingValue, monthsToGoal } from "./finance";
 import { formatEur, formatEurRounded, formatMoney, formatPercent, formatRate, formatYears } from "./format";
-import { INDEXES } from "./indexes";
-import { dividendNote, periodText, type ResolvedInvestment } from "./investment";
+import { assetName } from "./assets";
+import { dividendNote, type ResolvedInvestment } from "./investment";
 import { INDEX_TRACKERS, instrumentForHolding, MARKET, type PricesFile } from "./market-data";
+import { referenceFor } from "./portfolio";
 import { bandsFor } from "./projections";
 import { BASE_CURRENCY, type Holding } from "./types";
 
-export type FindingId = "lever" | "waiting" | "inflation" | "fees" | "concentration" | "currency" | "sequence" | "doubling" | "stock-past";
+export type FindingId = "lever" | "waiting" | "inflation" | "fees" | "concentration" | "currency" | "sequence" | "doubling";
 
 export interface Finding {
   id: FindingId;
@@ -59,7 +60,6 @@ export const ORDER: readonly FindingId[] = [
   "inflation",
   "waiting",
   "fees",
-  "stock-past",
   "doubling",
 ];
 
@@ -83,7 +83,8 @@ function yearOf(today: Date, months: number): number {
 
 function growthAssumption(scenario: Scenario, investment: ResolvedInvestment): string {
   const dividends = dividendNote(investment);
-  return `Growth ${formatRate(scenario.realReturn)} a year after inflation: ${investment.growthSource}, ${periodText(investment)} average${dividends ? ` (${dividends})` : ""}. Past, not a promise.`;
+  const what = investment.period ? "Past, not a promise." : "Not a promise.";
+  return `Growth ${formatRate(scenario.realReturn)} a year after inflation: ${investment.growthText}${dividends ? ` (${dividends})` : ""}. ${what}`;
 }
 
 function monthlyAssumption(scenario: Scenario): string {
@@ -258,12 +259,19 @@ export function concentrationFinding({ holdings, market }: FindingContext): Find
       `${ticker}: ${formatEur(biggest.value)} of ${formatEur(total)} in euros.`,
       ...(prices?.change1y != null ? [`Last 12 months: ${formatPercent(prices.change1y, { signed: true, decimals: 0 })}.`] : []),
       ...(prices?.drawdown ? [`Worst fall from a peak since ${prices.drawdown.from.slice(0, 4)}: ${formatPercent(-prices.drawdown.max, { decimals: 0 })}.`] : []),
-      instrument
-        ? `In My portfolio it grows at the ${INDEXES[instrument.index].name}'s average, with its own ups and downs; one company can fall much further than an index.`
-        : "In My portfolio it counts as world stocks; one company can fall much further than an index.",
+      `In My portfolio it grows like ${referenceText(biggest.holding)}${instrument ? ", with its own ups and downs" : ""}; one company can fall much further than an index.`,
     ],
     assumptions: ["Only holdings priced in euros are counted."],
   };
+}
+
+/** "the Nasdaq-100", "gold", "a savings account": what a holding grows like, in a sentence. */
+function referenceText(holding: Holding): string {
+  const { asset } = referenceFor(holding);
+  if (asset === "savings") return "a savings account";
+  if (asset === "gold") return "gold";
+  if (asset === "bonds") return "euro government bonds";
+  return asset === "world" ? "world stocks" : `the ${assetName(asset)}`;
 }
 
 const CURRENCY_NAMES: Readonly<Record<string, string>> = {
@@ -326,10 +334,7 @@ export function sequenceFinding(context: FindingContext): Finding | null {
     `After ${decade} years: ${formatEur(typical)} in a typical case, ${formatEur(bad)} in a bad one (1 in 10).`,
     "From then on, growth at the average rate.",
   ];
-  const assumptions = [
-    `1,000 simulations drawing each year's return from the ${investment.growthSource}'s ${periodText(investment)} history${investment.stock ? `, scaled to ${investment.name}'s volatility (${formatPercent(investment.stock.volatility, { decimals: 0 })} a year)` : ""}.`,
-    monthlyAssumption(scenario),
-  ];
+  const assumptions = [`1,000 simulated paths: ${investment.modelText}.`, monthlyAssumption(scenario)];
 
   if (focus) {
     const typicalMonths = decade * 12 + monthsToGoal(typical, scenario.monthly, scenario.realReturn, focus.target);
@@ -376,27 +381,6 @@ export function doublingFinding({ calc }: FindingContext): Finding | null {
   };
 }
 
-/** A single stock chosen as the investment: its own past is not what is projected. */
-export function stockPastFinding({ calc, market }: FindingContext): Finding | null {
-  const { investment } = calc;
-  if (investment.investment.kind !== "stock" || !investment.proxyIndex) return null;
-  const growth = market.prices[investment.investment.id]?.growth;
-  if (!growth) return null;
-  const index = INDEXES[investment.proxyIndex];
-  const pct = formatPercent(growth.perYear, { decimals: 0 });
-  return {
-    id: "stock-past",
-    value: `${pct}/yr`,
-    text: `${investment.name} grew ${pct} a year; projections use the ${index.name}'s ${formatRate(index.averageReturn)} (${index.firstYear}–${index.lastYear}).`,
-    tone: "info",
-    calculation: [
-      `${investment.name}: ${pct} a year since ${growth.from.slice(0, 4)} (price, before inflation). Past, not a forecast.`,
-      `${index.name}: ${formatRate(index.averageReturn)} a year after inflation, ${index.firstYear}–${index.lastYear} average.`,
-    ],
-    assumptions: ["Decades of a single company's growth are not projected: few companies keep it up."],
-  };
-}
-
 const RULES: Record<FindingId, (context: FindingContext) => Finding | null> = {
   concentration: concentrationFinding,
   currency: currencyFinding,
@@ -405,7 +389,6 @@ const RULES: Record<FindingId, (context: FindingContext) => Finding | null> = {
   inflation: inflationFinding,
   waiting: waitingFinding,
   fees: feesFinding,
-  "stock-past": stockPastFinding,
   doubling: doublingFinding,
 };
 

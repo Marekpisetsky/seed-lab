@@ -14,7 +14,6 @@ import {
   leverFinding,
   ORDER,
   sequenceFinding,
-  stockPastFinding,
   topFindings,
   waitingFinding,
   type FindingContext,
@@ -22,8 +21,7 @@ import {
 import { formatEurRounded, formatYears } from "./format";
 import { INDEXES } from "./indexes";
 import { MARKET } from "./market-data";
-import { parsePricesFile } from "./market-format";
-import type { Goal, Holding } from "./types";
+import { STANDARD_ASSUMPTIONS, type Goal, type Holding } from "./types";
 
 const today = parseIsoDate("2026-09-29");
 const r = INDEXES.sp500.averageReturn;
@@ -31,9 +29,11 @@ const r = INDEXES.sp500.averageReturn;
 const plan = (overrides: Partial<CalculatorPlan> = {}): CalculatorPlan => ({
   invested: 1000,
   monthlyContribution: 200,
-  investment: { kind: "index", index: "sp500" },
+  investment: { kind: "asset", asset: "sp500" },
   years: 20,
   withdrawalRate: 0.04,
+  pricesOf: "NL",
+  assumptions: STANDARD_ASSUMPTIONS,
   goals: [],
   ...overrides,
 });
@@ -217,26 +217,22 @@ describe("doubling time", () => {
   });
 
   it("is not shown below 2% growth", () => {
-    expect(doublingFinding(context({ investment: { kind: "custom", realReturn: 0.01 } }))).toBeNull();
+    expect(doublingFinding(context({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth: { rate: 0.01, basis: "real" } } }))).toBeNull();
   });
 });
 
-describe("a single stock as the investment", () => {
-  it("contrasts its past with the index used to project it", () => {
-    const market = parsePricesFile({
-      prices: {
-        NVDA: { symbol: "NVDA", currency: "USD", source: "yahoo", date: "2026-09-29", close: 228, change1y: 0.25, spark: [], growth: { from: "2016-09-29", perYear: 0.6337 } },
-      },
-    });
-    const finding = stockPastFinding({ ...context({ investment: { kind: "stock", id: "NVDA" } }), market });
-    expect(finding).toMatchObject({
-      value: "63%/yr",
-      text: "NVIDIA grew 63% a year; projections use the Nasdaq-100's 9.9% (1988–2022).",
-    });
+describe("where the growth comes from, in the assumptions", () => {
+  it("names the asset and its years, or says the figure is the user's own", () => {
+    expect(doublingFinding(small)?.assumptions[0]).toMatch(/: S&P 500, 1988–2022 average\. Past, not a promise\.$/);
+    const bonds = doublingFinding(context({ investment: { kind: "asset", asset: "bonds" } }));
+    expect(bonds?.assumptions[0]).toMatch(/: Euro government bonds, 1988–2022 average\./);
+    const own = doublingFinding(context({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth: { rate: 0.05, basis: "real" } } }));
+    expect(own?.assumptions[0]).toBe("Growth 5% a year after inflation: your own figure. Not a promise.");
   });
 
-  it("is not shown for an index", () => {
-    expect(stockPastFinding(small)).toBeNull();
+  it("quotes the inflation of the country whose prices the user chose", () => {
+    const finding = inflationFinding({ ...context({ pricesOf: "BR" }), inflation: 0.03 });
+    expect(finding?.assumptions[0]).toBe("Inflation 3% a year.");
   });
 });
 
