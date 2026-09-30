@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import sp500 from "@/data/sp500-real-returns.json";
 import { INDEXES } from "./indexes";
-import { mulberry32, successRate, successRates, survives } from "./monte-carlo";
+import { mulberry32, successRate, successRates, survives, yearsLasting } from "./monte-carlo";
 
 const HISTORICAL_REAL_RETURNS = INDEXES.sp500.years.map((entry) => entry.realReturn);
 
@@ -103,3 +103,18 @@ describe("successRates", () => {
   });
 });
 
+describe("yearsLasting: with no swings, how long withdrawals last", () => {
+  it("is 1 ÷ rate years at no growth, longer with growth, shorter with a loss", () => {
+    expect(yearsLasting(0.04, 0)).toBeCloseTo(25, 9);
+    expect(yearsLasting(0.04, 0.01)).toBeGreaterThan(25);
+    expect(yearsLasting(0.04, -0.005)).toBeLessThan(25);
+    expect(Math.floor(yearsLasting(0.04, 1.015 / 1.02 - 1))).toBe(23);
+  });
+
+  it("never runs out when growth pays for the withdrawals, and agrees with survives", () => {
+    expect(yearsLasting(0.03, 0.04)).toBe(Infinity);
+    for (const [rate, growth] of [[0.04, -0.005], [0.05, 0.02], [0.03, 0]]) {
+      expect(survives(new Array(30).fill(growth), rate)).toBe(yearsLasting(rate, growth) > 30);
+    }
+  });
+});

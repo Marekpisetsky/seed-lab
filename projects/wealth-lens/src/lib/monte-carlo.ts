@@ -42,6 +42,21 @@ export function survives(returns: readonly number[], withdrawalRate: number): bo
   return true;
 }
 
+/**
+ * With the same return every year (no swings): how many years a withdrawal
+ * rate lasts, by the same rules as `survives`; `Infinity` if it is still
+ * there after `max` years.
+ */
+export function yearsLasting(withdrawalRate: number, annualReturn: number, max = 100): number {
+  let balance = 1;
+  for (let year = 0; year < max; year++) {
+    balance -= withdrawalRate;
+    if (balance <= 0) return year + (balance + withdrawalRate) / withdrawalRate;
+    balance *= 1 + annualReturn;
+  }
+  return Infinity;
+}
+
 export interface SuccessRateOptions {
   withdrawalRate: number;
   /** Pool of annual real returns to draw from. */
