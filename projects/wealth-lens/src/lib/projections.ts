@@ -59,17 +59,32 @@ const SP500 = mixModel([{ asset: "sp500", weight: 100 }], false);
 const SP500_RETURNS = SERIES.sp500.years.map((entry) => entry.realReturn);
 const SP500_YEARS = new Set(SERIES.sp500.dataset.years.map((entry) => entry.year));
 
+/** The S&P 500's band for the last amounts asked, and each mix's worst years: the same on every recalculation until they change. */
+let lastReference: { id: string; range: [number, number] } | null = null;
+const worstYears = new Map<string, { worst: WorstYear | null; reference: WorstYear | null }>();
+const MAX_KEPT_WORST_YEARS = 16;
+
 export function mixFigures(investment: ResolvedInvestment, amounts: Amounts): MixFigures | null {
   const { model } = investment;
   if (!model || !SP500) return null;
   const bands = bandsFor(investment, amounts);
-  const reference = wealthPercentiles({ ...amounts, returns: SP500_RETURNS, key: "asset:sp500" });
   const years = amounts.years;
-  // The worst year of both over the very same years: those the mix and the S&P 500 both have.
-  const shared = sharedYears(model).filter((year) => SP500_YEARS.has(year));
+  const id = `${amounts.start}|${amounts.monthly}|${years}`;
+  if (lastReference?.id !== id) {
+    const reference = wealthPercentiles({ ...amounts, returns: SP500_RETURNS, key: "asset:sp500" });
+    lastReference = { id, range: [reference.p10[years], reference.p90[years]] };
+  }
+  let worst = worstYears.get(model.key);
+  if (!worst) {
+    // The worst year of both over the very same years: those the mix and the S&P 500 both have.
+    const shared = sharedYears(model).filter((year) => SP500_YEARS.has(year));
+    worst = { worst: worstYear(model, undefined, shared), reference: worstYear(SP500, undefined, shared) };
+    if (worstYears.size >= MAX_KEPT_WORST_YEARS) worstYears.delete(worstYears.keys().next().value ?? "");
+    worstYears.set(model.key, worst);
+  }
   return {
     range: [bands.p10[years], bands.p90[years]],
-    worst: worstYear(model, undefined, shared),
-    reference: { range: [reference.p10[years], reference.p90[years]], worst: worstYear(SP500, undefined, shared) },
+    worst: worst.worst,
+    reference: { range: lastReference.range, worst: worst.reference },
   };
 }

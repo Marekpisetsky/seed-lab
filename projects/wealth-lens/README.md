@@ -255,8 +255,16 @@ mano desde las cifras publicadas (ver "Retornos").
   reutiliza los mismos índices sorteados para cualquier conjunto de
   cifras propias, y en cuanto el usuario empieza a usar la página, en
   ratos libres y en pasos de menos de 50 ms, se precalculan los sorteos,
-  los años simulados de cada activo y una primera pasada de una mezcla,
-  de una cartera con una acción y de cifras propias (`src/lib/warm.ts`).
+  los años simulados de cada activo y una primera pasada de cada plantilla
+  de mezcla (100 % acciones, 80/20, 60/40, con y sin reequilibrio), de una
+  cartera con una acción y de cifras propias (`src/lib/warm.ts`). La banda
+  del S&P 500 que acompaña a una mezcla y los peores años se guardan
+  mientras no cambien los importes o la mezcla (cachés acotadas en
+  `src/lib/projections.ts`). Medido en el navegador en la ronda 10 (108
+  recálculos, EN y ES: aportes, años, activos, plantillas, los cinco
+  *What if…?* y cargar un archivo con cartera, dos veces cada uno):
+  mediana 4,0 ms, p90 7,8 ms, máximo 13,9 ms (la primera carga de una
+  cartera nueva, que simula sus posiciones).
   Con los cinco *What if…?* (sus efectos se calculan en cada cambio, con
   fórmulas cerradas salvo *A bad first decade*, que lee las bandas ya
   calculadas) el recálculo medido en el navegador al tocar cada uno, con
