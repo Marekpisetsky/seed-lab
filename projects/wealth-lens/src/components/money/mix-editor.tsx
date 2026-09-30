@@ -106,7 +106,7 @@ export function MixEditor({ mix, onAddPart }: { mix: Mix; onAddPart: (anchor: HT
   };
 
   return (
-    <div className="col-span-2 space-y-3 rounded-lg bg-background p-3 sm:col-span-4">
+    <div className="order-4 col-span-2 space-y-3 rounded-lg bg-background p-3 sm:order-5 sm:col-span-4">
       <ul className="space-y-2">
         {draft.map((part, index) => (
           <li key={part.ref} className="flex items-center gap-2">
