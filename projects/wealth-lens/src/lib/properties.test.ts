@@ -1,6 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { calculate, whatIfEffects, whenText, type CalculatorPlan } from "./calculator";
+import { calculate, effectiveGrowth, valueAt, whatIfEffects, whenText, type CalculatorPlan } from "./calculator";
 import { parseIsoDate } from "./dates";
 import { futureValueWithContributions, monthlyWithdrawal, monthsToGoal, requiredCapital, requiredMonthlyContribution } from "./finance";
 import { formatEur, formatEurRounded, formatRate } from "./format";
@@ -193,6 +193,35 @@ describe("the whole calculation", () => {
       }),
       { numRuns: 40 },
     );
+  });
+});
+
+describe("the growth a year shown", () => {
+  it("is the plan's own growth without a set start", () => {
+    fc.assert(
+      fc.property(plans, (patch) => {
+        const { result, scenario } = calculate(planOf(patch), [], today);
+        return result.growthRate === scenario.realReturn;
+      }),
+      { numRuns: 30 },
+    );
+  });
+
+  it("after a bad first decade, turns the same money into the same total", () => {
+    fc.assert(
+      fc.property(plans, (patch) => {
+        const calc = calculate(planOf({ ...patch, investment: { kind: "asset", asset: "sp500" } }), [], today, "bad-decade");
+        const { scenario, result } = calc;
+        if (scenario.capital + scenario.monthly === 0) return result.growthRate === scenario.realReturn;
+        const again = futureValueWithContributions(scenario.capital, scenario.monthly, result.growthRate, result.years);
+        return close(again, valueAt(scenario, result.years * 12), 1e-6) && result.growthRate <= scenario.realReturn + 1e-9;
+      }),
+      { numRuns: 30 },
+    );
+  });
+
+  it("works without the head too", () => {
+    expect(effectiveGrowth({ capital: 1000, monthly: 100, realReturn: 0.05, withdrawalRate: 0.04 }, 10)).toBe(0.05);
   });
 });
 

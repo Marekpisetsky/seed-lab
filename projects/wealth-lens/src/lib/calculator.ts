@@ -117,12 +117,34 @@ export function valueAt(scenario: Scenario, months: number): number {
   return head[year] + (head[year + 1] - head[year]) * share;
 }
 
+/**
+ * The steady growth a year that turns the same money put in into the same
+ * total after `years`: the plan's own growth, or, after a set start such as
+ * "a bad first decade", the average over the whole run.
+ */
+export function effectiveGrowth(scenario: Scenario, years: number): number {
+  const { capital, monthly, head } = scenario;
+  if (!head || head.length < 2 || years <= 0 || (capital <= 0 && monthly <= 0)) return scenario.realReturn;
+  const target = valueAt(scenario, years * 12);
+  // The total rises with the growth, so halving the interval finds it.
+  let low = -0.99;
+  let high = 2;
+  for (let step = 0; step < 80; step++) {
+    const middle = (low + high) / 2;
+    if (futureValueWithContributions(capital, monthly, middle, years) < target) low = middle;
+    else high = middle;
+  }
+  return (low + high) / 2;
+}
+
 // ---------------------------------------------------------------------------
 // Result
 // ---------------------------------------------------------------------------
 
 export interface Result {
   years: number;
+  /** The steady growth a year that gives `total` (see effectiveGrowth). */
+  growthRate: number;
   /** What the money is worth after `years`. */
   total: number;
   /** What the user put in: today's capital plus every monthly amount. */
@@ -143,6 +165,7 @@ export function resultOf(scenario: Scenario, investment: ResolvedInvestment, yea
   const rates = [...new Set([...WITHDRAWAL_CHOICES, scenario.withdrawalRate])];
   return {
     years,
+    growthRate: effectiveGrowth(scenario, years),
     total,
     putIn,
     growth: total - putIn,
