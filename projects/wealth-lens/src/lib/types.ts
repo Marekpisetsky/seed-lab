@@ -74,15 +74,15 @@ export type Investment =
  * - buy: an item of the "Buy it" list (src/data/connections.json, its id);
  * - buy-own: something of the user's own, at the price they give;
  * - amount: an amount to reach;
- * - income: a monthly amount the money should pay (their spending, a
- *   mortgage, anything), with an optional name.
+ * - monthly: a monthly amount the money should pay (expenses, a mortgage,
+ *   anything), with an optional label the user writes.
  */
 export type Goal =
   | { id: string; kind: "live"; country: string; housing: boolean }
   | { id: string; kind: "buy"; item: string }
   | { id: string; kind: "buy-own"; name: string; amount: number }
   | { id: string; kind: "amount"; amount: number }
-  | { id: string; kind: "income"; amount: number; name: string | null };
+  | { id: string; kind: "monthly"; amount: number; label: string | null };
 
 /** A goal before it gets its id. */
 export type NewGoal = Goal extends infer G ? (G extends Goal ? Omit<G, "id"> : never) : never;

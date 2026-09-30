@@ -240,9 +240,9 @@ export interface ItemStatus {
 
 export interface GoalStatus {
   goal: Goal;
-  /** "Live in Peru", "A used car", "Reach €100,000", "An income of €1,500 a month". */
+  /** "Live in Peru", "A used car", "Reach €100,000", "My mortgage" (a monthly amount's label). */
   name: string;
-  /** "with housing", "without housing", the income's own name, or nothing. */
+  /** "with housing", "without housing", or nothing. */
   detail: string | null;
   /** monthly: a cost the withdrawals pay every month; once: an amount to have. */
   kind: "monthly" | "once";
@@ -294,10 +294,10 @@ function shapeOf(goal: Goal, items: ReadonlyMap<string, PricedItem>, countries: 
       return { name: goal.name, detail: null, kind: "once", amount: goal.amount, source: "Your own price." };
     case "amount":
       return { name: `Reach ${formatEur(goal.amount)}`, detail: null, kind: "once", amount: goal.amount, source: "Your own amount." };
-    case "income":
+    case "monthly":
       return {
-        name: `An income of ${formatEur(goal.amount)} a month`,
-        detail: goal.name,
+        name: goal.label ? goal.label.charAt(0).toUpperCase() + goal.label.slice(1) : "A monthly amount",
+        detail: null,
         kind: "monthly",
         amount: goal.amount,
         source: "Your own amount.",

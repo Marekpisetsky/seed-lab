@@ -147,10 +147,13 @@ export function parseGoalItem(value: unknown): Goal | null {
       return isName(value.name) && isAmount(value.amount) ? { id, kind: "buy-own", name: value.name.trim(), amount: value.amount } : null;
     case "amount":
       return isAmount(value.amount) ? { id, kind: "amount", amount: value.amount } : null;
+    case "monthly":
+    // Version 4 called it "income", with its label in "name".
     case "income":
-      return isAmount(value.amount)
-        ? { id, kind: "income", amount: value.amount, name: isName(value.name) ? value.name.trim() : null }
-        : null;
+    case "spending": {
+      const label = [value.label, value.name].find(isName);
+      return isAmount(value.amount) ? { id, kind: "monthly", amount: value.amount, label: label ? label.trim() : null } : null;
+    }
     default:
       return null;
   }
@@ -191,7 +194,7 @@ function parseOwnItem(value: unknown): OwnItem | null {
 function ownAsGoal(item: OwnItem): NewGoal {
   // Version 1's euro goal, carried by version 2 as "My goal".
   if (item.id === "goal" && item.name === "My goal") return { kind: "amount", amount: item.amount };
-  return item.kind === "buy" ? { kind: "buy-own", name: item.name, amount: item.amount } : { kind: "income", amount: item.amount, name: item.name };
+  return item.kind === "buy" ? { kind: "buy-own", name: item.name, amount: item.amount } : { kind: "monthly", amount: item.amount, label: item.name };
 }
 
 /** The one goal a version 3 mission, a version 2 pinned connection or a version 1 goal named. */

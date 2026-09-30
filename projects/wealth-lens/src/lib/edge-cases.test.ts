@@ -30,7 +30,7 @@ const goals: Goal[] = [
   { id: "b", kind: "buy", item: "used-car" },
   { id: "c", kind: "buy-own", name: "Boat", amount: 15_000 },
   { id: "d", kind: "amount", amount: 100_000 },
-  { id: "e", kind: "income", amount: 1500, name: null },
+  { id: "e", kind: "monthly", amount: 1500, label: null },
 ];
 
 /** Every text the page shows for this calculation. */

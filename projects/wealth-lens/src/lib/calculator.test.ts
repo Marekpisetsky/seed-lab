@@ -128,7 +128,7 @@ describe("goals", () => {
   const car: Goal = { id: "b", kind: "buy", item: "used-car" };
   const boat: Goal = { id: "c", kind: "buy-own", name: "A boat", amount: 15_000 };
   const amount: Goal = { id: "d", kind: "amount", amount: 100_000 };
-  const income: Goal = { id: "e", kind: "income", amount: 1500, name: "My rent" };
+  const income: Goal = { id: "e", kind: "monthly", amount: 1500, label: "my rent" };
 
   it("there are none unless the user adds some", () => {
     expect(calculate(plan(), [], today).goals).toEqual([]);
@@ -140,7 +140,10 @@ describe("goals", () => {
     expect(b).toMatchObject({ name: "A used car", kind: "once", amount: 24_326, target: 24_326 });
     expect(c).toMatchObject({ name: "A boat", kind: "once", target: 15_000 });
     expect(d).toMatchObject({ name: "Reach €100,000", kind: "once", target: 100_000 });
-    expect(e).toMatchObject({ name: "An income of €1,500 a month", detail: "My rent", kind: "monthly", target: (1500 * 12) / 0.04 });
+    expect(e).toMatchObject({ name: "My rent", detail: null, kind: "monthly", amount: 1500, target: (1500 * 12) / 0.04 });
+    // Without a label it is just what it is.
+    const [unnamed] = calculate(plan({ goals: [{ id: "u", kind: "monthly", amount: 900, label: null }] }), [], today).goals;
+    expect(unnamed).toMatchObject({ name: "A monthly amount", kind: "monthly", target: (900 * 12) / 0.04 });
     const withoutHousing = calculate(plan({ goals: [{ ...live, housing: false }] }), [], today).goals[0];
     expect(withoutHousing).toMatchObject({ detail: "without housing", amount: 470 });
   });

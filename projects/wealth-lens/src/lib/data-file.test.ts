@@ -11,7 +11,7 @@ const state: AppState = {
     goals: [
       { id: "a", kind: "live", country: "PT", housing: true },
       { id: "b", kind: "buy-own", name: "Boat", amount: 15_000 },
-      { id: "c", kind: "income", amount: 1200, name: "Half-time" },
+      { id: "c", kind: "monthly", amount: 1200, label: "Half-time" },
     ],
     investment: { kind: "portfolio" },
     withdrawalRate: 0.035,
@@ -39,14 +39,14 @@ describe("data file", () => {
 
   it("says what the file is and when it was saved", () => {
     const json = JSON.parse(serializeState(state, new Date("2026-09-29T10:00:00Z")));
-    expect(json).toMatchObject({ kind: "wealth-lens-data", version: 4, savedAt: "2026-09-29T10:00:00.000Z" });
+    expect(json).toMatchObject({ kind: "wealth-lens-data", version: 5, savedAt: "2026-09-29T10:00:00.000Z" });
     expect(dataFileName(new Date("2026-09-29T10:00:00Z"))).toBe("wealth-lens-2026-09-29.json");
   });
 
   it("refuses files that are not Wealth Lens data", () => {
     expect(parseDataFile("not json")).toEqual({ ok: false, error: expect.stringMatching(/not valid JSON/) });
     expect(parseDataFile('{"holdings": []}')).toEqual({ ok: false, error: expect.stringMatching(/not a Wealth Lens/) });
-    expect(parseDataFile('{"kind": "wealth-lens-data", "version": 5}')).toEqual({
+    expect(parseDataFile('{"kind": "wealth-lens-data", "version": 6}')).toEqual({
       ok: false,
       error: expect.stringMatching(/newer version/),
     });
@@ -119,6 +119,31 @@ describe("data file", () => {
     // No mission chosen yet: no goals, and the calculator still works.
     expect(goals(v3(null))).toEqual([]);
     expect(goals(v3({ kind: "amount", amount: -5 }))).toEqual([]);
+  });
+
+  it("reads version 4 files: income goals become monthly amounts, their name the label", () => {
+    const v4 = JSON.stringify({
+      kind: "wealth-lens-data",
+      version: 4,
+      plan: {
+        invested: 1000,
+        monthlyContribution: 200,
+        years: 20,
+        goals: [
+          { id: "a", kind: "income", amount: 1500, name: "My spending" },
+          { id: "b", kind: "income", amount: 900, name: null },
+          { id: "c", kind: "amount", amount: 50_000 },
+        ],
+      },
+      holdings: [],
+      uploadedPrices: {},
+    });
+    const result = parseDataFile(v4);
+    expect(result.ok && result.state.plan.goals).toEqual([
+      { id: "a", kind: "monthly", amount: 1500, label: "My spending" },
+      { id: "b", kind: "monthly", amount: 900, label: null },
+      { id: "c", kind: "amount", amount: 50_000 },
+    ]);
   });
 
   it("keeps the valid parts of a damaged file", () => {
