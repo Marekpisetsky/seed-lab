@@ -134,7 +134,7 @@ export function CalculatorCard() {
   const close = useCallback(() => setPicker(null), []);
   const open = (mode: "choose" | "add", anchor: HTMLElement) => setPicker({ mode, top: anchor.offsetTop + anchor.offsetHeight + 4 });
   const mix = plan.investment.kind === "mix" ? plan.investment : null;
-  const shownName = mix ? `Mix (${mix.parts.length} part${mix.parts.length === 1 ? "" : "s"})` : plan.investment.kind === "stock" ? `${current.name} (${plan.investment.id})` : current.name;
+  const shownName = mix ? `Mix of ${mix.parts.length}` : plan.investment.kind === "stock" ? `${current.name} (${plan.investment.id})` : current.name;
 
   return (
     <section aria-label="Calculator" className="relative grid grid-cols-2 gap-x-3 gap-y-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-4">
