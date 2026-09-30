@@ -134,7 +134,8 @@ export function CalculatorCard() {
   const close = useCallback(() => setPicker(null), []);
   const open = (mode: "choose" | "add", anchor: HTMLElement) => setPicker({ mode, top: anchor.offsetTop + anchor.offsetHeight + 4 });
   const mix = plan.investment.kind === "mix" ? plan.investment : null;
-  const shownName = mix ? `Mix of ${mix.parts.length}` : plan.investment.kind === "stock" ? `${current.name} (${plan.investment.id})` : current.name;
+  const shownName = mix ? `Mix of ${mix.parts.length}` : current.name;
+  const ticker = plan.investment.kind === "stock" ? plan.investment.id : null;
 
   return (
     <section aria-label="Calculator" className="relative grid grid-cols-2 gap-x-3 gap-y-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-4">
@@ -203,10 +204,12 @@ export function CalculatorCard() {
           // The list closes on a press outside it; this button toggles it instead.
           onPointerDown={(event) => event.nativeEvent.stopPropagation()}
           onClick={(event) => (picker ? close() : open("choose", event.currentTarget))}
-          className="flex w-full items-center justify-between gap-2 rounded-md border border-border bg-background px-3 py-2 text-left text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
+          className="flex w-full items-center justify-between gap-1 rounded-md border border-border bg-background px-2.5 py-2 text-left text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 sm:px-3"
         >
           <span id="invested-in-value" className="min-w-0 truncate">
             <Changed value={shownName} />
+            {/* The ticker only where there is room for it. */}
+            {ticker && <span className="hidden text-muted sm:inline"> ({ticker})</span>}
           </span>
           <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted" />
         </button>
