@@ -16,6 +16,8 @@ herramienta y la prueba de los principios.
   usa). Los peldanos siguientes todavia no existen.
 - El hub (portada de seed-lab, EN/ES, paginas estaticas sin cookies):
   [`hub/`](hub/README.md).
+- Alojamiento: hoy en Vercel (EE. UU.). Plan para pasar a Europa, sin
+  migrar todavia: [`docs/hosting.md`](docs/hosting.md).
 
 Un holding de tres niveles:
 
