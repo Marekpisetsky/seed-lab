@@ -22,10 +22,9 @@ estáticos gratis o casi gratis y termina con **una** recomendación.
   - Wealth Lens: `next build` con `output: "export"` escribe `out/`
     (HTML, CSS, JS y los datos en `public/data/`). Pocos MB.
   - Hub: `npm run build` escribe `hub/dist/`. Unos 100 KB.
-- **Una tarea diaria** (`.github/workflows/update-prices.yml`, que llega
-  a `master` con la PR de Wealth Lens pendiente): descarga precios, hace
-  commit en `master` y ese push provoca el despliegue de Wealth Lens.
-  Necesita un CI con salida a internet.
+- **Una tarea diaria** (`.github/workflows/update-prices.yml`): descarga
+  precios, hace commit en `master` y ese push provoca el despliegue de
+  Wealth Lens. Necesita un CI con salida a internet.
 - Tráfico: bajo. No hay cifras porque no medimos visitas (principio 1).
 - Regla del holding: **cero coste** para existir.
 
