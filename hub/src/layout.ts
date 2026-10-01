@@ -6,7 +6,7 @@ import { SEED } from "./icons.ts";
 import { STYLES } from "./styles.ts";
 import { EMAIL, EMAIL_SCRIPT, hasEmail } from "./email.ts";
 import { SITE_URL } from "./site.ts";
-import { TOOLS } from "./content.ts";
+import { TOOLS, toolHref } from "./content.ts";
 
 /** What the footer says about the page's own weight, in bytes. */
 export interface Weight {
@@ -26,7 +26,7 @@ export interface PageInput {
 /** The address a word in a dictionary link stands for, in the page's language; "[email](email)" is the email address. */
 export function linkTo(locale: Locale): (href: string) => string | Html {
   const named: Readonly<Record<string, string | Html>> = {
-    "wealth-lens": TOOLS[0].url,
+    "wealth-lens": toolHref(TOOLS[0], locale),
     email: EMAIL,
   };
   return (href) => named[href] ?? (href.startsWith("/") ? localePath(href, locale) : href);
@@ -119,7 +119,7 @@ ${page.body}
 <div class="wrap">
 <nav aria-label="${m.site.footerNav}">
 <ul>
-${TOOLS.filter((tool) => tool.status === "live").map((tool) => html`<li><a href="${tool.url}">${tool.name}</a></li>`)}
+${TOOLS.filter((tool) => tool.status === "live").map((tool) => html`<li><a href="${toolHref(tool, locale)}">${tool.name}</a></li>`)}
 <li><a href="${localePath(PAGES.principles, locale)}">${m.site.nav.principles}</a></li>
 <li><a href="${localePath(PAGES.about, locale)}">${m.site.nav.about}</a></li>
 <li><a href="${localePath(PAGES.roadmap, locale)}"${id === "roadmap" ? raw(' aria-current="page"') : ""}>${m.site.roadmap}</a></li>

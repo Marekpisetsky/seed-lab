@@ -47,7 +47,7 @@ export const en = {
     tableTitle: "How each product meets them",
     tableIntro: "Checked against the rules above. What is still missing is on the [roadmap](/roadmap/).",
     product: "Product",
-    status: { meets: "Meets", partly: "Partly", pending: "Pending" },
+    status: { meets: "Meets", progress: "In progress", partly: "Partly", pending: "Pending" },
     items: [
       {
         id: "device",
@@ -127,7 +127,7 @@ export const en = {
     missingTitle: "Still missing",
     missingIntro: "The gaps behind each Partly and Pending on the [principles](/principles/) page.",
     missing: [
-      "Move every product to a host in the EU. Today they run on Vercel, in the US.",
+      "Move every product to a host in the EU: under way, to statichost.eu in Sweden. Until then they run on Vercel, in the US.",
       "Find a European home for the code. Today it is kept on GitHub, in the US.",
       "More of the EU's 24 official languages. Today: English and Spanish.",
       "A WCAG audit by people, and a public accessibility statement.",
@@ -177,7 +177,7 @@ export const en = {
         heading: "This site",
         body: [
           "No cookies, no analytics, no tracking. It is plain HTML and CSS, plus two tiny scripts: one picks your language, one makes the email address a link.",
-          "For now it is hosted on Vercel, in the US, like Wealth Lens. We plan to move both to a European host.",
+          "For now it is hosted on Vercel, in the US, like Wealth Lens. Both are moving to statichost.eu, in Sweden.",
         ],
       },
     ],

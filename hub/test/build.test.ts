@@ -3,12 +3,14 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 import { build, DIST } from "../src/build.ts";
-import { BLOCKS, PRINCIPLE_IDS, TOOLS, parseBlocks, parseTools } from "../src/content.ts";
+import site from "../../deploy/site.json" with { type: "json" };
+import { BLOCKS, PRINCIPLE_IDS, TOOLS, parseBlocks, parseTools, toolHref } from "../src/content.ts";
 import { en } from "../src/i18n/en.ts";
 import { es } from "../src/i18n/es.ts";
 import { LOCALE_SETTINGS, LOCALES, PAGES, localePath } from "../src/i18n/index.ts";
 import type { Locale } from "../src/i18n/index.ts";
 import { BRAND, FAVICON, TOUCH_ICON } from "../src/icons.ts";
+import { SITE_URL } from "../src/site.ts";
 import { measure } from "../src/weight.ts";
 
 const report = build();
@@ -76,8 +78,11 @@ describe("the build", () => {
   });
 
   it("links only to pages that exist", () => {
+    // A tool's folder (/wealth-lens/…) is another build: deploy/combine.mjs checks those links in the whole site.
+    const toolFolders = TOOLS.map((tool) => tool.url).filter((url) => url.startsWith("/"));
     for (const { file, text } of HTML) {
       for (const [, href] of text.matchAll(/href="(\/[^"#]*)/g)) {
+        if (toolFolders.some((folder) => href.startsWith(folder))) continue;
         const target = href.endsWith("/") ? join(DIST, href, "index.html") : join(DIST, href);
         assert.ok(existsSync(target), `${file} links to ${href}`);
       }
@@ -167,6 +172,8 @@ describe("honesty", () => {
     assert.throws(() => parseTools([{ ...tool, tagline: { en: "T" } }]), /needs a text in es/);
     assert.throws(() => parseTools([{ ...tool, status: "beta" }]), /status/);
     assert.throws(() => parseTools([{ ...tool, url: "http://example.org" }]), /https/);
+    assert.throws(() => parseTools([{ ...tool, url: "wealth-lens/" }]), /https/);
+    assert.equal(parseTools([{ ...tool, url: "/t/" }])[0].url, "/t/");
     assert.throws(() => parseTools([{ ...tool, languages: ["fr"] }]), /languages/);
     assert.throws(() => parseTools([{ ...tool, principles: { ...tool.principles, light: { status: "almost", note } } }]), /status for the light principle/);
     assert.throws(() => parseTools([{ ...tool, principles: { ...tool.principles, speed: { status: "meets", note } } }]), /unknown principles speed/);
@@ -182,7 +189,7 @@ describe("honesty", () => {
       assert.match(commitments, /350 KB/, `${locale}: the weight limit is published`);
       assert.equal((table.match(/<tr><th scope="row">/g) ?? []).length, live.length, locale);
       assert.match(table, /<tr><th scope="row"><a href="[^"]+">Wealth Lens<\/a><\/th>/, `${locale}: Wealth Lens is the first row`);
-      assert.equal((table.match(/class="state (meets|partly|pending)"/g) ?? []).length, live.length * PRINCIPLE_IDS.length, locale);
+      assert.equal((table.match(/class="state (meets|progress|partly|pending)"/g) ?? []).length, live.length * PRINCIPLE_IDS.length, locale);
     }
     for (const tool of live) assert.match(tool.principles.light.note.en, /350 KB/, `${tool.id}: weight against the limit`);
   });
@@ -339,5 +346,44 @@ describe("the words", () => {
     const shape = (value: unknown): unknown =>
       Array.isArray(value) ? value.map(shape) : value && typeof value === "object" ? Object.fromEntries(Object.entries(value).map(([key, inner]) => [key, shape(inner)])) : typeof value;
     assert.deepEqual(shape(es), shape(en));
+  });
+});
+
+describe("one site: the hub at the root, the tools in folders", () => {
+  const wealthLens = TOOLS.find((tool) => tool.id === "wealth-lens");
+
+  it("takes the site's address from deploy/site.json, the one place to change it", () => {
+    assert.equal(SITE_URL, site.origin);
+    for (const { file, text } of HTML) {
+      for (const [, url] of text.matchAll(/(?:rel="canonical"|hreflang="[^"]+"|property="og:(?:url|image)") (?:href|content)="([^"]+)"/g)) {
+        assert.ok(url.startsWith(`${site.origin}/`), `${file}: ${url}`);
+      }
+    }
+    const robots = readFileSync(join(DIST, "robots.txt"), "utf8");
+    assert.match(robots, new RegExp(`Sitemap: ${site.origin}/sitemap.xml\n`));
+    assert.match(robots, new RegExp(`Sitemap: ${site.origin}${site.wealthLensPath}/sitemap.xml\n`));
+  });
+
+  it("links Wealth Lens in its folder of the same site, in the page's language", () => {
+    assert.equal(wealthLens?.url, `${site.wealthLensPath}/`);
+    assert.ok(wealthLens);
+    assert.equal(toolHref(wealthLens, "en"), "/wealth-lens/");
+    assert.equal(toolHref(wealthLens, "es"), "/wealth-lens/es/");
+    assert.equal(toolHref({ url: "https://example.org", languages: ["en", "es"] }, "es"), "https://example.org");
+    for (const locale of LOCALES) {
+      const home = readFileSync(join(DIST, localePath(PAGES.home, locale), "index.html"), "utf8");
+      const links = [...home.matchAll(/href="([^"]*wealth-lens[^"]*)"/g)].map(([, href]) => href);
+      assert.ok(links.length > 0, locale);
+      assert.deepEqual([...new Set(links)], [locale === "en" ? "/wealth-lens/" : "/wealth-lens/es/"], locale);
+    }
+    for (const { file, text } of HTML) assert.doesNotMatch(text, /vercel\.app/, file);
+  });
+
+  it("says hosting in Europe is in progress for Wealth Lens until the move is live", () => {
+    assert.equal(wealthLens?.principles.europe.status, "progress");
+    for (const locale of LOCALES) {
+      const table = readFileSync(join(DIST, localePath(PAGES.principles, locale), "index.html"), "utf8").split('id="products"')[1];
+      assert.match(table, locale === "en" ? /class="state progress"><span aria-hidden="true">→<\/span> In progress</ : /class="state progress"><span aria-hidden="true">→<\/span> En curso</, locale);
+    }
   });
 });

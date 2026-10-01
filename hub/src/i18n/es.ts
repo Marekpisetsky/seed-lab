@@ -42,7 +42,7 @@ export const es: Messages = {
     tableTitle: "Cómo lo cumple cada producto",
     tableIntro: "Comprobado con las reglas de arriba. Lo que falta está en la [hoja de ruta](/roadmap/).",
     product: "Producto",
-    status: { meets: "Cumple", partly: "En parte", pending: "Pendiente" },
+    status: { meets: "Cumple", progress: "En curso", partly: "En parte", pending: "Pendiente" },
     items: [
       {
         id: "device",
@@ -122,7 +122,7 @@ export const es: Messages = {
     missingTitle: "Lo que falta",
     missingIntro: "Lo que hay detrás de cada «En parte» y «Pendiente» de la página de [principios](/principles/).",
     missing: [
-      "Llevar todos los productos a un alojamiento en la UE. Hoy funcionan en Vercel, en EE. UU.",
+      "Llevar todos los productos a un alojamiento en la UE: en curso, a statichost.eu en Suecia. Hasta entonces funcionan en Vercel, en EE. UU.",
       "Encontrar un sitio europeo para el código. Hoy se guarda en GitHub, en EE. UU.",
       "Más de las 24 lenguas oficiales de la UE. Hoy: inglés y español.",
       "Una auditoría WCAG hecha por personas y una declaración de accesibilidad pública.",
@@ -169,7 +169,7 @@ export const es: Messages = {
         heading: "Esta web",
         body: [
           "Sin cookies, sin analítica, sin rastreo. Es HTML y CSS, más dos scripts mínimos: uno elige tu idioma y otro convierte el correo en un enlace.",
-          "Por ahora está alojada en Vercel, en EE. UU., igual que Wealth Lens. Queremos llevar las dos a un alojamiento europeo.",
+          "Por ahora está alojada en Vercel, en EE. UU., igual que Wealth Lens. Las dos están en traslado a statichost.eu, en Suecia.",
         ],
       },
     ],

@@ -90,10 +90,14 @@ Para verlo en local: `npx serve dist`.
 ## Añadir un producto o un bloque
 
 - Producto: una entrada en `content/tools.json` con `name`, `status`
-  (`live` o `coming`; la portada solo muestra los `live`), `url` (https),
+  (`live` o `coming`; la portada solo muestra los `live`), `url` (https,
+  o su carpeta en este mismo sitio, como `/wealth-lens/`: entonces el
+  enlace abre en el idioma de la página, `/wealth-lens/es/`, y
+  `robots.txt` apunta a su `sitemap.xml`),
   `languages`, `tagline` y `description` en cada idioma, y `principles`:
-  para cada uno de los cinco principios, `status` (`meets`, `partly` o
-  `pending`) y una nota corta en cada idioma. Es su fila en la tabla de
+  para cada uno de los cinco principios, `status` (`meets`, `progress`
+  —en curso: el cambio está listo y en marcha, aún sin efecto—, `partly`
+  o `pending`) y una nota corta en cada idioma. Es su fila en la tabla de
   *Principles*. El build falla si falta algo.
 - Bloque: una entrada en `content/blocks.json`; aparece en *Roadmap* como
   previsto. Solo puede ser `live` con la dirección (`url`) donde está
