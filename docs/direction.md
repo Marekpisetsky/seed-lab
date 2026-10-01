@@ -47,8 +47,8 @@ debe presentarlos como existentes.
 | 4 | Infraestructura a escala continental. | — | Todavía no existe |
 
 Como no recogemos datos, el "uso real sostenido" del peldaño 1 no se mide
-con analítica. Se ve en señales públicas que no piden nada a nadie: issues
-y preguntas en GitHub, menciones, forks, personas que la recomiendan.
+con analítica. Se ve en señales que no piden nada a nadie: correos que
+llegan a la dirección de contacto, menciones, personas que la recomiendan.
 
 ## Misión
 
