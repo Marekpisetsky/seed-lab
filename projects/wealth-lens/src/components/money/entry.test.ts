@@ -21,9 +21,11 @@ vi.mock("@/hooks/use-app", () => ({ useAppState: () => app.state }));
 const today = parseIsoDate("2026-09-30");
 const filled: AppState = { ...INITIAL_STATE, plan: EXAMPLE_PLAN };
 
+const Provider = I18nProvider as React.FC<{ locale: Locale; children?: React.ReactNode }>;
+
 function render(locale: Locale, state: AppState, element: React.ReactElement): string {
   app.state = state;
-  return renderToStaticMarkup(createElement(I18nProvider, { locale, children: element }));
+  return renderToStaticMarkup(createElement(Provider, { locale }, element));
 }
 
 const decode = (html: string) => html.replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
