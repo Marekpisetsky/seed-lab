@@ -36,7 +36,10 @@ function Plot({ id, period, label, fundLabel }: { id: LinePeriodId; period: Line
   const margin = (high - low) * 0.06 || 0.01;
   const top = high + margin;
   const bottom = low - margin;
-  const plotRight = Math.max(PAD.left + 40, width - PAD.right);
+  const axis = changeTicks(bottom, top).map((value) => ({ value, label: f.percent(value, { signed: value !== 0, decimals: 0 }) }));
+  // Room at the right for the longest axis label ("+1,000%", "+1.000 %").
+  const padRight = Math.max(PAD.right, Math.ceil(Math.max(...axis.map((tick) => tick.label.length)) * FONT * 0.62) + 6);
+  const plotRight = Math.max(PAD.left + 40, width - padRight);
   const x = (index: number) => PAD.left + ((days[index] - days[0]) / Math.max(1, days[days.length - 1] - days[0])) * (plotRight - PAD.left);
   const y = (change: number) => PAD.top + ((top - change) / (top - bottom)) * (HEIGHT - PAD.top - PAD.bottom);
   const path = (values: readonly number[]) => values.map((value, index) => `${index === 0 ? "M" : "L"}${x(index).toFixed(1)},${y(value).toFixed(1)}`).join("");
@@ -73,7 +76,7 @@ function Plot({ id, period, label, fundLabel }: { id: LinePeriodId; period: Line
         onPointerMove={showAt}
         onPointerLeave={(event) => event.pointerType === "mouse" && setHover(null)}
       >
-        {changeTicks(bottom, top).map((value) => (
+        {axis.map(({ value, label: text }) => (
           <g key={value}>
             <line
               x1={PAD.left}
@@ -85,7 +88,7 @@ function Plot({ id, period, label, fundLabel }: { id: LinePeriodId; period: Line
               strokeDasharray={value === 0 ? "3 3" : undefined}
             />
             <text x={plotRight + 4} y={y(value) + FONT / 3} fontSize={FONT} fill="var(--muted)">
-              {f.percent(value, { signed: value !== 0, decimals: 0 })}
+              {text}
             </text>
           </g>
         ))}
