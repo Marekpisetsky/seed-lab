@@ -415,12 +415,28 @@ idiomas (`src/app/not-found.tsx`). Sus textos viven en los diccionarios
 (`about`, `howItWorks`, `privacy`, `terms`, `notFound`), con frases de hasta
 unas 22 palabras; *How it works* cita cifras sacadas de los datos (países,
 errores de la estimación, países excluidos, inflación alta), así que no se
-desactualiza. El pie enlaza las cuatro, GitHub y "Part of seed-lab".
-Contacto: solo GitHub Issues, sin correo publicado. Código con licencia
-MIT (`LICENSE`). Icono propio (`src/app/icon.svg`, y `favicon.ico` y
+desactualiza. El pie enlaza las cuatro y "Part of seed-lab", y termina con
+"© 2026 seed-lab. Free to use." Contacto: solo GitHub Issues, sin correo
+publicado. Código propietario: ver `LICENSE` y `TRADEMARKS.md` en la raíz
+del repositorio. Icono propio (`src/app/icon.svg`, y `favicon.ico` y
 `apple-icon.png` dibujados a partir de él) e imagen para compartir de
 1200×630 generada en el build (`src/app/og.png/route.tsx`, estática, la
 misma para todas las páginas y los dos idiomas).
+
+## Identidad visual
+
+Los colores viven en `src/app/tokens.css`, el mismo archivo, byte a byte,
+que usa el hub (`hub/src/tokens.css`), para que las dos webs se vean como
+una familia: blanco puro o casi negro (#0A0A0A), grises neutros sin tinte
+cálido y un único color de marca, azul eléctrico (#0055FF en claro,
+#4D8DFF en oscuro, el mismo tono un paso más claro para mantener AA sobre
+negro). Todo texto mantiene al menos 4,5:1 sobre el fondo, la tarjeta, el
+relleno sutil y su propio tinte del 10 %; los dos colores del gráfico
+pasan las comprobaciones de daltonismo y contraste como pareja.
+`globals.css` solo los importa y los nombra para Tailwind. Tipografía del
+sistema (sin fuentes descargadas), títulos en extra-negrita.
+`src/app/tokens.test.ts` comprueba que el archivo es idéntico al del hub y
+que el icono y la imagen para compartir usan sus valores.
 
 ## Lanzador de seed-lab
 

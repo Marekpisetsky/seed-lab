@@ -4,13 +4,11 @@ import Link from "next/link";
 import { useI18n } from "@/components/i18n";
 import { localePath } from "@/i18n/locales";
 import { SEED_LAB_HUB_URL } from "@/lib/seed-lab";
-import { ISSUES_URL, LICENSE_URL, PROJECT_URL } from "@/lib/site";
+import { ISSUES_URL } from "@/lib/site";
 
 /** Link names a dictionary may use instead of an address: "[Open an issue](issues)". */
 const NAMED_LINKS: Readonly<Record<string, string>> = {
   issues: ISSUES_URL,
-  repo: PROJECT_URL,
-  license: LICENSE_URL,
   hub: SEED_LAB_HUB_URL,
 };
 

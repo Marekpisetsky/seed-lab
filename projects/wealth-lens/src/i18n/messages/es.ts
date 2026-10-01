@@ -28,7 +28,7 @@ export const es: Messages = {
     language: "Idioma",
     footerNote: "No se guarda ni se envía nada. No es consejo financiero.",
     footer: "Más sobre Wealth Lens",
-    github: "GitHub",
+    copyright: "© 2026 seed-lab. De uso gratuito.",
     partOf: "Parte de seed-lab",
     seedLab: "seed-lab",
   },
@@ -55,12 +55,12 @@ export const es: Messages = {
       },
       {
         heading: "Parte de seed-lab",
-        body: ["Wealth Lens es el primer proyecto de [seed-lab](hub): herramientas pequeñas, gratuitas y abiertas, hechas a la vista de todos."],
+        body: ["Wealth Lens es la primera herramienta de [seed-lab](hub): herramientas pequeñas y gratuitas para Europa que dejan tus datos en tu dispositivo."],
       },
       {
         heading: "Quién lo hace",
         body: [
-          "Lo hace [Marekpisetsky](https://github.com/Marekpisetsky) en GitHub. El código es abierto, con licencia MIT: [míralo en GitHub](repo).",
+          "Lo hace [Marek Pisetsky](https://github.com/Marekpisetsky). Wealth Lens es de uso gratuito. Su código es de seed-lab.",
           "¿Preguntas, ideas o un error que contar? [Abre un issue en GitHub](issues). No hay correo, a propósito.",
         ],
       },
@@ -257,7 +257,7 @@ export const es: Messages = {
       "Otras no permiten copiar sus datos: Yahoo Finance, Stooq, Numbeo, Wise, MSCI, Nasdaq y la LBMA.",
       "De esas, Wealth Lens solo publica cifras que calcula: costes redondeados, crecimiento anual, cambios de cada año, líneas semanales desde 100 y el último precio de cada fondo.",
       "Nunca publica sus tablas ni sus precios diarios, y siempre dice de dónde sale cada cifra.",
-      "El código es abierto, con [licencia MIT](license). Los datos conservan los derechos de sus dueños.",
+      "El método y las fuentes son públicos. El código es de seed-lab. Los datos conservan los derechos de sus dueños.",
     ],
   },
   privacy: {
@@ -299,7 +299,7 @@ export const es: Messages = {
   },
   terms: {
     title: "Condiciones",
-    updated: "Actualizado el 30 de septiembre de 2026.",
+    updated: "Actualizado el 1 de octubre de 2026.",
     sections: [
       {
         heading: "No es consejo financiero",
@@ -321,8 +321,13 @@ export const es: Messages = {
         body: ["Tú decides qué hacer con tu dinero, y usas Wealth Lens bajo tu propia responsabilidad. Sus autores no responden de pérdidas ni decisiones basadas en él."],
       },
       {
-        heading: "El código y los datos",
-        body: ["El código es abierto, con [licencia MIT](license).", "Los datos son de sus fuentes, que conservan sus derechos. [Cómo funciona](/how-it-works) las enumera todas."],
+        heading: "De uso gratuito",
+        body: [
+          "Cualquiera puede usar Wealth Lens gratis, en su web.",
+          "El código es de seed-lab. Sin permiso por escrito, no se puede copiar, modificar, distribuir ni usar para crear otros productos.",
+          "Los nombres y logotipos de seed-lab y Wealth Lens son marcas. No se pueden usar sin permiso por escrito.",
+          "Los datos son de sus fuentes, que conservan sus derechos. [Cómo funciona](/how-it-works) las enumera todas.",
+        ],
       },
       { heading: "Cambios", body: ["Estas condiciones pueden cambiar. La fecha de arriba dice cuándo cambiaron por última vez."] },
     ] as ProseSection[],

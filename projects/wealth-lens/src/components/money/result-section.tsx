@@ -178,13 +178,13 @@ export function ResultSection({ bundle }: { bundle: CalculationBundle }) {
         </div>
         {/* The total, and beside it (below it when there is no room) what growth added in all and a year. */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <p className="flex items-center gap-2 text-4xl font-bold tracking-tight tabular-nums sm:text-5xl">
+          <p className="flex items-center gap-2 text-4xl font-extrabold tracking-tight tabular-nums sm:text-5xl">
             <Changed value={f.eur(result.total)} />
             <Help what={m.result.inYears(years)} text={m.help.total} />
           </p>
           <GrowthBadge result={result} />
         </div>
-        <p className="mt-1 text-xl font-semibold tabular-nums sm:text-2xl">
+        <p className="mt-1 text-xl font-bold tabular-nums sm:text-2xl">
           <Changed value={grows} />{" "}
           <span className="whitespace-nowrap text-sm font-normal text-muted">
             <Changed value={beforeInflationText(toNominal(result.growthRate, investment.inflation), i18n)} />
