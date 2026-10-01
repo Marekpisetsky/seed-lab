@@ -7,16 +7,14 @@
  *   wealth-lens/src/app/apple-icon.png    180 × 180, its icon on near-black
  *   wealth-lens/src/app/favicon.ico       16, 32 and 48 px
  *
- * Needs a Chromium through Playwright, which is not a dependency of the
- * hub: PLAYWRIGHT=<path to playwright's index.mjs> npm run images
+ * Draws with Playwright's Chromium (a dev dependency): `npm run images`
+ * installs that browser first if it is missing, then runs this script.
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
+import { chromium } from "playwright";
 import { BRAND, INK, SEED_MARK, TOUCH_ICON } from "../src/icons.ts";
 import { messages } from "../src/i18n/index.ts";
-
-// Not a dependency, so untyped: { chromium } from Playwright.
-const { chromium } = await import(process.env.PLAYWRIGHT ?? "playwright");
 
 const root = new URL("../../", import.meta.url);
 const at = (path: string) => new URL(path, root);
