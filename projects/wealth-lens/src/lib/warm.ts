@@ -56,7 +56,7 @@ export function warmUp(rates: readonly number[]): void {
       mixFigures(mix, amounts);
     },
     () => {
-      const own = resolveInvestment({ kind: "custom" }, [], { pricesOf: "NL", assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.07 } });
+      const own = resolveInvestment({ kind: "custom" }, [], { pricesOf: "NL", assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.05 } });
       successRatesFor(own, rates);
     },
   ];

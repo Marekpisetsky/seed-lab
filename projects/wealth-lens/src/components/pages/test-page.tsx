@@ -7,7 +7,7 @@ import type { Locale } from "@/i18n/locales";
 export function TestPage({ locale }: { locale: Locale }) {
   const { m } = getI18n(locale);
   return (
-    <Site locale={locale}>
+    <Site>
       <PageHeader title={m.test.title} question={m.test.question} />
       <TestModule />
     </Site>

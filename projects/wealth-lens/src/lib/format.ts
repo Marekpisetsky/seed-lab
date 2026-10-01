@@ -36,6 +36,8 @@ export interface NumberFormats {
   rate(rate: number): string;
   /** Plain number with up to `maxDecimals` fraction digits (share counts). */
   number(value: number, maxDecimals?: number): string;
+  /** Whole number with its thousands always marked, as an example to copy: "1,000", "1.000". */
+  grouped(value: number): string;
   /** "." or ",": how this language writes 1.5, so typed numbers are read its way. */
   decimalSeparator: string;
   /** Exactly `decimals` fraction digits: 0.9, 2 → "0.90" ("0,90"). */
@@ -113,6 +115,9 @@ function createFormats(intl: string): NumberFormats {
     },
     number(value, maxDecimals = 4) {
       return spaces(numberFormat(`number|${maxDecimals}`, { maximumFractionDigits: maxDecimals }).format(value));
+    },
+    grouped(value) {
+      return spaces(numberFormat("grouped", { maximumFractionDigits: 0, useGrouping: "always" }).format(value));
     },
     fixed(value, decimals) {
       return spaces(numberFormat(`fixed|${decimals}`, { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(shown(value, decimals)));

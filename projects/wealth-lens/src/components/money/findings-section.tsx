@@ -1,10 +1,10 @@
 "use client";
 
 import { ChevronDown, TriangleAlert } from "lucide-react";
-import { useState } from "react";
 import { useI18n } from "@/components/i18n";
 import { Changed } from "@/components/ui/changed";
-import { findingsFor, type CalculationBundle } from "@/hooks/use-calculation";
+import { findingsFor } from "@/hooks/calculation-details";
+import type { CalculationBundle } from "@/hooks/use-calculation";
 import type { Finding } from "@/lib/findings";
 
 function FindingCard({ finding }: { finding: Finding }) {
@@ -39,8 +39,8 @@ function FindingCard({ finding }: { finding: Finding }) {
   );
 }
 
-/** The findings, worked out only once the section is open. */
-function Findings({ bundle }: { bundle: CalculationBundle }) {
+/** The findings, worked out only once their card is open. */
+export function Findings({ bundle }: { bundle: CalculationBundle }) {
   const i18n = useI18n();
   const findings = findingsFor(bundle, i18n);
   if (findings.length === 0) return <p className="text-sm text-muted">{i18n.m.findings.nothing}</p>;
@@ -52,24 +52,5 @@ function Findings({ bundle }: { bundle: CalculationBundle }) {
         </li>
       ))}
     </ul>
-  );
-}
-
-/**
- * "What you should know", folded: two or three findings over the years
- * chosen (about the first goal when there is one), always in the same
- * order. Closed, it costs nothing: they are worked out on opening.
- */
-export function FindingsSection({ bundle }: { bundle: CalculationBundle }) {
-  const { m } = useI18n();
-  const [open, setOpen] = useState(false);
-  return (
-    <details className="group/section rounded-xl border border-border" onToggle={(event) => setOpen(event.currentTarget.open)}>
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
-        {m.findings.title}
-        <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted transition-transform group-open/section:rotate-180" />
-      </summary>
-      <div className="px-3 pb-3">{open && <Findings bundle={bundle} />}</div>
-    </details>
   );
 }

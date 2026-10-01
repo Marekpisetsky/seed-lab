@@ -91,10 +91,9 @@ export interface MixPart {
  */
 export interface AssumptionOverrides {
   /**
-   * Growth a year as banks and news quote it: before rising prices. Every
-   * projection turns it into growth after rising prices with the plan's
-   * inflation (lib/investment.ts), so a bank's 5 % grows less where prices
-   * rise faster.
+   * Growth a year after rising prices, as the user typed it in "My %"
+   * (Custom growth): the one number the calculator shows; its equivalent
+   * before rising prices is only shown beside it.
    */
   growth: number | null;
   /** Swings a year: the standard deviation of yearly log returns. */
@@ -133,10 +132,10 @@ export type NewGoal = Goal extends infer G ? (G extends Goal ? Omit<G, "id"> : n
  * All rates are decimal fractions: 0.07 means 7 %.
  */
 export interface Plan {
-  /** Amount invested, typed in the calculator. Priced EUR holdings win. */
-  invested: number;
-  /** Added every month, in BASE_CURRENCY, constant in today's money. */
-  monthlyContribution: number;
+  /** Amount invested, typed in the calculator; `null` until it is typed (a first visit asks). Priced EUR holdings win. */
+  invested: number | null;
+  /** Added every month, in BASE_CURRENCY, constant in today's money; `null` until it is typed. */
+  monthlyContribution: number | null;
   investment: Investment;
   /** How many years ahead the result looks: 1 to 60. */
   years: number;

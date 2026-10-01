@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/components/i18n";
+import { IntentLink } from "@/components/ui/intent-link";
 import { LOCALE_SETTINGS, LOCALES, localePath, splitPath } from "@/i18n/locales";
 
 /**
@@ -20,7 +20,7 @@ export function LanguageSwitch() {
           const current = option === locale;
           return (
             <li key={option}>
-              <Link
+              <IntentLink
                 href={localePath(path, option)}
                 hrefLang={option}
                 lang={option}
@@ -32,7 +32,7 @@ export function LanguageSwitch() {
                 }`}
               >
                 {settings.label}
-              </Link>
+              </IntentLink>
             </li>
           );
         })}

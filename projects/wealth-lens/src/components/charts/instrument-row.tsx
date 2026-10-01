@@ -1,9 +1,9 @@
 "use client";
 
 import { Check } from "lucide-react";
-import Link from "next/link";
 import { useI18n } from "@/components/i18n";
 import { Button } from "@/components/ui/button";
+import { IntentLink } from "@/components/ui/intent-link";
 import { useAppState } from "@/hooks/use-app";
 import { setInvestment } from "@/lib/app-store";
 import { INDEXES } from "@/lib/indexes";
@@ -83,9 +83,9 @@ function InstrumentPanel({ instrument }: { instrument: Instrument }) {
             <Check aria-hidden="true" className="size-4" />
             {t.chosen(name)}
           </span>
-          <Link href={localePath("/", locale)} className="text-accent underline-offset-2 hover:underline">
+          <IntentLink href={localePath("/", locale)} className="text-accent underline-offset-2 hover:underline">
             {t.seeWhat}
-          </Link>
+          </IntentLink>
         </p>
       ) : (
         <Button variant="primary" onClick={() => setInvestment(investment)}>

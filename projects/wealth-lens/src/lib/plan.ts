@@ -16,12 +16,21 @@ export interface StartingCapital {
  * Holdings win once there are any: their EUR value at current prices. Before
  * that, the amount typed on "My money".
  */
-export function startingCapital(holdings: readonly Holding[], invested: number): StartingCapital {
+export function startingCapital(holdings: readonly Holding[], invested: number | null): StartingCapital {
   if (holdings.length > 0) {
     const eur = summarizeByCurrency(holdings).find((summary) => summary.currency === BASE_CURRENCY);
     return { amount: eur?.value ?? 0, source: "holdings" };
   }
-  return { amount: invested, source: "answer" };
+  return { amount: invested ?? 0, source: "answer" };
+}
+
+/**
+ * Whether there is a result to show: both amounts are known, what the
+ * user has (typed, or their holdings) and what they add each month. Until
+ * then My money only asks; 0 is an answer, an empty field is not.
+ */
+export function planReady(plan: { invested: number | null; monthlyContribution: number | null }, holdings: readonly Holding[]): boolean {
+  return (holdings.length > 0 || plan.invested !== null) && plan.monthlyContribution !== null;
 }
 
 /**

@@ -36,7 +36,7 @@ export function HowItWorksPage({ locale }: { locale: Locale }) {
   const i18n = getI18n(locale);
   const t = i18n.m.howItWorks;
   return (
-    <Site locale={locale}>
+    <Site>
       <PageHeader title={t.title} question={t.lead} />
       <div className="max-w-2xl space-y-8">
         <Prose sections={t.sections(facts(i18n))} />

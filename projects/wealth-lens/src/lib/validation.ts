@@ -8,7 +8,7 @@
 import { isAssetId } from "./assets";
 import { countryByCode, DEFAULT_PRICES_OF, referenceInflation } from "./cost-of-living";
 import { isIndexId, type IndexId } from "./indexes";
-import { toNominal } from "./investment";
+import { resolveInvestment, toReal } from "./investment";
 import { instrumentById, instrumentForHolding } from "./market-data";
 import { MAX_PARTS, mixPartKey, mixStock } from "./mix";
 import { problem, type Problem } from "./problems";
@@ -22,14 +22,14 @@ export const DEFAULT_GOAL: LegacyGoal = { amount: 100_000, targetDate: null };
 export const MAX_AMOUNT = 1e9;
 
 /**
- * A first visit starts with these: real, editable values (EUR 1,000, EUR 200
- * a month, the S&P 500 with its standard assumptions, prices of the
- * Netherlands, 20 years), so the calculator shows a result from the first
- * second. No goals: the user adds them if they want.
+ * A first visit starts with these: the amounts empty, to be typed (the page
+ * shows only the questions until they are), the S&P 500 with its standard
+ * assumptions, prices of the Netherlands and 20 years. No goals: the user
+ * adds them if they want.
  */
 export const DEFAULT_PLAN: Plan = {
-  invested: 1000,
-  monthlyContribution: 200,
+  invested: null,
+  monthlyContribution: null,
   investment: { kind: "asset", asset: "sp500" },
   years: 20,
   withdrawalRate: 0.04,
@@ -37,6 +37,12 @@ export const DEFAULT_PLAN: Plan = {
   assumptions: STANDARD_ASSUMPTIONS,
   goals: [],
 };
+
+/** The examples the empty fields show in grey ("e.g. 1,000"), never used as data. */
+export const EXAMPLE_AMOUNTS = { invested: 1000, monthlyContribution: 200 } as const;
+
+/** The first visit's plan with the example amounts typed in: what the examples would give. */
+export const EXAMPLE_PLAN: Plan = { ...DEFAULT_PLAN, ...EXAMPLE_AMOUNTS };
 
 /** The most swings a year accepted: 100 % (more says nothing a plan can use). */
 export const MAX_VOLATILITY = 1;
@@ -201,36 +207,48 @@ export function parseInvestment(value: unknown, holdings: readonly Holding[] = [
   }
 }
 
-/**
- * Growth typed after rising prices, as the growth banks and news quote
- * (before them) that gives the very same growth after them with this
- * inflation: a file's result does not change.
- */
-function quotedFromAfterPrices(rate: number, inflation: number): number | null {
-  const quoted = toNominal(rate, inflation);
-  return isRate(quoted) ? quoted : null;
+/** The data file version whose plans store the growth after rising prices as one number (see parseAssumptions). */
+const GROWTH_AFTER_PRICES_SINCE = 8;
+
+/** Growth before rising prices as the growth after them with this inflation: the very same result. */
+function afterPrices(rate: number, inflation: number): number | null {
+  const real = toReal(rate, inflation);
+  return isRate(real) ? real : null;
 }
 
 /**
  * The user's changes to the standard assumptions; a bad field keeps the
- * standard one. The growth is the one banks and news quote (version 7).
- * Version 6 stored it as typed, before or after rising prices ({ rate,
- * basis }); growth after them becomes the quoted growth that gives it with
- * the file's inflation (its own, or `pricesOf`'s), so the result is the
- * same.
+ * standard one. The growth is after rising prices (version 8). Version 7
+ * stored one number as banks quote it, before rising prices; version 6
+ * `{ rate, basis }`, before or after them. Growth before them becomes the
+ * growth after them with the file's inflation (its own, or `pricesOf`'s),
+ * so the result is the same.
  */
-export function parseAssumptions(value: unknown, pricesOf: string = DEFAULT_PRICES_OF): AssumptionOverrides {
+export function parseAssumptions(value: unknown, pricesOf: string = DEFAULT_PRICES_OF, version: number = GROWTH_AFTER_PRICES_SINCE): AssumptionOverrides {
   if (!isRecord(value)) return STANDARD_ASSUMPTIONS;
   const volatility = isFiniteNumber(value.volatility) && value.volatility >= 0 && value.volatility <= MAX_VOLATILITY ? value.volatility : null;
   const inflation = isRate(value.inflation) ? value.inflation : null;
+  const fileInflation = inflation ?? referenceInflation(pricesOf).rate;
   let growth: AssumptionOverrides["growth"] = null;
-  if (isRate(value.growth)) growth = value.growth;
+  if (isRate(value.growth)) growth = version >= GROWTH_AFTER_PRICES_SINCE ? value.growth : afterPrices(value.growth, fileInflation);
   else if (isRecord(value.growth) && isRate(value.growth.rate)) {
     const { rate, basis } = value.growth;
-    if (basis === "nominal") growth = rate;
-    if (basis === "real") growth = quotedFromAfterPrices(rate, inflation ?? referenceInflation(pricesOf).rate);
+    if (basis === "nominal") growth = afterPrices(rate, fileInflation);
+    if (basis === "real") growth = rate;
   }
   return { growth, volatility, inflation };
+}
+
+/**
+ * Since version 8 a typed growth is "My %", Custom growth: the calculator
+ * shows one number and its chips are investments. A file that changed the
+ * growth of an asset, a mix or the portfolio becomes Custom growth with that
+ * growth and the ups and downs it had, so its result does not change.
+ */
+function withGrowthAsCustom(investment: Investment, assumptions: AssumptionOverrides, pricesOf: string, holdings: readonly Holding[]): { investment: Investment; assumptions: AssumptionOverrides } {
+  if (assumptions.growth === null || investment.kind === "custom") return { investment, assumptions };
+  const volatility = resolveInvestment(investment, holdings, { pricesOf, assumptions: { ...assumptions, growth: null } }).volatility;
+  return { investment: { kind: "custom" }, assumptions: { ...assumptions, volatility } };
 }
 
 const ID_PATTERN = /^[A-Za-z0-9-]{1,40}$/;
@@ -359,31 +377,30 @@ function goalsFromEarlierVersions(value: Record<string, unknown>): Goal[] {
  * become changed assumptions. `holdings` are the file's, and what the
  * app no longer does is said in `notices`.
  */
-export function parsePlan(value: unknown, holdings: readonly Holding[] = [], notices: Notices = []): Plan | null {
+export function parsePlan(value: unknown, holdings: readonly Holding[] = [], notices: Notices = [], version: number = GROWTH_AFTER_PRICES_SINCE): Plan | null {
   if (!isRecord(value)) return null;
   const pick = <K extends keyof Plan>(key: K, parse: (v: unknown) => Plan[K] | null | undefined): Plan[K] =>
     parse(value[key]) ?? DEFAULT_PLAN[key];
-  const amount = (v: unknown) => (isNonNegativeNumber(v) && v <= MAX_AMOUNT ? v : 0);
+  // Saved before it was typed (version 8): still to type. Missing or bad: 0, never the examples.
+  const amount = (v: unknown) => (v === null && version >= GROWTH_AFTER_PRICES_SINCE ? null : isNonNegativeNumber(v) && v <= MAX_AMOUNT ? v : 0);
   const pricesOf = typeof value.pricesOf === "string" && countryByCode(value.pricesOf) ? value.pricesOf : DEFAULT_PRICES_OF;
-  let assumptions = parseAssumptions(value.assumptions, pricesOf);
+  let assumptions = parseAssumptions(value.assumptions, pricesOf, version);
   if (!("assumptions" in value)) {
     const inflation = isRate(value.inflation) && Math.abs(value.inflation - referenceInflation(pricesOf).rate) > 1e-9 ? value.inflation : null;
     const investment = isRecord(value.investment) ? value.investment : {};
-    const growth =
-      investment.kind === "custom" && isRate(investment.realReturn)
-        ? quotedFromAfterPrices(investment.realReturn, inflation ?? referenceInflation(pricesOf).rate)
-        : null;
+    const growth = investment.kind === "custom" && isRate(investment.realReturn) ? investment.realReturn : null;
     assumptions = { growth, volatility: null, inflation };
   }
+  const chosen = withGrowthAsCustom(parseInvestment(value.investment, holdings, notices) ?? DEFAULT_PLAN.investment, assumptions, pricesOf, holdings);
   return {
     invested: amount(value.invested),
     monthlyContribution: amount(value.monthlyContribution),
-    investment: parseInvestment(value.investment, holdings, notices) ?? DEFAULT_PLAN.investment,
+    investment: chosen.investment,
     // Versions 2 and 3 called it horizonYears.
     years: [value.years, value.horizonYears].find(isYears) ?? DEFAULT_PLAN.years,
     withdrawalRate: pick("withdrawalRate", (v) => (isRate(v) && v > 0 ? v : null)),
     pricesOf,
-    assumptions,
+    assumptions: chosen.assumptions,
     goals: "goals" in value ? parseGoals(value.goals) : goalsFromEarlierVersions(value),
   };
 }

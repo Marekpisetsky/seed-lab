@@ -46,9 +46,12 @@ lint, tipos y tests.
   4,5:1 (WCAG AA) en los dos modos, que los grises son neutros y que el
   verde queda lejos del de NVIDIA (#76B900).
 - **Iconos:** la semilla con brote (`src/icons.ts`), en formas rellenas
-  para que se lea a 16 px. `npm run images` (necesita Playwright, ver el
-  script) dibuja `static/apple-touch-icon.png`, `static/og.png` y los
-  iconos raster de Wealth Lens a partir de los SVG.
+  para que se lea a 16 px. `npm run images` dibuja
+  `static/apple-touch-icon.png`, `static/og.png` y los iconos raster de
+  Wealth Lens a partir de los SVG, con el Chromium de Playwright
+  (dependencia de desarrollo, fijada en 1.56.1: la versión cuyo navegador
+  ya traen los entornos en la nube de Claude Code; en otra máquina el
+  comando lo instala primero si falta).
 - **Peso visible:** el pie de cada página dice cuánto pesa (HTML con su
   CSS, más el icono), sin comprimir y con gzip. Se mide al construir y se
   vuelve a generar la página hasta que el número que muestra es el real

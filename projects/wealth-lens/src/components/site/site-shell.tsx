@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect } from "react";
 import { FooterDataControls } from "@/components/data-controls";
 import { useI18n } from "@/components/i18n";
 import { LegacyDataNotice } from "@/components/legacy-data-notice";
 import { MainNav } from "@/components/main-nav";
+import { IntentLink } from "@/components/ui/intent-link";
 import { localePath, PAGES } from "@/i18n/locales";
 import { SEED_LAB_HUB_URL } from "@/lib/seed-lab";
 import { LanguageSwitch } from "./language-switch";
@@ -30,9 +30,9 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       </a>
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
-          <Link href={localePath("/", locale)} className="flex min-h-11 items-center text-lg font-extrabold tracking-tight">
+          <IntentLink href={localePath("/", locale)} className="flex min-h-11 items-center text-lg font-extrabold tracking-tight">
             {m.site.name}
-          </Link>
+          </IntentLink>
           <div className="flex items-center gap-2">
             <LanguageSwitch />
             <SeedLabLauncher />
@@ -54,9 +54,9 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
             <ul className="-mx-2 flex flex-wrap items-center text-sm">
               {(["about", "howItWorks", "privacy", "terms"] as const).map((page) => (
                 <li key={page}>
-                  <Link href={localePath(PAGES[page], locale)} className={footerLink}>
+                  <IntentLink href={localePath(PAGES[page], locale)} className={footerLink}>
                     {m[page].title}
-                  </Link>
+                  </IntentLink>
                 </li>
               ))}
               <li>

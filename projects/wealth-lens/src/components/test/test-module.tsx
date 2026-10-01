@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n";
 import { Help } from "@/components/ui/help";
+import { IntentLink } from "@/components/ui/intent-link";
 import { Marked } from "@/components/ui/marked";
 import { useCalculation } from "@/hooks/use-calculation";
 import { investmentName } from "@/i18n/investment-text";
@@ -131,7 +131,7 @@ export function TestModule() {
   const i18n = useI18n();
   const { locale, m, f } = i18n;
   const t = m.test;
-  const { base } = useCalculation();
+  const { base, ready } = useCalculation();
   const { scenario } = base;
   const planYears = base.result.years;
   const source = useMemo(() => historySource(base.investment), [base.investment]);
@@ -149,13 +149,24 @@ export function TestModule() {
     }
   };
 
+  if (!ready) {
+    return (
+      <div className="space-y-1">
+        <p className="text-base">{t.notReady}</p>
+        <IntentLink href={localePath("/", locale)} className="-ml-1 inline-flex min-h-11 items-center px-1 text-sm font-medium text-accent underline-offset-2 hover:underline">
+          {t.goWrite}
+        </IntentLink>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="space-y-1">
         <p className="text-sm">{t.plan(f.eur(scenario.capital), f.eur(scenario.monthly), investmentName(base.investment, i18n), planYears)}</p>
-        <Link href={localePath("/", locale)} className="-ml-1 inline-flex min-h-11 items-center px-1 text-sm font-medium text-accent underline-offset-2 hover:underline">
+        <IntentLink href={localePath("/", locale)} className="-ml-1 inline-flex min-h-11 items-center px-1 text-sm font-medium text-accent underline-offset-2 hover:underline">
           {t.change}
-        </Link>
+        </IntentLink>
         <p className="text-sm font-medium">{t.realHistory}</p>
       </div>
 

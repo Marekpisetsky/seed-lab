@@ -5,7 +5,7 @@ import { calculate, effectiveGrowth, valueAt, whatIfEffects, type CalculatorPlan
 import { parseIsoDate } from "./dates";
 import { futureValueWithContributions, monthlyWithdrawal, monthsToGoal, requiredCapital, requiredMonthlyContribution } from "./finance";
 import { formatShare, gainedShareOf, multipleOf } from "./growth";
-import { DEFAULT_PLAN } from "./validation";
+import { EXAMPLE_PLAN } from "./validation";
 
 const ES = getI18n("es");
 const whenText = EN.f.when;
@@ -134,7 +134,7 @@ const plans = fc.record({
   withdrawalRate: fc.constantFrom(0.03, 0.04, 0.05),
   investment: assets,
 });
-const planOf = (patch: Partial<CalculatorPlan>): CalculatorPlan => ({ ...DEFAULT_PLAN, goals: [], ...patch });
+const planOf = (patch: Partial<CalculatorPlan>): CalculatorPlan => ({ ...EXAMPLE_PLAN, goals: [], ...patch });
 
 describe("the whole calculation", () => {
   it("adds up: put in, growth, income and the growth line agree with the total", () => {

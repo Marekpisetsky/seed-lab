@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronDown, Plus } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n";
 import { Changed } from "@/components/ui/changed";
@@ -13,7 +13,8 @@ function useItems() {
   return useMemo(() => [...pricedItems()].sort((a, b) => a.amount - b.amount || a.id.localeCompare(b.id)), []);
 }
 
-function Things({ scenario, goals }: { scenario: Scenario; goals: readonly Goal[] }) {
+/** The purchase list with ✓ now or when the plan gets there, each addable to My goals. */
+export function Things({ scenario, goals }: { scenario: Scenario; goals: readonly Goal[] }) {
   const { m, f } = useI18n();
   const t = m.things;
   const items = useItems();
@@ -64,26 +65,5 @@ function Things({ scenario, goals }: { scenario: Scenario; goals: readonly Goal[
         );
       })}
     </ul>
-  );
-}
-
-/**
- * "Things you could buy", folded: the purchase list with ✓ now or when the
- * plan gets there, each addable to My goals. Worked out when opened.
- */
-export function ThingsSection({ scenario, goals }: { scenario: Scenario; goals: readonly Goal[] }) {
-  const { m } = useI18n();
-  const [open, setOpen] = useState(false);
-  return (
-    <details className="group rounded-xl border border-border" onToggle={(event) => setOpen(event.currentTarget.open)}>
-      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
-        {m.things.title}
-        <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted transition-transform group-open:rotate-180" />
-      </summary>
-      <div className="px-4 pb-3">
-        {open && <Things scenario={scenario} goals={goals} />}
-        {open && <p className="pt-2 text-xs text-muted">{m.things.note}</p>}
-      </div>
-    </details>
   );
 }

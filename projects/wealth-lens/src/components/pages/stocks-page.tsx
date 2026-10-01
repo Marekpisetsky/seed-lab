@@ -7,7 +7,7 @@ import type { Locale } from "@/i18n/locales";
 export function StocksPage({ locale }: { locale: Locale }) {
   const { m } = getI18n(locale);
   return (
-    <Site locale={locale}>
+    <Site>
       <PageHeader title={m.stocks.title} question={m.stocks.question} />
       <StocksModule />
     </Site>

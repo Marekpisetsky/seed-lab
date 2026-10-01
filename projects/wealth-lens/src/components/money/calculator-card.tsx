@@ -1,60 +1,64 @@
 "use client";
 
 import { ChevronDown, Minus, Plus } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
+import { useEffect, useId, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n";
 import { Changed } from "@/components/ui/changed";
 import { SettledNumberInput } from "@/components/ui/form";
 import { useAppState } from "@/hooks/use-app";
 import { offeredRates } from "@/hooks/use-calculation";
-import { setInvestment, updatePlan } from "@/lib/app-store";
+import { updatePlan } from "@/lib/app-store";
+import { optionsChanged } from "@/lib/assumptions";
 import { priceHoldings } from "@/lib/auto-price";
 import { resolveInvestment } from "@/lib/investment";
 import { startingCapital } from "@/lib/plan";
-import { mixPartKey, mixStock } from "@/lib/mix";
-import { portfolioAllocation } from "@/lib/portfolio";
 import { warmUp } from "@/lib/warm";
 import { MONTHLY_STEP, stepValue, YEARS_STEP } from "@/lib/step";
-import type { Investment } from "@/lib/types";
-import { AssumptionsPanel } from "./assumptions-panel";
-import { InvestmentPicker, type PickChoice } from "./investment-picker";
-import { MixEditor } from "./mix-editor";
-import { PortfolioEditor } from "./portfolio-editor";
-import { MAX_AMOUNT, MAX_YEARS_AHEAD, MIN_YEARS } from "@/lib/validation";
-import { selectorParts } from "@/i18n/investment-text";
+import { EXAMPLE_AMOUNTS, MAX_AMOUNT, MAX_YEARS_AHEAD, MIN_YEARS } from "@/lib/validation";
+import { GrowthChips } from "./growth-chips";
 
-const labelClass = "block text-xs font-medium text-muted";
+/** Mixes, My portfolio, ups and downs and rising prices: loaded when "More options" is opened. */
+const MoreOptions = dynamic(() => import("./more-options").then((module) => module.MoreOptions), {
+  loading: () => <div aria-hidden="true" className="h-24" />,
+});
 
-/** A number field with a unit in front (€) or behind (years). */
-function Field({ label, children, className = "" }: { label: string; children: React.ReactNode; className?: string }) {
-  return (
-    <label className={`block min-w-0 space-y-1 ${className}`}>
-      <span className={labelClass}>{label}</span>
-      {children}
-    </label>
-  );
-}
+const questionClass = "block text-base font-semibold";
+/** An example in an empty field: grey and slanted, plainly not data. */
+const exampleClass = "placeholder:italic placeholder:text-muted";
 
 /** An amount in euros, with "€" where the page's language writes it: before ("€1,000") or after ("1000 €"). */
-function EuroInput({ label, value, onCommit, className }: { label: string; value: number; onCommit: (value: number) => void; className?: string }) {
-  const { f } = useI18n();
+function EuroQuestion({ label, value, example, onCommit, onEmpty }: { label: string; value: number | null; example: number; onCommit: (value: number) => void; onEmpty: () => void }) {
+  const { m, f } = useI18n();
+  const id = useId();
   const before = f.eur(1).startsWith("€");
   return (
-    <Field label={label} className={className}>
+    <div className="min-w-0 space-y-1.5">
+      <label htmlFor={id} className={questionClass}>
+        {label}
+      </label>
       <span className="relative block">
         <span aria-hidden="true" className={`pointer-events-none absolute inset-y-0 flex items-center text-muted ${before ? "left-3" : "right-3"}`}>
           €
         </span>
-        <SettledNumberInput value={value} onCommit={onCommit} max={MAX_AMOUNT} placeholder="0" className={`text-base ${before ? "pl-7" : "pr-7"}`} />
+        <SettledNumberInput
+          id={id}
+          value={value}
+          onCommit={onCommit}
+          onEmpty={onEmpty}
+          max={MAX_AMOUNT}
+          placeholder={m.calculator.example(f.grouped(example))}
+          className={`text-base ${exampleClass} ${before ? "pl-7" : "pr-7"}`}
+        />
       </span>
-    </Field>
+    </div>
   );
 }
 
 const stepButton =
   "flex size-11 shrink-0 items-center justify-center rounded-md border border-border bg-background text-muted hover:text-foreground disabled:opacity-40";
 
-/** A field with − and + on its sides: one step at once, no typing pause. */
+/** A question with − and + beside its field: one step at once, no typing pause. */
 function Stepped({
   label,
   less,
@@ -63,7 +67,6 @@ function Stepped({
   onMore,
   atMin,
   atMax,
-  className = "",
   children,
 }: {
   label: string;
@@ -73,19 +76,19 @@ function Stepped({
   onMore: () => void;
   atMin: boolean;
   atMax: boolean;
-  className?: string;
-  children: React.ReactNode;
+  children: (id: string) => React.ReactNode;
 }) {
+  const id = useId();
   return (
-    <div className={`min-w-0 space-y-1 ${className}`}>
-      <span aria-hidden="true" className={labelClass}>
+    <div className="min-w-0 space-y-1.5">
+      <label htmlFor={id} className={questionClass}>
         {label}
-      </span>
-      <div className="flex items-center gap-0.5 sm:gap-1">
+      </label>
+      <div className="flex max-w-72 items-center gap-1">
         <button type="button" aria-label={less} disabled={atMin} onClick={onLess} className={stepButton}>
           <Minus aria-hidden="true" className="size-4" />
         </button>
-        <span className="relative block min-w-0 flex-1">{children}</span>
+        <span className="relative block min-w-0 flex-1">{children(id)}</span>
         <button type="button" aria-label={more} disabled={atMax} onClick={onMore} className={stepButton}>
           <Plus aria-hidden="true" className="size-4" />
         </button>
@@ -94,36 +97,14 @@ function Stepped({
   );
 }
 
-/** The picker's key for the plan's choice: "asset:sp500", "portfolio", "mix", "custom". */
-function keyOf(investment: Investment): string {
-  return investment.kind === "asset" ? `asset:${investment.asset}` : investment.kind;
-}
-
-/** A choice from the picker as the plan's investment; "A mix…" starts from what is chosen now. */
-function investmentFor(choice: PickChoice, current: Investment): Investment {
-  switch (choice.kind) {
-    case "asset":
-    case "portfolio":
-    case "custom":
-      return choice;
-    // Offered only for a mix's parts.
-    case "stock":
-      return current;
-    case "mix": {
-      if (current.kind === "mix") return current;
-      return { kind: "mix", parts: [{ asset: current.kind === "asset" ? current.asset : "sp500", weight: 100 }], rebalance: false };
-    }
-  }
-}
-
-const EMPTY: readonly string[] = [];
 const monthlyStep = { ...MONTHLY_STEP, max: MAX_AMOUNT };
 
 /**
- * The calculator, first and on its own: what you have, what you add each
- * month, what it is invested in, and for how many years. It starts with
- * real values (EUR 1,000, EUR 200, the S&P 500, 20 years) and changes the
- * result once the user has finished typing.
+ * The calculator, a few questions and nothing else: how much you have, how
+ * much you add each month, how much it grows a year (chips, or "My %") and
+ * for how many years. The amounts start empty, with an example in grey;
+ * the years start at 20. Mixes, My portfolio, ups and downs and rising
+ * prices wait in "More options", folded.
  */
 export function CalculatorCard() {
   const i18n = useI18n();
@@ -132,12 +113,9 @@ export function CalculatorCard() {
   const { plan, holdings, uploadedPrices } = useAppState();
   const priced = useMemo(() => priceHoldings(holdings, uploadedPrices), [holdings, uploadedPrices]);
   const capital = startingCapital(priced, plan.invested);
-  const hasPortfolio = portfolioAllocation(priced).entries.length > 0;
   const current = resolveInvestment(plan.investment, priced, plan);
-  const [picker, setPicker] = useState<{ mode: "choose" | "add"; top: number } | null>(null);
-  // What opened the list gets the focus back when it closes by a choice or Escape, so the keyboard never ends up nowhere.
-  const opener = useRef<HTMLElement | null>(null);
-  const [editing, setEditing] = useState(false);
+  const [more, setMore] = useState(false);
+  const moreId = useId();
   // Once the user starts using the page, idle moments work out ahead what the next choice will need
   // (not before: a page only looked at does no extra work).
   useEffect(() => {
@@ -146,82 +124,58 @@ export function CalculatorCard() {
     events.forEach((name) => window.addEventListener(name, start, { once: true, passive: true }));
     return () => events.forEach((name) => window.removeEventListener(name, start));
   }, [plan.withdrawalRate]);
-  const close = useCallback((refocus = false) => {
-    setPicker(null);
-    const element = opener.current;
-    if (refocus && element) requestAnimationFrame(() => element.isConnected && element.focus());
-  }, []);
-  const open = (mode: "choose" | "add", anchor: HTMLElement) => {
-    opener.current = anchor;
-    setPicker({ mode, top: anchor.offsetTop + anchor.offsetHeight + 4 });
-  };
-  const mix = plan.investment.kind === "mix" ? plan.investment : null;
-  const shownName = selectorParts(current, i18n);
+  const changed = optionsChanged(plan);
+  const monthly = plan.monthlyContribution;
 
   return (
-    <section aria-label={t.label} className="relative grid grid-cols-2 gap-x-3 gap-y-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-4">
-      {/* The same order everywhere, so Tab follows what the eye reads: on a phone "You have" and "Invested
-          in" side by side, then the two steppers in a row of their own (they need the width); on a wider
-          screen the four fields in one row. */}
+    <section aria-label={t.label} className="grid gap-x-6 gap-y-5 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 sm:p-5">
+      {/* The order the eye reads is the order Tab follows: have, add, grow, years. */}
       {capital.source === "holdings" ? (
-        <div className="min-w-0 space-y-1">
-          <p className={labelClass}>{t.youHave}</p>
+        <div className="min-w-0 space-y-1.5">
+          <p className={questionClass}>{t.haveQ}</p>
           <p className="py-1.5 text-base font-semibold">
             <Changed value={f.eur(capital.amount)} />
           </p>
           <p className="text-xs text-muted">{t.fromHoldings}</p>
         </div>
       ) : (
-        <EuroInput label={t.youHave} value={plan.invested} onCommit={(invested) => updatePlan({ invested })} />
+        <EuroQuestion
+          label={t.haveQ}
+          value={plan.invested}
+          example={EXAMPLE_AMOUNTS.invested}
+          onCommit={(invested) => updatePlan({ invested })}
+          onEmpty={() => updatePlan({ invested: null })}
+        />
       )}
-      <div className="min-w-0 space-y-1">
-        <span id="invested-in-label" className={labelClass}>
-          {t.investedIn}
-        </span>
-        <button
-          type="button"
-          aria-haspopup="listbox"
-          aria-expanded={picker?.mode === "choose"}
-          aria-labelledby="invested-in-label invested-in-value"
-          // The list closes on a press outside it; this button toggles it instead.
-          onPointerDown={(event) => event.nativeEvent.stopPropagation()}
-          onClick={(event) => (picker ? close() : open("choose", event.currentTarget))}
-          className="flex min-h-11 w-full items-center justify-between gap-1 rounded-md border border-border bg-background px-2.5 py-2 text-left text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 sm:px-3"
-        >
-          <span id="invested-in-value" className="min-w-0">
-            <span className="block truncate">
-              <Changed value={shownName.name} />
-            </span>
-            {/* Once a figure is the user's: "Custom", and what it started from below it, so a narrow screen never cuts the name. */}
-            {shownName.basedOn && (
-              // The name's last word stays with the one before it: "S&P 500" never splits.
-              <span className="block text-xs leading-tight text-muted">{shownName.basedOn.replace(/ (?=\S+$)/, "\u00a0")}</span>
-            )}
-          </span>
-          <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted" />
-        </button>
-      </div>
-      <div className="col-span-2 grid grid-cols-2 gap-x-2 sm:contents">
       <Stepped
-        label={t.monthly}
+        label={t.monthlyQ}
         less={t.lessMonthly}
         more={t.moreMonthly}
-        atMin={plan.monthlyContribution <= 0}
-        atMax={plan.monthlyContribution >= MAX_AMOUNT}
-        onLess={() => updatePlan({ monthlyContribution: stepValue(plan.monthlyContribution, -1, monthlyStep) })}
-        onMore={() => updatePlan({ monthlyContribution: stepValue(plan.monthlyContribution, 1, monthlyStep) })}
+        atMin={monthly === null || monthly <= 0}
+        atMax={monthly !== null && monthly >= MAX_AMOUNT}
+        onLess={() => updatePlan({ monthlyContribution: stepValue(monthly ?? 0, -1, monthlyStep) })}
+        onMore={() => updatePlan({ monthlyContribution: stepValue(monthly ?? 0, 1, monthlyStep) })}
       >
-        <SettledNumberInput
-          aria-label={t.monthlyInput}
-          value={plan.monthlyContribution}
-          onCommit={(monthlyContribution) => updatePlan({ monthlyContribution })}
-          max={MAX_AMOUNT}
-          placeholder="0"
-          className="px-1 text-center text-base"
-        />
+        {(id) => (
+          <SettledNumberInput
+            id={id}
+            value={monthly}
+            onCommit={(monthlyContribution) => updatePlan({ monthlyContribution })}
+            onEmpty={() => updatePlan({ monthlyContribution: null })}
+            max={MAX_AMOUNT}
+            placeholder={t.example(f.grouped(EXAMPLE_AMOUNTS.monthlyContribution))}
+            className={`px-1 text-center text-base ${exampleClass}`}
+          />
+        )}
       </Stepped>
+      <div className="min-w-0 space-y-2 sm:col-span-2">
+        <p aria-hidden="true" className={questionClass}>
+          {t.growthQ}
+        </p>
+        <GrowthChips current={current} label={t.growthQ} />
+      </div>
       <Stepped
-        label={t.years}
+        label={t.yearsQ}
         less={t.lessYear}
         more={t.moreYear}
         atMin={plan.years <= MIN_YEARS}
@@ -229,43 +183,35 @@ export function CalculatorCard() {
         onLess={() => updatePlan({ years: stepValue(plan.years, -1, YEARS_STEP) })}
         onMore={() => updatePlan({ years: stepValue(plan.years, 1, YEARS_STEP) })}
       >
-        <SettledNumberInput
-          aria-label={t.yearsInput}
-          value={plan.years}
-          onCommit={(years) => updatePlan({ years: Math.min(MAX_YEARS_AHEAD, Math.max(MIN_YEARS, Math.round(years))) })}
-          max={MAX_YEARS_AHEAD}
-          placeholder="20"
-          className="px-1 text-center text-base"
-        />
+        {(id) => (
+          <SettledNumberInput
+            id={id}
+            value={plan.years}
+            onCommit={(years) => updatePlan({ years: Math.min(MAX_YEARS_AHEAD, Math.max(MIN_YEARS, Math.round(years))) })}
+            max={MAX_YEARS_AHEAD}
+            placeholder="20"
+            className="px-1 text-center text-base"
+          />
+        )}
       </Stepped>
+      <div className="min-w-0 sm:col-span-2">
+        <button
+          type="button"
+          aria-expanded={more}
+          aria-controls={moreId}
+          onClick={() => setMore(!more)}
+          className="-ml-2 inline-flex min-h-11 items-center gap-1.5 rounded-md px-2 text-sm font-medium text-accent hover:bg-accent/10"
+        >
+          {m.more.title}
+          {changed && <span className="rounded bg-accent/10 px-1.5 py-0.5 text-xs">{m.assumptions.custom}</span>}
+          <ChevronDown aria-hidden="true" className={`size-4 transition-transform ${more ? "rotate-180" : ""}`} />
+        </button>
+        {more && (
+          <div id={moreId} className="mt-2">
+            <MoreOptions current={current} priced={priced} />
+          </div>
+        )}
       </div>
-      {mix && <MixEditor mix={mix} onAddPart={(anchor) => open("add", anchor)} />}
-      {current.investment.kind === "portfolio" && current.allocation && <PortfolioEditor allocation={current.allocation} model={current.model} />}
-      {picker && (
-        <InvestmentPicker
-          top={picker.top}
-          label={picker.mode === "add" ? t.addToMix : t.investedIn}
-          selected={picker.mode === "add" ? null : keyOf(plan.investment)}
-          hasPortfolio={picker.mode === "choose" && hasPortfolio}
-          holdingsCount={portfolioAllocation(priced).entries.length}
-          onlyAssets={picker.mode === "add"}
-          exclude={picker.mode === "add" && mix ? mix.parts.map(mixPartKey) : EMPTY}
-          onClose={close}
-          onPick={(choice) => {
-            if (picker.mode === "add" && mix) {
-              const stock = choice.kind === "stock" ? mixStock(choice.stock) : null;
-              if (choice.kind === "asset") setInvestment({ ...mix, parts: [...mix.parts, { asset: choice.asset, weight: 0 }] });
-              if (stock) setInvestment({ ...mix, parts: [...mix.parts, { asset: stock.index, weight: 0, stock: stock.id }] });
-            } else {
-              setInvestment(investmentFor(choice, plan.investment));
-              // Custom growth is only its figures: open them to be typed.
-              if (choice.kind === "custom") setEditing(true);
-            }
-            close(true);
-          }}
-        />
-      )}
-      <AssumptionsPanel investment={current} assumptions={plan.assumptions} open={editing} onOpen={setEditing} />
     </section>
   );
 }

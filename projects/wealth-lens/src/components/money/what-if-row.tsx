@@ -3,7 +3,8 @@
 import { X } from "lucide-react";
 import { useI18n } from "@/components/i18n";
 import { Changed } from "@/components/ui/changed";
-import { Help } from "@/components/ui/help";
+import { whatIfsFor } from "@/hooks/calculation-details";
+import type { CalculationBundle } from "@/hooks/use-calculation";
 import type { I18n } from "@/i18n";
 import { clearWhatIf, toggleWhatIf } from "@/lib/app-store";
 import type { WhatIfEffect, WhatIfId } from "@/lib/what-if";
@@ -33,22 +34,21 @@ export function WhatIfIndicator({ applied }: { applied: WhatIfId | null }) {
 }
 
 /**
- * "What if…?": five quick scenarios, each with what it changes in euros on
- * the plan as it is. Tapping one applies it to the whole screen, tapping
- * another switches, tapping the one applied takes it away. The row never
- * changes order or size: the chips have a fixed width and scroll sideways on
- * a phone.
+ * "What if…?", in its card: five quick scenarios, each with what it changes
+ * in euros on the plan as it is (worked out when the card is opened).
+ * Tapping one applies it to the whole screen, tapping another switches,
+ * tapping the one applied takes it away. The row never changes order or
+ * size: the chips have a fixed width and scroll sideways on a phone.
  */
-export function WhatIfRow({ effects, applied }: { effects: readonly WhatIfEffect[]; applied: WhatIfId | null }) {
+export function WhatIfRow({ bundle }: { bundle: CalculationBundle }) {
   const i18n = useI18n();
   const { m } = i18n;
+  const effects = whatIfsFor(bundle);
+  const applied = bundle.calc.whatIf;
   return (
-    <div className="space-y-1.5">
-      <p className="flex items-center gap-2 text-xs font-medium text-muted">
-        <span id="what-if-label">{m.whatIf.title}</span>
-        <Help what={m.whatIf.title} text={m.help.whatIf} />
-      </p>
-      <div role="group" aria-labelledby="what-if-label" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:px-0">
+    <div className="space-y-2">
+      <p className="text-sm text-muted">{m.help.whatIf}</p>
+      <div role="group" aria-label={m.whatIf.title} className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:px-0">
         {effects.map((effect) => {
           const pressed = applied === effect.id;
           const tone = !effect.available ? "text-muted" : effect.change >= 0 ? "text-positive" : "text-negative";

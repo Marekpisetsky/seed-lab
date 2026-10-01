@@ -221,7 +221,8 @@ describe("the components", () => {
   const files = [...sourceFiles(join(SRC, "components")), ...sourceFiles(join(SRC, "app"))];
 
   it("are read whole", () => {
-    expect(files.some((path) => path.endsWith("assumptions-panel.tsx"))).toBe(true);
+    expect(files.some((path) => path.endsWith("calculator-card.tsx"))).toBe(true);
+    expect(files.some((path) => path.endsWith("more-options.tsx"))).toBe(true);
     expect(literalTexts(join(SRC, "components/plain-language.fixture.tsx.txt"))).toEqual(["Hello there", 'aria-label="Close it"']);
   });
 

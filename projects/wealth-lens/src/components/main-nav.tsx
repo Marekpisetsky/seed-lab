@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/components/i18n";
+import { IntentLink } from "@/components/ui/intent-link";
 import { localePath, PAGES, splitPath } from "@/i18n/locales";
 
 const LINKS = ["money", "test", "stocks"] as const;
@@ -17,7 +17,7 @@ export function MainNav() {
           const active = path === PAGES[page];
           return (
             <li key={page}>
-              <Link
+              <IntentLink
                 href={localePath(PAGES[page], locale)}
                 aria-current={active ? "page" : undefined}
                 className={`flex min-h-11 items-center rounded-md px-2.5 py-2 font-medium transition-colors ${
@@ -25,7 +25,7 @@ export function MainNav() {
                 }`}
               >
                 {m.site.nav[page]}
-              </Link>
+              </IntentLink>
             </li>
           );
         })}

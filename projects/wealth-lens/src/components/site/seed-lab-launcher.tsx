@@ -1,9 +1,9 @@
 "use client";
 
 import { Check, LayoutGrid } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n";
+import { IntentLink } from "@/components/ui/intent-link";
 import { localePath } from "@/i18n/locales";
 import { SEED_LAB_HUB_URL, SEED_LAB_PROJECTS } from "@/lib/seed-lab";
 
@@ -77,9 +77,9 @@ export function SeedLabLauncher() {
             return (
               <li key={project.id}>
                 {project.url.startsWith("/") ? (
-                  <Link href={localePath(project.url, locale)} aria-current={project.current ? "true" : undefined} onClick={() => setOpen(false)} className={className}>
+                  <IntentLink href={localePath(project.url, locale)} aria-current={project.current ? "true" : undefined} onClick={() => setOpen(false)} className={className}>
                     {content}
-                  </Link>
+                  </IntentLink>
                 ) : (
                   <a href={project.url} rel="noopener" className={className}>
                     {content}

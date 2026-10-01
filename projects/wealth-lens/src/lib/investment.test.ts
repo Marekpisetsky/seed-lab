@@ -90,7 +90,7 @@ describe("standard assumptions: filled in from the data", () => {
 
 describe("assumptions the user changes", () => {
   it("turns the growth typed as banks quote it into growth after inflation, and switches the simulations to a normal distribution", () => {
-    const resolved = resolveInvestment({ kind: "asset", asset: "sp500" }, [], settings({ growth: toNominal(0.05, 0.02) }));
+    const resolved = resolveInvestment({ kind: "asset", asset: "sp500" }, [], settings({ growth: 0.05 }));
     expect(resolved.realReturn).toBeCloseTo(0.05, 12);
     expect(resolved).toMatchObject({ custom: true, simulation: "normal", period: null });
     // The standard swings stay, now around the typed growth: the typical year grows exactly 5%.
@@ -101,15 +101,13 @@ describe("assumptions the user changes", () => {
     expect(resolved.key).toMatch(/^normal:0\.050000:/);
   });
 
-  it("turns the quoted growth into one after the country's inflation", () => {
-    const nominal = settings({ growth: 0.07 });
-    expect(resolveInvestment({ kind: "asset", asset: "world" }, [], nominal).realReturn).toBeCloseTo(1.07 / 1.02 - 1, 12);
-    // Brazil's 3% target: the same 7% before inflation is less after it.
-    const brazil = { ...nominal, pricesOf: "BR" };
-    expect(resolveInvestment({ kind: "asset", asset: "world" }, [], brazil).realReturn).toBeCloseTo(1.07 / 1.03 - 1, 12);
-    // A typed inflation wins over the country's.
-    const typed = settings({ growth: 0.07, inflation: 0.04 });
-    expect(resolveInvestment({ kind: "asset", asset: "world" }, [], typed).realReturn).toBeCloseTo(1.07 / 1.04 - 1, 12);
+  it("keeps the typed growth after rising prices whatever the country's inflation", () => {
+    const typed = settings({ growth: 0.05 });
+    expect(resolveInvestment({ kind: "custom" }, [], typed).realReturn).toBe(0.05);
+    expect(resolveInvestment({ kind: "custom" }, [], { ...typed, pricesOf: "BR" }).realReturn).toBe(0.05);
+    // Only what it is before rising prices moves: Brazil's 3% target.
+    const brazil = resolveInvestment({ kind: "custom" }, [], { ...typed, pricesOf: "BR" });
+    expect(toNominal(brazil.realReturn, brazil.inflation)).toBeCloseTo(1.05 * 1.03 - 1, 12);
   });
 
   it("uses typed swings, and grows the same every year with none", () => {
@@ -130,7 +128,7 @@ describe("assumptions the user changes", () => {
   });
 
   it("goes back to the standard figures when the changes are reset", () => {
-    const changed = resolveInvestment({ kind: "asset", asset: "bonds" }, [], settings({ growth: toNominal(0.04, 0.02), volatility: 0.2 }));
+    const changed = resolveInvestment({ kind: "asset", asset: "bonds" }, [], settings({ growth: 0.04, volatility: 0.2 }));
     const reset = resolveInvestment({ kind: "asset", asset: "bonds" }, [], settings());
     expect(changed.custom).toBe(true);
     expect(reset).toMatchObject({ custom: false, simulation: "history", key: "asset:bonds" });
@@ -141,7 +139,7 @@ describe("assumptions the user changes", () => {
   it("simulates a mix with changed figures as one normal series", () => {
     const mix = { kind: "mix" as const, parts: [{ asset: "world" as const, weight: 60 }, { asset: "bonds" as const, weight: 40 }], rebalance: false };
     const standard = resolveInvestment(mix, []);
-    const changed = resolveInvestment(mix, [], settings({ growth: toNominal(0.03, 0.02) }));
+    const changed = resolveInvestment(mix, [], settings({ growth: 0.03 }));
     expect(standard.simulation).toBe("joint");
     expect(changed.simulation).toBe("normal");
     expect(changed.realReturn).toBeCloseTo(0.03, 12);
@@ -162,7 +160,7 @@ describe("Custom growth", () => {
   });
 
   it("uses the growth and swings typed", () => {
-    const resolved = resolveInvestment({ kind: "custom" }, [], settings({ growth: toNominal(0.06, 0.02), volatility: 0.1 }));
+    const resolved = resolveInvestment({ kind: "custom" }, [], settings({ growth: 0.06, volatility: 0.1 }));
     expect(resolved.realReturn).toBeCloseTo(0.06, 12);
     expect(resolved.volatility).toBe(0.1);
     expect(simulationsText(resolved, EN)).toBe("simulations with your numbers");

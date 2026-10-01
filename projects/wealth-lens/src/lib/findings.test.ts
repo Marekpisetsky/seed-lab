@@ -4,7 +4,6 @@ import { priceHoldings } from "./auto-price";
 import { calculate, valueAt, type CalculatorPlan } from "./calculator";
 import { parseIsoDate } from "./dates";
 import { futureValueWithContributions, monthsToGoal } from "./finance";
-import { toNominal } from "./investment";
 import {
   allFindings,
   concentrationFinding,
@@ -222,7 +221,7 @@ describe("doubling time", () => {
   });
 
   it("is not shown below 2% growth", () => {
-    expect(doublingFinding(context({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth: toNominal(0.01, 0.02) } }))).toBeNull();
+    expect(doublingFinding(context({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.01 } }))).toBeNull();
   });
 });
 
@@ -231,7 +230,7 @@ describe("where the growth comes from, in the assumptions", () => {
     expect(doublingFinding(small)?.assumptions[0]).toMatch(/: S&P 500, 1988–2022 average\. Past, not a promise\.$/);
     const bonds = doublingFinding(context({ investment: { kind: "asset", asset: "bonds" } }));
     expect(bonds?.assumptions[0]).toMatch(/: Euro government bonds, 1988–2022 average\./);
-    const own = doublingFinding(context({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth: toNominal(0.05, 0.02) } }));
+    const own = doublingFinding(context({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.05 } }));
     expect(own?.assumptions[0]).toBe("Growth 5% a year after rising prices: your own number. Not a promise.");
   });
 
