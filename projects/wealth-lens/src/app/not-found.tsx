@@ -20,7 +20,7 @@ export default function NotFound() {
           const { m } = getI18n(locale);
           return (
             <section key={locale} lang={locale} className="space-y-2">
-              <h1 className="text-2xl font-semibold tracking-tight">{m.notFound.title}</h1>
+              <h1 className="text-3xl font-extrabold tracking-tight">{m.notFound.title}</h1>
               <p className="text-muted">{m.notFound.text}</p>
               <Link href={localePath("/", locale)} className="inline-flex min-h-11 items-center rounded-md bg-accent px-4 font-medium text-accent-foreground">
                 {m.notFound.home}

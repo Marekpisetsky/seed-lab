@@ -30,7 +30,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       </a>
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
-          <Link href={localePath("/", locale)} className="flex min-h-11 items-center text-lg font-semibold tracking-tight">
+          <Link href={localePath("/", locale)} className="flex min-h-11 items-center text-lg font-extrabold tracking-tight">
             {m.site.name}
           </Link>
           <div className="flex items-center gap-2">
@@ -43,11 +43,11 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
       <LegacyDataNotice />
-      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 outline-none sm:py-8">
+      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 outline-none sm:py-12">
         {children}
       </main>
       <footer className="border-t border-border">
-        <div className="mx-auto max-w-5xl space-y-3 px-4 py-4">
+        <div className="mx-auto max-w-5xl space-y-4 px-4 py-8">
           <FooterDataControls />
           <p className="text-xs text-muted">{m.site.footerNote}</p>
           <nav aria-label={m.site.footer}>

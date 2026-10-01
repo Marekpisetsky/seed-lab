@@ -27,7 +27,7 @@ function GainHeadline({ gain }: { gain: ReturnType<typeof headlineGain> }) {
   return (
     <section aria-label={m.stocks.gainLabel} className="space-y-1">
       <p className="text-sm text-muted">{main.gain.absolute >= 0 ? m.stocks.gained : m.stocks.down}</p>
-      <Gain gain={main.gain} currency={main.currency} decimals={0} className="block text-4xl font-semibold tracking-tight" />
+      <Gain gain={main.gain} currency={main.currency} decimals={0} className="block text-4xl font-extrabold tracking-tight" />
       {others.map((summary) => {
         const [before, after] = m.stocks.plusIn(summary.currency);
         return (

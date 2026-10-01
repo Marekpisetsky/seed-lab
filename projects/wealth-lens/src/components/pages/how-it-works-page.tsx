@@ -41,7 +41,7 @@ export function HowItWorksPage({ locale }: { locale: Locale }) {
       <div className="max-w-2xl space-y-8">
         <Prose sections={t.sections(facts(i18n))} />
         <section aria-labelledby="sources-title" className="space-y-3">
-          <h2 id="sources-title" className="text-lg font-semibold">
+          <h2 id="sources-title" className="text-lg font-bold">
             {t.sourcesTitle}
           </h2>
           <p>{t.sourcesIntro}</p>
@@ -65,7 +65,7 @@ export function HowItWorksPage({ locale }: { locale: Locale }) {
           <p className="text-sm text-muted">{t.thingsNote}</p>
         </section>
         <section aria-labelledby="licenses-title" className="space-y-2">
-          <h2 id="licenses-title" className="text-lg font-semibold">
+          <h2 id="licenses-title" className="text-lg font-bold">
             {t.licensesTitle}
           </h2>
           {t.licenses.map((paragraph) => (
