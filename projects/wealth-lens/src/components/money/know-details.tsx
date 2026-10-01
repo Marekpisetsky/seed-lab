@@ -3,7 +3,8 @@
 import { useI18n } from "@/components/i18n";
 import { Changed } from "@/components/ui/changed";
 import { Help } from "@/components/ui/help";
-import { mixFiguresFor, type CalculationBundle } from "@/hooks/use-calculation";
+import { mixFiguresFor } from "@/hooks/calculation-details";
+import type { CalculationBundle } from "@/hooks/use-calculation";
 import { assumptionsLine } from "@/lib/assumptions";
 import { concentrationEffect, type Concentration, type WorstYear } from "@/lib/mix";
 import { bandsFor, type MixFigures } from "@/lib/projections";

@@ -1,15 +1,12 @@
 "use client";
 
-import type { I18n } from "@/i18n";
 import { type AppState } from "@/lib/app-store";
 import { priceHoldings } from "@/lib/auto-price";
-import { calculate, whatIfEffects, WITHDRAWAL_CHOICES, type Calculation } from "@/lib/calculator";
+import { calculate, WITHDRAWAL_CHOICES, type Calculation } from "@/lib/calculator";
 import { toIsoDate } from "@/lib/dates";
-import { topFindings, type Finding } from "@/lib/findings";
 import { planReady } from "@/lib/plan";
-import { mixFigures, successRatesFor, type MixFigures } from "@/lib/projections";
+import { successRatesFor } from "@/lib/projections";
 import type { Holding } from "@/lib/types";
-import type { WhatIfEffect } from "@/lib/what-if";
 import { useAppState } from "./use-app";
 import { useToday } from "./use-plan";
 
@@ -61,41 +58,6 @@ export function calculationFor(state: AppState, today: Date): CalculationBundle 
   }
   last = { state, day, bundle };
   return bundle;
-}
-
-const whatIfs = new WeakMap<CalculationBundle, WhatIfEffect[]>();
-
-/** What each "What if…?" would change, in the fixed order of their row: worked out when their card is opened. */
-export function whatIfsFor(bundle: CalculationBundle): WhatIfEffect[] {
-  let kept = whatIfs.get(bundle);
-  if (!kept) {
-    kept = whatIfEffects(bundle.base);
-    whatIfs.set(bundle, kept);
-  }
-  return kept;
-}
-
-const mixes = new WeakMap<CalculationBundle, MixFigures | null>();
-
-/** For a mix or the portfolio: its range, worst year and concentration, with the S&P 500 alone beside them; worked out when shown. */
-export function mixFiguresFor(bundle: CalculationBundle): MixFigures | null {
-  let kept = mixes.get(bundle);
-  if (kept === undefined) {
-    const { calc } = bundle;
-    kept = mixFigures(calc.investment, { start: calc.scenario.capital, monthly: calc.scenario.monthly, years: calc.result.years });
-    mixes.set(bundle, kept);
-  }
-  return kept;
-}
-
-let lastFindings: { bundle: CalculationBundle; i18n: I18n; findings: Finding[] } | null = null;
-
-/** The findings of a calculation in the page's language, worked out only when their section is open. */
-export function findingsFor(bundle: CalculationBundle, i18n: I18n): Finding[] {
-  if (lastFindings?.bundle === bundle && lastFindings.i18n === i18n) return lastFindings.findings;
-  const findings = topFindings({ calc: bundle.base, inflation: bundle.base.investment.inflation, today: bundle.today, holdings: bundle.holdings, i18n });
-  lastFindings = { bundle, i18n, findings };
-  return findings;
 }
 
 export function useCalculation(): CalculationBundle {

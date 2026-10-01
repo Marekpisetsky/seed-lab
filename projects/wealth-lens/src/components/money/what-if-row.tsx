@@ -3,7 +3,8 @@
 import { X } from "lucide-react";
 import { useI18n } from "@/components/i18n";
 import { Changed } from "@/components/ui/changed";
-import { whatIfsFor, type CalculationBundle } from "@/hooks/use-calculation";
+import { whatIfsFor } from "@/hooks/calculation-details";
+import type { CalculationBundle } from "@/hooks/use-calculation";
 import type { I18n } from "@/i18n";
 import { clearWhatIf, toggleWhatIf } from "@/lib/app-store";
 import type { WhatIfEffect, WhatIfId } from "@/lib/what-if";

@@ -3,7 +3,8 @@
 import { ChevronDown, TriangleAlert } from "lucide-react";
 import { useI18n } from "@/components/i18n";
 import { Changed } from "@/components/ui/changed";
-import { findingsFor, type CalculationBundle } from "@/hooks/use-calculation";
+import { findingsFor } from "@/hooks/calculation-details";
+import type { CalculationBundle } from "@/hooks/use-calculation";
 import type { Finding } from "@/lib/findings";
 
 function FindingCard({ finding }: { finding: Finding }) {
