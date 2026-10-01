@@ -203,7 +203,8 @@ inflación) y las metas (una lista, vacía al empezar). `src/lib/calculator.ts` 
     el resultado dice cuántos años dura el retiro ("it runs out after 23
     years") y el gráfico no dibuja banda.
   - **Una mezcla** (`src/lib/mix.ts`, documentado arriba del archivo y en
-    un "i" plegado): hasta 10 de esos activos con % que suman 100,
+    un "i" plegado): hasta 10 de esos activos o de las 12 acciones de la
+    lista (en *Add*, grupo *Stocks*) con % que suman 100,
     indicador del total, "Split evenly", plantillas (100 % acciones,
     80/20, 60/40: World y bonos euro, puntos de partida de manual, no
     consejo) y *Let weights drift* / *Rebalance every year*. Crecimiento:
@@ -212,7 +213,18 @@ inflación) y las metas (una lista, vacía al empezar). `src/lib/calculator.ts` 
     oro se mueven juntos como lo hicieron; en 2022 cayeron acciones y
     bonos a la vez). Junto al resultado: "Range (8 in 10)" y "Worst year
     in the data", con las mismas cifras del S&P 500 solo, sobre los mismos
-    años. Ninguna optimización ni sugerencia de pesos.
+    años. Una acción crece como su índice y oscila con su propia volatilidad
+    y sus correlaciones (el motor de My portfolio); a su lado, en pequeño,
+    "grows like the Nasdaq-100 · moves ±50% a year". Si una acción pesa más
+    del 20 %, una línea con el efecto de concentración: la misma mezcla con
+    su índice en su lugar, sobre los mismos años simulados, y el percentil
+    10 y la mediana de cada una ("One stock is 40% of your mix: the middle
+    result drops, the bad cases get much worse."; la frase sale de las
+    cifras: 60 % World + 40 % NVIDIA a 20 años con €1.000 y €200/mes da
+    €37.024 frente a €48.190 en los casos malos y €91.651 frente a €121.719
+    en el medio). Con crecimiento u oscilación propios no se muestra: los
+    altibajos de la acción ya no se simulan. Ninguna optimización ni
+    sugerencia de pesos.
   - **My portfolio** (`src/lib/portfolio.ts`): "Simple projection: each
     stock grows like its index. Stocks can't be predicted." Cada holding
     en EUR crece como un activo: una acción de la lista, el índice de su
@@ -222,7 +234,14 @@ inflación) y las metas (una lista, vacía al empezar). `src/lib/calculator.ts` 
     usuario lo cambia en la calculadora y queda guardado en el holding. Se
     pondera por valor y se simula con el motor de mezclas; una acción de
     la lista conserva sus propios altibajos (volatilidad de sus cierres
-    diarios, correlación semanal con el ETF de su índice).
+    diarios, correlación semanal con el ETF de su índice). En las
+    simulaciones una acción tiene el crecimiento **medio** esperado de su
+    índice, no su crecimiento típico: sus altibajos mayores bajan su
+    resultado típico (con ±50 % al año, NVIDIA queda en torno al 2 % al año
+    después de inflación en la mediana, frente al 10 % del Nasdaq-100),
+    como pasa con la mayoría de acciones sueltas. Igualar el crecimiento
+    típico, como hacía la ronda 7, prometía de media un 24 % al año. La
+    proyección principal no cambia: sigue usando la media del índice.
   - **Custom growth**: el % anual y la oscilación que escriba el usuario
     (arranca en los del S&P 500), sin ningún activo detrás.
   - **Supuestos cambiados**: con el crecimiento o la oscilación del
@@ -720,7 +739,10 @@ editables (el % antes de inflación pasado a después con la inflación de cada 
 inflación, reset, Custom growth, la normal: mediana y dispersión), las
 plantillas 60/40 y 80/20, las mezclas con bonos, oro y ahorro (el mismo
 año sorteado para todos, peor año 2022 para 60/40, efecto de
-diversificar), la asignación de holdings a activos, el archivo de datos
+diversificar), las mezclas con acciones (crecen como su índice en la
+proyección, la misma media esperada y menos crecimiento típico en las
+simulaciones, rango más ancho, efecto de concentración solo por encima del
+20 % y contado desde las cifras, archivo de datos), la asignación de holdings a activos, el archivo de datos
 (ida y vuelta, archivos dañados o ajenos),
 la limpieza de datos antiguos, el importador de Trading 212, el parser de
 CSV, el precio automático desde datos estáticos o CSV (nunca pisa un
