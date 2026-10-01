@@ -17,7 +17,6 @@ export interface Tool {
   name: string;
   status: Status;
   url: string;
-  source: string;
   languages: Locale[];
   tagline: Localized;
   description: Localized;
@@ -68,7 +67,6 @@ export function parseTools(value: unknown): Tool[] {
       name: entry.name,
       status: status(entry.status, where),
       url: https(entry.url, where),
-      source: https(entry.source, where),
       languages: languages as Locale[],
       tagline: localized(entry.tagline, `${where} tagline`),
       description: localized(entry.description, `${where} description`),

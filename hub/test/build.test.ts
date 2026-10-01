@@ -63,6 +63,14 @@ describe("the build", () => {
     }
   });
 
+  it("never calls the code open source or MIT, and says it is free to use", () => {
+    for (const { file, text } of HTML) {
+      assert.doesNotMatch(text, /\bMIT\b|open[ -]source|código abierto|LICENSE/i, file);
+      const lang = text.match(/<html lang="(\w+)">/)?.[1];
+      assert.match(text, lang === "es" && file !== "404.html" ? /© 2026 seed-lab\. De uso gratuito\./ : /© 2026 seed-lab\. Free to use\./, file);
+    }
+  });
+
   it("uses no flags, stars or emblems", () => {
     for (const { file, text } of HTML) assert.doesNotMatch(text, /🇪🇺|★|☆|⭐|\bflag\b|emblem/i, file);
   });
@@ -112,7 +120,7 @@ describe("honesty", () => {
 
   it("refuses tools with a missing language, a bad status or an http address", () => {
     const tool = {
-      id: "t", name: "T", status: "live", url: "https://example.org", source: "https://example.org", languages: ["en"],
+      id: "t", name: "T", status: "live", url: "https://example.org", languages: ["en"],
       tagline: { en: "T", es: "T" }, description: { en: "T", es: "T" },
     };
     assert.equal(parseTools([tool]).length, 1);
@@ -126,7 +134,6 @@ describe("honesty", () => {
     for (const locale of LOCALES) {
       const page = readFileSync(join(DIST, localePath(PAGES.principles, locale), "index.html"), "utf8");
       assert.match(page, /Vercel/);
-      assert.match(page, /docs\/hosting\.md/);
       assert.match(page, locale === "en" ? /Pending/ : /Pendiente/);
     }
   });

@@ -1,8 +1,8 @@
 # seed-lab hub
 
 La portada de seed-lab: la misión, los cinco principios, las herramientas
-que existen hoy y los bloques abiertos que vendrán. En inglés y en
-español.
+que existen hoy y las herramientas para desarrolladores que vendrán. En
+inglés y en español.
 
 - Dirección, escalera y principios: [`../docs/direction.md`](../docs/direction.md).
 - Plan para alojarlo en Europa: [`../docs/hosting.md`](../docs/hosting.md).
@@ -29,7 +29,7 @@ lint, tipos y tests.
 ```
 hub/
   content/tools.json    herramientas (tarjetas de la portada)
-  content/blocks.json   bloques abiertos: "coming" hasta que se publiquen
+  content/blocks.json   bloques para desarrolladores: "coming" hasta que se publiquen
   src/build.ts          genera dist/ (una carpeta por página e idioma)
   src/i18n/en.ts, es.ts todas las palabras, con el mismo formato
   src/pages/            portada, principles, about, 404
@@ -92,4 +92,6 @@ Si el proyecto acaba con otro nombre, cambiar `SITE_URL` en `src/site.ts`
 
 ## Licencia
 
-Código bajo licencia MIT ([`LICENSE`](LICENSE)).
+Código propietario: © 2026 Marek Pisetsky, todos los derechos reservados.
+Ver [`LICENSE`](../LICENSE) y [`TRADEMARKS.md`](../TRADEMARKS.md) en la raíz.
+El sitio publicado es de uso gratuito.

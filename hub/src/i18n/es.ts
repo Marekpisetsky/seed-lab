@@ -9,34 +9,32 @@ export const es: Messages = {
     nav: { label: "Páginas", principles: "Principios", about: "Acerca de" },
     language: "Idioma",
     footerNav: "Más",
-    github: "Código en GitHub",
     noTracking: "Sin cookies. Sin analítica. No se guarda nada sobre ti.",
     weight: (kb: string, compressed: string) => `Esta página pesa ${kb} KB (${compressed} KB comprimida), medido al construirla.`,
-    license: "Licencia MIT",
+    copyright: "© 2026 seed-lab. De uso gratuito.",
   },
   meta: {
     home: {
-      title: "seed-lab: herramientas abiertas y privadas para Europa",
-      description: "Herramientas digitales abiertas que los europeos pueden usar sin renunciar a sus datos. La primera: Wealth Lens.",
+      title: "seed-lab: herramientas gratuitas y privadas para Europa",
+      description: "Herramientas digitales gratuitas que los europeos pueden usar sin renunciar a sus datos. La primera: Wealth Lens.",
     },
     principles: { title: "Principios · seed-lab", description: "Cinco principios, cómo los cumple hoy Wealth Lens y qué falta todavía." },
     about: { title: "Sobre seed-lab", description: "Qué es seed-lab, hacia dónde va, qué no es y quién lo hace." },
   },
   home: {
     kicker: "seed-lab",
-    title: "Herramientas digitales abiertas y privadas para Europa.",
-    mission: "seed-lab crea herramientas digitales abiertas y centradas en la privacidad que los europeos (ciudadanos, desarrolladores y organismos públicos) pueden usar sin renunciar a sus datos.",
+    title: "Herramientas digitales gratuitas y privadas para Europa.",
+    mission: "seed-lab crea herramientas digitales gratuitas y centradas en la privacidad que los europeos (ciudadanos, desarrolladores y organismos públicos) pueden usar sin renunciar a sus datos.",
     principlesTitle: "Cinco principios",
     principlesLink: "Cómo los cumplimos y qué falta todavía",
     toolsTitle: "Herramientas",
     toolsIntro: "Por ahora, una. Es la prueba de que estos principios funcionan.",
     open: (name: string) => `Abrir ${name}`,
-    source: "Código fuente",
     languages: "Idiomas",
-    blocksTitle: "Bloques abiertos",
+    blocksTitle: "Bloques para desarrolladores",
     blocksIntro: [
-      "Wealth Lens está hecha de piezas que otras herramientas podrían reutilizar. Las publicaremos como bloques abiertos, una a una.",
-      "**Todavía no hay ninguno publicado.** Hoy viven dentro de Wealth Lens, donde ya puedes leer su código.",
+      "Wealth Lens está hecha de piezas que otras herramientas podrían reutilizar. Queremos publicarlas como herramientas gratuitas para desarrolladores, una a una.",
+      "**Todavía no hay ninguna publicada.** Hoy viven dentro de Wealth Lens.",
     ],
   },
   status: { live: "Disponible", coming: "Próximamente" },
@@ -63,18 +61,18 @@ export const es: Messages = {
         ],
       },
       {
-        id: "open",
-        title: "Abierto: código abierto, datos abiertos.",
-        short: "Código y datos abiertos",
-        text: "Cualquiera puede leer y reutilizar el código. Los datos vienen de fuentes abiertas siempre que se puede, con su origen y su fecha.",
+        id: "transparent",
+        title: "Transparente: gratis para todos, métodos y fuentes públicos.",
+        short: "Transparente",
+        text: "De uso gratuito para todos. Nuestros métodos y fuentes de datos son públicos. Nuestro código es nuestro.",
         today: [
-          "Todo el código es público, con licencia MIT.",
-          "Muchos datos son abiertos, como los del Banco Mundial y la OCDE, y se citan.",
-          "De las fuentes que prohíben copiar, solo guarda cifras calculadas a partir de sus datos.",
+          "De uso gratuito: sin cuenta, sin anuncios, sin pagos.",
+          "Una página explica el método con palabras sencillas y enumera cada fuente, con su enlace y su fecha.",
+          "Cada cifra dice de dónde sale.",
         ],
         missing: [
-          { text: "El código está en GitHub, una empresa de EE. UU. Está prevista una copia europea en Codeberg.", pending: true },
-          { text: "Algunas cifras vienen de fuentes cerradas, como Yahoo Finance, Numbeo y MSCI. Deberían sustituirlas fuentes abiertas.", pending: true },
+          { text: "Algunas fuentes, como Yahoo Finance, Numbeo y MSCI, no permiten compartir sus datos. Solo se pueden mostrar cifras calculadas a partir de ellos.", pending: true },
+          { text: "Los cambios en el método todavía no se registran en ningún sitio.", pending: true },
         ],
       },
       {
@@ -88,7 +86,8 @@ export const es: Messages = {
           "No guarda datos personales, así que no hay nada que pedir consentimiento.",
         ],
         missing: [
-          { text: "Está alojado en Vercel, una empresa de EE. UU. [Pasar a un alojamiento europeo](hosting) está previsto, pero aún no se ha hecho.", pending: true },
+          { text: "Está alojado en Vercel, una empresa de EE. UU. Pasar a un alojamiento europeo está previsto, pero aún no se ha hecho.", pending: true },
+          { text: "El código se guarda en GitHub, también de EE. UU. Todavía hay que elegirle un sitio europeo.", pending: true },
           { text: "Dos de las 24 lenguas oficiales de la UE. Faltan más.", pending: true },
           { text: "No hay todavía una auditoría WCAG completa hecha por una persona ni una declaración de accesibilidad.", pending: true },
         ],
@@ -126,8 +125,8 @@ export const es: Messages = {
       {
         heading: "Qué es seed-lab",
         body: [
-          "seed-lab crea herramientas digitales abiertas y centradas en la privacidad para Europa.",
-          "Publicamos herramientas y bloques abiertos. Ciudadanos, desarrolladores e instituciones los adoptan por su cuenta.",
+          "seed-lab crea herramientas digitales gratuitas y centradas en la privacidad para Europa.",
+          "Publicamos herramientas gratuitas. Ciudadanos, desarrolladores e instituciones las adoptan por su cuenta.",
           "[Wealth Lens](wealth-lens) es la primera herramienta y la prueba de nuestros [principios](/principles/).",
         ],
       },
@@ -135,13 +134,13 @@ export const es: Messages = {
         heading: "Hacia dónde va",
         body: [
           "A largo plazo: que Europa tenga su propia pila tecnológica, para que sus ciudadanos, empresas y gobiernos no dependan de la de nadie más.",
-          "Es una dirección, no algo que exista. **Hoy estamos en el primer peldaño: herramientas que la gente usa.** Bloques abiertos, una plataforma e infraestructura vendrían después, y solo si el peldaño anterior funciona.",
+          "Es una dirección, no algo que exista. **Hoy estamos en el primer peldaño: herramientas que la gente usa.** Herramientas para desarrolladores, una plataforma e infraestructura vendrían después, y solo si el peldaño anterior funciona.",
         ],
       },
       {
         heading: "Qué no somos",
         body: [
-          "No vendemos a gobiernos ni hacemos consultoría. Cualquiera, también una institución, puede adoptar lo que publicamos por su cuenta.",
+          "No vendemos a gobiernos ni hacemos consultoría. Cualquiera, también una institución, puede usar gratis lo que publicamos.",
           "No recogemos datos. Ni cuentas, ni cookies, ni analítica.",
           "No somos una institución de la UE. No hablamos en su nombre ni usamos sus símbolos.",
         ],
@@ -149,9 +148,8 @@ export const es: Messages = {
       {
         heading: "Quién lo hace",
         body: [
-          "Lo hace [Marekpisetsky](author) en GitHub, en abierto. El código tiene [licencia MIT](license).",
+          "Lo hace [Marek Pisetsky](author). Las herramientas son de uso gratuito. Su código es de seed-lab.",
           "¿Preguntas o ideas? [Abre un issue en GitHub](issues). No hay correo, a propósito.",
-          "La dirección completa, con la escalera de peldaños, está en [direction.md](direction).",
         ],
       },
       {

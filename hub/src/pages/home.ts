@@ -37,7 +37,7 @@ ${TOOLS.map(
 <p class="tagline">${tool.tagline[locale]}</p>
 <p class="muted">${tool.description[locale]}</p>
 <p class="muted">${m.home.languages}: ${tool.languages.map((code) => LOCALE_SETTINGS[code].name).join(", ")}</p>
-<div class="actions"><a class="button" href="${tool.url}">${m.home.open(tool.name)}</a><a class="link" href="${tool.source}">${m.home.source}</a></div>
+<div class="actions"><a class="button" href="${tool.url}">${m.home.open(tool.name)}</a></div>
 </li>`,
 )}
 </ul>
