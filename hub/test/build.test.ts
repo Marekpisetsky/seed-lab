@@ -150,6 +150,57 @@ describe("honesty", () => {
   });
 });
 
+describe("the colours", () => {
+  const TOKENS = readFileSync(new URL("../src/tokens.css", import.meta.url), "utf8");
+  /** The tokens of each mode: light from the first :root, dark from the media query. */
+  const modes = (() => {
+    const [light, dark] = TOKENS.split("@media (prefers-color-scheme: dark)");
+    const read = (css: string) => Object.fromEntries([...css.matchAll(/--([\w-]+):\s*(#[0-9a-f]{6});/g)].map(([, name, hex]) => [name, hex]));
+    const lightTokens = read(light);
+    return { light: lightTokens, dark: { ...lightTokens, ...read(dark) } };
+  })();
+  const luminance = (hex: string) => {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const contrast = (a: string, b: string) => {
+    const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p);
+    return (x + 0.05) / (y + 0.05);
+  };
+
+  it("are the same file as Wealth Lens's, so both sites look like one family", () => {
+    const wealthLens = new URL("../../projects/wealth-lens/src/app/tokens.css", import.meta.url);
+    assert.equal(readFileSync(wealthLens, "utf8"), TOKENS);
+  });
+
+  it("keep every text colour at WCAG AA (4.5:1) on every surface, in both modes", () => {
+    for (const [mode, t] of Object.entries(modes)) {
+      for (const text of ["foreground", "muted", "accent", "positive", "negative", "warning-foreground"]) {
+        for (const surface of ["background", "card", "subtle", "warning-bg"]) {
+          assert.ok(contrast(t[text], t[surface]) >= 4.5, `${mode}: ${text} on ${surface} is ${contrast(t[text], t[surface]).toFixed(2)}`);
+        }
+      }
+      assert.ok(contrast(t["accent-foreground"], t.accent) >= 4.5, `${mode}: button text`);
+      assert.ok(contrast(t.accent, t["accent-soft"]) >= 4.5, `${mode}: Live badge`);
+    }
+  });
+
+  it("use neutral greys with no warm tint, and white and near-black behind everything", () => {
+    for (const [mode, t] of Object.entries(modes)) {
+      for (const grey of ["background", "foreground", "card", "subtle", "muted", "border"]) {
+        const [r, g, b] = [1, 3, 5].map((i) => t[grey].slice(i, i + 2));
+        assert.ok(r === g && g === b, `${mode}: ${grey} ${t[grey]} is not a neutral grey`);
+      }
+    }
+    assert.equal(modes.light.background, "#ffffff");
+    assert.equal(modes.dark.background, "#0a0a0a");
+  });
+
+  it("put the tokens in every page", () => {
+    for (const { file, text } of HTML) assert.match(text, /--accent:#0055ff/, file);
+  });
+});
+
 describe("the words", () => {
   /** Every text of a dictionary, with its functions filled in. */
   function texts(value: unknown): string[] {

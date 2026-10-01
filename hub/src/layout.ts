@@ -69,8 +69,8 @@ ${LOCALES.map((other) => html`<link rel="alternate" hreflang="${other}" href="${
     : html`<meta name="robots" content="noindex">`
 }
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#fbf8f3">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#171412">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0a0a0a">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="seed-lab">
 <meta property="og:title" content="${page.title}">

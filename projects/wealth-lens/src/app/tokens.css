@@ -1,0 +1,53 @@
+/*
+ * seed-lab design tokens: the same file, byte for byte, in the hub
+ * (hub/src/tokens.css) and in Wealth Lens (src/app/tokens.css). A test in
+ * each app checks that they match, so both sites look like one family.
+ *
+ * Pure white and near-black, neutral greys with no warm tint, and one
+ * brand colour: electric blue, #0055ff in light and #4d8dff in dark (the
+ * same hue, one step lighter so it keeps AA on near-black). Every text
+ * colour keeps at least 4.5:1 (WCAG AA) on the background, the card, the
+ * subtle fill and its own 10% tint. The two chart colours pass the
+ * colour-blind and contrast checks as a pair, in both modes.
+ */
+:root {
+  color-scheme: light dark;
+  --font-system: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --card: #ffffff;
+  --subtle: #f5f5f5;
+  --muted: #525252;
+  --border: #e5e5e5;
+  --accent: #0055ff;
+  --accent-foreground: #ffffff;
+  --accent-soft: #ebf1ff;
+  --positive: #007a37;
+  --negative: #c8001e;
+  --warning-bg: #f5f5f5;
+  --warning-border: #f59e0b;
+  --warning-foreground: #0a0a0a;
+  --chart-put-in: #0055ff;
+  --chart-growth: #00a86b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #fafafa;
+    --card: #141414;
+    --subtle: #1f1f1f;
+    --muted: #a3a3a3;
+    --border: #262626;
+    --accent: #4d8dff;
+    --accent-foreground: #0a0a0a;
+    --accent-soft: #131c2c;
+    --positive: #34d17e;
+    --negative: #ff6b6b;
+    --warning-bg: #1f1f1f;
+    --warning-border: #f5a524;
+    --warning-foreground: #fafafa;
+    --chart-put-in: #4d8dff;
+    --chart-growth: #17a870;
+  }
+}

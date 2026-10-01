@@ -37,5 +37,5 @@ export const SEED = raw(
   '<svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M16 28V16"/><path d="M16 17c0-5 3.5-8.5 9-8.5 0 5.5-3.5 8.5-9 8.5z"/><path d="M16 21c0-4-3-7-7.5-7 0 4 3 7 7.5 7z"/></svg>',
 );
 
-/** The site icon: a seed with its first shoot, in the accent colour. */
-export const FAVICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><style>path{fill:none;stroke:#8a3b12;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}@media (prefers-color-scheme:dark){path{stroke:#f0a36b}}</style><path d="M16 28V16"/><path d="M16 17c0-5 3.5-8.5 9-8.5 0 5.5-3.5 8.5-9 8.5z"/><path d="M16 21c0-4-3-7-7.5-7 0 4 3 7 7.5 7z"/></svg>`;
+/** The site icon: a seed with its first shoot, in the brand blue of tokens.css. */
+export const FAVICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><style>path{fill:none;stroke:#0055ff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}@media (prefers-color-scheme:dark){path{stroke:#4d8dff}}</style><path d="M16 28V16"/><path d="M16 17c0-5 3.5-8.5 9-8.5 0 5.5-3.5 8.5-9 8.5z"/><path d="M16 21c0-4-3-7-7.5-7 0 4 3 7 7.5 7z"/></svg>`;
