@@ -1,0 +1,105 @@
+# Publishes seed-lab's one site: the hub at /, Wealth Lens at /wealth-lens/.
+#
+# GitHub only runs workflows from .github/workflows/ at the root of the
+# repository. Copy this file to .github/workflows/deploy.yml once
+# (docs/hosting.md, step 2); deploy/workflow.test.mjs checks that the copy
+# stays the same as this file.
+#
+# GitHub builds and checks both apps, deploy/combine.mjs puts them together
+# and checks every link, and the result is pushed to the "deploy" branch:
+# static files only (public/) and a statichost.yml with no build, so
+# statichost.eu serves the branch as it is and spends no build minutes.
+# Setup and the steps to switch over: docs/hosting.md.
+#
+# Runs on every push to master, after each daily "Update prices" run (its
+# commit is pushed with GITHUB_TOKEN, which starts no other workflow, so a
+# push trigger alone would miss it) and from Actions → "Deploy" → "Run
+# workflow".
+
+name: Deploy
+
+on:
+  push:
+    branches: [master]
+  workflow_run:
+    workflows: [Update prices]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write # to push the deploy branch
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true # the newest master wins; the push to deploy is a single step
+
+jobs:
+  deploy:
+    # After "Update prices", only when it worked.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: master # always the newest master, including the prices commit that just landed
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            hub/package-lock.json
+            projects/wealth-lens/package-lock.json
+
+      - name: Hub — install, lint, types, build and tests
+        working-directory: hub
+        run: |
+          npm ci
+          npm run check
+
+      - name: Wealth Lens — install, lint, tests and build
+        working-directory: projects/wealth-lens
+        run: |
+          npm ci
+          npm run lint
+          npm test
+          npm run build
+
+      - name: Combine both into one site and check every link
+        run: |
+          node --test deploy/*.test.mjs
+          node deploy/combine.mjs _site
+
+      - name: Publish to the deploy branch
+        id: publish
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          source="$(git rev-parse --short HEAD)"
+          cd _site
+          git init -q -b deploy
+          git add -A
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Site from master ${source}"
+          remote="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          # The same files as what is published already: nothing to do.
+          if git fetch -q "$remote" deploy 2>/dev/null && [ "$(git rev-parse 'FETCH_HEAD^{tree}')" = "$(git rev-parse 'HEAD^{tree}')" ]; then
+            echo "The deploy branch already has this site."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # One commit, no history: the branch only ever holds the current site.
+          git push -q --force "$remote" deploy
+          echo "Published master ${source} to the deploy branch."
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # statichost.eu publishes when its build address is called (docs/hosting.md,
+      # step 4). Set the repository variable STATICHOST_SITE to the site's name.
+      - name: Ask statichost.eu to publish it
+        if: steps.publish.outputs.changed == 'true' && vars.STATICHOST_SITE != ''
+        env:
+          SITE: ${{ vars.STATICHOST_SITE }}
+        run: curl --fail --silent --show-error --max-time 120 -X POST "https://builder.statichost.eu/${SITE}"
