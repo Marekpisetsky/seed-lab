@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { summarizeByCurrency } from "./finance";
-import { headlineGain, startingCapital } from "./plan";
+import { headlineGain, planReady, startingCapital } from "./plan";
 import type { Holding } from "./types";
 
 const holding = (overrides: Partial<Holding>): Holding => ({
@@ -42,5 +42,23 @@ describe("headlineGain", () => {
   it("falls back to another currency or nothing", () => {
     expect(headlineGain(summarizeByCurrency([holding({ currency: "USD" })])).main?.currency).toBe("USD");
     expect(headlineGain(summarizeByCurrency([holding({ currentPrice: null })])).main).toBeNull();
+  });
+});
+
+describe("planReady", () => {
+  it("waits for both amounts: 0 is an answer, an empty field is not", () => {
+    expect(planReady({ invested: null, monthlyContribution: null }, [])).toBe(false);
+    expect(planReady({ invested: 1000, monthlyContribution: null }, [])).toBe(false);
+    expect(planReady({ invested: null, monthlyContribution: 200 }, [])).toBe(false);
+    expect(planReady({ invested: 0, monthlyContribution: 0 }, [])).toBe(true);
+  });
+
+  it("takes holdings on My stocks as what the user has", () => {
+    expect(planReady({ invested: null, monthlyContribution: 50 }, [holding({})])).toBe(true);
+    expect(planReady({ invested: null, monthlyContribution: null }, [holding({})])).toBe(false);
+  });
+
+  it("counts an empty amount as 0 for the starting money", () => {
+    expect(startingCapital([], null)).toEqual({ amount: 0, source: "answer" });
   });
 });
