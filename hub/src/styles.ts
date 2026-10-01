@@ -93,6 +93,7 @@ h3 { font-size: 1.1875rem; font-weight: 700; }
 .foot ul { display: flex; flex-wrap: wrap; gap: 0 1.25rem; margin: 0; padding: 0; list-style: none; }
 .foot a { display: inline-flex; align-items: center; min-height: 44px; }
 .weight { font-variant-numeric: tabular-nums; }
+.email::before { content: attr(data-user) "\\40" attr(data-domain); }
 .copyright { color: var(--foreground); font-weight: 600; }
 
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }

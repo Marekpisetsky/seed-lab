@@ -95,12 +95,36 @@ describe("the build", () => {
     }
   });
 
-  it("redirects by language only on English pages, and stores nothing to do it", () => {
+  it("has only two tiny scripts: the language one on English pages, the email one where the address is", () => {
     for (const { file, text } of HTML) {
-      const scripts = [...text.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+      const scripts = [...text.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(([, code]) => code);
       const english = text.includes('<html lang="en">') && file !== "404.html";
-      assert.equal(scripts.length, english ? 1 : 0, file);
+      const email = text.includes('class="email"');
+      assert.equal(scripts.length, Number(english) + Number(email), file);
+      assert.equal(scripts.filter((code) => code.includes("navigator.language")).length, Number(english), file);
+      assert.equal(scripts.filter((code) => code.includes('querySelectorAll(".email")')).length, Number(email), file);
+      for (const code of scripts) assert.doesNotMatch(code, /cookie|Storage|fetch|XMLHttpRequest/, file);
     }
+  });
+});
+
+describe("the contact", () => {
+  it("is the email address, on About in both languages", () => {
+    for (const locale of LOCALES) {
+      const about = readFileSync(join(DIST, localePath(PAGES.about, locale), "index.html"), "utf8");
+      assert.match(about, /<span class="email" data-user="seedlab\.eu" data-domain="proton\.me"><\/span>/, locale);
+    }
+  });
+
+  it("never holds the address whole, a mail link or a GitHub link in the HTML", () => {
+    for (const { file, text } of HTML) {
+      assert.doesNotMatch(text, /seedlab\.eu@|@proton\.me|mailto/i, file);
+      assert.doesNotMatch(text, /github\.com|Open an issue|Abre un issue/i, file);
+    }
+  });
+
+  it("shows the parts as one address with CSS until the script makes it a link", () => {
+    assert.match(HTML[0].text, /\.email::before\{content:attr\(data-user\) "\\40" attr\(data-domain\)\}/);
   });
 });
 

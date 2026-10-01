@@ -38,12 +38,16 @@ export function html(strings: TemplateStringsArray, ...values: unknown[]): Html 
 /**
  * A dictionary sentence with "**bold**" parts and "[words](address)"
  * links, escaped first. Addresses of the site ("/principles/") come in
- * already localized by the caller.
+ * already localized by the caller. When the caller answers with HTML
+ * instead of an address, that HTML replaces the whole link.
  */
-export function rich(text: string, link: (href: string) => string = (href) => href): Html {
+export function rich(text: string, link: (href: string) => string | Html = (href) => href): Html {
   return raw(
     escape(text)
       .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-      .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, words: string, href: string) => `<a href="${escape(link(href))}">${words}</a>`),
+      .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, words: string, href: string) => {
+        const target = link(href);
+        return target instanceof Html ? target.value : `<a href="${escape(target)}">${words}</a>`;
+      }),
   );
 }

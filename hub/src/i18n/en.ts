@@ -153,14 +153,14 @@ export const en = {
       {
         heading: "Who makes it",
         body: [
-          "It is made by [Marek Pisetsky](author). The tools are free to use. Their code belongs to seed-lab.",
-          "Questions or ideas? [Open an issue on GitHub](issues). There is no email, on purpose.",
+          "It is made by Marek Pisetsky. The tools are free to use. Their code belongs to seed-lab.",
+          "Questions or ideas? Write to [email](email).",
         ],
       },
       {
         heading: "This site",
         body: [
-          "No cookies, no analytics, no tracking. It is plain HTML and CSS, plus one line of script that picks your language.",
+          "No cookies, no analytics, no tracking. It is plain HTML and CSS, plus two tiny scripts: one picks your language, one makes the email address a link.",
           "For now it is hosted on Vercel, in the US, like Wealth Lens. We plan to move both to a European host.",
         ],
       },

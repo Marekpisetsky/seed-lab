@@ -17,9 +17,16 @@ lint, tipos y tests.
 
 - Sin cookies, sin almacenamiento del navegador, sin analítica, sin
   fuentes ni scripts externos.
-- Un único script, de una línea y solo en las páginas en inglés: la
-  primera visita que llega desde fuera con un navegador en español va a la
-  página en español. No guarda nada; el selector EN/ES siempre gana.
+- Dos scripts mínimos, en línea, que no guardan nada:
+  - solo en las páginas en inglés, el del idioma: la primera visita que
+    llega desde fuera con un navegador en español va a la página en
+    español; el selector EN/ES siempre gana;
+  - solo donde aparece el correo (About), el del contacto (`src/email.ts`).
+- **Contacto:** seedlab.eu (arroba) proton.me. En las páginas va en dos
+  partes (`data-user` y `data-domain`, en `src/site.ts`): el CSS las
+  muestra como una dirección y el script la convierte en un enlace de
+  correo. El HTML nunca contiene la dirección entera ni un enlace
+  `mailto`, para que no la recojan los bots. Un test lo comprueba.
 - Claro y oscuro según el dispositivo. Tipografía del sistema, títulos en
   extra-negrita.
 - **Colores:** `src/tokens.css`, el mismo archivo que Wealth Lens
