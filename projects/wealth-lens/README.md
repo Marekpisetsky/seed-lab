@@ -25,7 +25,7 @@ tabla de *Principles* del hub, `hub/content/tools.json`):
 | --- | --- | --- |
 | Your data never leaves your device | Cumple | Todo se calcula en el navegador; nada se guarda ni se envía. |
 | Transparent | En parte | Gratis, con método y fuentes públicos; los cambios del método aún no se publican. |
-| Truly European | Pendiente | EN y ES, pero alojada en Vercel (EE. UU.) y sin auditoría de accesibilidad hecha por personas. |
+| Truly European | En curso | En traslado de Vercel (EE. UU.) a statichost.eu (Suecia), preparado en `docs/hosting.md`. EN y ES; aún sin auditoría de accesibilidad hecha por personas. |
 | Light | Cumple | De 204 a 222 KB por página en la primera visita, por debajo del límite de 350 KB. |
 | For everyone | En parte | Palabras sencillas, teclado y objetivos de 44 px; aún sin pruebas con personas reales. |
 
@@ -151,8 +151,23 @@ mano desde las cifras publicadas (ver "Retornos").
 ## Arquitectura
 
 - Next.js (App Router) + TypeScript con `output: "export"`: `next build`
-  genera HTML/CSS/JS estático en `out/`, servido por la CDN de Vercel sin
-  funciones ni rutas de servidor.
+  genera HTML/CSS/JS estático en `out/`, sin funciones ni rutas de
+  servidor. Se publica junto al hub como **un solo sitio**: el hub en la
+  raíz y Wealth Lens en `/wealth-lens/` (`basePath` en `next.config.ts`,
+  con `trailingSlash`: cada página es una carpeta con su `index.html`).
+  La dirección del sitio y la carpeta están en un solo archivo,
+  `deploy/site.json` (hoy el marcador `https://seed-lab.example`);
+  `next.config.ts` y `vitest.config.mts` lo leen y el código lo recibe en
+  `src/lib/site.ts` (`SITE_ORIGIN`, `BASE_PATH`, `pageUrl`,
+  `publicPath`). Next pone la carpeta en los enlaces, los iconos y sus
+  archivos `/_next/`; los `fetch()` de `public/` y los enlaces `<a>`
+  simples la llevan con `publicPath` y `pageHref`. Las canónicas, el
+  hreflang, `og:url` y `og:image` salen dentro de la carpeta
+  (`metadataBase` es la dirección de Wealth Lens), y `src/app/sitemap.ts`
+  escribe `/wealth-lens/sitemap.xml`, que el `robots.txt` del hub
+  enlaza. Hoy se sirve desde Vercel; el paso a statichost.eu, con
+  GitHub Actions construyendo y publicando la rama `deploy`, está en
+  `docs/hosting.md`.
 - **Sin backend, sin base de datos, sin almacenamiento.** El estado (el
   plan, los holdings y los CSV de precios subidos) vive en memoria
   (`src/lib/app-store.ts`): nada va a `localStorage`, cookies ni a un
@@ -479,9 +494,9 @@ que el icono y la imagen para compartir usan sus valores.
 
 En la cabecera, junto a EN/ES, un botón de rejilla abre un panel pequeño:
 "seed-lab" (enlace al hub) y la lista de proyectos, con Wealth Lens
-marcado como actual. La URL del hub es una constante única
-(`SEED_LAB_HUB_URL` en `src/lib/seed-lab.ts`, hoy
-`https://seed-lab-hub.vercel.app`, provisional) y la lista sale de
+marcado como actual. El hub es la raíz del mismo sitio: `hubPath` en
+`src/lib/seed-lab.ts` da `/` o `/es/` según el idioma de la página (un
+`<a>` simple: `Link` lo metería en `/wealth-lens/`), y la lista sale de
 `src/data/seed-lab-projects.json` (`id`, `name`, `url`, `current`): para
 añadir un proyecto o cambiar el hub no hace falta tocar componentes. Se
 cierra con Escape (el foco vuelve al botón) o tocando fuera.
@@ -582,8 +597,9 @@ publicaban versiones anteriores la borra el primer run tras el merge.
 
 Si un instrumento falla o la respuesta es rara (otra moneda, datos viejos,
 un salto ×5), se conserva lo anterior; los archivos solo se reescriben si
-cambian, y el job nunca falla porque una fuente esté caída. El commit a
-`master` hace que Vercel redespliegue.
+cambian, y el job nunca falla porque una fuente esté caída. Al terminar,
+el workflow Deploy (`.github/workflows/deploy.yml`) reconstruye el sitio
+con los precios nuevos y lo publica (`docs/hosting.md`).
 
 **Formato estable y conflictos.** `public/data/` es generado y el Action es
 su único escritor. El texto no depende de cómo se construyó cada entrada:
@@ -696,18 +712,20 @@ TypeScript directamente) y npm.
 ```bash
 cd projects/wealth-lens
 npm install       # o `npm ci` para instalar exactamente el lockfile
-npm run dev       # servidor de desarrollo en http://localhost:3000
+npm run dev       # servidor de desarrollo en http://localhost:3000/wealth-lens/
 ```
 
 Build de producción local (sitio estático en `out/`):
 
 ```bash
 npm run build
-npm start         # sirve out/ en http://localhost:3000 (npx serve)
+npm start         # sirve out/ en http://localhost:3000/wealth-lens/ (scripts/serve.mts, sin dependencias)
 ```
 
 Para probarlo en el móvil, servir el build (`npm run build` + `npm start`)
-y abrir `http://<IP-de-la-máquina>:3000` desde la misma red.
+y abrir `http://<IP-de-la-máquina>:3000/wealth-lens/` desde la misma red.
+Con el hub en la raíz, como se publica: ver "Ver el sitio completo en
+local" en `hub/README.md`.
 
 ## Tests y chequeos
 
@@ -774,6 +792,7 @@ cierre se publica) y las reglas para conservar los datos anteriores.
 scripts/
   update-prices.mts            job diario: descarga y escribe public/data/prices.json (solo cifras derivadas)
   update-prices.workflow.yml   el GitHub Action (copiar a .github/workflows/)
+  serve.mts                    `npm start`: sirve out/ dentro de /wealth-lens/, sin dependencias
   lib/                         yahoo, stooq, cadena de respaldo, armado de archivos, líneas semanales
 public/data/                   precios generados por el job (no editar a mano)
 src/
@@ -781,6 +800,7 @@ src/
                                que les da sus palabras; [lang]/ las demás (/es/…);
                                / (My money), /stocks (My stocks), /test;
                                not-found.tsx, HTML sin código propio;
+                               sitemap.ts (/wealth-lens/sitemap.xml);
                                tokens.css (colores de seed-lab), icon.svg
   components/                  money/ (calculator-card: las preguntas; growth-chips;
                                more-options, cargado al abrirlo; results y
@@ -797,6 +817,7 @@ src/
                                calculation-details (lo que calcula cada tarjeta
                                al abrirla), use-plan
   lib/
+    site.ts             dónde se publica (deploy/site.json): SITE_ORIGIN, BASE_PATH, pageUrl, publicPath
     app-store.ts        estado en memoria (plan, holdings, CSV subidos)
     calculator.ts       resultado, metas, tabla de países, compras, tope de 60 años
     settle.ts           aplica un número cuando se termina de escribir (500 ms)

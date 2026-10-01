@@ -85,11 +85,12 @@ herramienta que publiquemos. La página *Principles* del hub los concreta
 en reglas que cualquiera puede comprobar (por ejemplo, ninguna app envía
 datos personales a un servidor; cada página pesa menos de 350 KB en la
 primera visita; todo está al menos en inglés y en español) y tiene una
-tabla con cómo los cumple cada producto: cumple, en parte o pendiente.
+tabla con cómo los cumple cada producto: cumple, en curso, en parte o
+pendiente.
 
 Lo que falta, como el alojamiento actual en Vercel (EE. UU.), no se
-esconde: está en esa tabla, en la página *Roadmap* del hub y en
-[`hosting.md`](hosting.md).
+esconde: está en esa tabla (en curso: el paso a statichost.eu está
+preparado), en la página *Roadmap* del hub y en [`hosting.md`](hosting.md).
 
 ## Objetivos de Desarrollo Sostenible relevantes
 
