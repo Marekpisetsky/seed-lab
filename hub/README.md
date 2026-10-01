@@ -20,7 +20,13 @@ lint, tipos y tests.
 - Un único script, de una línea y solo en las páginas en inglés: la
   primera visita que llega desde fuera con un navegador en español va a la
   página en español. No guarda nada; el selector EN/ES siempre gana.
-- Claro y oscuro según el dispositivo. Tipografía del sistema.
+- Claro y oscuro según el dispositivo. Tipografía del sistema, títulos en
+  extra-negrita.
+- **Colores:** `src/tokens.css`, el mismo archivo que Wealth Lens
+  (`projects/wealth-lens/src/app/tokens.css`): blanco o #0A0A0A, grises
+  neutros y un solo azul de marca (#0055FF en claro, #4D8DFF en oscuro).
+  Los tests comprueban que los dos archivos son idénticos, que todo texto
+  mantiene 4,5:1 (WCAG AA) en los dos modos y que los grises son neutros.
 - **Peso visible:** el pie de cada página dice cuánto pesa (HTML con su
   CSS, más el icono), sin comprimir y con gzip. Se mide al construir y se
   vuelve a generar la página hasta que el número que muestra es el real
