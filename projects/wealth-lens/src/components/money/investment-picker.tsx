@@ -3,8 +3,9 @@
 import { Search } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n";
-import { EN, type I18n } from "@/i18n";
+import type { I18n } from "@/i18n";
 import { stockPartDetail } from "@/i18n/investment-text";
+import { ENGLISH_SEARCH_WORDS } from "@/i18n/messages/search-words";
 import { SAVINGS_RATE, type AssetId } from "@/lib/assets";
 import { INDEXES, INDEX_IDS, SERIES } from "@/lib/indexes";
 import { INDEX_TRACKERS, INSTRUMENTS } from "@/lib/market-data";
@@ -26,7 +27,7 @@ interface Option {
 
 const tickers = (asset: keyof typeof INDEX_TRACKERS) => INDEX_TRACKERS[asset].join(" ");
 /** Search words in the page's language and in English, so "gold" finds gold on the Spanish page too. */
-const words = ({ m }: I18n, key: keyof I18n["m"]["picker"]["words"]) => `${m.picker.words[key]} ${EN.m.picker.words[key]}`;
+const words = ({ m }: I18n, key: keyof I18n["m"]["picker"]["words"]) => `${m.picker.words[key]} ${ENGLISH_SEARCH_WORDS[key]}`;
 
 /** Every asset a plan or a mix can be projected with. */
 function assetOptions(i18n: I18n): Option[] {

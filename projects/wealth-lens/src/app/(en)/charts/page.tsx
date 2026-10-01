@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: EN.m.site.nav.stocks, robots: { index
 
 export default function ChartsPage() {
   return (
-    <Site locale="en">
+    <Site>
       <Moved to="/stocks" name={EN.m.site.nav.stocks} />
     </Site>
   );

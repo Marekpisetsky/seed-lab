@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: EN.m.site.nav.money, robots: { index:
 
 export default function FirePage() {
   return (
-    <Site locale="en">
+    <Site>
       <Moved to="/" name={EN.m.site.nav.money} />
     </Site>
   );

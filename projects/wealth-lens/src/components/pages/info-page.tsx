@@ -11,7 +11,7 @@ export function InfoPage({ locale, page }: { locale: Locale; page: InfoPageId })
   const { m } = getI18n(locale);
   const content = m[page];
   return (
-    <Site locale={locale}>
+    <Site>
       <PageHeader title={content.title} question={"lead" in content ? content.lead : content.updated} />
       <Prose sections={content.sections} />
     </Site>

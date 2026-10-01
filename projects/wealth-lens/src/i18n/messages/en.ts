@@ -9,6 +9,7 @@
 
 import type { ProblemTexts } from "@/lib/problems";
 import type { HowItWorksFacts, ProseSection, SourceEntry } from "../page-types";
+import { ENGLISH_SEARCH_WORDS } from "./search-words";
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
@@ -643,16 +644,7 @@ export const en = {
     mix: "Several at once, with your weights",
     search: "Search by name or fund ticker",
     none: (query: string) => `Nothing matches “${query}”. Single stocks are not projected.`,
-    words: {
-      index: "index stocks shares",
-      bonds: "bonds government bund germany",
-      gold: "gold",
-      savings: "savings account bank deposit cash interest",
-      custom: "custom own growth rate numbers",
-      portfolio: "my portfolio holdings",
-      mix: "mix weights several combine stocks bonds",
-      stock: "stock shares company",
-    },
+    words: ENGLISH_SEARCH_WORDS,
   },
   mix: {
     templates: { "stocks-100": "100% stocks", "80-20": "80/20", "60-40": "60/40" },

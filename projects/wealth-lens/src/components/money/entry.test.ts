@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "@/components/i18n";
 import { calculationFor } from "@/hooks/use-calculation";
-import { getI18n } from "@/i18n";
+import { getI18n, type I18n } from "@/i18n";
 import type { Locale } from "@/i18n/locales";
 import { INITIAL_STATE, type AppState } from "@/lib/app-store";
 import { parseIsoDate } from "@/lib/dates";
@@ -21,11 +21,11 @@ vi.mock("@/hooks/use-app", () => ({ useAppState: () => app.state }));
 const today = parseIsoDate("2026-09-30");
 const filled: AppState = { ...INITIAL_STATE, plan: EXAMPLE_PLAN };
 
-const Provider = I18nProvider as React.FC<{ locale: Locale; children?: React.ReactNode }>;
+const Provider = I18nProvider as React.FC<{ i18n: I18n; children?: React.ReactNode }>;
 
 function render(locale: Locale, state: AppState, element: React.ReactElement): string {
   app.state = state;
-  return renderToStaticMarkup(createElement(Provider, { locale }, element));
+  return renderToStaticMarkup(createElement(Provider, { i18n: getI18n(locale) }, element));
 }
 
 const decode = (html: string) => html.replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
