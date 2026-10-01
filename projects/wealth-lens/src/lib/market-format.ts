@@ -38,6 +38,8 @@ export interface InstrumentPrices {
   drawdown?: { from: string; max: number } | null;
   /** How it moves, from the stored daily closes (scripts/lib/stats.mts); absent in older files. */
   stats?: InstrumentStats | null;
+  /** The last year's weekly line, 100 at its start (never a price), for the small picture in a list row; absent in older files. */
+  line1y?: number[] | null;
 }
 
 export interface InstrumentStats {
@@ -57,6 +59,35 @@ export interface Correlations {
   matrix: (number | null)[][];
   /** Weeks each pair shares, same layout. */
   weeks: number[][];
+}
+
+/** The periods a line chart can show, shortest first. */
+export const LINE_PERIODS = ["1y", "3y", "5y", "max"] as const;
+export type LinePeriodId = (typeof LINE_PERIODS)[number];
+
+/**
+ * One period of an instrument's line (public/data/lines/<id>.json): the
+ * close of each week (on or before its Friday) as a share of the first
+ * one, times 100, to a tenth: 100 at the start, 135.2 when it is up 35.2 %.
+ * Never a price. Points are a week apart from `from`; the last one is the
+ * latest close, `to`, which can come less than a week after the one before.
+ */
+export interface LinePeriod {
+  from: string;
+  to: string;
+  line: number[];
+  /** Its index fund's line over the very same weeks, 100 at the same start; absent when the fund's prices start later. */
+  index?: number[];
+}
+
+/** The lines of one instrument, written by the price job and read when its row is opened. */
+export interface LinesFile {
+  version: 1;
+  id: string;
+  /** The index fund a stock is compared with (its index's ETF on the list); absent for a fund. */
+  benchmark?: string;
+  /** Only the periods its history covers. */
+  periods: Partial<Record<LinePeriodId, LinePeriod>>;
 }
 
 export interface PricesFile {
@@ -138,7 +169,7 @@ function parseCorrelations(value: unknown): Correlations | null {
 function parseInstrumentPrices(value: unknown): InstrumentPrices | null {
   if (!isRecord(value)) return null;
   // Older files also carry a 12-month line of closes ("spark"): no longer published or read.
-  const { symbol, currency, source, date, close, change1y, growth, drawdown, stats } = value;
+  const { symbol, currency, source, date, close, change1y, growth, drawdown, stats, line1y } = value;
   if (typeof symbol !== "string" || typeof currency !== "string") return null;
   if (source !== "yahoo" && source !== "stooq") return null;
   if (!isDay(date) || !isPositive(close)) return null;
@@ -160,7 +191,38 @@ function parseInstrumentPrices(value: unknown): InstrumentPrices | null {
     growth: growthOk,
     drawdown: drawdownOk,
     ...(stats !== undefined ? { stats: parseStats(stats) } : {}),
+    ...(line1y !== undefined ? { line1y: isLine(line1y) ? line1y : null } : {}),
   };
+}
+
+/** Values of a line: at least two, every one above 0 (100 is the start). */
+function isLine(value: unknown): value is number[] {
+  return Array.isArray(value) && value.length >= 2 && value.every(isPositive);
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function parseLinePeriod(value: unknown): LinePeriod | null {
+  if (!isRecord(value) || !isDay(value.from) || !isDay(value.to) || !isLine(value.line)) return null;
+  const { from, to, line, index } = value;
+  // A week apart from `from`, the last point up to a week after the one before it.
+  const lastWeek = Date.parse(from) + (line.length - 2) * 7 * DAY_MS;
+  const gap = (Date.parse(to) - lastWeek) / DAY_MS;
+  if (!(gap > 0 && gap <= 7)) return null;
+  const indexOk = isLine(index) && index.length === line.length;
+  return { from, to, line, ...(indexOk ? { index } : {}) };
+}
+
+/** A lines file, or `null` when it is not one; a bad period is dropped on its own. */
+export function parseLinesFile(value: unknown): LinesFile | null {
+  if (!isRecord(value) || value.version !== 1 || typeof value.id !== "string" || !isRecord(value.periods)) return null;
+  const periods: LinesFile["periods"] = {};
+  for (const id of LINE_PERIODS) {
+    const period = parseLinePeriod(value.periods[id]);
+    if (period) periods[id] = period;
+  }
+  const benchmark = typeof value.benchmark === "string" ? value.benchmark : undefined;
+  return { version: 1, id: value.id, ...(benchmark ? { benchmark } : {}), periods };
 }
 
 /** Keeps every valid entry; anything unreadable is dropped. */

@@ -7,21 +7,27 @@
  * worked out from them into public/data/prices.json: the latest close, the
  * change over a year, past growth, the worst fall, how much it moves
  * (volatility, calendar-year changes; scripts/lib/stats.mts) and, at the end,
- * the weekly correlations between instruments. The closes themselves are
- * never published: the sources' terms do not allow passing their data on.
- * A folder of daily histories left by earlier versions is removed.
+ * the weekly correlations between instruments. For My stocks' charts it
+ * also writes public/data/lines/<id>.json (scripts/lib/lines.mts): one
+ * point a week, as a share of each period's first week times 100, and a
+ * stock's index fund over the same weeks; never a price. The closes
+ * themselves are never published: the sources' terms do not allow passing
+ * their data on. A folder of daily histories left by earlier versions is
+ * removed.
  *
  * When an instrument cannot be downloaded, or the download looks wrong, its
- * previous figures are kept untouched (and the correlations, unless every
- * instrument came in fresh). The file is only rewritten when its content
+ * previous figures and lines are kept untouched (and the correlations,
+ * unless every instrument came in fresh; a stock's lines too while its
+ * index fund is missing). The file is only rewritten when its content
  * changes, so a day without new closes leaves the tree clean and the Action
  * commits nothing. The job never fails because a source is down: it logs a
  * warning and exits 0.
  */
 
-import { readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { parseCatalogue, parsePricesFile, type InstrumentPrices } from "../src/lib/market-format.ts";
 import { downloadInstrument } from "./lib/download.mts";
+import { benchmarkFor, formatLinesFile, linesFile, recentLine } from "./lib/lines.mts";
 import { checkSeries, formatPricesFile, HISTORY_YEARS, lastYears, nextPricesFile, summarize } from "./lib/price-files.mts";
 import type { PricePoint } from "./lib/series.mts";
 import { instrumentStats, weeklyCorrelations } from "./lib/stats.mts";
@@ -29,6 +35,8 @@ import { instrumentStats, weeklyCorrelations } from "./lib/stats.mts";
 const root = new URL("../", import.meta.url);
 const catalogueUrl = new URL("src/data/instruments.json", root);
 const pricesUrl = new URL("public/data/prices.json", root);
+/** Each instrument's weekly lines, for My stocks' charts. */
+const linesDir = new URL("public/data/lines/", root);
 /** Daily histories an earlier version published; removed on the next run. */
 const oldHistoryDir = new URL("public/data/history/", root);
 
@@ -50,6 +58,27 @@ async function writeIfChanged(url: URL, content: string): Promise<boolean> {
 
 const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/**
+ * Each downloaded instrument's lines; one that failed keeps yesterday's, as
+ * does a stock whose index fund failed (its comparison would go missing).
+ * Files of instruments no longer on the list are removed.
+ */
+async function writeLines(instruments: ReturnType<typeof parseCatalogue>["instruments"], series: Readonly<Record<string, PricePoint[]>>): Promise<void> {
+  await mkdir(linesDir, { recursive: true });
+  for (const instrument of instruments) {
+    const points = series[instrument.id];
+    if (!points) continue;
+    const fileUrl = new URL(`${instrument.id}.json`, linesDir);
+    const fund = benchmarkFor(instrument, instruments);
+    const fundPoints = fund ? series[fund.id] : undefined;
+    const hasPrevious = (await readFile(fileUrl, "utf8").catch(() => null)) !== null;
+    if (fund && !fundPoints && hasPrevious) continue;
+    await writeIfChanged(fileUrl, formatLinesFile(linesFile(instrument, points, fund && fundPoints ? { id: fund.id, points: fundPoints } : null)));
+  }
+  const listed = new Set(instruments.map((instrument) => `${instrument.id}.json`));
+  for (const name of await readdir(linesDir)) if (!listed.has(name)) await rm(new URL(name, linesDir));
+}
+
 async function main(): Promise<void> {
   const { instruments } = parseCatalogue(await readJson(catalogueUrl));
   const previous = parsePricesFile(await readJson(pricesUrl));
@@ -70,7 +99,7 @@ async function main(): Promise<void> {
         console.log(`::warning::${instrument.id}: kept previous data, ${download.source} answer rejected: ${check.reason}`);
         report.push(`| ${instrument.id} | kept previous | ${download.source}: ${check.reason} |`);
       } else {
-        fresh[instrument.id] = { ...summarize(instrument, points, download.source), stats: instrumentStats(points) };
+        fresh[instrument.id] = { ...summarize(instrument, points, download.source), stats: instrumentStats(points), line1y: recentLine(points) };
         series[instrument.id] = points;
         const { date, close } = fresh[instrument.id];
         console.log(`${instrument.id}: ${points.length} closes from ${download.source}, last ${close} on ${date}`);
@@ -81,6 +110,7 @@ async function main(): Promise<void> {
   }
 
   await rm(oldHistoryDir, { recursive: true, force: true });
+  await writeLines(instruments, series);
 
   // Correlations need every series of the day; with one missing, yesterday's are kept.
   const everyone = instruments.every((instrument) => instrument.id in series);

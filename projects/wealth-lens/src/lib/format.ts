@@ -46,6 +46,8 @@ export interface NumberFormats {
   monthYear(date: Date): string;
   /** "2026-09-25" → "25/09". */
   dayMonth(isoDate: string): string;
+  /** "2026-09-25" → "Sep 25, 2026" ("25 sept 2026"). */
+  date(isoDate: string): string;
 }
 
 /**
@@ -90,6 +92,7 @@ function createFormats(intl: string): NumberFormats {
     );
   const eur: NumberFormats["eur"] = (amount, { signed = false } = {}) => money(amount, "EUR", { decimals: 0, signed });
   const monthYear = new Intl.DateTimeFormat(intl, { month: "short", year: "numeric", timeZone: "UTC" });
+  const fullDate = new Intl.DateTimeFormat(intl, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
   return {
     decimalSeparator: new Intl.NumberFormat(intl).formatToParts(1.5).find((part) => part.type === "decimal")?.value ?? ".",
     money,
@@ -124,6 +127,9 @@ function createFormats(intl: string): NumberFormats {
     dayMonth(isoDate) {
       const [, month, day] = isoDate.split("-");
       return `${day}/${month}`;
+    },
+    date(isoDate) {
+      return spaces(fullDate.format(new Date(`${isoDate}T00:00:00Z`)));
     },
   };
 }

@@ -120,10 +120,17 @@ cambiar. Todo lo visible está en palabras simples: "real", "nominal",
      su fuente al tocarlas y un "+" para añadirlas a My goals).
 - **My stocks — `/stocks`** (antes Charts): ganancia, holdings (añadir,
   editar, importar CSV), cómo se movió cada uno, y los 3 ETFs (VUAA,
-  VWCE, EQQQ) y 12 acciones grandes con su gráfico y su pasado ("past, not
-  a forecast"). Un ETF puede ser la inversión ("Use as my investment");
-  una acción no se proyecta sola, y su fila dice cómo cuenta en My
-  portfolio. `/charts` y `/fire` redirigen.
+  VWCE, EQQQ) y 12 acciones grandes. Cada fila lleva una línea pequeña del
+  último año y su cambio; al abrirla, una línea semanal con selector de
+  periodo **1Y · 3Y · 5Y · Max** (los que los datos no alcanzan, desactivados)
+  y el % del periodo al lado, en verde o rojo. En una acción, en fino, la
+  línea del fondo de su índice (EQQQ, VUAA o VWCE) sobre las mismas semanas y
+  desde el mismo 100, con una nota si cotizan en monedas distintas o si el
+  fondo no llega a ese periodo. Las barras de cambio anual se quitaron. Un
+  ETF puede ser la inversión ("Use as my investment"); una acción no se
+  proyecta: "History only. One stock's future can't be predicted.", y su
+  fila dice cómo cuenta en una mezcla o en My portfolio. Los precios de un
+  CSV propio siguen con su gráfico diario. `/charts` y `/fire` redirigen.
 
 Limitaciones conocidas: no convierte entre monedas (la meta, el ingreso
 y la cartera ponderada solo cuentan holdings en EUR); las ganancias
@@ -402,7 +409,7 @@ sus condiciones publicadas conocidas y se aplica la opción más prudente):
 
 | Fuente | Condiciones | Qué se publica |
 | --- | --- | --- |
-| Yahoo Finance, Stooq | No permiten redistribuir sus datos | Solo cifras derivadas en `prices.json` (último cierre por fondo, cambio a 1 año, crecimiento anual, peor caída, cambio de cada año, volatilidad, correlaciones); nunca el historial de cierres |
+| Yahoo Finance, Stooq | No permiten redistribuir sus datos | Solo cifras derivadas en `prices.json` (último cierre por fondo, cambio a 1 año, crecimiento anual, peor caída, cambio de cada año, volatilidad, correlaciones) y series derivadas y normalizadas en `lines/` (un punto por semana, cierre del viernes, como índice base 100 al inicio de cada periodo, es decir, % de cambio acumulado, a una décima); nunca el historial de cierres ni un precio en esas series |
 | Numbeo, Wise | No permiten copiar sus datos | Solo el coste mensual en euros, combinado y redondeado a 10, con atribución; se quitaron las cifras originales que citaba `cost-of-living.json` |
 | MSCI, Nasdaq, LBMA | Datos propietarios | Solo la rentabilidad anual real derivada y la inflación usada; se quitaron las rentabilidades nominales de MSCI, los cierres del Nasdaq-100 y los precios del oro |
 | Robert Shiller (Yale) | Libre con atribución | Rentabilidad real anual derivada del S&P 500 |
@@ -413,9 +420,15 @@ sus condiciones publicadas conocidas y se aplica la opción más prudente):
 
 Riesgo residual: el último cierre de cada fondo es una cotización tal cual
 (como la de cualquier web de noticias); hace falta para valorar las
-posiciones. Si una fuente lo objetara, el job puede dejar de publicarlo y
-pedir el precio al usuario. *How it works* explica todo esto en lenguaje
-llano.
+posiciones. Las series semanales normalizadas no llevan precios, pero
+siguen la forma del precio semana a semana: junto con ese último cierre
+permitirían reconstruir cierres semanales aproximados (a una décima de
+punto). Es menos que lo que muestra cualquier gráfico de una web de
+noticias y nunca son los cierres diarios, pero no es cero. Si una fuente
+lo objetara, el job puede dejar de publicar el último cierre (y pedir el
+precio al usuario) o las series (`public/data/lines/`), y My stocks
+vuelve a las cifras sin gráfico. *How it works* explica todo esto en
+lenguaje llano.
 
 ## Test my plan (`/test`, `/es/test`)
 
@@ -522,8 +535,22 @@ correlaciones de retornos semanales entre instrumentos (semanales porque
 las bolsas cierran a horas distintas; `null` con menos de 3 años
 compartidos; si un instrumento falla ese día, se conservan las del día
 anterior). Una línea por instrumento. Se importa en el build, así que va
-dentro de la página. La carpeta `public/data/history/` que publicaban
-versiones anteriores la borra el primer run tras el merge.
+dentro de la página. Cada entrada lleva además `line1y`, la línea del
+último año (semanal, base 100) para el dibujo pequeño de su fila.
+
+Para los gráficos de My stocks escribe `public/data/lines/<id>.json`
+(`scripts/lib/lines.mts`): un punto por semana (el último cierre del
+viernes o antes, y el último cierre de la semana en curso), por periodo
+(1, 3 y 5 años y todo lo descargado, solo los que la historia cubre),
+cada periodo como índice base 100 en su primera semana, a una décima; en
+una acción, el fondo de su índice sobre las mismas semanas y desde el
+mismo 100 (sin él si el fondo empieza después). Nunca un precio. La app lo
+lee del propio sitio al abrir la fila. Si un instrumento falla ese día se
+conserva su archivo, y también el de una acción cuyo fondo falló; se
+borran los de instrumentos que salen de la lista. Hasta el primer run del
+Action tras el merge no existen, y la fila dice "No chart yet: it comes
+with the next daily price update." La carpeta `public/data/history/` que
+publicaban versiones anteriores la borra el primer run tras el merge.
 
 Si un instrumento falla o la respuesta es rara (otra moneda, datos viejos,
 un salto ×5), se conserva lo anterior; los archivos solo se reescriben si
@@ -708,7 +735,7 @@ cierre se publica) y las reglas para conservar los datos anteriores.
 scripts/
   update-prices.mts            job diario: descarga y escribe public/data/prices.json (solo cifras derivadas)
   update-prices.workflow.yml   el GitHub Action (copiar a .github/workflows/)
-  lib/                         yahoo, stooq, cadena de respaldo, armado de archivos
+  lib/                         yahoo, stooq, cadena de respaldo, armado de archivos, líneas semanales
 public/data/                   precios generados por el job (no editar a mano)
 src/
   app/                         rutas: / (My money), /stocks (My stocks);
@@ -744,6 +771,7 @@ src/
     step.ts             los botones − / + (pasos de €50 y de un año)
     indexes.ts          datasets de retornos reales: 3 índices, bonos euro, oro
     market-data.ts      lista curada + precios estáticos (formato en market-format.ts)
+    lines.ts            las líneas semanales de My stocks: carga al abrir la fila, periodos, eje
     auto-price.ts       precio actual de un holding desde datos estáticos o CSV
     data-file.ts        "Download my data" / "Load my data"
     legacy-storage.ts   limpieza de datos que dejaron versiones anteriores

@@ -14,17 +14,18 @@ import { lastDays, periodChange } from "@/lib/sparkline";
 import type { Holding } from "@/lib/types";
 import { ChartRow } from "./chart-row";
 import { InstrumentFigures } from "./instrument-figures";
+import { HistoryOnly, rowSummary } from "./instrument-row";
 import { PriceChart } from "./price-chart";
+import { PriceLines } from "./price-lines";
 import { Sparkline } from "./sparkline";
-import { YearStrip } from "./year-changes";
 
 const PERIOD_DAYS = 365;
 
 /**
  * One holding in the My stocks list. When its ticker is on the curated list,
- * the figures the daily job worked out (never the closes themselves); when
- * the user uploaded a CSV of prices, the full chart of their own file. The
- * app never asks a price source.
+ * its weekly line and the figures the daily job worked out (never the
+ * closes themselves); when the user uploaded a CSV of prices, the full
+ * chart of their own file. The app never asks a price source.
  */
 export function HoldingChartRow({ holding }: { holding: Holding }) {
   const { m } = useI18n();
@@ -35,14 +36,11 @@ export function HoldingChartRow({ holding }: { holding: Holding }) {
   const market = instrument ? MARKET.prices[instrument.id] : undefined;
 
   const recent = uploaded ? lastDays(uploaded.points, PERIOD_DAYS) : null;
-  const change = recent ? periodChange(recent) : (market?.change1y ?? null);
+  const downloaded = rowSummary(market);
+  const change = recent ? periodChange(recent) : downloaded.change;
   const subtitle = uploaded ? t.yourPrices : instrument && market ? instrument.name : t.noDownloaded;
   const visual =
-    recent && recent.length > 1 ? (
-      <Sparkline closes={recent.map((point) => point.close)} rising={(change ?? 0) >= 0} />
-    ) : (
-      <YearStrip years={market?.stats?.years} />
-    );
+    recent && recent.length > 1 ? <Sparkline closes={recent.map((point) => point.close)} rising={(change ?? 0) >= 0} /> : downloaded.visual;
 
   return (
     <ChartRow title={holding.ticker} subtitle={subtitle} visual={visual} change={change}>
@@ -59,8 +57,12 @@ export function HoldingChartRow({ holding }: { holding: Holding }) {
             )}
           </div>
         </>
-      ) : market ? (
-        <InstrumentFigures prices={market} averageCost={averageCost(holding)} />
+      ) : market && instrument ? (
+        <>
+          <PriceLines instrument={instrument} />
+          <HistoryOnly instrument={instrument} />
+          <InstrumentFigures prices={market} averageCost={averageCost(holding)} />
+        </>
       ) : (
         <p className="rounded-lg border border-border bg-background px-3 py-2 text-sm">{t.noPricesFor(holding.ticker)}</p>
       )}
