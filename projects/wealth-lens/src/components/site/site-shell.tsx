@@ -8,7 +8,6 @@ import { LegacyDataNotice } from "@/components/legacy-data-notice";
 import { MainNav } from "@/components/main-nav";
 import { localePath, PAGES } from "@/i18n/locales";
 import { SEED_LAB_HUB_URL } from "@/lib/seed-lab";
-import { PROJECT_URL } from "@/lib/site";
 import { LanguageSwitch } from "./language-switch";
 import { SeedLabLauncher } from "./seed-lab-launcher";
 
@@ -61,17 +60,13 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
                 </li>
               ))}
               <li>
-                <a href={PROJECT_URL} rel="noopener" className={footerLink}>
-                  {m.site.github}
-                </a>
-              </li>
-              <li>
                 <a href={SEED_LAB_HUB_URL} rel="noopener" className={footerLink}>
                   {m.site.partOf}
                 </a>
               </li>
             </ul>
           </nav>
+          <p className="text-xs text-muted">{m.site.copyright}</p>
         </div>
       </footer>
     </>
