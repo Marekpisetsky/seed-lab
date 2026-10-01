@@ -16,5 +16,9 @@ está en [`../docs/hosting.md`](../docs/hosting.md).
 - `vercel.mjs` y `vercel/`: las redirecciones 301 de las direcciones de
   Vercel a las nuevas, listas pero sin usar. Tras cambiar el dominio:
   `node deploy/vercel.mjs`. `--check` comprueba que siguen al día.
+- `deploy.workflow.yml`: el workflow que publica. Se copia una vez a
+  `.github/workflows/deploy.yml` (las sesiones de Claude Code no pueden
+  escribir workflows); `workflow.test.mjs` comprueba que la copia es
+  idéntica.
 - Tests: `node --test deploy/*.test.mjs` (los ejecuta también el
-  workflow `.github/workflows/deploy.yml`).
+  workflow).

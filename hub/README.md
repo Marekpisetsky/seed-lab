@@ -122,7 +122,8 @@ las canónicas, el hreflang, Open Graph, `robots.txt` y el sitemap. Los
 enlaces a Wealth Lens no llevan dominio (`/wealth-lens/`,
 `/wealth-lens/es/`).
 
-GitHub Actions (`.github/workflows/deploy.yml`) construye y comprueba las
+GitHub Actions (`.github/workflows/deploy.yml`, copia de
+`deploy/deploy.workflow.yml`) construye y comprueba las
 dos apps en cada push a `master` y tras los precios diarios, las junta
 con `deploy/combine.mjs` y publica el resultado en la rama **`deploy`**:
 solo archivos estáticos (`public/`) y un `statichost.yml` sin build.

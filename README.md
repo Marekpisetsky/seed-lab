@@ -49,8 +49,8 @@ herramienta y la prueba de los principios.
   se cambia el dominio), el script que junta el hub y Wealth Lens en un
   solo sitio y comprueba sus enlaces (`combine.mjs`) y las redirecciones
   301 preparadas para las direcciones de Vercel (`vercel/`, escritas por
-  `vercel.mjs`). El workflow que publica es
-  `.github/workflows/deploy.yml`.
+  `vercel.mjs`). El workflow que publica, `deploy.workflow.yml`, se copia
+  una vez a `.github/workflows/deploy.yml`.
 - `docs/` — dirección (`direction.md`), alojamiento (`hosting.md`),
   historia (`history.md`: cómo se definía seed-lab antes
   de septiembre de 2026) y capturas.

@@ -34,8 +34,8 @@ un sitio europeo para un repositorio privado es otra decisión, con coste
   en local, en la dirección gratuita `<sitio>.statichost.page` y en el
   dominio.
 - **GitHub construye, statichost.eu solo sirve.** El workflow
-  `.github/workflows/deploy.yml` (acciones `checkout@v5` y
-  `setup-node@v5`) se ejecuta en cada push a `master`, después de cada
+  `.github/workflows/deploy.yml` (copia de `deploy/deploy.workflow.yml`,
+  paso 2; acciones `checkout@v5` y `setup-node@v5`) se ejecuta en cada push a `master`, después de cada
   ejecución correcta de "Update prices" y a mano. Hace lint, tipos, tests
   y build de las dos apps; `deploy/combine.mjs` las junta y comprueba
   cada enlace, cada fuente, las canónicas, los sitemaps y que las
@@ -80,11 +80,30 @@ El último despliegue de producción sigue publicado tal cual. Mientras
 tanto, los precios diarios de Wealth Lens en Vercel dejan de
 actualizarse; en el sitio nuevo sí se actualizan.
 
-### 2. Fusionar el PR
+### 2. Fusionar el PR e instalar el workflow
 
-El workflow **Deploy** se ejecuta y crea la rama `deploy`. Comprobarlo en
-GitHub → **Actions → Deploy** (verde) y en la lista de ramas (`deploy`,
-con `public/`, `statichost.yml` y `README.md`).
+GitHub solo ejecuta los workflows que están en `.github/workflows/`, y
+las sesiones de Claude Code no pueden escribir ahí (su token no tiene el
+permiso `workflow`). Por eso el workflow viene como
+`deploy/deploy.workflow.yml` y se copia una vez, como se hizo con el de
+los precios:
+
+1. Fusionar el PR.
+2. GitHub → el repositorio → rama `master` → abrir
+   `deploy/deploy.workflow.yml` → botón **Raw** → copiar todo el texto.
+3. **Add file → Create new file**, nombre
+   `.github/workflows/deploy.yml`, pegar el texto tal cual y **Commit
+   changes…** directamente en `master`. (Desde un clon local es lo mismo:
+   `cp deploy/deploy.workflow.yml .github/workflows/deploy.yml`, commit y
+   push a `master`.)
+4. Ese commit ya ejecuta el workflow **Deploy**, que crea la rama
+   `deploy`. Comprobarlo en GitHub → **Actions → Deploy** (verde) y en la
+   lista de ramas (`deploy`, con `public/`, `statichost.yml` y
+   `README.md`).
+
+Un test (`deploy/workflow.test.mjs`, que el propio workflow ejecuta)
+comprueba que la copia es idéntica a `deploy/deploy.workflow.yml`: si se
+cambia uno, hay que cambiar el otro.
 
 ### 3. Crear el sitio en statichost.eu (sin comando de build)
 
@@ -228,6 +247,11 @@ Con el sitio nuevo activo, en un PR:
   una nota que lo diga (alojado en statichost.eu, Suecia).
 - `hub/src/i18n/en.ts` y `es.ts`: el paso del *Roadmap* sobre el
   alojamiento y la frase de *About* (hoy dicen "en traslado").
+- El comentario de `update-prices.yml` (sus dos copias, en
+  `.github/workflows/` y `projects/wealth-lens/scripts/`) que dice que el
+  commit hace que Vercel vuelva a desplegar: ahora lo publica Deploy.
+- El test del hub (`hub/test/build.test.ts`) que exige que el *Roadmap*
+  nombre Vercel, si ya no lo nombra.
 - Wealth Lens, página *Privacy* (`projects/wealth-lens/src/i18n/messages/`,
   la sección del alojamiento): quién aloja ahora y qué registra, con el
   enlace a la política de privacidad de statichost.eu en lugar de la de
