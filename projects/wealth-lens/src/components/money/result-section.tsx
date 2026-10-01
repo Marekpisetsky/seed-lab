@@ -7,6 +7,7 @@ import { RadioGroup } from "@/components/ui/radio-group";
 import type { CalculationBundle } from "@/hooks/use-calculation";
 import type { I18n } from "@/i18n";
 import { simulationsText } from "@/i18n/investment-text";
+import { concentrationEffect, type Concentration } from "@/lib/mix";
 import { updatePlan } from "@/lib/app-store";
 import type { Result } from "@/lib/calculator";
 import { beforeInflationText, formatShare, gainedShareOf, growsText, moneyLine } from "@/lib/growth";
@@ -28,32 +29,91 @@ function MixFiguresView({ figures, years }: { figures: MixFigures; years: number
   const worst = (year: WorstYear | null) => (year ? `${f.percent(year.change, { decimals: 0 })} (${year.year})` : t.noData);
   const span = figures.worst ? `${figures.worst.from}–${figures.worst.to}` : "";
   return (
-    <dl className="grid gap-3 rounded-lg border border-border bg-card p-3 tabular-nums sm:grid-cols-2">
-      <div>
-        <dt className="flex items-center gap-2 text-xs text-muted">
-          {t.range(years)}
-          <Help what={t.range(years)} text={m.help.range} />
-        </dt>
-        <dd className="text-base font-semibold">
-          <Changed value={range(figures.range)} />
-        </dd>
-        <dd className="text-xs text-muted">
-          <Changed value={t.alone(range(figures.reference.range))} />
-        </dd>
-      </div>
-      <div>
-        <dt className="flex items-center gap-2 text-xs text-muted">
-          {span ? t.worstSpan(span) : t.worst}
-          <Help what={t.worst} text={m.help.worst} />
-        </dt>
-        <dd className="text-base font-semibold">
-          <Changed value={worst(figures.worst)} />
-        </dd>
-        <dd className="text-xs text-muted">
-          <Changed value={t.aloneSameYears(worst(figures.reference.worst))} />
-        </dd>
-      </div>
-    </dl>
+    <div className="space-y-3">
+      <dl className="grid gap-3 rounded-lg border border-border bg-card p-3 tabular-nums sm:grid-cols-2">
+        <div>
+          <dt className="flex items-center gap-2 text-xs text-muted">
+            {t.range(years)}
+            <Help what={t.range(years)} text={m.help.range} />
+          </dt>
+          <dd className="text-base font-semibold">
+            <Changed value={range(figures.range)} />
+          </dd>
+          <dd className="text-xs text-muted">
+            <Changed value={t.alone(range(figures.reference.range))} />
+          </dd>
+        </div>
+        <div>
+          <dt className="flex items-center gap-2 text-xs text-muted">
+            {span ? t.worstSpan(span) : t.worst}
+            <Help what={t.worst} text={m.help.worst} />
+          </dt>
+          <dd className="text-base font-semibold">
+            <Changed value={worst(figures.worst)} />
+          </dd>
+          <dd className="text-xs text-muted">
+            <Changed value={t.aloneSameYears(worst(figures.reference.worst))} />
+          </dd>
+        </div>
+      </dl>
+      {figures.concentration && <ConcentrationView effect={figures.concentration} years={years} />}
+    </div>
+  );
+}
+
+/**
+ * One stock over a fifth of a mix: what it does to the result, against the
+ * same mix with its index in its place. Nothing is suggested.
+ */
+function ConcentrationView({ effect, years }: { effect: Concentration; years: number }) {
+  const { m, f } = useI18n();
+  const t = m.result.mix;
+  const said = concentrationEffect(effect);
+  return (
+    <div className="space-y-2 rounded-lg border border-warning-border bg-warning-bg p-3 text-warning-foreground">
+      <p className="text-sm font-medium">
+        <Changed value={t.concentration(f.percent(effect.weight, { decimals: 0 }), t.middleEffect[said.middle], t.badEffect[said.bad])} />
+      </p>
+      <table className="w-full text-left text-xs tabular-nums">
+        <thead>
+          <tr>
+            <th scope="col" className="pb-1 pr-2 font-normal">
+              {t.afterYears(years)}
+            </th>
+            <th scope="col" className="pb-1 pr-2 text-right font-medium">
+              {t.withStock(effect.stock.name)}
+            </th>
+            <th scope="col" className="pb-1 text-right font-medium">
+              {t.withIndex(m.assets.inSentence[effect.index])}
+            </th>
+          </tr>
+        </thead>
+        <tbody className="text-sm">
+          <tr className="border-t border-warning-border">
+            <th scope="row" className="py-1 pr-2 text-xs font-normal">
+              {t.badCases}
+            </th>
+            <td className="py-1 pr-2 text-right font-semibold">
+              <Changed value={f.eur(effect.with.p10)} />
+            </td>
+            <td className="py-1 text-right">
+              <Changed value={f.eur(effect.without.p10)} />
+            </td>
+          </tr>
+          <tr className="border-t border-warning-border">
+            <th scope="row" className="py-1 pr-2 text-xs font-normal">
+              {t.middle}
+            </th>
+            <td className="py-1 pr-2 text-right font-semibold">
+              <Changed value={f.eur(effect.with.p50)} />
+            </td>
+            <td className="py-1 text-right">
+              <Changed value={f.eur(effect.without.p50)} />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   );
 }
 

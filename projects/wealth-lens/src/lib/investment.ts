@@ -27,7 +27,7 @@ import { isSeriesAsset, SAVINGS_RATE, savingsRealReturn, seriesVolatility, type 
 import { DEFAULT_PRICES_OF, countryByCode, referenceInflation } from "./cost-of-living";
 import { COMMON_PERIOD, SERIES } from "./indexes";
 import { MARKET, type PricesFile } from "./market-data";
-import { mixModel, mixVolatility, type MixModel } from "./mix";
+import { mixInputs, mixModel, mixVolatility, type MixModel } from "./mix";
 import { normalReturns } from "./normal";
 import { portfolioAllocation, portfolioInputs, type Allocation } from "./portfolio";
 import { STANDARD_ASSUMPTIONS, type AssumptionOverrides, type Holding, type Investment } from "./types";
@@ -190,7 +190,7 @@ function baseFor(investment: Investment, holdings: readonly Holding[], inflation
       break;
     }
     case "mix": {
-      const model = mixModel(investment.parts, investment.rebalance, { savingsReturn: savingsRealReturn(inflation), market });
+      const model = mixModel(mixInputs(investment.parts), investment.rebalance, { savingsReturn: savingsRealReturn(inflation), market });
       if (model) return fromModel(model, investment, null);
       break;
     }

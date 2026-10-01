@@ -11,6 +11,7 @@ import { setInvestment, updatePlan } from "@/lib/app-store";
 import { priceHoldings } from "@/lib/auto-price";
 import { resolveInvestment } from "@/lib/investment";
 import { startingCapital } from "@/lib/plan";
+import { mixPartKey, mixStock } from "@/lib/mix";
 import { portfolioAllocation } from "@/lib/portfolio";
 import { warmUp } from "@/lib/warm";
 import { MONTHLY_STEP, stepValue, YEARS_STEP } from "@/lib/step";
@@ -105,6 +106,9 @@ function investmentFor(choice: PickChoice, current: Investment): Investment {
     case "portfolio":
     case "custom":
       return choice;
+    // Offered only for a mix's parts.
+    case "stock":
+      return current;
     case "mix": {
       if (current.kind === "mix") return current;
       return { kind: "mix", parts: [{ asset: current.kind === "asset" ? current.asset : "sp500", weight: 100 }], rebalance: false };
@@ -245,11 +249,13 @@ export function CalculatorCard() {
           hasPortfolio={picker.mode === "choose" && hasPortfolio}
           holdingsCount={portfolioAllocation(priced).entries.length}
           onlyAssets={picker.mode === "add"}
-          exclude={picker.mode === "add" && mix ? mix.parts.map((part) => `asset:${part.asset}`) : EMPTY}
+          exclude={picker.mode === "add" && mix ? mix.parts.map(mixPartKey) : EMPTY}
           onClose={close}
           onPick={(choice) => {
             if (picker.mode === "add" && mix) {
+              const stock = choice.kind === "stock" ? mixStock(choice.stock) : null;
               if (choice.kind === "asset") setInvestment({ ...mix, parts: [...mix.parts, { asset: choice.asset, weight: 0 }] });
+              if (stock) setInvestment({ ...mix, parts: [...mix.parts, { asset: stock.index, weight: 0, stock: stock.id }] });
             } else {
               setInvestment(investmentFor(choice, plan.investment));
               // Custom growth is only its figures: open them to be typed.

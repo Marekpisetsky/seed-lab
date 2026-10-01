@@ -74,10 +74,15 @@ export type Investment =
   | { kind: "mix"; parts: MixPart[]; rebalance: boolean }
   | { kind: "custom" };
 
-/** A part of a mix: an asset and its weight in percent. */
+/**
+ * A part of a mix: an asset and its weight in percent; or a stock of the
+ * curated list (`stock`, its id), which grows like `asset`, its index, with
+ * its own ups and downs (lib/mix.ts).
+ */
 export interface MixPart {
   asset: AssetId;
   weight: number;
+  stock?: string;
 }
 
 /**

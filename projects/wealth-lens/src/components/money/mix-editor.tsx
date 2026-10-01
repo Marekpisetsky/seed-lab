@@ -6,16 +6,20 @@ import { useI18n } from "@/components/i18n";
 import { SettledNumberInput } from "@/components/ui/form";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { setInvestment } from "@/lib/app-store";
-import { SAVINGS_RATE, type AssetId } from "@/lib/assets";
+import { SAVINGS_RATE } from "@/lib/assets";
 import type { I18n } from "@/i18n";
+import { mixPartName, stockPartDetail } from "@/i18n/investment-text";
 import { SERIES } from "@/lib/indexes";
-import { MAX_PARTS, splitEvenly, sumsTo100, TEMPLATES, templateOf } from "@/lib/mix";
+import { MAX_PARTS, mixPartKey, mixStock, splitEvenly, sumsTo100, TEMPLATES, templateOf } from "@/lib/mix";
 import type { MixPart } from "@/lib/types";
 import { HowThisMixWorks } from "./explainers";
 
 type Mix = { kind: "mix"; parts: MixPart[]; rebalance: boolean };
 
-function partDetail(asset: AssetId, { m, f }: I18n): string {
+function partDetail({ asset, stock }: MixPart, i18n: I18n): string {
+  const { m, f } = i18n;
+  const instrument = mixStock(stock);
+  if (instrument) return stockPartDetail(instrument, i18n);
   if (asset === "savings") return m.mix.part.savings(f.rate(SAVINGS_RATE));
   if (asset === "gold") return m.mix.part.gold(SERIES.gold.etf);
   return m.mix.part.asset(f.rate(SERIES[asset].averageReturn), SERIES[asset].etf);
@@ -82,14 +86,14 @@ export function MixEditor({ mix, onAddPart }: { mix: Mix; onAddPart: (anchor: HT
       </div>
       <ul className="space-y-2">
         {draft.map((part, index) => (
-          <li key={part.asset} className="flex items-center gap-2">
+          <li key={mixPartKey(part)} className="flex items-center gap-2">
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium">{m.assets.name[part.asset]}</span>
-              <span className="block truncate text-xs text-muted">{partDetail(part.asset, i18n)}</span>
+              <span className="block truncate text-sm font-medium">{mixPartName(part, i18n)}</span>
+              <span className="block text-xs leading-snug text-muted">{partDetail(part, i18n)}</span>
             </span>
             <span className="relative w-24 shrink-0">
               <SettledNumberInput
-                aria-label={m.mix.weightOf(m.assets.name[part.asset])}
+                aria-label={m.mix.weightOf(mixPartName(part, i18n))}
                 value={part.weight}
                 max={100}
                 onCommit={(weight) => edit(draft.map((entry, position) => (position === index ? { ...entry, weight: Math.min(100, weight) } : entry)))}
@@ -101,7 +105,7 @@ export function MixEditor({ mix, onAddPart }: { mix: Mix; onAddPart: (anchor: HT
             </span>
             <button
               type="button"
-              aria-label={m.mix.remove(m.assets.name[part.asset])}
+              aria-label={m.mix.remove(mixPartName(part, i18n))}
               disabled={draft.length === 1}
               onClick={() => edit(draft.filter((_, position) => position !== index))}
               className="flex size-11 shrink-0 items-center justify-center rounded-md text-muted hover:bg-border/40 hover:text-foreground disabled:opacity-30"

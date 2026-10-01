@@ -5,12 +5,12 @@
  * while the valid ones are kept.
  */
 
-import { isAssetId, type AssetId } from "./assets";
+import { isAssetId } from "./assets";
 import { countryByCode, DEFAULT_PRICES_OF, referenceInflation } from "./cost-of-living";
 import { isIndexId, type IndexId } from "./indexes";
 import { toNominal } from "./investment";
 import { instrumentById, instrumentForHolding } from "./market-data";
-import { MAX_PARTS } from "./mix";
+import { MAX_PARTS, mixPartKey, mixStock } from "./mix";
 import { problem, type Problem } from "./problems";
 import type { PricePoint } from "./prices";
 import { STANDARD_ASSUMPTIONS, type AssumptionOverrides, type Goal, type Holding, type Investment, type LegacyGoal, type MixPart, type NewGoal, type Plan } from "./types";
@@ -132,29 +132,40 @@ function stockIndex(id: unknown): { name: string; index: IndexId } | null {
 }
 
 /**
- * The parts of a mix. Version 5 named them "index:sp500" or "stock:NVDA";
- * a stock now counts as its index (weights of the same asset add up).
+ * The parts of a mix: assets, and (version 7) stocks of the list, each
+ * growing like its index; a stock no longer on the list is left out.
+ * Version 5 named them "index:sp500" or "stock:NVDA" and projected a stock
+ * on its own: such a stock counts as its index (weights of the same asset
+ * add up), with a notice.
  */
 function parseMixParts(value: unknown[], notices: Notices): MixPart[] {
-  const weights = new Map<AssetId, number>();
+  const parts = new Map<string, MixPart>();
   let hadStock = false;
   for (const part of value) {
     if (!isRecord(part) || !isFiniteNumber(part.weight) || part.weight < 0 || part.weight > 100) continue;
-    let asset: AssetId | null = isAssetId(part.asset) ? part.asset : null;
-    if (!asset && typeof part.ref === "string") {
+    let read: MixPart | null = null;
+    if (part.stock !== undefined) {
+      const stock = typeof part.stock === "string" ? mixStock(part.stock) : null;
+      read = stock ? { asset: stock.index, weight: part.weight, stock: stock.id } : null;
+    } else if (isAssetId(part.asset)) {
+      read = { asset: part.asset, weight: part.weight };
+    } else if (typeof part.ref === "string") {
       const [kind, id] = part.ref.split(":");
-      if (kind === "index" && isIndexId(id)) asset = id;
+      if (kind === "index" && isIndexId(id)) read = { asset: id, weight: part.weight };
       const stock = kind === "stock" ? stockIndex(id) : null;
       if (stock) {
-        asset = stock.index;
+        read = { asset: stock.index, weight: part.weight };
         hadStock = true;
       }
     }
-    if (!asset || (!weights.has(asset) && weights.size === MAX_PARTS)) continue;
-    weights.set(asset, Math.min(100, (weights.get(asset) ?? 0) + part.weight));
+    if (!read) continue;
+    const key = mixPartKey(read);
+    const kept = parts.get(key);
+    if (kept) kept.weight = Math.min(100, kept.weight + read.weight);
+    else if (parts.size < MAX_PARTS) parts.set(key, read);
   }
   if (hadStock) notices.push(problem("mix-had-stocks"));
-  return [...weights].map(([asset, weight]) => ({ asset, weight }));
+  return [...parts.values()];
 }
 
 /**

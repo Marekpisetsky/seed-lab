@@ -6,7 +6,7 @@
  */
 
 import type { ResolvedInvestment } from "./investment";
-import { mixModel, mixPercentiles, mixSuccessRates, sharedYears, worstYear, type WorstYear } from "./mix";
+import { concentration, mixModel, mixPercentiles, mixSuccessRates, sharedYears, worstYear, type Concentration, type WorstYear } from "./mix";
 import { SERIES } from "./indexes";
 import { cachedSuccessRates, wealthPercentiles, type WealthPercentiles } from "./simulation";
 
@@ -53,6 +53,8 @@ export interface MixFigures {
   range: [number, number];
   worst: WorstYear | null;
   reference: { range: [number, number]; worst: WorstYear | null };
+  /** A mix with one stock over a fifth of it: the result with that stock and with its index instead. */
+  concentration: Concentration | null;
 }
 
 const SP500 = mixModel([{ asset: "sp500", weight: 100 }], false);
@@ -63,6 +65,21 @@ const SP500_YEARS = new Set(SERIES.sp500.dataset.years.map((entry) => entry.year
 let lastReference: { id: string; range: [number, number] } | null = null;
 const worstYears = new Map<string, { worst: WorstYear | null; reference: WorstYear | null }>();
 const MAX_KEPT_WORST_YEARS = 16;
+
+let lastConcentration: { id: string; value: Concentration | null } | null = null;
+
+/**
+ * The concentration effect of a mix simulated from its own figures; with
+ * the user's own growth or ups and downs the stock's own moves are not
+ * simulated, so there is none to show.
+ */
+function concentrationFor(investment: ResolvedInvestment, amounts: Amounts): Concentration | null {
+  const { model } = investment;
+  if (!model || investment.investment.kind !== "mix" || investment.simulation !== "joint") return null;
+  const id = `${investment.key}|${amounts.start}|${amounts.monthly}|${amounts.years}|${investment.growthFactor}`;
+  if (lastConcentration?.id !== id) lastConcentration = { id, value: concentration(model, amounts, undefined, investment.growthFactor) };
+  return lastConcentration.value;
+}
 
 export function mixFigures(investment: ResolvedInvestment, amounts: Amounts): MixFigures | null {
   const { model } = investment;
@@ -86,5 +103,6 @@ export function mixFigures(investment: ResolvedInvestment, amounts: Amounts): Mi
     range: [bands.p10[years], bands.p90[years]],
     worst: worst.worst,
     reference: { range: lastReference.range, worst: worst.reference },
+    concentration: concentrationFor(investment, amounts),
   };
 }

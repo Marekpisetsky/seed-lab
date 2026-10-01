@@ -9,6 +9,7 @@ import { instrumentById, MARKET } from "./market-data";
 import {
   cholesky,
   indexCorrelation,
+  mixInputs,
   mixModel,
   mixPercentiles,
   mixSuccessRates,
@@ -22,6 +23,7 @@ import {
   templateOf,
   worstYear,
   type MixModel,
+  type MixPart,
   type ModelInput,
 } from "./mix";
 import { mixFigures, successRatesFor } from "./projections";
@@ -30,8 +32,10 @@ import { DEFAULT_PLAN, parseInvestment } from "./validation";
 import { logStats } from "./volatility";
 
 const today = parseIsoDate("2026-09-29");
-const model = (parts: ModelInput[], rebalance = false, savingsReturn = -0.005): MixModel => {
-  const built = mixModel(parts, rebalance, { savingsReturn });
+/** A model from the model's inputs, or from a plan's parts (a stock named by its id). */
+const model = (parts: readonly (ModelInput | MixPart)[], rebalance = false, savingsReturn = -0.005): MixModel => {
+  const inputs = parts.map((part) => (typeof part.stock === "string" ? mixInputs([part as MixPart])[0] : (part as ModelInput)));
+  const built = mixModel(inputs, rebalance, { savingsReturn });
   if (!built) throw new Error("a valid mix");
   return built;
 };

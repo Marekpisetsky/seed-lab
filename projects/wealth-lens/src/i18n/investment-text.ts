@@ -9,7 +9,9 @@ import type { AssetId } from "@/lib/assets";
 import type { SeriesId } from "@/lib/index-ids";
 import { periodText, type ResolvedInvestment } from "@/lib/investment";
 import { SAVINGS_RATE } from "@/lib/assets";
-import { templateOf } from "@/lib/mix";
+import { MARKET, type Instrument } from "@/lib/market-data";
+import { mixStock, templateOf, type MixPart } from "@/lib/mix";
+import { stockVolatility } from "@/lib/volatility";
 
 export function assetLabel(asset: AssetId, { m }: I18n): string {
   return m.assets.name[asset];
@@ -18,6 +20,17 @@ export function assetLabel(asset: AssetId, { m }: I18n): string {
 /** Short enough for a narrow list: "Euro gov. bonds", "Savings". */
 export function assetShortLabel(asset: AssetId, { m }: I18n): string {
   return m.assets.short[asset];
+}
+
+/** "grows like the Nasdaq-100 · moves ±50% a year": how a stock in a mix is worked out, in small type beside it. */
+export function stockPartDetail(stock: Instrument, { m, f }: I18n): string {
+  const own = stockVolatility(stock, MARKET, stock.index);
+  return m.mix.part.stock(m.assets.inSentence[stock.index], f.percent(own.volatility, { decimals: 0 }), own.fallback);
+}
+
+/** A part of a mix by name: "World", "NVIDIA". */
+export function mixPartName(part: MixPart, { m }: I18n): string {
+  return mixStock(part.stock)?.name ?? m.assets.name[part.asset];
 }
 
 /** "S&P 500", "Gold", "Savings account", "Mix 60/40", "My portfolio", "Custom growth". */
