@@ -60,8 +60,8 @@ export const es: Messages = {
       {
         heading: "Quién lo hace",
         body: [
-          "Lo hace [Marek Pisetsky](https://github.com/Marekpisetsky). Wealth Lens es de uso gratuito. Su código es de seed-lab.",
-          "¿Preguntas, ideas o un error que contar? [Abre un issue en GitHub](issues). No hay correo, a propósito.",
+          "Lo hace Marek Pisetsky. Wealth Lens es de uso gratuito. Su código es de seed-lab.",
+          "¿Preguntas, ideas o un error que contar? Escribe a [email](email).",
         ],
       },
       {
@@ -261,7 +261,7 @@ export const es: Messages = {
   },
   privacy: {
     title: "Privacidad",
-    updated: "Actualizado el 30 de septiembre de 2026.",
+    updated: "Actualizado el 1 de octubre de 2026.",
     sections: [
       { heading: "En resumen", body: ["**No se guarda ni se envía nada.** Sin cookies. Sin seguimiento."] },
       {
@@ -293,7 +293,7 @@ export const es: Messages = {
           "Mira la [política de privacidad de Vercel](https://vercel.com/legal/privacy-policy).",
         ],
       },
-      { heading: "Preguntas", body: ["[Abre un issue en GitHub](issues)."] },
+      { heading: "Preguntas", body: ["Escribe a [email](email)."] },
     ] as ProseSection[],
   },
   terms: {

@@ -4,7 +4,8 @@ import { DEFAULT_LOCALE, LOCALE_SETTINGS, LOCALES, PAGES, localePath, messages }
 import type { Locale, PageId } from "./i18n/index.ts";
 import { SEED } from "./icons.ts";
 import { STYLES } from "./styles.ts";
-import { AUTHOR_URL, ISSUES_URL, SITE_URL } from "./site.ts";
+import { EMAIL, EMAIL_SCRIPT, hasEmail } from "./email.ts";
+import { SITE_URL } from "./site.ts";
 import { TOOLS } from "./content.ts";
 
 /** What the footer says about the page's own weight, in bytes. */
@@ -22,12 +23,11 @@ export interface PageInput {
   body: Html;
 }
 
-/** The address a word in a dictionary link stands for, in the page's language. */
-export function linkTo(locale: Locale): (href: string) => string {
-  const named: Readonly<Record<string, string>> = {
+/** The address a word in a dictionary link stands for, in the page's language; "[email](email)" is the email address. */
+export function linkTo(locale: Locale): (href: string) => string | Html {
+  const named: Readonly<Record<string, string | Html>> = {
     "wealth-lens": TOOLS[0].url,
-    author: AUTHOR_URL,
-    issues: ISSUES_URL,
+    email: EMAIL,
   };
   return (href) => named[href] ?? (href.startsWith("/") ? localePath(href, locale) : href);
 }
@@ -111,7 +111,7 @@ ${page.body}
 <p class="copyright">${m.site.copyright}</p>
 </div>
 </footer>
-</body>
+${hasEmail(page.body) ? html`<script>${EMAIL_SCRIPT}</script>\n` : ""}</body>
 </html>
 `;
   return doc.value;

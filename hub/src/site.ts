@@ -5,7 +5,10 @@
 
 /** The hub itself (provisional, on Vercel until it moves to a European host: docs/hosting.md). */
 export const SITE_URL = "https://seed-lab-hub.vercel.app";
-export const REPO_URL = "https://github.com/Marekpisetsky/seed-lab";
-/** Contact: GitHub Issues, never an email address. */
-export const ISSUES_URL = `${REPO_URL}/issues`;
-export const AUTHOR_URL = "https://github.com/Marekpisetsky";
+
+/**
+ * How to reach seed-lab: the email address in two parts, joined only in
+ * the browser (email.ts). The pages' HTML never holds it whole, nor a mail
+ * link, so simple address harvesters do not find it.
+ */
+export const CONTACT = { user: "seedlab.eu", domain: "proton.me" } as const;

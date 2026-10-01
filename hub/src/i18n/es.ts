@@ -148,14 +148,14 @@ export const es: Messages = {
       {
         heading: "Quién lo hace",
         body: [
-          "Lo hace [Marek Pisetsky](author). Las herramientas son de uso gratuito. Su código es de seed-lab.",
-          "¿Preguntas o ideas? [Abre un issue en GitHub](issues). No hay correo, a propósito.",
+          "Lo hace Marek Pisetsky. Las herramientas son de uso gratuito. Su código es de seed-lab.",
+          "¿Preguntas o ideas? Escribe a [email](email).",
         ],
       },
       {
         heading: "Esta web",
         body: [
-          "Sin cookies, sin analítica, sin rastreo. Es HTML y CSS, más una línea de script que elige tu idioma.",
+          "Sin cookies, sin analítica, sin rastreo. Es HTML y CSS, más dos scripts mínimos: uno elige tu idioma y otro convierte el correo en un enlace.",
           "Por ahora está alojada en Vercel, en EE. UU., igual que Wealth Lens. Queremos llevar las dos a un alojamiento europeo.",
         ],
       },

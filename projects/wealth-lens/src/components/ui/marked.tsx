@@ -4,11 +4,10 @@ import Link from "next/link";
 import { useI18n } from "@/components/i18n";
 import { localePath } from "@/i18n/locales";
 import { SEED_LAB_HUB_URL } from "@/lib/seed-lab";
-import { ISSUES_URL } from "@/lib/site";
+import { Email } from "./email";
 
-/** Link names a dictionary may use instead of an address: "[Open an issue](issues)". */
+/** Link names a dictionary may use instead of an address: "[seed-lab](hub)". */
 const NAMED_LINKS: Readonly<Record<string, string>> = {
-  issues: ISSUES_URL,
   hub: SEED_LAB_HUB_URL,
 };
 
@@ -18,8 +17,9 @@ const linkClass = "py-3 font-medium text-accent underline underline-offset-2";
 /**
  * A dictionary sentence with its key figure marked "**like this**" (bold,
  * so each language places it where its words need it) and links written
- * "[words](/page)", "[words](https://…)" or "[words](issues)". A page of
- * the site ("/privacy") opens in the page's language.
+ * "[words](/page)", "[words](https://…)" or "[words](hub)". A page of
+ * the site ("/privacy") opens in the page's language. "[email](email)" is
+ * seed-lab's email address, joined only in the browser (ui/email.tsx).
  */
 export function Marked({ text, strongClassName = "font-medium text-foreground tabular-nums" }: { text: string; strongClassName?: string }) {
   const { locale } = useI18n();
@@ -37,6 +37,7 @@ export function Marked({ text, strongClassName = "font-medium text-foreground ta
         const link = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(part);
         if (!link) return part;
         const [, words, target] = link;
+        if (target === "email") return <Email key={index} className={linkClass} />;
         if (target.startsWith("/")) {
           return (
             <Link key={index} href={localePath(target, locale)} className={linkClass}>
