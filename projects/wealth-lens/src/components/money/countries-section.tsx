@@ -5,7 +5,6 @@ import { Fragment, useState } from "react";
 import { useI18n } from "@/components/i18n";
 import { Changed } from "@/components/ui/changed";
 import { inputClass } from "@/components/ui/form";
-import { Help } from "@/components/ui/help";
 import { countryInSentence, countryName, matchesCountry } from "@/i18n/countries";
 import { addGoal } from "@/lib/app-store";
 import { featuredRows, type CountryCell, type CountryRow } from "@/lib/calculator";
@@ -95,10 +94,10 @@ export function CountriesSection({ income, rows }: { income: number; rows: reado
   const paid = m.result.perMonth(i18n.f.smallEur(income));
   return (
     <section aria-labelledby="countries-title" className="space-y-2">
-      <h2 id="countries-title" className="flex items-center gap-2 text-base font-bold">
+      <h2 id="countries-title" className="text-base font-bold">
         <Changed value={t.title(paid)} />
-        <Help what={t.title(paid)} text={m.help.countries} />
       </h2>
+      <p className="text-sm text-muted">{m.help.countries}</p>
       <label className="relative block">
         <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
         <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} aria-label={t.search} placeholder={t.search} className={`${inputClass} pl-9 text-base`} />

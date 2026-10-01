@@ -131,7 +131,7 @@ export function TestModule() {
   const i18n = useI18n();
   const { locale, m, f } = i18n;
   const t = m.test;
-  const { base } = useCalculation();
+  const { base, ready } = useCalculation();
   const { scenario } = base;
   const planYears = base.result.years;
   const source = useMemo(() => historySource(base.investment), [base.investment]);
@@ -148,6 +148,17 @@ export function TestModule() {
       requestAnimationFrame(() => panel.current?.scrollIntoView({ block: "nearest", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }));
     }
   };
+
+  if (!ready) {
+    return (
+      <div className="space-y-1">
+        <p className="text-base">{t.notReady}</p>
+        <Link href={localePath("/", locale)} className="-ml-1 inline-flex min-h-11 items-center px-1 text-sm font-medium text-accent underline-offset-2 hover:underline">
+          {t.goWrite}
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

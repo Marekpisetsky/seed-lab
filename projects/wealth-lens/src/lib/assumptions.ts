@@ -1,10 +1,8 @@
 /**
- * The assumptions as the calculator shows them, in plain words and in the
- * page's language: one compact line ("Grows 7.5% a year after rising
- * prices · can move ±17% in a year · data 1988–2022"), a short note, and
- * the figures the Edit panel shows. The panel asks for the growth as banks
- * and news quote it (before rising prices) and says, read-only, what that
- * is after them.
+ * The assumptions in plain words and in the page's language: the growth
+ * line under the chips, one compact line for "What you should know"
+ * ("Grows 7.5% a year after rising prices · can move ±17% in a year · data
+ * 1988–2022"), a short note under the chart, and the hints in More options.
  */
 
 import type { I18n } from "@/i18n";
@@ -13,7 +11,7 @@ import { SAVINGS_RATE } from "./assets";
 import { periodText, toNominal, type ResolvedInvestment } from "./investment";
 import { BEST_20_YEARS, beyondHistory, closestHistory, type BestRun } from "./realism";
 
-/** The growth a year as banks and news quote it: before rising prices. */
+/** The growth a year as banks and news quote it, before rising prices: the small line under the chips. */
 export function quotedGrowth(investment: Pick<ResolvedInvestment, "realReturn" | "inflation">): number {
   return toNominal(investment.realReturn, investment.inflation);
 }
@@ -23,11 +21,6 @@ export function growthText(investment: Pick<ResolvedInvestment, "realReturn">, {
   const rate = investment.realReturn;
   const say = rate < 0 ? m.assumptions.shrinks : m.assumptions.grows;
   return say(f.rate(Math.abs(rate)));
-}
-
-/** "= 7.5% after rising prices: what your money can really buy", under the growth typed as quoted. */
-export function afterPricesText(investment: Pick<ResolvedInvestment, "realReturn">, { m, f }: I18n): string {
-  return m.assumptions.afterPrices(f.rate(investment.realReturn));
 }
 
 /**

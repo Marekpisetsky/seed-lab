@@ -255,18 +255,21 @@ function MonthlyForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
  * row that stays where it was added, with its status against the same
  * plan; tapping it shows the calculation, × removes it.
  */
-export function GoalsSection({ calc, today }: { calc: Calculation; today: Date }) {
+export function GoalsSection({ calc, today, inCard = false }: { calc: Calculation; today: Date; inCard?: boolean }) {
   const { m } = useI18n();
   const [adding, setAdding] = useState(false);
   const { goals } = calc;
   return (
-    <section aria-labelledby={goals.length > 0 ? "goals-title" : undefined} aria-label={goals.length > 0 ? undefined : m.goals.title} className="space-y-2">
+    <section aria-labelledby={goals.length > 0 && !inCard ? "goals-title" : undefined} aria-label={goals.length > 0 && !inCard ? undefined : m.goals.title} className="space-y-2">
+      {inCard && <p className="text-sm text-muted">{m.help.goals}</p>}
       {goals.length > 0 && (
         <>
-          <h2 id="goals-title" className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted">
-            {m.goals.title}
-            <Help what={m.goals.title} text={m.help.goals} />
-          </h2>
+          {!inCard && (
+            <h2 id="goals-title" className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted">
+              {m.goals.title}
+              <Help what={m.goals.title} text={m.help.goals} />
+            </h2>
+          )}
           <ul className="divide-y divide-border rounded-xl border border-border bg-card px-2">
             {goals.map((status) => (
               <GoalRow key={status.goal.id} status={status} calc={calc} today={today} />

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { toNominal } from "./investment";
 import { DEFAULT_PLAN } from "./validation";
 import { deleteLegacyData, hasLegacyData, readLegacyData, type LegacyStorage } from "./legacy-storage";
 
@@ -43,7 +42,7 @@ describe("data saved by earlier versions", () => {
         monthlyContribution: 400,
         goals: [{ id: "g1", kind: "amount", amount: 250_000 }],
         investment: { kind: "custom" },
-        assumptions: { growth: toNominal(0.05, 0.02), volatility: null, inflation: null },
+        assumptions: { growth: 0.05, volatility: null, inflation: null },
         withdrawalRate: 0.035,
       },
       holdings: [{ ...holding, priceSource: "auto", priceDate: null }],

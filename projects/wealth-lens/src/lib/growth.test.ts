@@ -3,7 +3,6 @@ import { EN } from "@/i18n";
 import { calculate, yearlyPath, type CalculatorPlan } from "./calculator";
 import { parseIsoDate } from "./dates";
 import {
-  beforeInflationText,
   endLabel,
   formatMultiple,
   formatShare,
@@ -14,16 +13,16 @@ import {
   yearTooltip,
 } from "./growth";
 import { toNominal } from "./investment";
-import { DEFAULT_PLAN } from "./validation";
+import { EXAMPLE_PLAN } from "./validation";
 
 const today = parseIsoDate("2026-09-30");
-const plan = (patch: Partial<CalculatorPlan> = {}): CalculatorPlan => ({ ...DEFAULT_PLAN, ...patch });
+const plan = (patch: Partial<CalculatorPlan> = {}): CalculatorPlan => ({ ...EXAMPLE_PLAN, ...patch });
 
 describe("the growth line under the result", () => {
   it("says how much the money grows a year, after rising prices, with the figure before them beside it", () => {
     const { investment } = calculate(plan(), [], today);
     expect(growsText(investment.realReturn, EN)).toBe("Grows about 7.5% a year");
-    expect(beforeInflationText(toNominal(investment.realReturn, investment.inflation), EN)).toBe("(≈9.7% before inflation)");
+    expect(EN.m.growth.before(EN.f.rate(toNominal(investment.realReturn, investment.inflation)))).toBe("≈ 9.7% before inflation");
     expect(growsText(-0.0049, EN)).toBe("Shrinks about 0.5% a year");
     expect(growsText(0.0002, EN)).toBe("Stays about the same every year");
   });

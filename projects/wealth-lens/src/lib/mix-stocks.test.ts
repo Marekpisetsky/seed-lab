@@ -6,11 +6,12 @@ import { calculate } from "./calculator";
 import { parseDataFile, serializeState } from "./data-file";
 import { parseIsoDate } from "./dates";
 import { SERIES } from "./indexes";
-import { resolveInvestment, toNominal } from "./investment";
+import { resolveInvestment } from "./investment";
 import { instrumentById } from "./market-data";
 import { CONCENTRATION_LIMIT, concentration, concentrationEffect, mixPartKey, partReturns, templateOf } from "./mix";
 import { mixFigures } from "./projections";
 import { STANDARD_ASSUMPTIONS, type Investment, type MixPart } from "./types";
+import { EXAMPLE_PLAN } from "./validation";
 
 const ES = getI18n("es");
 const plain = (text: string) => text.replace(/[  ]/g, " ");
@@ -132,7 +133,7 @@ describe("the concentration effect", () => {
   });
 
   it("is not shown with the user's own growth or ups and downs: the stock's own moves are not simulated then", () => {
-    const own = resolveInvestment(withStock("NVDA", 40), [], { pricesOf: "NL", assumptions: { ...STANDARD_ASSUMPTIONS, growth: toNominal(0.05, 0.02) } });
+    const own = resolveInvestment(withStock("NVDA", 40), [], { pricesOf: "NL", assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.05 } });
     expect(mixFigures(own, amounts)?.concentration).toBeNull();
   });
 
@@ -152,7 +153,7 @@ describe("the concentration effect", () => {
 });
 
 describe("a mix with a stock in the data file", () => {
-  const state = { ...INITIAL_STATE, plan: { ...INITIAL_STATE.plan, investment: withStock("NVDA", 40) } };
+  const state = { ...INITIAL_STATE, plan: { ...EXAMPLE_PLAN, investment: withStock("NVDA", 40) } };
 
   it("reads back with its stock", () => {
     const loaded = parseDataFile(serializeState(state, today));

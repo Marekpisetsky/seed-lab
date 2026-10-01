@@ -23,8 +23,9 @@ import { WHAT_IF_IDS, whatIfAvailable, whatIfInputs, withBadStart, type WhatIfEf
 
 /** What the calculator reads from the plan. */
 export interface CalculatorPlan {
-  invested: number;
-  monthlyContribution: number;
+  /** `null` (not typed yet) counts as 0: the page shows no result until both are typed (lib/plan.ts, planReady). */
+  invested: number | null;
+  monthlyContribution: number | null;
   investment: Investment;
   /** How many years ahead the result looks (1-60). */
   years: number;
@@ -369,7 +370,7 @@ export function calculate(plan: CalculatorPlan, holdings: readonly Holding[], to
   const capital = startingCapital(holdings, plan.invested);
   const resolved = resolveInvestment(plan.investment, holdings, plan);
   const applied = whatIf !== null && whatIfAvailable(whatIf, plan.years, resolved) ? whatIf : null;
-  const inputs = whatIfInputs(applied, plan.monthlyContribution, plan.years);
+  const inputs = whatIfInputs(applied, plan.monthlyContribution ?? 0, plan.years);
   const investment = inputs.growth !== 0 ? shiftGrowth(resolved, inputs.growth) : resolved;
   const plain: Scenario = {
     capital: capital.amount,

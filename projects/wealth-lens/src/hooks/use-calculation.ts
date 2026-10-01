@@ -6,6 +6,7 @@ import { priceHoldings } from "@/lib/auto-price";
 import { calculate, whatIfEffects, WITHDRAWAL_CHOICES, type Calculation } from "@/lib/calculator";
 import { toIsoDate } from "@/lib/dates";
 import { topFindings, type Finding } from "@/lib/findings";
+import { planReady } from "@/lib/plan";
 import { mixFigures, successRatesFor, type MixFigures } from "@/lib/projections";
 import type { Holding } from "@/lib/types";
 import type { WhatIfEffect } from "@/lib/what-if";
@@ -16,16 +17,14 @@ export interface CalculationBundle {
   state: AppState;
   today: Date;
   holdings: readonly Holding[];
+  /** Both amounts are known: there is a result to show (lib/plan.ts). Until then the page only asks. */
+  ready: boolean;
   /** What the page shows: the plan, with the "What if…?" applied if there is one. */
   calc: Calculation;
   /** The plan as it is, without a "What if…?": the findings and the scenarios' effects are about it. */
   base: Calculation;
-  /** What each "What if…?" would change, in the fixed order of their row. */
-  whatIfs: WhatIfEffect[];
   /** The withdrawal rates offered, lowest first; how often the plan's lasted is in `calc.result.lasted`. */
   rates: number[];
-  /** For a mix or the portfolio: its range and worst year, with the S&P 500 alone beside them. */
-  mix: MixFigures | null;
 }
 
 let last: { state: AppState; day: string; bundle: CalculationBundle } | null = null;
@@ -47,10 +46,8 @@ export function calculationFor(state: AppState, today: Date): CalculationBundle 
   const holdings = priceHoldings(state.holdings, state.uploadedPrices);
   const base = calculate(state.plan, holdings, today);
   const calc = state.whatIf ? calculate(state.plan, holdings, today, state.whatIf) : base;
-  const whatIfs = whatIfEffects(base);
   const rates = offeredRates(state.plan.withdrawalRate);
-  const mix = mixFigures(calc.investment, { start: calc.scenario.capital, monthly: calc.scenario.monthly, years: calc.result.years });
-  const bundle = { state, today, holdings, calc, base, whatIfs, rates, mix };
+  const bundle = { state, today, holdings, ready: planReady(state.plan, holdings), calc, base, rates };
   try {
     performance.measure("wealth-lens:report", { start, end: performance.now() });
   } catch {
@@ -64,6 +61,31 @@ export function calculationFor(state: AppState, today: Date): CalculationBundle 
   }
   last = { state, day, bundle };
   return bundle;
+}
+
+const whatIfs = new WeakMap<CalculationBundle, WhatIfEffect[]>();
+
+/** What each "What if…?" would change, in the fixed order of their row: worked out when their card is opened. */
+export function whatIfsFor(bundle: CalculationBundle): WhatIfEffect[] {
+  let kept = whatIfs.get(bundle);
+  if (!kept) {
+    kept = whatIfEffects(bundle.base);
+    whatIfs.set(bundle, kept);
+  }
+  return kept;
+}
+
+const mixes = new WeakMap<CalculationBundle, MixFigures | null>();
+
+/** For a mix or the portfolio: its range, worst year and concentration, with the S&P 500 alone beside them; worked out when shown. */
+export function mixFiguresFor(bundle: CalculationBundle): MixFigures | null {
+  let kept = mixes.get(bundle);
+  if (kept === undefined) {
+    const { calc } = bundle;
+    kept = mixFigures(calc.investment, { start: calc.scenario.capital, monthly: calc.scenario.monthly, years: calc.result.years });
+    mixes.set(bundle, kept);
+  }
+  return kept;
 }
 
 let lastFindings: { bundle: CalculationBundle; i18n: I18n; findings: Finding[] } | null = null;

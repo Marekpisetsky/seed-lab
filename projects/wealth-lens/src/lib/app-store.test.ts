@@ -64,15 +64,15 @@ describe("createStore", () => {
 });
 
 describe("the shared app state", () => {
-  it("starts with real example numbers and no goals", () => {
+  it("starts with the amounts empty, to be typed, 20 years and no goals", () => {
     expect(appStore.get()).toBe(INITIAL_STATE);
-    expect(INITIAL_STATE.plan).toMatchObject({ invested: 1000, monthlyContribution: 200, years: 20, investment: { kind: "asset", asset: "sp500" }, pricesOf: "NL", goals: [] });
+    expect(INITIAL_STATE.plan).toMatchObject({ invested: null, monthlyContribution: null, years: 20, investment: { kind: "asset", asset: "sp500" }, pricesOf: "NL", goals: [] });
     expect(INITIAL_STATE.plan.assumptions).toEqual({ growth: null, volatility: null, inflation: null });
   });
 
   it("updates one plan field and keeps the others", () => {
     updatePlan({ invested: 20_000, monthlyContribution: 500 });
-    updatePlan((plan) => ({ monthlyContribution: plan.monthlyContribution + 100 }));
+    updatePlan((plan) => ({ monthlyContribution: (plan.monthlyContribution ?? 0) + 100 }));
     const { plan } = appStore.get();
     expect(plan).toEqual({ ...INITIAL_STATE.plan, invested: 20_000, monthlyContribution: 600 });
   });

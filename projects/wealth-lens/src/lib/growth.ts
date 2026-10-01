@@ -15,11 +15,6 @@ export function growsText(rate: number, { m, f }: I18n): string {
   return (rate > 0 ? m.result.growsAbout : m.result.shrinksAbout)(f.rate(Math.abs(rate)));
 }
 
-/** "(≈9.7% before inflation)": the same growth before rising prices are taken off. */
-export function beforeInflationText(nominal: number, { m, f }: I18n): string {
-  return m.result.beforeInflation(f.rate(nominal));
-}
-
 /** What the money ends up as for each euro put in: 2.3 means ×2.3. `null` with nothing put in. */
 export function multipleOf({ total, putIn }: Pick<YearPoint, "total" | "putIn">): number | null {
   return putIn > 0 ? total / putIn : null;

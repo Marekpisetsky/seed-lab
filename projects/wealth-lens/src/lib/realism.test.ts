@@ -3,7 +3,7 @@ import { EN, getI18n } from "@/i18n";
 import { seriesVolatility } from "./assets";
 import { historicalRiskText, realismWarning } from "./assumptions";
 import { SERIES, SERIES_IDS } from "./indexes";
-import { resolveInvestment, toNominal } from "./investment";
+import { resolveInvestment } from "./investment";
 import { BEST_20_YEARS, bestRun, beyondHistory, closestHistory } from "./realism";
 import { STANDARD_ASSUMPTIONS } from "./types";
 
@@ -12,7 +12,7 @@ const ES = getI18n("es");
 const plain = (text: string | null) => text?.replace(/[\u00a0\u202f]/g, " ") ?? null;
 /** The plan's investment with a growth typed as banks quote it, in the Netherlands (2% rising prices). */
 const typed = (afterPrices: number, investment: Parameters<typeof resolveInvestment>[0] = { kind: "asset", asset: "sp500" }) =>
-  resolveInvestment(investment, [], { pricesOf: "NL", assumptions: { ...STANDARD_ASSUMPTIONS, growth: toNominal(afterPrices, 0.02) } });
+  resolveInvestment(investment, [], { pricesOf: "NL", assumptions: { ...STANDARD_ASSUMPTIONS, growth: afterPrices } });
 
 /** Every 20-year run of every dataset, worked out the long way. */
 function allRuns(): { asset: string; from: number; growth: number }[] {
@@ -55,13 +55,12 @@ describe("the realism warning under the growth", () => {
     expect(plain(realismWarning(typed(0.15), ES))).toBe("Muy raro: ningún índice amplio lo mantuvo 20 años. El mejor fue 13 % (S&P 500, 1980–1999).");
   });
 
-  it("compares the growth after rising prices, not the figure as banks quote it", () => {
-    // 14% as quoted is under 12% after the Netherlands' 2%: no warning.
-    const quoted = resolveInvestment({ kind: "custom" }, [], { pricesOf: "NL", assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.14 } });
-    expect(realismWarning(quoted, EN)).toBeNull();
-    // The same 14% with no rising prices at all is above the best.
-    const noInflation = resolveInvestment({ kind: "custom" }, [], { pricesOf: "NL", assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.14, inflation: 0 } });
-    expect(realismWarning(noInflation, EN)).not.toBeNull();
+  it("compares the growth after rising prices, whatever the inflation", () => {
+    // 12% after rising prices is under the best; 14% is above it, with any inflation.
+    const twelve = resolveInvestment({ kind: "custom" }, [], { pricesOf: "NL", assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.12, inflation: 0.1 } });
+    expect(realismWarning(twelve, EN)).toBeNull();
+    const fourteen = resolveInvestment({ kind: "custom" }, [], { pricesOf: "NL", assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.14, inflation: 0 } });
+    expect(realismWarning(fourteen, EN)).not.toBeNull();
   });
 
   it("uses whatever the data says is best", () => {

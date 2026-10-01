@@ -190,9 +190,13 @@ export function LiveNumberInput({ value, onValue, className = "", ...rest }: Liv
 }
 
 interface SettledNumberInputProps extends Omit<NativeInputProps, "value" | "onChange"> {
-  value: number;
+  /** `null`: nothing typed yet, the field shows its placeholder (an example). */
+  value: number | null;
   /** Called once the user has finished typing (a 500 ms pause, blur or Enter), never per keystroke. */
   onCommit: (value: number) => void;
+  /** Emptied and left: called instead of committing the smallest value, so the field can go back to empty. */
+  onEmpty?: () => void;
+  ref?: React.Ref<HTMLInputElement>;
   /** Largest accepted value; more is marked invalid. */
   max?: number;
   /** Smallest accepted value (0 unless a figure can be negative); less is marked invalid. */
@@ -204,9 +208,10 @@ interface SettledNumberInputProps extends Omit<NativeInputProps, "value" | "onCh
  * typing (lib/settle.ts): the values on the way ("1", "10", "100" while
  * typing "1000") are never applied, so the screen does not move under the
  * user's fingers. Accepts "1,234.5" or "1.234,5"; the typed text stays as
- * typed until the field is left. Emptied and left, it reads 0.
+ * typed until the field is left. Emptied and left, it reads 0, or goes back
+ * to empty with `onEmpty`.
  */
-export function SettledNumberInput({ value, onCommit, max = Infinity, min = 0, className = "", onBlur, onKeyDown, ...rest }: SettledNumberInputProps) {
+export function SettledNumberInput({ value, onCommit, onEmpty, max = Infinity, min = 0, className = "", onBlur, onKeyDown, ref, ...rest }: SettledNumberInputProps) {
   const numbers = useNumbers();
   const [draft, setDraft] = useState<string | null>(null);
   const [invalid, setInvalid] = useState(false);
@@ -225,7 +230,8 @@ export function SettledNumberInput({ value, onCommit, max = Infinity, min = 0, c
       inputMode="decimal"
       autoComplete="off"
       {...rest}
-      value={draft ?? numbers.show(value, 2)}
+      ref={ref}
+      value={draft ?? (value === null ? "" : numbers.show(value, 2))}
       onChange={(event) => {
         const text = event.target.value;
         setDraft(text);
@@ -247,7 +253,8 @@ export function SettledNumberInput({ value, onCommit, max = Infinity, min = 0, c
       onBlur={(event) => {
         if (draft !== null && draft.trim() === "") {
           settler().cancel();
-          commit.current(Math.max(0, min));
+          if (onEmpty) onEmpty();
+          else commit.current(Math.max(0, min));
         } else {
           settler().flush();
         }
