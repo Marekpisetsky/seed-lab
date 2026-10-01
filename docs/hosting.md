@@ -29,7 +29,7 @@ estáticos gratis o casi gratis y termina con **una** recomendación.
   precios, hace commit en `master` y ese push provoca el despliegue de
   Wealth Lens. Necesita un CI con salida a internet.
 - Tráfico: bajo. No hay cifras porque no medimos visitas (principio 1).
-- Regla del holding: **cero coste** para existir.
+- Regla de seed-lab: **cero coste** para existir.
 
 ## Lo que hoy da Vercel (y habrá que suplir o aceptar perder)
 
