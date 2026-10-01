@@ -1,10 +1,15 @@
 # Dirección de seed-lab
 
-seed-lab construye herramientas digitales abiertas y respetuosas con la
-privacidad para Europa. No vendemos a gobiernos: publicamos herramientas y
-bloques abiertos que ciudadanos, desarrolladores e instituciones adoptan
-por su cuenta. Wealth Lens es la primera herramienta y la prueba de estos
+seed-lab construye herramientas digitales gratuitas y respetuosas con la
+privacidad para Europa. No vendemos a gobiernos: publicamos herramientas
+gratuitas que ciudadanos, desarrolladores e instituciones adoptan por su
+cuenta. Wealth Lens es la primera herramienta y la prueba de estos
 principios.
+
+El código es propietario: © 2026 Marek Pisetsky, todos los derechos
+reservados ([`LICENSE`](../LICENSE)). Usar las herramientas publicadas es
+gratis; los nombres y logotipos están protegidos
+([`TRADEMARKS.md`](../TRADEMARKS.md)).
 
 ## Visión (largo plazo)
 
@@ -19,8 +24,9 @@ dirección a largo plazo, no algo que exista hoy.
 
 Como NVIDIA y ASML, seed-lab busca ser imprescindible en una capa antes de
 ampliarse a la siguiente. Y lo hace con los valores de Proton (privacidad,
-apertura, financiación por los propios usuarios), no con el modelo cerrado
-de las grandes tecnológicas de EE. UU.
+transparencia, financiación por los propios usuarios), no con el modelo de
+las grandes tecnológicas de EE. UU., que viven de los datos de quien las
+usa.
 
 Hoy esa capa son herramientas personales que funcionan en el dispositivo
 de quien las usa. No hay ingresos ni pagos: todo es gratis, y mantenerlo
@@ -36,7 +42,7 @@ debe presentarlos como existentes.
 | Peldaño | Qué es | Condición para pasar al siguiente | Estado |
 | --- | --- | --- | --- |
 | 1 | Herramientas que la gente usa. Hoy: Wealth Lens. | Uso real sostenido. | **Estamos aquí** |
-| 2 | Bloques abiertos que otros adoptan: las piezas con las que se hizo Wealth Lens, publicadas por separado. | Que terceros construyan sobre ellos sin que se lo pidamos. | Todavía no existe |
+| 2 | Herramientas gratuitas para desarrolladores que otros adoptan: las piezas con las que se hizo Wealth Lens, publicadas por separado. | Que terceros construyan sobre ellas sin que se lo pidamos. | Todavía no existe |
 | 3 | Plataforma de la que dependen terceros: alojamiento, datos e identidad europeos. | — | Todavía no existe |
 | 4 | Infraestructura a escala continental. | — | Todavía no existe |
 
@@ -46,11 +52,11 @@ y preguntas en GitHub, menciones, forks, personas que la recomiendan.
 
 ## Misión
 
-> "seed-lab builds open, privacy-first digital tools that Europeans —
+> "seed-lab builds free, privacy-first digital tools that Europeans —
 > citizens, developers and public bodies — can use without giving up their
 > data."
 
-seed-lab construye herramientas digitales abiertas y centradas en la
+seed-lab construye herramientas digitales gratuitas y centradas en la
 privacidad que los europeos (ciudadanos, desarrolladores y organismos
 públicos) pueden usar sin renunciar a sus datos.
 
@@ -59,9 +65,10 @@ públicos) pueden usar sin renunciar a sus datos.
 1. **Your data never leaves your device.** Todo se calcula en el
    dispositivo. Sin cuentas, sin cookies, sin analítica, sin servidores
    que guarden nada del usuario.
-2. **Open: open source, open data.** El código es abierto (MIT) y los
-   datos se toman, siempre que se puede, de fuentes abiertas, con su
-   origen y su fecha.
+2. **Transparent: free to use for everyone; our methods and data sources
+   are public, our code is ours.** Cualquiera puede usar las herramientas
+   gratis. Cómo se calcula cada cifra y de dónde salen los datos se
+   publica, con su origen y su fecha. El código es de seed-lab.
 3. **Truly European: hosted in Europe, in Europe's languages, GDPR and
    European Accessibility Act compliant by design.** Alojado en Europa, en
    las lenguas de Europa, y cumpliendo el RGPD y la Ley Europea de
@@ -79,12 +86,12 @@ página *Principles* del hub y en [`hosting.md`](hosting.md).
 
 ## Objetivos de Desarrollo Sostenible relevantes
 
-- **ODS 9 (Industria, innovación e infraestructura):** publicar bloques
-  abiertos que otros reutilizan es construir infraestructura digital
-  compartida, no dependiente de un proveedor.
+- **ODS 9 (Industria, innovación e infraestructura):** herramientas
+  europeas gratuitas, también para desarrolladores, son una pieza de
+  infraestructura digital que no depende de proveedores de fuera.
 - **ODS 16 (Paz, justicia e instituciones sólidas):** herramientas que no
-  recogen datos protegen la privacidad (meta 16.10), y el código abierto
-  permite comprobar qué hacen.
+  recogen datos protegen la privacidad (meta 16.10), y publicar métodos y
+  fuentes permite comprobar de dónde sale cada cifra.
 - **ODS 12 (Producción y consumo responsables):** páginas pequeñas y
   estáticas gastan menos energía y menos hardware por visita. Es una
   contribución modesta, y por eso la medimos y la publicamos.
@@ -92,14 +99,16 @@ página *Principles* del hub y en [`hosting.md`](hosting.md).
 ## Qué NO somos
 
 - **No vendemos a gobiernos ni hacemos consultoría.** No hay contratos,
-  licitaciones ni proyectos a medida. Una institución puede adoptar lo que
-  publicamos por su cuenta, bajo su licencia abierta, como cualquier otra
-  persona.
+  licitaciones ni proyectos a medida. Una institución puede usar gratis lo
+  que publicamos, por su cuenta, como cualquier otra persona.
 - **No recogemos datos.** Ni cuentas, ni cookies, ni analítica. Lo que
   alguien escribe en una herramienta se queda en su dispositivo.
 - **No somos una institución de la UE.** Ni la representamos ni hablamos
   en su nombre, y no usamos sus símbolos. "Europeo" describe para quién y
   dónde construimos, no una afiliación.
+- **No regalamos el código.** Las herramientas son gratuitas y los métodos
+  y las fuentes son públicos, pero el código es de seed-lab: no se puede
+  copiar ni usar para otros productos sin permiso escrito.
 - **No somos todavía una plataforma ni una infraestructura.** Esos son los
   peldaños 3 y 4, y no existen.
 
