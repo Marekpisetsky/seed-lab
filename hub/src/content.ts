@@ -1,7 +1,8 @@
 /**
- * The tools and the building blocks, from content/*.json: add a tool or a
- * block there, not in the pages. Validated when the build starts, so a bad
- * edit stops the build instead of publishing a broken card.
+ * The tools and the planned building blocks, from content/*.json: add a
+ * tool or a block there, not in the pages. Each tool says how it meets
+ * each principle. Validated when the build starts, so a bad edit stops the
+ * build instead of publishing a broken page.
  */
 
 import blocksJson from "../content/blocks.json" with { type: "json" };
@@ -12,6 +13,13 @@ import { LOCALES, type Locale } from "./i18n/locales.ts";
 export type Status = "live" | "coming";
 export type Localized = Readonly<Record<Locale, string>>;
 
+/** The five principles, in the order of the Principles page (the dictionaries use the same ids). */
+export const PRINCIPLE_IDS = ["device", "transparent", "europe", "light", "everyone"] as const;
+export type PrincipleId = (typeof PRINCIPLE_IDS)[number];
+/** How a product meets a principle's rules today. */
+export type Compliance = "meets" | "partly" | "pending";
+export const COMPLIANCE: readonly Compliance[] = ["meets", "partly", "pending"];
+
 export interface Tool {
   id: string;
   name: string;
@@ -20,6 +28,7 @@ export interface Tool {
   languages: Locale[];
   tagline: Localized;
   description: Localized;
+  principles: Readonly<Record<PrincipleId, { status: Compliance; note: Localized }>>;
 }
 
 export interface Block {
@@ -53,6 +62,19 @@ function https(value: unknown, where: string): string {
   return value;
 }
 
+function compliance(value: unknown, where: string): Tool["principles"] {
+  const entries = (value ?? {}) as Record<string, { status?: unknown; note?: unknown } | undefined>;
+  const unknown = Object.keys(entries).filter((id) => !(PRINCIPLE_IDS as readonly string[]).includes(id));
+  if (unknown.length > 0) fail(`${where}: unknown principles ${unknown.join(", ")}`);
+  return Object.fromEntries(
+    PRINCIPLE_IDS.map((id) => {
+      const entry = entries[id];
+      if (!entry || !(COMPLIANCE as readonly unknown[]).includes(entry.status)) fail(`${where} needs a status for the ${id} principle: meets, partly or pending`);
+      return [id, { status: entry.status as Compliance, note: localized(entry.note, `${where} ${id} note`) }];
+    }),
+  ) as Tool["principles"];
+}
+
 export function parseTools(value: unknown): Tool[] {
   if (!Array.isArray(value) || value.length === 0) fail("tools.json must list at least one tool");
   return value.map((entry: Record<string, unknown>, index) => {
@@ -70,6 +92,7 @@ export function parseTools(value: unknown): Tool[] {
       languages: languages as Locale[],
       tagline: localized(entry.tagline, `${where} tagline`),
       description: localized(entry.description, `${where} description`),
+      principles: compliance(entry.principles, where),
     };
   });
 }

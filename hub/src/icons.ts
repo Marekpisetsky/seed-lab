@@ -32,10 +32,25 @@ export function icon(id: IconId, size = 28): Html {
   );
 }
 
-/** The seed in the header, in the text's accent colour. */
-export const SEED = raw(
-  '<svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M16 28V16"/><path d="M16 17c0-5 3.5-8.5 9-8.5 0 5.5-3.5 8.5-9 8.5z"/><path d="M16 21c0-4-3-7-7.5-7 0 4 3 7 7.5 7z"/></svg>',
-);
+/**
+ * The seed-lab mark: an oval seed with a sprout of two leaves, on a 32 px
+ * grid, all filled shapes so it still reads at 16 px. Wealth Lens's icon
+ * (projects/wealth-lens/src/app/icon.svg) is the same seed with a rising
+ * line: one family.
+ */
+export const SEED_MARK =
+  '<ellipse cx="16" cy="23.5" rx="10" ry="6.5"/><rect x="14.7" y="11" width="2.6" height="8" rx="1.3"/><path d="M15.6 13.2C15 8.6 11.4 5.6 6.2 5.8c.4 5 4.2 8 9.4 7.4z"/><path d="M16.4 11.6c.8-4.8 4.6-7.8 9.6-7.4-.6 5-4.6 7.8-9.6 7.4z"/>';
 
-/** The site icon: a seed with its first shoot, in the brand blue of tokens.css. */
-export const FAVICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><style>path{fill:none;stroke:#0055ff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}@media (prefers-color-scheme:dark){path{stroke:#4d8dff}}</style><path d="M16 28V16"/><path d="M16 17c0-5 3.5-8.5 9-8.5 0 5.5-3.5 8.5-9 8.5z"/><path d="M16 21c0-4-3-7-7.5-7 0 4 3 7 7.5 7z"/></svg>`;
+/** Seed green, the --brand of tokens.css (an icon file cannot read CSS variables; a test keeps it equal). */
+export const BRAND = "#00a36c";
+/** The near-black of the dark bands, behind the touch icon. */
+export const INK = "#0a0a0a";
+
+/** The mark in the header, in the band's brand colour. */
+export const SEED = raw(`<svg width="26" height="26" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true" focusable="false">${SEED_MARK}</svg>`);
+
+/** The site icon: the seed in green, on nothing. */
+export const FAVICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><g fill="${BRAND}">${SEED_MARK}</g></svg>`;
+
+/** The touch icon (apple-touch-icon.png, drawn by scripts/images.ts): the seed on near-black, full bleed. */
+export const TOUCH_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="${INK}"/><g fill="${BRAND}" transform="translate(4.8 4.6) scale(.7)">${SEED_MARK}</g></svg>`;

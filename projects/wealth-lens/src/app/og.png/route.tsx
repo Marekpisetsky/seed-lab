@@ -1,8 +1,8 @@
 import { ImageResponse } from "next/og";
 import { getI18n } from "@/i18n";
 
-/** The light colours of tokens.css (an image cannot read CSS variables; a test keeps them equal). */
-const COLORS = { background: "#ffffff", foreground: "#0a0a0a", muted: "#525252", accent: "#0055ff" };
+/** Colours of tokens.css: a dark band with the seed green (an image cannot read CSS variables; a test keeps them equal). */
+const COLORS = { background: "#0a0a0a", foreground: "#fafafa", muted: "#a3a3a3", brand: "#00a36c" };
 
 /**
  * /og.png: the picture a shared link shows, drawn once at build time (a
@@ -22,11 +22,15 @@ export function GET() {
     (
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: 72, background: COLORS.background, color: COLORS.foreground }}>
         <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
-          <svg width="120" height="120" viewBox="0 0 64 64">
-            <rect width="64" height="64" rx="14" fill={COLORS.accent} />
-            <circle cx="28" cy="28" r="16" fill="none" stroke="#fff" strokeWidth="5" />
-            <path d="M40 40 L53 53" stroke="#fff" strokeWidth="7" strokeLinecap="round" />
-            <path d="M19 34 L25 27 L30 31 L37 22" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+          {/* The icon of src/app/icon.svg: the seed-lab seed with a rising line. */}
+          <svg width="120" height="120" viewBox="0 0 32 32">
+            <g fill={COLORS.brand}>
+              <ellipse cx="16" cy="22" rx="12.5" ry="8" />
+              <rect x="14.7" y="8.5" width="2.6" height="7" rx="1.3" />
+              <path d="M15.6 11.4C15 7.6 12 5.2 7.6 5.4c.4 4.2 3.6 6.6 8 6z" />
+              <path d="M16.4 9.8c.7-4 3.9-6.4 8.1-6-.5 4.2-3.9 6.4-8.1 6z" />
+            </g>
+            <path d="M10 25l3.8-3.8 3.2 2.3 5-5.2" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <div style={{ fontSize: 84, fontWeight: 800, letterSpacing: -3 }}>{EN.site.name}</div>
         </div>
@@ -36,7 +40,7 @@ export function GET() {
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 30, color: COLORS.muted }}>
           <div style={{ display: "flex" }}>{EN.site.footerNote}</div>
-          <div style={{ display: "flex", color: COLORS.accent, fontWeight: 700 }}>{EN.site.seedLab}</div>
+          <div style={{ display: "flex", color: COLORS.brand, fontWeight: 700 }}>{EN.site.seedLab}</div>
         </div>
       </div>
     ),

@@ -4,7 +4,7 @@
  * Run with `npm run build`.
  */
 
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { FAVICON } from "./icons.ts";
@@ -15,12 +15,15 @@ import { about } from "./pages/about.ts";
 import { home } from "./pages/home.ts";
 import { notFound } from "./pages/not-found.ts";
 import { principles } from "./pages/principles.ts";
+import { roadmap } from "./pages/roadmap.ts";
 import { SITE_URL } from "./site.ts";
 import { renderWithWeight } from "./weight.ts";
 
 export const DIST = fileURLToPath(new URL("../dist/", import.meta.url));
+/** Files served as they are: the touch icon and the share image (drawn by scripts/images.ts). */
+const STATIC = fileURLToPath(new URL("../static/", import.meta.url));
 
-const RENDER: Readonly<Record<PageId, (locale: Locale) => PageInput>> = { home, principles, about };
+const RENDER: Readonly<Record<PageId, (locale: Locale) => PageInput>> = { home, principles, about, roadmap };
 
 function write(path: string, content: string): void {
   const file = join(DIST, path);
@@ -53,6 +56,7 @@ export function build(): { path: string; weight: Weight }[] {
   }
   page("404.html", notFound());
   write("favicon.svg", FAVICON);
+  cpSync(STATIC, DIST, { recursive: true });
   write("robots.txt", `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
   write("sitemap.xml", sitemap());
   return report;
