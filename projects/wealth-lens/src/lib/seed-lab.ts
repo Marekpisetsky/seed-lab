@@ -5,9 +5,16 @@
  */
 
 import projects from "@/data/seed-lab-projects.json";
+import { DEFAULT_LOCALE, type Locale } from "@/i18n/locales";
 
-/** The seed-lab hub (provisional). */
-export const SEED_LAB_HUB_URL = "https://seed-lab-hub.vercel.app";
+/**
+ * The seed-lab hub: the root of the same site (deploy/site.json), in the
+ * page's language, "/" or "/es/". A plain <a>: Next's Link would put it
+ * inside Wealth Lens's folder.
+ */
+export function hubPath(locale: Locale): string {
+  return locale === DEFAULT_LOCALE ? "/" : `/${locale}/`;
+}
 
 export interface SeedLabProject {
   id: string;

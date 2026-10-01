@@ -54,7 +54,7 @@ describe("loading a line", () => {
       return answer(200, file)();
     }) as unknown as typeof fetch;
     expect(await loadLines("NVDA", fetcher)).toEqual(file);
-    expect(asked).toEqual(["/data/lines/NVDA.json"]);
+    expect(asked).toEqual(["/wealth-lens/data/lines/NVDA.json"]);
     // Kept for the visit: opening the row again asks nothing.
     await loadLines("NVDA", fetcher);
     expect(asked).toHaveLength(1);

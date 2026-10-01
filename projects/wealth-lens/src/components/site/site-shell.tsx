@@ -7,7 +7,7 @@ import { LegacyDataNotice } from "@/components/legacy-data-notice";
 import { MainNav } from "@/components/main-nav";
 import { IntentLink } from "@/components/ui/intent-link";
 import { localePath, PAGES } from "@/i18n/locales";
-import { SEED_LAB_HUB_URL } from "@/lib/seed-lab";
+import { hubPath } from "@/lib/seed-lab";
 import { LanguageSwitch } from "./language-switch";
 import { SeedLabLauncher } from "./seed-lab-launcher";
 
@@ -60,7 +60,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
                 </li>
               ))}
               <li>
-                <a href={SEED_LAB_HUB_URL} rel="noopener" className={footerLink}>
+                <a href={hubPath(locale)} className={footerLink}>
                   {m.site.partOf}
                 </a>
               </li>

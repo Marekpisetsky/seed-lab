@@ -1,14 +1,14 @@
 "use client";
 
 import { useI18n } from "@/components/i18n";
-import { localePath } from "@/i18n/locales";
-import { SEED_LAB_HUB_URL } from "@/lib/seed-lab";
+import { localePath, type Locale } from "@/i18n/locales";
+import { hubPath } from "@/lib/seed-lab";
 import { Email } from "./email";
 import { IntentLink } from "./intent-link";
 
-/** Link names a dictionary may use instead of an address: "[seed-lab](hub)". */
-const NAMED_LINKS: Readonly<Record<string, string>> = {
-  hub: SEED_LAB_HUB_URL,
+/** Link names a dictionary may use instead of an address, in the page's language: "[seed-lab](hub)". */
+const NAMED_LINKS: Readonly<Record<string, (locale: Locale) => string>> = {
+  hub: hubPath,
 };
 
 /** Inside a sentence: the padding makes a 44 px tall area for a finger without moving the text around it. */
@@ -46,7 +46,7 @@ export function Marked({ text, strongClassName = "font-medium text-foreground ta
           );
         }
         return (
-          <a key={index} href={NAMED_LINKS[target] ?? target} className={linkClass} rel="noopener">
+          <a key={index} href={NAMED_LINKS[target]?.(locale) ?? target} className={linkClass} rel="noopener">
             {words}
           </a>
         );

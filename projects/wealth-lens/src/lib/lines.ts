@@ -7,6 +7,7 @@
  */
 
 import { LINE_PERIODS, parseLinesFile, type LinePeriod, type LinePeriodId, type LinesFile } from "./market-format";
+import { publicPath } from "./site";
 
 export type { LinePeriod, LinePeriodId, LinesFile } from "./market-format";
 export { LINE_PERIODS } from "./market-format";
@@ -46,7 +47,7 @@ const loaded = new Map<string, Promise<LinesFile | null>>();
 export function loadLines(id: string, fetcher: typeof fetch = fetch): Promise<LinesFile | null> {
   let kept = loaded.get(id);
   if (!kept) {
-    kept = fetcher(`/data/lines/${encodeURIComponent(id)}.json`)
+    kept = fetcher(publicPath(`/data/lines/${encodeURIComponent(id)}.json`))
       .then((response) => (response.ok ? response.json() : null))
       .then((json) => {
         const file = json === null ? null : parseLinesFile(json);
