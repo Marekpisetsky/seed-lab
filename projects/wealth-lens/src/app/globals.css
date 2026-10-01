@@ -40,6 +40,11 @@ body {
   color: var(--foreground);
 }
 
+/* The email address before the browser joins it into a link (components/ui/email.tsx). "\40" is the @. */
+.email-parts::before {
+  content: attr(data-user) "\40" attr(data-domain);
+}
+
 /* Every control shows clearly where the keyboard is. */
 :where(a, button, summary, [role="option"], [tabindex]):focus-visible {
   outline: 2px solid var(--accent);

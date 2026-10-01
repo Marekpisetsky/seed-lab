@@ -63,8 +63,8 @@ export const en = {
       {
         heading: "Who makes it",
         body: [
-          "It is made by [Marek Pisetsky](https://github.com/Marekpisetsky). Wealth Lens is free to use. Its code belongs to seed-lab.",
-          "Questions, ideas or a mistake to report? [Open an issue on GitHub](issues). There is no email, on purpose.",
+          "It is made by Marek Pisetsky. Wealth Lens is free to use. Its code belongs to seed-lab.",
+          "Questions, ideas or a mistake to report? Write to [email](email).",
         ],
       },
       {
@@ -264,7 +264,7 @@ export const en = {
   },
   privacy: {
     title: "Privacy",
-    updated: "Updated on 30 September 2026.",
+    updated: "Updated on 1 October 2026.",
     sections: [
       { heading: "In short", body: ["**Nothing is saved or sent.** No cookies. No tracking."] },
       {
@@ -296,7 +296,7 @@ export const en = {
           "See [Vercel's privacy policy](https://vercel.com/legal/privacy-policy).",
         ],
       },
-      { heading: "Questions", body: ["[Open an issue on GitHub](issues)."] },
+      { heading: "Questions", body: ["Write to [email](email)."] },
     ] as ProseSection[],
   },
   terms: {

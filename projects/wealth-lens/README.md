@@ -358,8 +358,13 @@ idiomas (`src/app/not-found.tsx`). Sus textos viven en los diccionarios
 unas 22 palabras; *How it works* cita cifras sacadas de los datos (países,
 errores de la estimación, países excluidos, inflación alta), así que no se
 desactualiza. El pie enlaza las cuatro y "Part of seed-lab", y termina con
-"© 2026 seed-lab. Free to use." Contacto: solo GitHub Issues, sin correo
-publicado. Código propietario: ver `LICENSE` y `TRADEMARKS.md` en la raíz
+"© 2026 seed-lab. Free to use." Contacto: seedlab.eu (arroba) proton.me,
+en About y Privacy. `[email](email)` en los diccionarios lo inserta
+(`src/components/ui/email.tsx`): el HTML estático solo lleva sus dos partes
+(`CONTACT` en `src/lib/site.ts`), que el CSS muestra como una dirección, y
+el navegador la convierte en un enlace de correo; ni la dirección entera
+ni `mailto` aparecen en el HTML, para que no la recojan los bots. Sin
+enlaces a GitHub en la web. Código propietario: ver `LICENSE` y `TRADEMARKS.md` en la raíz
 del repositorio. Icono propio (`src/app/icon.svg`, y `favicon.ico` y
 `apple-icon.png` dibujados a partir de él) e imagen para compartir de
 1200×630 generada en el build (`src/app/og.png/route.tsx`, estática, la
