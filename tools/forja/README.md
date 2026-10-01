@@ -1,18 +1,11 @@
 # Forja
 
-**Que es:** herramienta interna del holding, no una empresa de `projects/`.
-Su unico cliente hoy es el propio holding seed-lab -- eso la hace
-infraestructura, no una empresa con clientes externos. La mision del
-holding vive en el README raiz; esto es solo su proposito puntual.
-
-**Proposito:** Forja genera proyectos de software que nacen funcionando,
-con codigo real, tests que pasan y verificacion en el momento de su
-creacion, para que cada nueva empresa de seed-lab arranque en segundos
+**Qué es:** una herramienta interna de seed-lab, no un producto. Genera
+proyectos de Python que nacen funcionando: código real, tests que pasan y
+verificación en el momento de crearlos, para empezar una idea en segundos
 sobre una base probada.
 
-Si en algun momento Forja se vende o se ofrece a desarrolladores externos,
-deja de ser herramienta interna y pasa a `projects/` con una mision propia
-que nombre a ese cliente externo.
+No se publica ni se ofrece fuera del repositorio.
 
 ## Que NO es Forja
 

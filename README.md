@@ -1,7 +1,7 @@
 # seed-lab
 
-seed-lab builds free, privacy-first digital tools that Europeans --
-citizens, developers and public bodies -- can use without giving up their
+seed-lab builds free, privacy-first digital tools that Europeans —
+citizens, developers and public bodies — can use without giving up their
 data.
 
 seed-lab construye herramientas digitales gratuitas y centradas en la
@@ -10,53 +10,44 @@ gratuitas que ciudadanos, desarrolladores e instituciones adoptan por su
 cuenta. **Wealth Lens** (`projects/wealth-lens/`) es la primera
 herramienta y la prueba de los principios.
 
-- Vision, modelo, escalera, mision, principios, ODS y "Que NO somos":
+- **Dirección:** visión, modelo, escalera, misión, los cinco principios
+  (con *Transparent*), ODS y "Qué NO somos", en
   [`docs/direction.md`](docs/direction.md).
-- Donde estamos: **peldano 1** de la escalera (herramientas que la gente
-  usa). Los peldanos siguientes todavia no existen.
-- El hub (portada de seed-lab, EN/ES, paginas estaticas sin cookies):
-  [`hub/`](hub/README.md).
-- Alojamiento: hoy en Vercel (EE. UU.). Plan para pasar a Europa, sin
-  migrar todavia: [`docs/hosting.md`](docs/hosting.md).
-- Licencia: codigo propietario, (C) 2026 Marek Pisetsky, todos los
+- **Dónde estamos:** peldaño 1 de la escalera, herramientas que la gente
+  usa. Los peldaños siguientes todavía no existen; la web los muestra solo
+  en su página *Roadmap*.
+- **Web de seed-lab:** [`hub/`](hub/README.md), estática, en EN y ES, sin
+  cookies.
+- **Alojamiento:** hoy en Vercel (EE. UU.). El plan para pasar a Europa,
+  sin migrar todavía, está en [`docs/hosting.md`](docs/hosting.md).
+- **Licencia:** código propietario, © 2026 Marek Pisetsky, todos los
   derechos reservados ([`LICENSE`](LICENSE)). Las aplicaciones publicadas
-  son de uso gratuito. Nombres y logotipos: [`TRADEMARKS.md`](TRADEMARKS.md).
+  son de uso gratuito. Nombres y logotipos:
+  [`TRADEMARKS.md`](TRADEMARKS.md).
+- **Contacto:** seedlab.eu (arroba) proton.me.
 
-Un holding de tres niveles:
+## Reglas de trabajo
 
-- `cells/` -- chispas de un archivo.
-- `tools/` -- infraestructura interna: herramientas que el holding usa
-  para construirse a si mismo, sin cliente externo.
-- `projects/` -- las empresas de verdad: las unicas con derecho a llevar
-  mision propia de empresa, porque tienen (o apuntan a tener) un cliente
-  fuera del propio holding.
-
-Una celula que demuestra que vale la pena se gradua a `tools/` (si sirve
-para construir otras cosas del holding) o a `projects/` (si es, en si
-misma, una empresa con cliente propio).
-
-## Reglas del holding
-
-- Cero costo: nada que dependa de una API de pago o suscripcion para existir.
-- Cero arte: el valor esta en la logica, no en como se ve.
-- Sin rumbo fijo: no hay backlog ni roadmap impuesto desde afuera. Cada
-  celula o proyecto nace de una curiosidad puntual o un objetivo real.
+- **Cero coste:** nada depende de un servicio de pago para existir.
+- **Verificación antes que promesa:** nada se da por terminado sin
+  pruebas de que funciona (tests, build, Lighthouse, accesibilidad).
+- **Solo lo que existe:** ningún texto presenta como hecho algo que aún
+  no lo está; lo pendiente va a la hoja de ruta.
+- **Un solo sistema visual:** los colores viven en `tokens.css`, el mismo
+  archivo en el hub y en cada producto.
 
 ## Estructura
 
-- `cells/` -- modulos Python de un archivo. Cada uno con una funcion
-  `run(*args)` es una celula ejecutable, descubierta automaticamente por
-  `core/registry.py` y disparada con `seed.py` (`python seed.py list`,
-  `python seed.py run <nombre>`). Ver detalle mas abajo.
-- `tools/` -- herramientas internas, cada una en su propia carpeta con su
-  propio README (proposito puntual, no mision de empresa). Ejemplo:
-  `tools/forja/`, el generador de proyectos verificados.
-- `projects/` -- empresas de verdad, cada una en su propia carpeta con su
-  propio README. Ver `projects/README.md` para el criterio de admision.
-- `hub/` -- la portada publica de seed-lab: mision, principios,
-  herramientas y bloques. Ver `hub/README.md`.
-- `docs/` -- direccion de seed-lab (`direction.md`) y plan de alojamiento
-  europeo.
+- `hub/` — la web de seed-lab: misión, principios, productos y hoja de
+  ruta. Ver `hub/README.md`.
+- `projects/` — los productos. Hoy, uno: `projects/wealth-lens/`. Ver
+  `projects/README.md` para lo que pide cada producto.
+- `docs/` — dirección (`direction.md`), plan de alojamiento
+  (`hosting.md`) y capturas.
+- `tools/forja/` — herramienta interna: genera proyectos de Python que
+  nacen con tests que pasan. No es un producto.
+- `cells/`, `core/` y `seed.py` — banco de pruebas: ideas rápidas en un
+  archivo de Python cada una, que `seed.py` descubre y ejecuta.
 
 ```bash
 python seed.py list
@@ -64,27 +55,26 @@ python seed.py run hello Marek
 python seed.py run fortune
 ```
 
-## Agregar una celula nueva (chispa rapida)
+## Añadir un producto
+
+1. Crear `projects/<nombre>/` con su `README.md`: qué es, qué no es, cómo
+   cumple los cinco principios y en qué estado está.
+2. Usar el `tokens.css` compartido y la familia de iconos de seed-lab.
+3. Añadirlo a `hub/content/tools.json`, con su fila de "Cómo lo cumple
+   cada producto" (cumple / en parte / pendiente por principio).
+
+## Añadir una idea rápida
 
 1. Crear `cells/nombre.py`.
-2. Escribir un docstring de una linea (aparece en `seed.py list`).
+2. Escribir un docstring de una línea (aparece en `seed.py list`).
 3. Definir `def run(*args): ...`.
-
-## Agregar una herramienta nueva (infraestructura interna)
-
-Crear `tools/nombre-de-la-herramienta/` con su propio `README.md`: que es,
-para que sirve dentro del holding, y una nota de que su cliente es interno
-(no lleva mision de empresa).
-
-## Agregar un proyecto nuevo (empresa de verdad)
-
-Crear `projects/nombre-del-proyecto/` con su propio `README.md` que explique
-que es, por que importa, y el estado actual. Ver `projects/README.md`.
 
 ## Historia
 
 Hasta el cambio de rumbo de septiembre de 2026 (ver
-[`docs/direction.md`](docs/direction.md)), seed-lab se definia asi:
+[`docs/direction.md`](docs/direction.md)), seed-lab se definía como un
+holding de proyectos y se describía así. Se conserva solo como registro;
+no rige nada de lo actual.
 
 **Mision:** seed-lab construye proyectos de software con peso tecnico
 real -- cada uno demuestra una capacidad de ingenieria genuina y
