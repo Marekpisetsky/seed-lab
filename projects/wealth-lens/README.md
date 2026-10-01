@@ -26,7 +26,7 @@ tabla de *Principles* del hub, `hub/content/tools.json`):
 | Your data never leaves your device | Cumple | Todo se calcula en el navegador; nada se guarda ni se envía. |
 | Transparent | En parte | Gratis, con método y fuentes públicos; los cambios del método aún no se publican. |
 | Truly European | Pendiente | EN y ES, pero alojada en Vercel (EE. UU.) y sin auditoría de accesibilidad hecha por personas. |
-| Light | Cumple | De 302 a 318 KB por página en la primera visita, por debajo del límite de 350 KB. |
+| Light | Cumple | De 204 a 222 KB por página en la primera visita, por debajo del límite de 350 KB. |
 | For everyone | En parte | Palabras sencillas, teclado y objetivos de 44 px; aún sin pruebas con personas reales. |
 
 **Estado actual (2026-10-01):** dos pantallas (Next.js 16 + TypeScript +

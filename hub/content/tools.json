@@ -38,8 +38,8 @@
       "light": {
         "status": "meets",
         "note": {
-          "en": "302 to 318 KB per page on a first visit, under the 350 KB limit.",
-          "es": "De 302 a 318 KB por página en la primera visita, por debajo del límite de 350 KB."
+          "en": "204 to 222 KB per page on a first visit, under the 350 KB limit.",
+          "es": "De 204 a 222 KB por página en la primera visita, por debajo del límite de 350 KB."
         }
       },
       "everyone": {
