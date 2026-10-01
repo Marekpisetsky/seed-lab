@@ -1,70 +1,39 @@
 # projects/
 
-Esto es un holding, no un CV. Cada carpeta dentro de `projects/` es una
-"empresa" del portfolio de Marek en el sentido Musk: Tesla, SpaceX, The
-Boring Company -- proyectos de peso que existen porque funcionan de verdad,
-no porque quedan bien en una lista.
+Los productos de seed-lab: herramientas digitales gratuitas y centradas en
+la privacidad para Europa. Hoy hay uno, [Wealth Lens](wealth-lens/).
 
-## Criterio de admision
+## Qué pide cada producto
 
-Un proyecto entra a `projects/` solo si cumple las tres cosas:
+Un producto entra aquí cuando cumple estas cuatro cosas:
 
-1. **Funciona de verdad.** No es una demo ni un stub -- hace algo real,
-   de punta a punta, aunque sea a pequena escala.
-2. **Tiene peso.** O resuelve un problema real (se usa de verdad), o exige
-   ambicion tecnica real (te obliga a construir algo dificil). Idealmente
-   ambas.
-3. **Resuelve un problema real fuera de la construccion del holding
-   mismo.** Cuenta el uso propio sostenido de Marek, o la adopcion de
-   terceros que lo descubren y lo usan por su cuenta -- lo que NO cuenta
-   es que el unico consumidor sea el propio holding para construirse a
-   si mismo (ese caso es infraestructura interna y pertenece a
-   `tools/`). No hace falta venta activa ni negociacion con nadie. Este
-   fue el error con Forja: cumplia 1 y 2, pero su unico consumidor era el
-   holding mismo, asi que se reclasifico a `tools/forja/`.
+1. **Funciona de punta a punta.** No es una demo: alguien puede usarlo
+   hoy, gratis, en su web.
+2. **Cumple el principio 1 desde el primer día.** Ningún dato personal
+   sale del dispositivo: sin cuentas, sin cookies, sin analítica.
+3. **Se mide contra los cinco principios.** Su fila en
+   `hub/content/tools.json` dice, principio a principio, si cumple, si
+   cumple en parte o si está pendiente, y por qué. Lo pendiente va a la
+   hoja de ruta del hub, no se esconde.
+4. **Comparte la identidad de seed-lab.** Usa el `tokens.css` común (un
+   test lo compara con el del hub), la familia de iconos de la semilla y
+   el pie "© 2026 seed-lab. Free to use."
 
-No es un lugar para ejercicios ni para portfolio-filler.
+## Qué lleva su README
 
-## Antes de construir a fondo: validar
+Abre con dos cosas, en este orden:
 
-Por valor del holding ("Validacion antes que construccion"), ninguna idea
-se construye a fondo sin evidencia de que resuelve un problema real --
-uso propio sostenido, o adopcion de terceros que lo descubren y lo usan
-sin que Marek tenga que venderlo o negociarlo. Una idea puede vivir como
-celula o borrador mientras se busca esa evidencia; recien se gradua a
-carpeta propia en `projects/` cuando esa validacion existe.
+1. **Misión:** una frase que diga para quién existe y por qué importa.
+2. **Qué NO es:** lo que el producto no va a intentar cubrir, aunque sea
+   tentador añadirlo después.
 
-## Que distingue un proyecto de una celula (`cells/`) o una herramienta (`tools/`)
+Después: cómo cumple cada principio, cómo se construye y se comprueba, y
+su estado.
 
-- Una celula es una chispa de un archivo: se ejecuta y ya.
-- Una herramienta (`tools/`) tiene profundidad real, pero su cliente es el
-  propio holding -- existe para construir otras cosas, no para venderse.
-- Un proyecto (`projects/`) tiene profundidad real y un cliente fuera del
-  holding, real o buscado activamente. Si una celula o herramienta
-  demuestra que vale la pena y encuentra ese cliente externo, se "gradua"
-  moviendola aqui y dandole mision propia de empresa.
+## Reglas comunes
 
-## Estructura minima de cada proyecto
-
-```
-projects/<nombre-del-proyecto>/
-  README.md      -- mision, que NO es, por que importa, estado actual
-  ...             (el codigo propio del proyecto)
-```
-
-El README de cada proyecto tiene que abrir con dos cosas, en este orden:
-
-1. **Mision:** una frase que diga para que existe el proyecto -- no que
-   hace, sino por que importa. Si la mision se puede resumir en "hacer de
-   todo un poco", no es una mision, es una falta de foco.
-2. **Que NO es:** una lista explicita de lo que el proyecto no va a
-   intentar cubrir, aunque sea tentador agregarlo despues. Sin esto, es
-   facil que un proyecto se desparrame hasta perder el objetivo con el que
-   nacio.
-
-## Reglas heredadas de seed-lab
-
-- Cero costo: nada que dependa de pago para existir.
-- Cero arte: el valor esta en la logica y la ejecucion, no en el diseno visual.
-- Cada proyecto define su propio proposito -- no hay una agenda impuesta
-  desde afuera.
+- Cero coste: nada depende de un servicio de pago para existir.
+- Al menos en inglés y en español, con frases cortas y sin jerga.
+- Cada página por debajo de 350 KB en la primera visita (comprimida) y
+  con 95 o más en Lighthouse para móvil.
+- Código propietario (ver [`LICENSE`](../LICENSE)); uso gratuito.

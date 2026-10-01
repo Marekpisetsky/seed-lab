@@ -13,7 +13,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "npm run build && node --experimental-strip-types --test test/*.test.ts",
-    "check": "npm run lint && npm run typecheck && npm test"
+    "check": "npm run lint && npm run typecheck && npm test",
+    "images": "node --experimental-strip-types scripts/images.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

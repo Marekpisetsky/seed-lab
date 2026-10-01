@@ -10,7 +10,7 @@ export const LOCALE_SETTINGS: Readonly<Record<Locale, { label: string; name: str
 };
 
 /** The pages, by their address without the language. */
-export const PAGES = { home: "/", principles: "/principles/", about: "/about/" } as const;
+export const PAGES = { home: "/", principles: "/principles/", about: "/about/", roadmap: "/roadmap/" } as const;
 export type PageId = keyof typeof PAGES;
 
 /** "/principles/" in a language: "/es/principles/" in Spanish, as is in English. */

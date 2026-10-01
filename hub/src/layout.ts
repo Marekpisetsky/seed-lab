@@ -43,6 +43,20 @@ function formatKb(bytes: number, locale: Locale): string {
   return new Intl.NumberFormat(LOCALE_SETTINGS[locale].intl, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(bytes / 1000);
 }
 
+/**
+ * A band of the page, always dark or always light whatever the device's
+ * mode: the hub alternates them (tokens.css, .theme-dark and .theme-light),
+ * so a page is never one dark block.
+ */
+export function band(theme: "dark" | "light", content: Html, labelledBy?: string): Html {
+  return html`<section class="band theme-${theme}"${labelledBy ? html` aria-labelledby="${labelledBy}"` : ""}>
+<div class="wrap">
+${content}
+</div>
+</section>
+`;
+}
+
 export function layout(page: PageInput, weight: Weight): string {
   const { locale, id } = page;
   const m = messages(locale);
@@ -69,19 +83,23 @@ ${LOCALES.map((other) => html`<link rel="alternate" hreflang="${other}" href="${
     : html`<meta name="robots" content="noindex">`
 }
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0a0a0a">
+<meta name="theme-color" content="#0a0a0a">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="seed-lab">
 <meta property="og:title" content="${page.title}">
 <meta property="og:description" content="${page.description}">
 <meta property="og:locale" content="${LOCALE_SETTINGS[locale].intl.replace("-", "_")}">
+<meta property="og:image" content="${SITE_URL}/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <style>${raw(STYLES)}</style>
 </head>
 <body>
 <a class="skip" href="#main">${m.site.skip}</a>
-<header class="top">
+<header class="top theme-dark">
 <div class="wrap bar">
 <a class="mark" href="${localePath("/", locale)}"${id === "home" ? raw(' aria-current="page"') : ""}>${SEED}${m.site.name}</a>
 <nav aria-label="${m.site.nav.label}">
@@ -95,19 +113,20 @@ ${LOCALES.map((other) => html`<li><a href="${localePath(path, other)}" hreflang=
 </div>
 </header>
 <main id="main" tabindex="-1">
-<div class="wrap">
 ${page.body}
-</div>
 </main>
-<footer class="foot">
+<footer class="foot theme-light">
 <div class="wrap">
-<p class="weight">${m.site.weight(formatKb(weight.bytes, locale), formatKb(weight.compressed, locale))}</p>
-<p>${m.site.noTracking}</p>
 <nav aria-label="${m.site.footerNav}">
 <ul>
-<li><a href="${TOOLS[0].url}">${TOOLS[0].name}</a></li>
+${TOOLS.filter((tool) => tool.status === "live").map((tool) => html`<li><a href="${tool.url}">${tool.name}</a></li>`)}
+<li><a href="${localePath(PAGES.principles, locale)}">${m.site.nav.principles}</a></li>
+<li><a href="${localePath(PAGES.about, locale)}">${m.site.nav.about}</a></li>
+<li><a href="${localePath(PAGES.roadmap, locale)}"${id === "roadmap" ? raw(' aria-current="page"') : ""}>${m.site.roadmap}</a></li>
 </ul>
 </nav>
+<p class="weight">${m.site.weight(formatKb(weight.bytes, locale), formatKb(weight.compressed, locale))}</p>
+<p>${m.site.noTracking}</p>
 <p class="copyright">${m.site.copyright}</p>
 </div>
 </footer>

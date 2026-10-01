@@ -12,6 +12,43 @@
     "description": {
       "en": "See how your money could grow, what it could pay you each month and where in the world that is enough. It runs on your device: nothing is saved or sent.",
       "es": "Mira cómo podría crecer tu dinero, cuánto podría pagarte al mes y en qué lugares del mundo alcanza. Funciona en tu dispositivo: no se guarda ni se envía nada."
+    },
+    "principles": {
+      "device": {
+        "status": "meets",
+        "note": {
+          "en": "Worked out in your browser. Nothing is saved or sent.",
+          "es": "Se calcula en tu navegador. No se guarda ni se envía nada."
+        }
+      },
+      "transparent": {
+        "status": "partly",
+        "note": {
+          "en": "Free, with its method and sources public. Method changes are not listed yet.",
+          "es": "Gratis, con su método y sus fuentes públicos. Los cambios del método aún no se publican."
+        }
+      },
+      "europe": {
+        "status": "pending",
+        "note": {
+          "en": "In English and Spanish, but hosted in the US. No audit by people yet.",
+          "es": "En inglés y español, pero alojado en EE. UU. Aún sin auditoría hecha por personas."
+        }
+      },
+      "light": {
+        "status": "meets",
+        "note": {
+          "en": "302 to 318 KB per page on a first visit, under the 350 KB limit.",
+          "es": "De 302 a 318 KB por página en la primera visita, por debajo del límite de 350 KB."
+        }
+      },
+      "everyone": {
+        "status": "partly",
+        "note": {
+          "en": "Plain words, keyboard and 44 px targets. Not tested with real people yet.",
+          "es": "Palabras sencillas, teclado y objetivos de 44 px. Aún sin pruebas con personas reales."
+        }
+      }
     }
   }
 ]
