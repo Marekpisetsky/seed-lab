@@ -2,8 +2,8 @@
   "name": "seed-lab-hub",
   "version": "0.1.0",
   "private": true,
-  "description": "The seed-lab hub: open, privacy-first tools for Europe. Static pages, no JavaScript framework, no cookies.",
-  "license": "MIT",
+  "license": "UNLICENSED",
+  "description": "The seed-lab hub: free, privacy-first tools for Europe. Static pages, no JavaScript framework, no cookies.",
   "type": "module",
   "engines": {
     "node": "22.x"

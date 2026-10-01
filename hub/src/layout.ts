@@ -4,7 +4,7 @@ import { DEFAULT_LOCALE, LOCALE_SETTINGS, LOCALES, PAGES, localePath, messages }
 import type { Locale, PageId } from "./i18n/index.ts";
 import { SEED } from "./icons.ts";
 import { STYLES } from "./styles.ts";
-import { AUTHOR_URL, DIRECTION_URL, HOSTING_URL, ISSUES_URL, LICENSE_URL, REPO_URL, SITE_URL } from "./site.ts";
+import { AUTHOR_URL, ISSUES_URL, SITE_URL } from "./site.ts";
 import { TOOLS } from "./content.ts";
 
 /** What the footer says about the page's own weight, in bytes. */
@@ -26,12 +26,8 @@ export interface PageInput {
 export function linkTo(locale: Locale): (href: string) => string {
   const named: Readonly<Record<string, string>> = {
     "wealth-lens": TOOLS[0].url,
-    hosting: HOSTING_URL,
-    direction: DIRECTION_URL,
     author: AUTHOR_URL,
-    license: LICENSE_URL,
     issues: ISSUES_URL,
-    repo: REPO_URL,
   };
   return (href) => named[href] ?? (href.startsWith("/") ? localePath(href, locale) : href);
 }
@@ -73,8 +69,8 @@ ${LOCALES.map((other) => html`<link rel="alternate" hreflang="${other}" href="${
     : html`<meta name="robots" content="noindex">`
 }
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#fbf8f3">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#171412">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0a0a0a">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="seed-lab">
 <meta property="og:title" content="${page.title}">
@@ -110,10 +106,9 @@ ${page.body}
 <nav aria-label="${m.site.footerNav}">
 <ul>
 <li><a href="${TOOLS[0].url}">${TOOLS[0].name}</a></li>
-<li><a href="${REPO_URL}">${m.site.github}</a></li>
-<li><a href="${LICENSE_URL}">${m.site.license}</a></li>
 </ul>
 </nav>
+<p class="copyright">${m.site.copyright}</p>
 </div>
 </footer>
 </body>

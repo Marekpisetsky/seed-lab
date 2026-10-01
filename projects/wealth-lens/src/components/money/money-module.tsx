@@ -17,7 +17,7 @@ import { ThingsSection } from "./things-section";
 export function MoneyModule() {
   const bundle = useCalculation();
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <CalculatorCard />
       <div className="space-y-4">
         <ResultSection bundle={bundle} />

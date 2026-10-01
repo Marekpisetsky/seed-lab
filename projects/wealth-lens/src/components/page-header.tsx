@@ -8,7 +8,7 @@ interface PageHeaderProps {
 export function PageHeader({ title, question, children }: PageHeaderProps) {
   return (
     <header className="mb-6 space-y-1">
-      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h1>
+      <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{title}</h1>
       <p className="text-muted">{question}</p>
       {children}
     </header>

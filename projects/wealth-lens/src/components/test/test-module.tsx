@@ -52,7 +52,7 @@ function CrisisPanel({
   const lastShown = result.startYear + result.years - 1;
   return (
     <section aria-labelledby="crisis-title" className="space-y-3 rounded-xl border border-border bg-card p-4">
-      <h2 id="crisis-title" className="text-lg font-semibold">
+      <h2 id="crisis-title" className="text-lg font-bold">
         {t.crises[result.id]} ({result.year})
       </h2>
       <div aria-live="polite" className="space-y-1.5 text-base">
@@ -102,7 +102,7 @@ function StartYearsSection({ source, amounts, scenario, planYears }: { source: H
   const last = every.starts[every.starts.length - 1].year;
   return (
     <section aria-labelledby="every-title" className="space-y-3">
-      <h2 id="every-title" className="flex items-center gap-2 text-lg font-semibold">
+      <h2 id="every-title" className="flex items-center gap-2 text-lg font-bold">
         {t.title}
         <Help what={t.title} text={m.help.every} />
       </h2>
@@ -166,7 +166,7 @@ export function TestModule() {
       )}
 
       <section aria-labelledby="crises-title" className="space-y-2">
-        <h2 id="crises-title" className="text-lg font-semibold">
+        <h2 id="crises-title" className="text-lg font-bold">
           {t.cardsTitle}
         </h2>
         {source && <p className="text-sm text-muted">{t.tapHint}</p>}

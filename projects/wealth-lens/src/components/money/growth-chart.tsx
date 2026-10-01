@@ -192,7 +192,8 @@ function YearTable({ points, band, startYear, swings }: { points: YearPoint[]; b
     <details className="text-xs" onToggle={(event) => setOpen(event.currentTarget.open)}>
       <summary className="flex min-h-11 cursor-pointer items-center text-muted hover:text-foreground">{m.chart.table}</summary>
       {open && band && (
-      <div className="mt-2 max-h-72 overflow-auto">
+      // Scrolls on its own: focusable, so a keyboard can scroll it too.
+      <div className="mt-2 max-h-72 overflow-auto" tabIndex={0} role="region" aria-label={m.chart.table}>
         <table className="w-full text-right tabular-nums">
           <thead className="sticky top-0 bg-card text-muted">
             <tr>

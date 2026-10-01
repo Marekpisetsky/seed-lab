@@ -1,13 +1,7 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
 import { LANGUAGE_SCRIPT } from "@/i18n/detect";
 import { SITE_URL } from "@/i18n/metadata";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -21,7 +15,7 @@ export const metadata: Metadata = {
  */
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} h-full antialiased`}>
+    <html lang="en" suppressHydrationWarning className="h-full antialiased">
       <head>
         <script dangerouslySetInnerHTML={{ __html: LANGUAGE_SCRIPT }} />
       </head>

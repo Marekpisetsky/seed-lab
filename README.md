@@ -1,13 +1,13 @@
 # seed-lab
 
-seed-lab builds open, privacy-first digital tools that Europeans --
+seed-lab builds free, privacy-first digital tools that Europeans --
 citizens, developers and public bodies -- can use without giving up their
 data.
 
-seed-lab construye herramientas digitales abiertas y centradas en la
-privacidad para Europa. No vende a gobiernos: publica herramientas y
-bloques abiertos que ciudadanos, desarrolladores e instituciones adoptan
-por su cuenta. **Wealth Lens** (`projects/wealth-lens/`) es la primera
+seed-lab construye herramientas digitales gratuitas y centradas en la
+privacidad para Europa. No vende a gobiernos: publica herramientas
+gratuitas que ciudadanos, desarrolladores e instituciones adoptan por su
+cuenta. **Wealth Lens** (`projects/wealth-lens/`) es la primera
 herramienta y la prueba de los principios.
 
 - Vision, modelo, escalera, mision, principios, ODS y "Que NO somos":
@@ -18,6 +18,9 @@ herramienta y la prueba de los principios.
   [`hub/`](hub/README.md).
 - Alojamiento: hoy en Vercel (EE. UU.). Plan para pasar a Europa, sin
   migrar todavia: [`docs/hosting.md`](docs/hosting.md).
+- Licencia: codigo propietario, (C) 2026 Marek Pisetsky, todos los
+  derechos reservados ([`LICENSE`](LICENSE)). Las aplicaciones publicadas
+  son de uso gratuito. Nombres y logotipos: [`TRADEMARKS.md`](TRADEMARKS.md).
 
 Un holding de tres niveles:
 

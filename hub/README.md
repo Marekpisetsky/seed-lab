@@ -1,8 +1,8 @@
 # seed-lab hub
 
 La portada de seed-lab: la misión, los cinco principios, las herramientas
-que existen hoy y los bloques abiertos que vendrán. En inglés y en
-español.
+que existen hoy y las herramientas para desarrolladores que vendrán. En
+inglés y en español.
 
 - Dirección, escalera y principios: [`../docs/direction.md`](../docs/direction.md).
 - Plan para alojarlo en Europa: [`../docs/hosting.md`](../docs/hosting.md).
@@ -20,7 +20,13 @@ lint, tipos y tests.
 - Un único script, de una línea y solo en las páginas en inglés: la
   primera visita que llega desde fuera con un navegador en español va a la
   página en español. No guarda nada; el selector EN/ES siempre gana.
-- Claro y oscuro según el dispositivo. Tipografía del sistema.
+- Claro y oscuro según el dispositivo. Tipografía del sistema, títulos en
+  extra-negrita.
+- **Colores:** `src/tokens.css`, el mismo archivo que Wealth Lens
+  (`projects/wealth-lens/src/app/tokens.css`): blanco o #0A0A0A, grises
+  neutros y un solo azul de marca (#0055FF en claro, #4D8DFF en oscuro).
+  Los tests comprueban que los dos archivos son idénticos, que todo texto
+  mantiene 4,5:1 (WCAG AA) en los dos modos y que los grises son neutros.
 - **Peso visible:** el pie de cada página dice cuánto pesa (HTML con su
   CSS, más el icono), sin comprimir y con gzip. Se mide al construir y se
   vuelve a generar la página hasta que el número que muestra es el real
@@ -29,7 +35,7 @@ lint, tipos y tests.
 ```
 hub/
   content/tools.json    herramientas (tarjetas de la portada)
-  content/blocks.json   bloques abiertos: "coming" hasta que se publiquen
+  content/blocks.json   bloques para desarrolladores: "coming" hasta que se publiquen
   src/build.ts          genera dist/ (una carpeta por página e idioma)
   src/i18n/en.ts, es.ts todas las palabras, con el mismo formato
   src/pages/            portada, principles, about, 404
@@ -92,4 +98,6 @@ Si el proyecto acaba con otro nombre, cambiar `SITE_URL` en `src/site.ts`
 
 ## Licencia
 
-Código bajo licencia MIT ([`LICENSE`](LICENSE)).
+Código propietario: © 2026 Marek Pisetsky, todos los derechos reservados.
+Ver [`LICENSE`](../LICENSE) y [`TRADEMARKS.md`](../TRADEMARKS.md) en la raíz.
+El sitio publicado es de uso gratuito.

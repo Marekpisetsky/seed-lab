@@ -1,42 +1,6 @@
 @import "tailwindcss";
-
-:root {
-  --background: #fafafa;
-  --foreground: #18181b;
-  --card: #ffffff;
-  --muted: #52525b;
-  --border: #e4e4e7;
-  --accent: #1d4ed8;
-  --accent-foreground: #ffffff;
-  --positive: #166a37;
-  --negative: #991b1b;
-  --warning-bg: #fffbeb;
-  --warning-border: #fcd34d;
-  --warning-foreground: #78350f;
-  /* Text colours keep 4.5:1 (WCAG AA) on the card, the page, the 10% accent tint and the "changed" tint. */
-  /* Chart series (validated as a pair for colour-blind separation, light and dark). */
-  --chart-put-in: #2a78d6;
-  --chart-growth: #1baf7a;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #09090b;
-    --foreground: #f4f4f5;
-    --card: #18181b;
-    --muted: #a1a1aa;
-    --border: #3f3f46;
-    --accent: #60a5fa;
-    --accent-foreground: #09090b;
-    --positive: #4ade80;
-    --negative: #f87171;
-    --warning-bg: #2a1f06;
-    --warning-border: #92400e;
-    --warning-foreground: #fde68a;
-    --chart-put-in: #3987e5;
-    --chart-growth: #199e70;
-  }
-}
+/* Colours and font: the seed-lab tokens, the same file as the hub's (tokens.css). */
+@import "./tokens.css";
 
 @theme inline {
   --color-background: var(--background);
@@ -46,12 +10,14 @@
   --color-border: var(--border);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-soft: var(--accent-soft);
+  --color-subtle: var(--subtle);
   --color-positive: var(--positive);
   --color-negative: var(--negative);
   --color-warning-bg: var(--warning-bg);
   --color-warning-border: var(--warning-border);
   --color-warning-foreground: var(--warning-foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-system);
 }
 
 /* A figure the user's last change moved: a tint that fades (components/ui/changed.tsx). */
@@ -80,7 +46,8 @@ body {
   outline-offset: 2px;
 }
 
-/* Native form controls follow the color scheme (date pickers, selects). */
-:root {
-  color-scheme: light dark;
+/* Headings: the system font at its heaviest weights, set tight. */
+h1,
+h2 {
+  letter-spacing: -0.02em;
 }

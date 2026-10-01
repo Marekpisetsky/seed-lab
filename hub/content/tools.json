@@ -4,7 +4,6 @@
     "name": "Wealth Lens",
     "status": "live",
     "url": "https://seed-lab-omega.vercel.app",
-    "source": "https://github.com/Marekpisetsky/seed-lab/tree/master/projects/wealth-lens",
     "languages": ["en", "es"],
     "tagline": {
       "en": "Plan your money without giving it away.",

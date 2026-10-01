@@ -14,34 +14,32 @@ export const en = {
     nav: { label: "Pages", principles: "Principles", about: "About" },
     language: "Language",
     footerNav: "More",
-    github: "Code on GitHub",
     noTracking: "No cookies. No analytics. Nothing about you is stored.",
     weight: (kb: string, compressed: string) => `This page weighs ${kb} KB (${compressed} KB compressed), measured when it was built.`,
-    license: "MIT license",
+    copyright: "© 2026 seed-lab. Free to use.",
   },
   meta: {
     home: {
-      title: "seed-lab: open, privacy-first tools for Europe",
-      description: "Open, privacy-first digital tools that Europeans can use without giving up their data. First tool: Wealth Lens.",
+      title: "seed-lab: free, privacy-first tools for Europe",
+      description: "Free, privacy-first digital tools that Europeans can use without giving up their data. First tool: Wealth Lens.",
     },
     principles: { title: "Principles · seed-lab", description: "Five principles, how Wealth Lens meets them today, and what is still missing." },
     about: { title: "About · seed-lab", description: "What seed-lab is, where it is going, what it is not, and who makes it." },
   },
   home: {
     kicker: "seed-lab",
-    title: "Open, privacy-first digital tools for Europe.",
-    mission: "seed-lab builds open, privacy-first digital tools that Europeans — citizens, developers and public bodies — can use without giving up their data.",
+    title: "Free, privacy-first digital tools for Europe.",
+    mission: "seed-lab builds free, privacy-first digital tools that Europeans — citizens, developers and public bodies — can use without giving up their data.",
     principlesTitle: "Five principles",
     principlesLink: "How we meet them, and what is still missing",
     toolsTitle: "Tools",
     toolsIntro: "One tool so far. It is the proof that these principles work.",
     open: (name: string) => `Open ${name}`,
-    source: "Source code",
     languages: "Languages",
     blocksTitle: "Building blocks",
     blocksIntro: [
-      "Wealth Lens is made of pieces other tools could reuse. We will publish them as open building blocks, one by one.",
-      "**None is published yet.** Today they live inside Wealth Lens, where you can already read their code.",
+      "Wealth Lens is made of pieces other tools could reuse. We plan to publish them as free tools for developers, one by one.",
+      "**None is published yet.** Today they live inside Wealth Lens.",
     ],
   },
   status: { live: "Live", coming: "Coming" },
@@ -68,18 +66,18 @@ export const en = {
         ],
       },
       {
-        id: "open",
-        title: "Open: open source, open data.",
-        short: "Open source, open data",
-        text: "The code is open for anyone to read and reuse. Data comes from open sources where possible, with its source and date.",
+        id: "transparent",
+        title: "Transparent: free for everyone, public methods and sources.",
+        short: "Transparent",
+        text: "Free to use for everyone. Our methods and data sources are public. Our code is ours.",
         today: [
-          "All the code is public under the MIT license.",
-          "Much of the data is open, like the World Bank's and the OECD's, and credited.",
-          "From sources that forbid copying, it only keeps figures worked out from their data.",
+          "Free to use: no account, no ads, no payment.",
+          "A page explains the method in plain words and lists every source, with its link and date.",
+          "Each figure says where it comes from.",
         ],
         missing: [
-          { text: "The code lives on GitHub, a US company. A European copy on Codeberg is planned.", pending: true },
-          { text: "Some figures come from closed sources, like Yahoo Finance, Numbeo and MSCI. Open ones should replace them.", pending: true },
+          { text: "Some sources, like Yahoo Finance, Numbeo and MSCI, do not allow sharing their data. Only figures worked out from it can be shown.", pending: true },
+          { text: "Changes to the method are not listed anywhere yet.", pending: true },
         ],
       },
       {
@@ -93,7 +91,8 @@ export const en = {
           "It keeps no personal data, so there is nothing to ask consent for.",
         ],
         missing: [
-          { text: "It is hosted on Vercel, a US company. [Moving to a European host](hosting) is planned but not done yet.", pending: true },
+          { text: "It is hosted on Vercel, a US company. Moving to a European host is planned but not done yet.", pending: true },
+          { text: "The code is kept on GitHub, also a US company. A European home for it is still to be chosen.", pending: true },
           { text: "Two of the EU's 24 official languages. More are needed.", pending: true },
           { text: "No full WCAG audit by a person, and no accessibility statement yet.", pending: true },
         ],
@@ -131,8 +130,8 @@ export const en = {
       {
         heading: "What seed-lab is",
         body: [
-          "seed-lab builds open, privacy-first digital tools for Europe.",
-          "We publish tools and open building blocks. Citizens, developers and institutions adopt them on their own.",
+          "seed-lab builds free, privacy-first digital tools for Europe.",
+          "We publish free tools. Citizens, developers and institutions adopt them on their own.",
           "[Wealth Lens](wealth-lens) is the first tool, and the proof of our [principles](/principles/).",
         ],
       },
@@ -140,13 +139,13 @@ export const en = {
         heading: "Where it is going",
         body: [
           "In the long run: give Europe its own technology stack, so its citizens, companies and governments don't have to depend on anyone else's.",
-          "That is a direction, not something that exists. **Today we are at the first step: tools people use.** Open blocks, a platform and infrastructure would come later, and only if the step before works.",
+          "That is a direction, not something that exists. **Today we are at the first step: tools people use.** Free tools for developers, a platform and infrastructure would come later, and only if the step before works.",
         ],
       },
       {
         heading: "What we are not",
         body: [
-          "We do not sell to governments or do consulting. Anyone, institutions included, can adopt what we publish on their own.",
+          "We do not sell to governments or do consulting. Anyone, institutions included, can use what we publish for free.",
           "We do not collect data. No accounts, no cookies, no analytics.",
           "We are not an EU institution. We do not speak for it or use its symbols.",
         ],
@@ -154,9 +153,8 @@ export const en = {
       {
         heading: "Who makes it",
         body: [
-          "It is made by [Marekpisetsky](author) on GitHub, in the open. The code is under the [MIT license](license).",
+          "It is made by [Marek Pisetsky](author). The tools are free to use. Their code belongs to seed-lab.",
           "Questions or ideas? [Open an issue on GitHub](issues). There is no email, on purpose.",
-          "The full direction, with the ladder of steps, is in [direction.md](direction).",
         ],
       },
       {
