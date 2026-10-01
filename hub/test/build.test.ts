@@ -3,12 +3,12 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 import { build, DIST } from "../src/build.ts";
-import { BLOCKS, parseBlocks, parseTools } from "../src/content.ts";
+import { BLOCKS, PRINCIPLE_IDS, TOOLS, parseBlocks, parseTools } from "../src/content.ts";
 import { en } from "../src/i18n/en.ts";
 import { es } from "../src/i18n/es.ts";
 import { LOCALE_SETTINGS, LOCALES, PAGES, localePath } from "../src/i18n/index.ts";
 import type { Locale } from "../src/i18n/index.ts";
-import { FAVICON } from "../src/icons.ts";
+import { BRAND, FAVICON, TOUCH_ICON } from "../src/icons.ts";
 import { measure } from "../src/weight.ts";
 
 const report = build();
@@ -30,7 +30,7 @@ describe("the build", () => {
         assert.match(readFileSync(file, "utf8"), new RegExp(`<html lang="${locale}">`));
       }
     }
-    for (const file of ["404.html", "favicon.svg", "robots.txt", "sitemap.xml"]) assert.ok(existsSync(join(DIST, file)), file);
+    for (const file of ["404.html", "favicon.svg", "apple-touch-icon.png", "og.png", "robots.txt", "sitemap.xml"]) assert.ok(existsSync(join(DIST, file)), file);
     assert.equal(report.length, LOCALES.length * Object.keys(PAGES).length + 1);
   });
 
@@ -129,11 +129,25 @@ describe("the contact", () => {
 });
 
 describe("honesty", () => {
-  it("shows every building block as coming until it is published", () => {
-    for (const block of BLOCKS) assert.equal(block.status === "live", block.url !== undefined, block.id);
-    const home = readFileSync(join(DIST, "index.html"), "utf8");
-    const coming = home.match(/<span class="badge coming">Coming<\/span>/g) ?? [];
-    assert.equal(coming.length, BLOCKS.filter((block) => block.status === "coming").length);
+  it("shows only what exists on the front page: no Coming, Pending or Planned", () => {
+    for (const locale of LOCALES) {
+      const home = readFileSync(join(DIST, localePath(PAGES.home, locale), "index.html"), "utf8");
+      assert.doesNotMatch(home, /Coming|Pending|Planned|Próximamente|Pendiente|Previsto|class="state/, locale);
+      for (const block of BLOCKS) assert.doesNotMatch(home, new RegExp(block.name[locale]), locale);
+    }
+  });
+
+  it("keeps every plan on the Roadmap page, linked from every footer", () => {
+    for (const { file, text } of HTML) {
+      const footer = text.slice(text.indexOf("<footer"));
+      assert.match(footer, /href="(\/es)?\/roadmap\/"/, file);
+    }
+    for (const locale of LOCALES) {
+      const roadmap = readFileSync(join(DIST, localePath(PAGES.roadmap, locale), "index.html"), "utf8");
+      for (const block of BLOCKS) assert.match(roadmap, new RegExp(block.name[locale]), locale);
+      assert.equal((roadmap.match(/class="state meets"/g) ?? []).length, 1, `${locale}: only step 1 exists`);
+      assert.match(roadmap, /Vercel/);
+    }
   });
 
   it("refuses a block marked live without the address where it is published", () => {
@@ -143,23 +157,39 @@ describe("honesty", () => {
   });
 
   it("refuses tools with a missing language, a bad status or an http address", () => {
+    const note = { en: "N", es: "N" };
     const tool = {
       id: "t", name: "T", status: "live", url: "https://example.org", languages: ["en"],
       tagline: { en: "T", es: "T" }, description: { en: "T", es: "T" },
+      principles: Object.fromEntries(PRINCIPLE_IDS.map((id) => [id, { status: "meets", note }])),
     };
     assert.equal(parseTools([tool]).length, 1);
     assert.throws(() => parseTools([{ ...tool, tagline: { en: "T" } }]), /needs a text in es/);
     assert.throws(() => parseTools([{ ...tool, status: "beta" }]), /status/);
     assert.throws(() => parseTools([{ ...tool, url: "http://example.org" }]), /https/);
     assert.throws(() => parseTools([{ ...tool, languages: ["fr"] }]), /languages/);
+    assert.throws(() => parseTools([{ ...tool, principles: { ...tool.principles, light: { status: "almost", note } } }]), /status for the light principle/);
+    assert.throws(() => parseTools([{ ...tool, principles: { ...tool.principles, speed: { status: "meets", note } } }]), /unknown principles speed/);
   });
 
-  it("says where it is hosted today, and marks moving to Europe as pending", () => {
+  it("states every principle as a commitment, and puts each product's gaps in the table", () => {
+    const live = TOOLS.filter((tool) => tool.status === "live");
     for (const locale of LOCALES) {
       const page = readFileSync(join(DIST, localePath(PAGES.principles, locale), "index.html"), "utf8");
-      assert.match(page, /Vercel/);
-      assert.match(page, locale === "en" ? /Pending/ : /Pendiente/);
+      const [commitments, table] = page.split('id="products"');
+      assert.equal((commitments.match(/class="commitment"/g) ?? []).length, PRINCIPLE_IDS.length, locale);
+      assert.doesNotMatch(commitments, /Wealth Lens|Pending|Pendiente|Partly|En parte/, `${locale}: the principles name no product and no gap`);
+      assert.match(commitments, /350 KB/, `${locale}: the weight limit is published`);
+      assert.equal((table.match(/<tr><th scope="row">/g) ?? []).length, live.length, locale);
+      assert.match(table, /<tr><th scope="row"><a href="[^"]+">Wealth Lens<\/a><\/th>/, `${locale}: Wealth Lens is the first row`);
+      assert.equal((table.match(/class="state (meets|partly|pending)"/g) ?? []).length, live.length * PRINCIPLE_IDS.length, locale);
     }
+    for (const tool of live) assert.match(tool.principles.light.note.en, /350 KB/, `${tool.id}: weight against the limit`);
+  });
+
+  it("uses the principle ids of content.ts in both dictionaries", () => {
+    assert.deepEqual(en.principles.items.map((item) => item.id), [...PRINCIPLE_IDS]);
+    assert.deepEqual(es.principles.items.map((item) => item.id), [...PRINCIPLE_IDS]);
   });
 
   it("puts the vision on About only, as a direction, and says which step we are on", () => {
@@ -176,13 +206,13 @@ describe("honesty", () => {
 
 describe("the colours", () => {
   const TOKENS = readFileSync(new URL("../src/tokens.css", import.meta.url), "utf8");
-  /** The tokens of each mode: light from the first :root, dark from the media query. */
-  const modes = (() => {
-    const [light, dark] = TOKENS.split("@media (prefers-color-scheme: dark)");
-    const read = (css: string) => Object.fromEntries([...css.matchAll(/--([\w-]+):\s*(#[0-9a-f]{6});/g)].map(([, name, hex]) => [name, hex]));
-    const lightTokens = read(light);
-    return { light: lightTokens, dark: { ...lightTokens, ...read(dark) } };
-  })();
+  const read = (css: string) => Object.fromEntries([...css.matchAll(/--([\w-]+):\s*(#[0-9a-f]{6});/g)].map(([, name, hex]) => [name, hex]));
+  /** The values of one block of tokens.css, by its selector. */
+  const block = (selector: string) => {
+    const start = TOKENS.indexOf(`${selector} {`);
+    return read(TOKENS.slice(start, TOKENS.indexOf("}", start)));
+  };
+  const modes = { light: block(".theme-light"), dark: block(".theme-dark") };
   const luminance = (hex: string) => {
     const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
@@ -204,8 +234,10 @@ describe("the colours", () => {
           assert.ok(contrast(t[text], t[surface]) >= 4.5, `${mode}: ${text} on ${surface} is ${contrast(t[text], t[surface]).toFixed(2)}`);
         }
       }
-      assert.ok(contrast(t["accent-foreground"], t.accent) >= 4.5, `${mode}: button text`);
-      assert.ok(contrast(t.accent, t["accent-soft"]) >= 4.5, `${mode}: Live badge`);
+      assert.ok(contrast(t["accent-foreground"], t.accent) >= 4.5, `${mode}: text on an accent button`);
+      assert.ok(contrast(t["brand-foreground"], t.brand) >= 4.5, `${mode}: text on a brand button`);
+      assert.ok(contrast(t.brand, t.background) >= 3, `${mode}: the logo and icons (3:1 for graphics)`);
+      assert.ok(contrast(t.accent, t["accent-soft"]) >= 4.5, `${mode}: the Meets label`);
     }
   });
 
@@ -220,8 +252,64 @@ describe("the colours", () => {
     assert.equal(modes.dark.background, "#0a0a0a");
   });
 
+  it("give the device's dark mode the same values as .theme-dark", () => {
+    const start = TOKENS.indexOf("@media (prefers-color-scheme: dark)");
+    assert.deepEqual(read(TOKENS.slice(start, TOKENS.indexOf(".theme-dark {"))), modes.dark);
+  });
+
+  it("are a seed green of their own, far from NVIDIA's yellow-green", () => {
+    const hue = (hex: string) => {
+      const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+      const max = Math.max(r, g, b);
+      const d = max - Math.min(r, g, b);
+      const h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+      return (h * 60 + 360) % 360;
+    };
+    for (const t of Object.values(modes)) assert.ok(hue(t.brand) - hue("#76b900") > 60, `${t.brand} is too close to #76b900`);
+    assert.equal(modes.light["chart-growth"], modes.light.brand, "growth is drawn in the brand green");
+  });
+
+  it("are the colours of the icons", () => {
+    assert.equal(BRAND, modes.light.brand);
+    assert.ok(FAVICON.includes(`fill="${BRAND}"`) && TOUCH_ICON.includes(`fill="${BRAND}"`));
+    assert.ok(TOUCH_ICON.includes(`fill="${modes.dark.background}"`));
+  });
+
   it("put the tokens in every page", () => {
-    for (const { file, text } of HTML) assert.match(text, /--accent:#0055ff/, file);
+    for (const { file, text } of HTML) assert.match(text, /--brand:#00a36c/, file);
+  });
+});
+
+describe("the layout", () => {
+  const bands = (text: string) => [...text.matchAll(/<section class="band theme-(dark|light)"/g)].map(([, theme]) => theme);
+
+  it("alternates dark and light bands, never one dark block, whatever the device's mode", () => {
+    for (const { file, text } of HTML) {
+      assert.match(text, /<header class="top theme-dark">/, file);
+      assert.match(text, /<footer class="foot theme-light">/, file);
+      const themes = bands(text);
+      assert.ok(themes.length >= 1 && themes[0] === "dark", `${file}: the first band joins the dark header`);
+      themes.forEach((theme, index) => index > 0 && assert.notEqual(theme, themes[index - 1], `${file}: two ${theme} bands in a row`));
+    }
+    for (const locale of LOCALES) {
+      const home = readFileSync(join(DIST, localePath(PAGES.home, locale), "index.html"), "utf8");
+      assert.deepEqual(bands(home), ["dark", "light", "dark"], `${locale}: intro dark, principles light, product dark`);
+    }
+  });
+
+  it("has one highlighted button per band at most", () => {
+    for (const { file, text } of HTML) {
+      for (const section of text.split('<section class="band').slice(1)) {
+        assert.ok((section.split("</section>")[0].match(/class="button"/g) ?? []).length <= 1, file);
+      }
+    }
+  });
+
+  it("shows the share image and the touch icon", () => {
+    for (const { file, text } of HTML) {
+      assert.match(text, /<meta property="og:image" content="https:\/\/[^"]+\/og\.png">/, file);
+      assert.match(text, /<link rel="apple-touch-icon" href="\/apple-touch-icon\.png">/, file);
+    }
   });
 });
 

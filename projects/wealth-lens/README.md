@@ -1,26 +1,33 @@
 # wealth-lens
 
-**Misión:** darle a Marek una vista propia y honesta de su situación
-financiera personal — cuánto ganó realmente, cuánto le falta para una
-meta, y qué tan lejos o cerca está de la independencia financiera en
-distintos lugares del mundo — sin depender de lo que un broker decide
-mostrar.
+**Misión:** que cualquier persona en Europa vea, en palabras sencillas, qué
+puede hacer su dinero —cuánto podría crecer, cuánto podría pagarle cada
+mes y en qué lugares del mundo alcanza— sin darle sus datos a nadie. Es
+la primera herramienta de seed-lab: gratuita y centrada en la privacidad.
 
 **Qué NO es:**
-- No es un producto para vender ni para terceros — el único cliente es
-  Marek mismo (uso propio, encaja en el criterio nuevo de
-  `seed-lab/projects/README.md`: adopción orgánica o uso propio, no
-  venta activa).
-- No da consejo financiero ni recomienda qué comprar/vender — solo
-  calcula y visualiza datos que el propio Marek ingresa o que vienen de
-  fuentes públicas.
-- No gestiona ni mueve dinero real, no se conecta a ninguna cuenta de
-  bróker vía API/credenciales — la entrada de datos de cartera es
-  manual o por archivo exportado, nunca automática contra una cuenta
-  real.
-- No promete que la regla del 4% o el 7% real sean garantías — son
-  estimaciones históricas con riesgo de secuencia, moneda e inflación
-  local, y la app lo dice explícitamente en la UI, no solo acá.
+- No da consejo financiero ni recomienda qué comprar o vender: solo
+  calcula y muestra lo que la persona escribe o lo que viene de fuentes
+  públicas.
+- No gestiona ni mueve dinero real, ni se conecta a ninguna cuenta de
+  bróker: la cartera se escribe a mano o se carga desde un archivo
+  exportado.
+- No promete que la regla del 4 % o el crecimiento del pasado sean
+  garantías: son estimaciones históricas con riesgo de secuencia, moneda
+  e inflación local, y la app lo dice en la propia pantalla.
+- No guarda ni envía nada: no hay cuentas, ni servidor propio, ni
+  analítica.
+
+**Cómo cumple los cinco principios de seed-lab** (la misma fila que la
+tabla de *Principles* del hub, `hub/content/tools.json`):
+
+| Principio | Estado | Por qué |
+| --- | --- | --- |
+| Your data never leaves your device | Cumple | Todo se calcula en el navegador; nada se guarda ni se envía. |
+| Transparent | En parte | Gratis, con método y fuentes públicos; los cambios del método aún no se publican. |
+| Truly European | Pendiente | EN y ES, pero alojada en Vercel (EE. UU.) y sin auditoría de accesibilidad hecha por personas. |
+| Light | Cumple | De 302 a 318 KB por página en la primera visita, por debajo del límite de 350 KB. |
+| For everyone | En parte | Palabras sencillas, teclado y objetivos de 44 px; aún sin pruebas con personas reales. |
 
 **Estado actual (2026-10-01):** dos pantallas (Next.js 16 + TypeScript +
 Tailwind 4), exportadas como sitio estático. La principal empieza **solo
@@ -29,8 +36,9 @@ importes, por niveles, y las metas son opcionales. La app no
 supone nada sobre la vida del usuario: no pregunta país, ni si alquila o
 es propietario, ni qué quiere hacer con su dinero. Nada se guarda ni se
 envía, y la app no llama a ningún servicio mientras se usa. La lógica
-vive en funciones puras con unos 650 tests unitarios (Vitest). Todavía
-sin validar con uso propio sostenido. Solo se proyecta lo que tiene una
+vive en funciones puras con unos 650 tests unitarios (Vitest). El uso real
+sostenido (la condición del peldaño 1 de seed-lab) todavía no está
+demostrado. Solo se proyecta lo que tiene una
 historia larga y un rango conocido; nada se presenta como predecible, y
 todo supuesto viene relleno con un valor estándar documentado y se puede
 cambiar. Todo lo visible está en palabras simples: "real", "nominal",
@@ -114,7 +122,7 @@ cambiar. Todo lo visible está en palabras simples: "real", "nominal",
      Nada más aparece si no se pide. Los "?" quedan junto al total y a
      cuántas historias aguantó el retiro; el resto de ayudas son una frase
      dentro de su tarjeta.
-- **My stocks — `/stocks`** (antes Charts): ganancia, holdings (añadir,
+- **My stocks — `/stocks`**: ganancia, holdings (añadir,
   editar, importar CSV), cómo se movió cada uno, y los 3 ETFs (VUAA,
   VWCE, EQQQ) y 12 acciones grandes. Cada fila lleva una línea pequeña del
   último año y su cambio; al abrirla, una línea semanal con selector de
@@ -126,7 +134,8 @@ cambiar. Todo lo visible está en palabras simples: "real", "nominal",
   ETF puede ser la inversión ("Use as my investment"); una acción no se
   proyecta: "History only. One stock's future can't be predicted.", y su
   fila dice cómo cuenta en una mezcla o en My portfolio. Los precios de un
-  CSV propio siguen con su gráfico diario. `/charts` y `/fire` redirigen.
+  CSV propio siguen con su gráfico diario. Las direcciones de versiones
+  anteriores (`/charts`, `/fire`) redirigen a las actuales.
 
 Limitaciones conocidas: no convierte entre monedas (la meta, el ingreso
 y la cartera ponderada solo cuentan holdings en EUR); las ganancias
@@ -441,21 +450,26 @@ en About y Privacy. `[email](email)` en los diccionarios lo inserta
 el navegador la convierte en un enlace de correo; ni la dirección entera
 ni `mailto` aparecen en el HTML, para que no la recojan los bots. Sin
 enlaces a GitHub en la web. Código propietario: ver `LICENSE` y `TRADEMARKS.md` en la raíz
-del repositorio. Icono propio (`src/app/icon.svg`, y `favicon.ico` y
-`apple-icon.png` dibujados a partir de él) e imagen para compartir de
-1200×630 generada en el build (`src/app/og.png/route.tsx`, estática, la
-misma para todas las páginas y los dos idiomas).
+del repositorio. Icono de la familia de seed-lab: la semilla con brote
+del hub, que aquí lleva una línea que sube (`src/app/icon.svg`;
+`favicon.ico` y `apple-icon.png` los dibuja `hub/scripts/images.ts` a
+partir de él). La imagen para compartir, de 1200×630, se genera en el
+build (`src/app/og.png/route.tsx`, estática, la misma para todas las
+páginas y los dos idiomas): fondo casi negro, el icono y el lema.
 
 ## Identidad visual
 
 Los colores viven en `src/app/tokens.css`, el mismo archivo, byte a byte,
 que usa el hub (`hub/src/tokens.css`), para que las dos webs se vean como
 una familia: blanco puro o casi negro (#0A0A0A), grises neutros sin tinte
-cálido y un único color de marca, azul eléctrico (#0055FF en claro,
-#4D8DFF en oscuro, el mismo tono un paso más claro para mantener AA sobre
-negro). Todo texto mantiene al menos 4,5:1 sobre el fondo, la tarjeta, el
-relleno sutil y su propio tinte del 10 %; los dos colores del gráfico
-pasan las comprobaciones de daltonismo y contraste como pareja.
+cálido y un único color de marca, el verde de la semilla. `--brand`
+(#00A36C; #1FCB86 sobre oscuro) rellena lo grande: logo, iconos y el área
+de crecimiento del gráfico; `--accent` (#00774C; #3DDC97 sobre oscuro) es
+el de texto, enlaces y botones de la app, para mantener AA. En el gráfico,
+*Growth* va en el verde de marca y *Put in* en un azul secundario
+(#4A6CF7; #5B7CFA sobre oscuro); la pareja pasa las comprobaciones de
+daltonismo y contraste. Todo texto mantiene al menos 4,5:1 sobre el
+fondo, la tarjeta, el relleno sutil y su propio tinte.
 `globals.css` solo los importa y los nombra para Tailwind. Tipografía del
 sistema (sin fuentes descargadas), títulos en extra-negrita.
 `src/app/tokens.test.ts` comprueba que el archivo es idéntico al del hub y
@@ -531,63 +545,6 @@ simulación (`src/lib/history-test.ts`, tests en `history-test.test.ts`):
   solo: su caída en cada crisis y su peor año de inicio. Sin sugerir pesos.
 - Aportes como en las simulaciones: la mitad de los del año al empezarlo y
   la mitad al acabarlo. Cifras a final de año, en euros de hoy.
-
-## Módulo 1 — Tracker de ganancia + tiempo a la meta
-
-- Entrada: cartera actual (holdings + costo base, ingresado a mano o
-  importado de un CSV tipo Trading212/Trade Republic) y una meta en
-  euros.
-- Calcula: ganancia/pérdida real (no solo % del broker), y con un
-  retorno esperado configurable (hoy: el promedio histórico real del
-  índice en el que invierte, o el que escriba el usuario) + aporte mensual
-  opcional, proyecta en cuántos años se llega a la meta (fórmula de
-  valor futuro con aportes periódicos, no una regla de tres simple).
-- Mostrar siempre el supuesto de retorno usado al lado del número — un
-  cambio de 5%→9% cambia mucho el resultado, no ocultarlo.
-
-## Módulo 2 — Gráficos de acciones por separado
-
-- Por cada holding de la cartera, un gráfico de precio propio (no todo
-  amontonado en una sola curva de "valor total" como hacen la mayoría
-  de los brokers).
-- Fuente de datos: **Stooq** (`https://stooq.com/q/d/l/?s=TICKER&i=d`,
-  CSV histórico diario, sin API key) como fuente gratuita por defecto.
-  Documentar en el código que es una fuente no oficial de terceros —
-  aceptable para uso personal, no para un producto que se vende.
-  *(Actualización: Stooq rechaza las peticiones desde Vercel, así que la
-  fuente principal pasó a ser Yahoo Finance —endpoint público de
-  gráficos, sin key— y Stooq quedó como respaldo.)*
-  *(Actualización 2: la app ya no pide precios mientras se usa. Un
-  GitHub Action diario descarga Yahoo/Stooq y commitea archivos
-  estáticos; ver "Precios diarios".)*
-
-## Módulo 3 — Simulador FIRE / costo de vida
-
-- Entrada: capital actual, retorno real esperado (default 7%), tasa de
-  retiro seguro (default 4%, editable).
-- Calcula: ingreso anual/mensual sostenible = capital × tasa de retiro.
-- Compara ese ingreso contra un **dataset propio y curado** de costo de
-  vida mensual aproximado (persona sola, sin alquiler y con alquiler)
-  para ~30-40 países — construido a mano con fuentes públicas (Numbeo,
-  informes de costo de vida de bancos, Eurostat/World Bank), etiquetado
-  claramente como estimación aproximada con fecha de referencia, no
-  dato en vivo.
-- La UI tiene que mostrar las advertencias de la sección "Qué NO es"
-  (riesgo de secuencia, moneda, inflación local) cerca del resultado,
-  no en un footer que nadie lee.
-
-## Plan de construcción
-
-Los tres módulos se buildean en paralelo dentro del mismo scaffold ya
-creado (decisión de Marek, 2026-09-29: no secuenciar MVP por módulo).
-Orden sugerido de implementación técnica (no de prioridad de producto):
-1. Estructura de datos compartida (holding, transacción, meta,
-   supuestos) + persistencia en `localStorage` *(reemplazada: hoy no se
-   guarda nada, ver "Arquitectura")*.
-2. Módulo 1 (el cálculo es el más simple y no depende de red).
-3. Módulo 3 (dataset estático, sin dependencia de red tampoco).
-4. Módulo 2 (el único que depende de una fuente de datos externa,
-   Stooq — dejarlo último por si hay que lidiar con CORS/rate limits).
 
 ## Precios diarios (GitHub Action)
 
@@ -822,8 +779,10 @@ public/data/                   precios generados por el job (no editar a mano)
 src/
   app/                         rutas: (en)/ las páginas en inglés, con el layout
                                que les da sus palabras; [lang]/ las demás (/es/…);
-                               / (My money), /stocks (My stocks); /charts y /fire
-                               redirigen; not-found.tsx, HTML sin código propio
+                               / (My money), /stocks (My stocks), /test;
+                               direcciones antiguas que redirigen a las actuales;
+                               not-found.tsx, HTML sin código propio;
+                               tokens.css (colores de seed-lab), icon.svg
   components/                  money/ (calculator-card: las preguntas; growth-chips;
                                more-options, cargado al abrirlo; results y
                                result-card: el resultado por niveles y sus

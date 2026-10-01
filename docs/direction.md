@@ -30,7 +30,7 @@ usa.
 
 Hoy esa capa son herramientas personales que funcionan en el dispositivo
 de quien las usa. No hay ingresos ni pagos: todo es gratis, y mantenerlo
-cuesta cero (regla del holding). Si algún día hay financiación, vendrá de
+cuesta cero (regla de seed-lab). Si algún día hay financiación, vendrá de
 los usuarios, nunca de vender sus datos ni de contratos con gobiernos.
 
 ## Escalera
@@ -80,9 +80,16 @@ públicos) pueden usar sin renunciar a sus datos.
    bastante claro para un niño y para su abuelo: frases cortas, sin jerga,
    accesible con teclado y lector de pantalla.
 
-Estos principios se cumplen solo en parte. Lo que falta, por ejemplo que
-el alojamiento actual está en Vercel (EE. UU.), se dice abiertamente en la
-página *Principles* del hub y en [`hosting.md`](hosting.md).
+Son compromisos de seed-lab, no de un producto: valen para cualquier
+herramienta que publiquemos. La página *Principles* del hub los concreta
+en reglas que cualquiera puede comprobar (por ejemplo, ninguna app envía
+datos personales a un servidor; cada página pesa menos de 350 KB en la
+primera visita; todo está al menos en inglés y en español) y tiene una
+tabla con cómo los cumple cada producto: cumple, en parte o pendiente.
+
+Lo que falta, como el alojamiento actual en Vercel (EE. UU.), no se
+esconde: está en esa tabla, en la página *Roadmap* del hub y en
+[`hosting.md`](hosting.md).
 
 ## Objetivos de Desarrollo Sostenible relevantes
 
@@ -112,8 +119,13 @@ página *Principles* del hub y en [`hosting.md`](hosting.md).
 - **No somos todavía una plataforma ni una infraestructura.** Esos son los
   peldaños 3 y 4, y no existen.
 
-## Relación con el holding
+## Reglas de trabajo
 
-Las reglas del holding del [README](../README.md) siguen vigentes: cero
-coste, verificación antes que promesa, y validación antes de construir a
-fondo.
+Las del [README](../README.md): cero coste, verificación antes que
+promesa, solo lo que existe (lo pendiente va a la hoja de ruta) y un solo
+sistema visual para todo seed-lab.
+
+## Contacto
+
+seedlab.eu (arroba) proton.me. En las webs la dirección se escribe de
+forma que los bots no la recojan fácilmente.
