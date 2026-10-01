@@ -379,11 +379,15 @@ describe("one site: the hub at the root, the tools in folders", () => {
     for (const { file, text } of HTML) assert.doesNotMatch(text, /vercel\.app/, file);
   });
 
-  it("says hosting in Europe is in progress for Wealth Lens until the move is live", () => {
-    assert.equal(wealthLens?.principles.europe.status, "progress");
+  it("says hosting in Europe is in progress for Wealth Lens, naming where it moves, until the move is live", () => {
+    const europe = wealthLens?.principles.europe;
+    assert.ok(europe && ["progress", "meets"].includes(europe.status), "in progress now; meets once the move is live (docs/hosting.md, step 9)");
+    if (europe.status === "progress") assert.match(europe.note.en, /statichost\.eu/);
     for (const locale of LOCALES) {
       const table = readFileSync(join(DIST, localePath(PAGES.principles, locale), "index.html"), "utf8").split('id="products"')[1];
-      assert.match(table, locale === "en" ? /class="state progress"><span aria-hidden="true">→<\/span> In progress</ : /class="state progress"><span aria-hidden="true">→<\/span> En curso</, locale);
+      assert.match(table, new RegExp(`class="state ${europe.status}"`), locale);
     }
+    assert.equal(en.principles.status.progress, "In progress");
+    assert.equal(es.principles.status.progress, "En curso");
   });
 });

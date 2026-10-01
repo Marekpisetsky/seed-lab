@@ -1,0 +1,80 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "https://seed-lab.example/wealth-lens/",
+      "statusCode": 301
+    },
+    {
+      "source": "/es",
+      "destination": "https://seed-lab.example/wealth-lens/es/",
+      "statusCode": 301
+    },
+    {
+      "source": "/test",
+      "destination": "https://seed-lab.example/wealth-lens/test/",
+      "statusCode": 301
+    },
+    {
+      "source": "/es/test",
+      "destination": "https://seed-lab.example/wealth-lens/es/test/",
+      "statusCode": 301
+    },
+    {
+      "source": "/stocks",
+      "destination": "https://seed-lab.example/wealth-lens/stocks/",
+      "statusCode": 301
+    },
+    {
+      "source": "/es/stocks",
+      "destination": "https://seed-lab.example/wealth-lens/es/stocks/",
+      "statusCode": 301
+    },
+    {
+      "source": "/about",
+      "destination": "https://seed-lab.example/wealth-lens/about/",
+      "statusCode": 301
+    },
+    {
+      "source": "/es/about",
+      "destination": "https://seed-lab.example/wealth-lens/es/about/",
+      "statusCode": 301
+    },
+    {
+      "source": "/how-it-works",
+      "destination": "https://seed-lab.example/wealth-lens/how-it-works/",
+      "statusCode": 301
+    },
+    {
+      "source": "/es/how-it-works",
+      "destination": "https://seed-lab.example/wealth-lens/es/how-it-works/",
+      "statusCode": 301
+    },
+    {
+      "source": "/privacy",
+      "destination": "https://seed-lab.example/wealth-lens/privacy/",
+      "statusCode": 301
+    },
+    {
+      "source": "/es/privacy",
+      "destination": "https://seed-lab.example/wealth-lens/es/privacy/",
+      "statusCode": 301
+    },
+    {
+      "source": "/terms",
+      "destination": "https://seed-lab.example/wealth-lens/terms/",
+      "statusCode": 301
+    },
+    {
+      "source": "/es/terms",
+      "destination": "https://seed-lab.example/wealth-lens/es/terms/",
+      "statusCode": 301
+    },
+    {
+      "source": "/:path*",
+      "destination": "https://seed-lab.example/wealth-lens/:path*",
+      "statusCode": 301
+    }
+  ]
+}

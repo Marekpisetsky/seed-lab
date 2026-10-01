@@ -20,16 +20,12 @@
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { readSite } from "./site.mjs";
+import { redirects } from "./vercel.mjs";
 
 const ROOT = fileURLToPath(new URL("../", import.meta.url));
 
-/** deploy/site.json: the site's origin ("https://…") and Wealth Lens's folder ("/wealth-lens"). */
-export function readSite(file = join(ROOT, "deploy", "site.json")) {
-  const site = JSON.parse(readFileSync(file, "utf8"));
-  if (!/^https:\/\/[a-z0-9.-]+$/.test(site.origin ?? "")) throw new Error(`${file}: origin must be https://<domain>, with no trailing slash`);
-  if (!/^(\/[a-z0-9-]+)+$/.test(site.wealthLensPath ?? "")) throw new Error(`${file}: wealthLensPath must look like /wealth-lens`);
-  return site;
-}
+export { readSite };
 
 function files(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -112,10 +108,16 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const out = process.argv[2] ?? join(ROOT, "_site");
   const site = readSite();
   const found = combine({ hub: join(ROOT, "hub", "dist"), wealthLens: join(ROOT, "projects", "wealth-lens", "out"), out, site });
+  // Every page the old Vercel addresses will send people to (deploy/vercel.mjs) has to exist here.
+  for (const { source, destination } of Object.values(redirects(site)).flatMap((config) => config.redirects)) {
+    if (destination.includes(":path")) continue;
+    const path = destination.slice(site.origin.length);
+    if (!existsSync(join(out, "public", ...path.split("/").filter(Boolean), "index.html"))) found.push(`the old address ${source} would be sent to ${destination}, which the site does not have`);
+  }
   if (found.length > 0) {
     console.error(`The combined site has ${found.length} problem(s):\n- ${found.join("\n- ")}`);
     process.exit(1);
   }
   const all = files(join(out, "public"));
-  console.log(`Combined site in ${out}: ${all.length} files, ${all.filter((file) => file.endsWith(".html")).length} pages. Every link checked.`);
+  console.log(`Combined site in ${out}: ${all.length} files, ${all.filter((file) => file.endsWith(".html")).length} pages. Every link and every redirect target checked.`);
 }
