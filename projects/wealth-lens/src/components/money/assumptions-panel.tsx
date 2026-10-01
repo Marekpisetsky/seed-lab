@@ -5,9 +5,8 @@ import { useId } from "react";
 import { useI18n } from "@/components/i18n";
 import { Changed } from "@/components/ui/changed";
 import { SettledNumberInput } from "@/components/ui/form";
-import { RadioGroup } from "@/components/ui/radio-group";
 import { resetAssumptions, setAssumptions, setPricesOf } from "@/lib/app-store";
-import { assumptionsLine, assumptionsNote, growthIn, upsAndDownsExample, type Basis } from "@/lib/assumptions";
+import { afterPricesText, assumptionsLine, assumptionsNote, historicalRiskText, quotedGrowth, realismWarning, upsAndDownsExample } from "@/lib/assumptions";
 import { costOfLiving, referenceInflation } from "@/lib/cost-of-living";
 import { byCountryName, countryName } from "@/i18n/countries";
 import { COMMON_PERIOD } from "@/lib/indexes";
@@ -66,9 +65,9 @@ function PercentField({
         </span>
       </span>
       {hint && (
-        <p id={`${id}-hint`} className="text-xs text-muted">
+        <div id={`${id}-hint`} className="space-y-1 text-xs text-muted">
           {hint}
-        </p>
+        </div>
       )}
     </div>
   );
@@ -77,23 +76,20 @@ function PercentField({
 /**
  * The assumptions under the calculator, in plain words: one compact line,
  * filled in with the standard figures of what the money is in, and an
- * "Edit" panel where how much it grows (after or before rising prices), how
- * much it can go up or down and how fast prices rise can be changed. A
+ * "Edit" panel where how much it grows (as banks and news quote it, with
+ * what that is after rising prices below, read-only), how much it can go
+ * up or down and how fast prices rise can be changed. A
  * changed figure marks the line "Custom"; "Reset to standard" brings the
  * standard ones back.
  */
 export function AssumptionsPanel({
   investment,
   assumptions,
-  basis,
-  onBasis,
   open,
   onOpen,
 }: {
   investment: ResolvedInvestment;
   assumptions: AssumptionOverrides;
-  basis: Basis;
-  onBasis: (basis: Basis) => void;
   open: boolean;
   onOpen: (open: boolean) => void;
 }) {
@@ -104,15 +100,17 @@ export function AssumptionsPanel({
   const { standard, inflation } = investment;
   const reference = referenceInflation(investment.pricesOf);
   const changed = assumptions.growth !== null || assumptions.volatility !== null || assumptions.inflation !== null;
-  const standardGrowth = basis === "real" ? standard.realReturn : toNominal(standard.realReturn, inflation);
+  const standardGrowth = toNominal(standard.realReturn, inflation);
   const isSavings = investment.investment.kind === "asset" && investment.investment.asset === "savings";
   const isCustomGrowth = investment.investment.kind === "custom";
+  const warning = realismWarning(investment, i18n);
+  const historically = historicalRiskText(investment, i18n);
 
   return (
     <div className="col-span-2 space-y-1 sm:col-span-4">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <p className="text-sm tabular-nums">
-          <Changed value={assumptionsLine(investment, basis, i18n)} />
+          <Changed value={assumptionsLine(investment, i18n)} />
         </p>
         {(investment.custom || investment.customInflation) && (
           <span className="rounded bg-accent/10 px-1.5 py-0.5 text-xs font-medium text-accent">{t.custom}</span>
@@ -133,35 +131,33 @@ export function AssumptionsPanel({
       {open && (
         <div id={panelId} className="mt-2 space-y-3 rounded-lg bg-background p-3">
           <div className="grid grid-cols-2 gap-x-3 gap-y-3 sm:grid-cols-4">
-            <div className="col-span-2 space-y-1">
+            <div className="col-span-2">
               <PercentField
                 label={t.growth}
-                value={growthIn(investment, basis)}
+                value={quotedGrowth(investment)}
                 min={-0.5}
                 max={0.5}
-                onCommit={(rate) => setAssumptions({ growth: same(rate, standardGrowth) && !isCustomGrowth ? null : { rate, basis } })}
+                onCommit={(rate) => setAssumptions({ growth: same(rate, standardGrowth) && !isCustomGrowth ? null : rate })}
                 hint={
-                  isCustomGrowth
-                    ? t.hintCustom
-                    : isSavings
-                      ? t.hintSavings(f.rate(standard.nominalRate ?? 0))
-                      : basis === "real"
-                        ? t.hintReal(f.rate(standardGrowth), `${COMMON_PERIOD[0]}–${COMMON_PERIOD[1]}`)
-                        : t.hintNominal(f.rate(standardGrowth), f.rate(standard.realReturn), f.rate(inflation))
+                  <>
+                    <p className="text-sm font-medium tabular-nums text-foreground">
+                      <Changed value={afterPricesText(investment, i18n)} />
+                    </p>
+                    {warning && (
+                      <p role="status" className="rounded-md border border-warning-border bg-warning-bg px-2 py-1 text-warning-foreground">
+                        {warning}
+                      </p>
+                    )}
+                    <p>
+                      {isCustomGrowth
+                        ? t.hintCustom
+                        : isSavings
+                          ? t.hintSavings(f.rate(standard.nominalRate ?? 0))
+                          : t.hintStandard(f.rate(standardGrowth), `${COMMON_PERIOD[0]}–${COMMON_PERIOD[1]}`, f.rate(inflation))}
+                    </p>
+                  </>
                 }
               />
-              <RadioGroup
-                label={t.basis}
-                options={[
-                  { value: "real" as const, label: t.after },
-                  { value: "nominal" as const, label: t.before },
-                ]}
-                value={basis}
-                onChange={onBasis}
-                className="inline-flex rounded-md border border-border p-0.5 text-xs"
-                optionClassName={(checked) => `min-h-11 rounded px-3 py-1 font-medium ${checked ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
-              />
-              <p className="text-xs text-muted">{t.afterHelp}</p>
             </div>
             <div className="col-span-2 sm:col-span-2">
               <PercentField
@@ -173,12 +169,19 @@ export function AssumptionsPanel({
                 onCommit={(volatility) => setAssumptions({ volatility: same(volatility, standard.volatility) && !isCustomGrowth ? null : volatility })}
                 hint={
                   <>
-                    <Changed value={upsAndDownsExample(investment.volatility, i18n)} />{" "}
-                    {isCustomGrowth
-                      ? t.hintVolCustom(f.percent(standard.volatility, { decimals: 0 }))
-                      : standard.volatility > 0
-                        ? t.hintVol(f.percent(standard.volatility, { decimals: 1 }))
-                        : t.hintVolNone}
+                    <p>
+                      <Changed value={upsAndDownsExample(investment.volatility, i18n)} />{" "}
+                      {isCustomGrowth
+                        ? t.hintVolCustom(f.percent(standard.volatility, { decimals: 0 }))
+                        : standard.volatility > 0
+                          ? t.hintVol(f.percent(standard.volatility, { decimals: 1 }))
+                          : t.hintVolNone}
+                    </p>
+                    {historically && (
+                      <p>
+                        <Changed value={historically} />
+                      </p>
+                    )}
                   </>
                 }
               />

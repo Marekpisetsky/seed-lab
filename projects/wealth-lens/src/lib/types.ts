@@ -74,10 +74,15 @@ export type Investment =
   | { kind: "mix"; parts: MixPart[]; rebalance: boolean }
   | { kind: "custom" };
 
-/** A part of a mix: an asset and its weight in percent. */
+/**
+ * A part of a mix: an asset and its weight in percent; or a stock of the
+ * curated list (`stock`, its id), which grows like `asset`, its index, with
+ * its own ups and downs (lib/mix.ts).
+ */
 export interface MixPart {
   asset: AssetId;
   weight: number;
+  stock?: string;
 }
 
 /**
@@ -85,8 +90,13 @@ export interface MixPart {
  * figures and the country's inflation); `null` keeps the standard one.
  */
 export interface AssumptionOverrides {
-  /** Growth a year, as typed: after inflation ("real") or before ("nominal"). */
-  growth: { rate: number; basis: "real" | "nominal" } | null;
+  /**
+   * Growth a year as banks and news quote it: before rising prices. Every
+   * projection turns it into growth after rising prices with the plan's
+   * inflation (lib/investment.ts), so a bank's 5 % grows less where prices
+   * rise faster.
+   */
+  growth: number | null;
   /** Swings a year: the standard deviation of yearly log returns. */
   volatility: number | null;
   /** Inflation a year, instead of the "Prices of" country's reference. */

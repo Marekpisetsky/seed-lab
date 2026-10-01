@@ -8,10 +8,10 @@ import { SettledNumberInput } from "@/components/ui/form";
 import { useAppState } from "@/hooks/use-app";
 import { offeredRates } from "@/hooks/use-calculation";
 import { setInvestment, updatePlan } from "@/lib/app-store";
-import type { Basis } from "@/lib/assumptions";
 import { priceHoldings } from "@/lib/auto-price";
 import { resolveInvestment } from "@/lib/investment";
 import { startingCapital } from "@/lib/plan";
+import { mixPartKey, mixStock } from "@/lib/mix";
 import { portfolioAllocation } from "@/lib/portfolio";
 import { warmUp } from "@/lib/warm";
 import { MONTHLY_STEP, stepValue, YEARS_STEP } from "@/lib/step";
@@ -21,7 +21,7 @@ import { InvestmentPicker, type PickChoice } from "./investment-picker";
 import { MixEditor } from "./mix-editor";
 import { PortfolioEditor } from "./portfolio-editor";
 import { MAX_AMOUNT, MAX_YEARS_AHEAD, MIN_YEARS } from "@/lib/validation";
-import { investmentName } from "@/i18n/investment-text";
+import { selectorParts } from "@/i18n/investment-text";
 
 const labelClass = "block text-xs font-medium text-muted";
 
@@ -106,6 +106,9 @@ function investmentFor(choice: PickChoice, current: Investment): Investment {
     case "portfolio":
     case "custom":
       return choice;
+    // Offered only for a mix's parts.
+    case "stock":
+      return current;
     case "mix": {
       if (current.kind === "mix") return current;
       return { kind: "mix", parts: [{ asset: current.kind === "asset" ? current.asset : "sp500", weight: 100 }], rebalance: false };
@@ -143,7 +146,6 @@ export function CalculatorCard() {
     events.forEach((name) => window.addEventListener(name, start, { once: true, passive: true }));
     return () => events.forEach((name) => window.removeEventListener(name, start));
   }, [plan.withdrawalRate]);
-  const [basis, setBasis] = useState<Basis>(plan.assumptions.growth?.basis ?? "real");
   const close = useCallback((refocus = false) => {
     setPicker(null);
     const element = opener.current;
@@ -154,6 +156,7 @@ export function CalculatorCard() {
     setPicker({ mode, top: anchor.offsetTop + anchor.offsetHeight + 4 });
   };
   const mix = plan.investment.kind === "mix" ? plan.investment : null;
+  const shownName = selectorParts(current, i18n);
 
   return (
     <section aria-label={t.label} className="relative grid grid-cols-2 gap-x-3 gap-y-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-4">
@@ -185,8 +188,15 @@ export function CalculatorCard() {
           onClick={(event) => (picker ? close() : open("choose", event.currentTarget))}
           className="flex min-h-11 w-full items-center justify-between gap-1 rounded-md border border-border bg-background px-2.5 py-2 text-left text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 sm:px-3"
         >
-          <span id="invested-in-value" className="min-w-0 truncate">
-            <Changed value={investmentName(current, i18n)} />
+          <span id="invested-in-value" className="min-w-0">
+            <span className="block truncate">
+              <Changed value={shownName.name} />
+            </span>
+            {/* Once a figure is the user's: "Custom", and what it started from below it, so a narrow screen never cuts the name. */}
+            {shownName.basedOn && (
+              // The name's last word stays with the one before it: "S&P 500" never splits.
+              <span className="block text-xs leading-tight text-muted">{shownName.basedOn.replace(/ (?=\S+$)/, "\u00a0")}</span>
+            )}
           </span>
           <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted" />
         </button>
@@ -239,11 +249,13 @@ export function CalculatorCard() {
           hasPortfolio={picker.mode === "choose" && hasPortfolio}
           holdingsCount={portfolioAllocation(priced).entries.length}
           onlyAssets={picker.mode === "add"}
-          exclude={picker.mode === "add" && mix ? mix.parts.map((part) => `asset:${part.asset}`) : EMPTY}
+          exclude={picker.mode === "add" && mix ? mix.parts.map(mixPartKey) : EMPTY}
           onClose={close}
           onPick={(choice) => {
             if (picker.mode === "add" && mix) {
+              const stock = choice.kind === "stock" ? mixStock(choice.stock) : null;
               if (choice.kind === "asset") setInvestment({ ...mix, parts: [...mix.parts, { asset: choice.asset, weight: 0 }] });
+              if (stock) setInvestment({ ...mix, parts: [...mix.parts, { asset: stock.index, weight: 0, stock: stock.id }] });
             } else {
               setInvestment(investmentFor(choice, plan.investment));
               // Custom growth is only its figures: open them to be typed.
@@ -253,7 +265,7 @@ export function CalculatorCard() {
           }}
         />
       )}
-      <AssumptionsPanel investment={current} assumptions={plan.assumptions} basis={basis} onBasis={setBasis} open={editing} onOpen={setEditing} />
+      <AssumptionsPanel investment={current} assumptions={plan.assumptions} open={editing} onOpen={setEditing} />
     </section>
   );
 }

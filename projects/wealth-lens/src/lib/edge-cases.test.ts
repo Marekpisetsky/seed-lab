@@ -11,6 +11,7 @@ import { goalExplain, goalName } from "@/i18n/goal-text";
 import { calculate, itemStatuses, type Calculation, type CalculatorPlan } from "./calculator";
 import { parseIsoDate } from "./dates";
 import { allFindings } from "./findings";
+import { toNominal } from "./investment";
 import { STANDARD_ASSUMPTIONS, type Goal } from "./types";
 
 const ES = getI18n("es");
@@ -138,7 +139,7 @@ describe("the longest and shortest horizons", () => {
 describe("no growth, or a loss, every year", () => {
   it("stays sensible at 0% and at -2% a year", () => {
     for (const rate of [0, -0.02]) {
-      const assumptions = { ...STANDARD_ASSUMPTIONS, growth: { rate, basis: "real" as const } };
+      const assumptions = { ...STANDARD_ASSUMPTIONS, growth: toNominal(rate, 0.02) };
       const calc = calculate(plan({ investment: { kind: "custom" }, assumptions, goals }), [], today);
       expect(calc.result.total).toBeGreaterThan(0);
       expectSensible(calc);

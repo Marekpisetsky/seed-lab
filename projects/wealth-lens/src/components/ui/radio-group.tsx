@@ -5,6 +5,8 @@ import { useRef } from "react";
 export interface RadioOption<T> {
   value: T;
   label: React.ReactNode;
+  /** Shown but not choosable (a period the data does not reach); the arrow keys skip it. */
+  disabled?: boolean;
 }
 
 /**
@@ -29,8 +31,14 @@ export function RadioGroup<T extends string | number | boolean>({
 }) {
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   const picked = options.findIndex((option) => option.value === value);
+  const firstEnabled = Math.max(0, options.findIndex((option) => !option.disabled));
   const move = (from: number, step: number) => {
-    const next = (from + step + options.length) % options.length;
+    let next = from;
+    for (let tries = 0; tries < options.length; tries++) {
+      next = (next + step + options.length) % options.length;
+      if (!options[next].disabled) break;
+    }
+    if (options[next].disabled || next === from) return;
     onChange(options[next].value);
     buttons.current[next]?.focus();
   };
@@ -45,7 +53,8 @@ export function RadioGroup<T extends string | number | boolean>({
           type="button"
           role="radio"
           aria-checked={index === picked}
-          tabIndex={index === (picked >= 0 ? picked : 0) ? 0 : -1}
+          tabIndex={index === (picked >= 0 ? picked : firstEnabled) ? 0 : -1}
+          disabled={option.disabled}
           onClick={() => onChange(option.value)}
           onKeyDown={(event) => {
             const step = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
@@ -53,7 +62,7 @@ export function RadioGroup<T extends string | number | boolean>({
             event.preventDefault();
             move(index, step);
           }}
-          className={optionClassName(index === picked)}
+          className={`${optionClassName(index === picked)} disabled:cursor-not-allowed disabled:opacity-40`}
         >
           {option.label}
         </button>

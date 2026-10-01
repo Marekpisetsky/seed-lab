@@ -1,15 +1,15 @@
 /**
  * A mix: several assets with weights the user sets, from the ones a plan
- * can be projected with (lib/assets.ts). My portfolio is simulated the
- * same way, its stocks included (lib/portfolio.ts). The app never suggests
- * weights; the quick templates (100% stocks, 80/20, 60/40) are the
+ * can be projected with (lib/assets.ts), and stocks of the curated list.
+ * My portfolio is simulated the same way (lib/portfolio.ts). The app never
+ * suggests weights; the quick templates (100% stocks, 80/20, 60/40) are the
  * textbook starting points, not advice.
  *
  * Growth (the projection and "In N years you'll have")
  *   The weighted average of each part's growth: an asset's average over
- *   the common period, a savings part's rate less inflation. In My
- *   portfolio a stock grows at the average of the index it is assigned to;
- *   its own past is never projected.
+ *   the common period, a savings part's rate less inflation. A stock (in a
+ *   mix or My portfolio) grows at the average of its index; its own past
+ *   is never projected.
  *
  * Ups and downs (the band, "Range (8 in 10)", the withdrawal success rate)
  *   1,000 simulated paths of 60 years, one draw per year:
@@ -17,13 +17,19 @@
  *     so stocks, bonds and gold move together as they did, crashes and
  *     2022's fall of stocks and bonds together included;
  *   - an asset part earns that year's return; a savings part its rate;
- *   - a stock (only in My portfolio), in log terms: its index's average,
+ *   - a stock, in log terms: its index's average,
  *     plus β × how far its index was from average that year, plus a part
- *     of its own. β = ρ × σ_stock / σ_index, the own part has a spread of
- *     σ_stock × √(1 − ρ²), where σ_stock is the stock's volatility from its
- *     daily closes and ρ how its weekly returns correlate with its index's
- *     ETF. With too little data: twice the index's volatility, and the
- *     typical ρ of the stocks that have data;
+ *     of its own, less a drag. β = ρ × σ_stock / σ_index, the own part has
+ *     a spread of σ_stock × √(1 − ρ²), where σ_stock is the stock's
+ *     volatility from its daily closes and ρ how its weekly returns
+ *     correlate with its index's ETF. With too little data: twice the
+ *     index's volatility, and the typical ρ of the stocks that have data.
+ *     The drag makes its expected growth a year the index's (over the
+ *     years drawn, exactly): a stock grows like its index on average, and
+ *     its bigger ups and downs lower its typical result, as they do for
+ *     most single stocks. Without it, the same typical growth with bigger
+ *     ups and downs would promise a far higher average (about 24 % a year
+ *     after rising prices for NVIDIA);
  *   - the stocks' own parts are correlated so that, together with their
  *     indexes, two stocks move together as much as their weekly returns
  *     did.
@@ -39,11 +45,16 @@
  * its weights at the start of each year, over the years every part has
  * data: an asset's own yearly returns, a stock's price change deflated by
  * US inflation, a savings part at today's rate.
+ *
+ * Concentration: when one stock is over CONCENTRATION_LIMIT of a mix, the
+ * same mix with that stock's index in its place, over the same draws,
+ * shows what the one company adds: the middle result barely changes (the
+ * stock grows like its index), the bad cases get worse (it moves more).
  */
 
 import { isSeriesAsset, type AssetId } from "./assets";
 import { isIndexId, SERIES, SERIES_IDS, US_INFLATION, type IndexId, type SeriesId } from "./indexes";
-import { INSTRUMENTS, MARKET, type Instrument, type PricesFile } from "./market-data";
+import { instrumentById, INSTRUMENTS, MARKET, type Instrument, type PricesFile } from "./market-data";
 import { mulberry32, survives } from "./monte-carlo";
 import { percentile, type WealthPercentiles } from "./simulation";
 import type { MixPart } from "./types";
@@ -109,12 +120,31 @@ export const TEMPLATES: readonly MixTemplate[] = [
   },
 ];
 
+/** What tells a mix's parts apart: "asset:world", "stock:NVDA". */
+export function mixPartKey(part: Pick<MixPart, "asset" | "stock">): string {
+  return part.stock ? `stock:${part.stock}` : `asset:${part.asset}`;
+}
+
+/** A stock of the curated list that can be a part of a mix. */
+export function mixStock(id: string | undefined): Instrument | null {
+  const instrument = id ? instrumentById(id) : undefined;
+  return instrument?.kind === "stock" ? instrument : null;
+}
+
+/** A mix's parts as the model's inputs: a stock with its instrument, growing like its index. */
+export function mixInputs(parts: readonly MixPart[]): ModelInput[] {
+  return parts.map((part) => {
+    const stock = mixStock(part.stock);
+    return stock ? { asset: stock.index, weight: part.weight, stock } : { asset: part.asset, weight: part.weight };
+  });
+}
+
 /** The template these parts are, if any. */
 export function templateOf(parts: readonly MixPart[]): MixTemplate | null {
   const key = (list: readonly MixPart[]) =>
     [...list]
       .filter((part) => part.weight > 0)
-      .map((part) => `${part.asset}=${part.weight}`)
+      .map((part) => `${mixPartKey(part)}=${part.weight}`)
       .sort()
       .join(",");
   return TEMPLATES.find((template) => key(template.parts) === key(parts)) ?? null;
@@ -363,8 +393,8 @@ function cachedPart(id: string, market: PricesFile, make: () => Float64Array): F
   let kept = returnsCache.get(id);
   if (!kept) {
     kept = make();
-    // About 0.5 MB each: the five assets, a savings rate and a few stocks.
-    if (returnsCache.size >= 12) returnsCache.delete(returnsCache.keys().next().value as string);
+    // About 0.5 MB each: the five assets, a savings rate and the stocks of the list.
+    if (returnsCache.size >= 24) returnsCache.delete(returnsCache.keys().next().value as string);
     returnsCache.set(id, kept);
   }
   return kept;
@@ -401,8 +431,13 @@ function stockReturns(part: StockPart, stocks: readonly StockPart[], lower: numb
   const { mean, deviation } = logStats(series);
   const beta = (part.correlation * part.volatility) / deviation;
   const own = part.volatility * Math.sqrt(1 - part.correlation ** 2);
-  // The index's part of each historical year, in log terms, worked out once.
-  const shared = series.map((value) => mean + beta * (Math.log1p(value) - mean));
+  // The index's part of each historical year, in log terms, worked out once,
+  const raw = series.map((value) => mean + beta * (Math.log1p(value) - mean));
+  // less the drag that gives the stock the index's expected growth a year:
+  // E[e^(raw + own × shock)] = E[1 + index's return], the shock being a standard normal.
+  const average = (values: readonly number[]) => values.reduce((sum, value) => sum + value, 0) / values.length;
+  const drag = Math.log((average(raw.map(Math.exp)) * Math.exp((own * own) / 2)) / average(series.map((value) => 1 + value)));
+  const shared = raw.map((value) => value - drag);
   const row = lower[position];
   for (let i = 0; i < size; i++) {
     let shock = 0;
@@ -415,6 +450,19 @@ function stockReturns(part: StockPart, stocks: readonly StockPart[], lower: numb
 // ---------------------------------------------------------------------------
 // What a mix does
 // ---------------------------------------------------------------------------
+
+let columns: Float64Array[] | null = null;
+
+/**
+ * The balance columns the simulations fill, one a year: made once and
+ * reused, so a recalculation does not leave ~0.2 MB behind for the garbage
+ * collector each time (its pauses showed as slow recalculations). Nothing
+ * keeps them after a call returns.
+ */
+function balanceColumns(span: number): Float64Array[] {
+  columns ??= Array.from({ length: MIX_YEARS + 1 }, () => new Float64Array(MIX_SIMULATIONS));
+  return columns.slice(0, span + 1);
+}
 
 /**
  * 10th, 50th and 90th percentile of the balance at each year, like
@@ -430,7 +478,7 @@ export function mixPercentiles(
 ): WealthPercentiles {
   const returns = partReturns(model, market);
   const span = Math.min(years, MIX_YEARS);
-  const totals = Array.from({ length: span + 1 }, () => new Float64Array(MIX_SIMULATIONS));
+  const totals = balanceColumns(span);
   const weights = Float64Array.from(model.parts, (part) => part.weight);
   // Each way of holding the weights has its own loop, so each stays fast whichever ran last.
   if (model.rebalance) balancesRebalanced(returns, weights, start, monthly, totals, growth);
@@ -443,6 +491,18 @@ export function mixPercentiles(
     result.p90.push(percentile(column, 0.9));
   }
   return result;
+}
+
+/** 10th and 50th percentile of the balance after `years` only: one column sorted, not one a year. */
+function mixOutcomeAt(model: MixModel, { start, monthly, years }: { start: number; monthly: number; years: number }, market: PricesFile, growth: number): { p10: number; p50: number } {
+  const returns = partReturns(model, market);
+  const span = Math.min(years, MIX_YEARS);
+  const totals = balanceColumns(span);
+  const weights = Float64Array.from(model.parts, (part) => part.weight);
+  if (model.rebalance) balancesRebalanced(returns, weights, start, monthly, totals, growth);
+  else balancesDrifting(returns, weights, start, monthly, totals, growth);
+  const last = totals[span].sort();
+  return { p10: percentile(last, 0.1), p50: percentile(last, 0.5) };
 }
 
 function balancesRebalanced(returns: readonly Float64Array[], weights: Float64Array, start: number, monthly: number, totals: Float64Array[], growth: number): void {
@@ -655,4 +715,79 @@ export function stockTerms(model: MixModel): { name: string; beta: number; own: 
       beta: (part.correlation * part.volatility) / indexVolatility(part.asset),
       own: part.volatility * Math.sqrt(1 - part.correlation ** 2),
     }));
+}
+
+/** A stock over this share of a mix gets the concentration line. */
+export const CONCENTRATION_LIMIT = 0.2;
+
+export interface Concentration {
+  stock: Instrument;
+  /** Its share of the mix, 0 to 1. */
+  weight: number;
+  /** The index it grows like, which takes its place in `without`. */
+  index: IndexId;
+  /** The balance after the years: 1 in 10 ended below `p10`, half below `p50`. */
+  with: { p10: number; p50: number };
+  without: { p10: number; p50: number };
+}
+
+/** The biggest stock part over CONCENTRATION_LIMIT, if any. */
+function concentratedStock(model: MixModel): StockPart | null {
+  let biggest: StockPart | null = null;
+  for (const part of model.parts) {
+    if (part.kind === "stock" && part.weight > CONCENTRATION_LIMIT && (!biggest || part.weight > biggest.weight)) biggest = part;
+  }
+  return biggest;
+}
+
+/**
+ * When one stock is over CONCENTRATION_LIMIT of the mix: the balance after
+ * the years with it, and with its index in its place (same weight, same
+ * draws, every other part the same). `null` otherwise. Nothing is
+ * suggested: it only shows what the one company does to the result.
+ */
+export function concentration(
+  model: MixModel,
+  amounts: { start: number; monthly: number; years: number },
+  market: PricesFile = MARKET,
+  growth = 1,
+  /** The mix's own percentiles when they are already worked out. */
+  own?: WealthPercentiles,
+): Concentration | null {
+  const stock = concentratedStock(model);
+  if (!stock) return null;
+  const inputs: ModelInput[] = model.parts.map((part) =>
+    part === stock || part.kind === "asset"
+      ? { asset: part.asset, weight: part.weight }
+      : { asset: part.asset, weight: part.weight, stock: part.instrument },
+  );
+  const without = mixModel(inputs, model.rebalance, { savingsReturn: model.savingsReturn, market });
+  if (!without) return null;
+  const at = Math.min(amounts.years, MIX_YEARS);
+  return {
+    stock: stock.instrument,
+    weight: stock.weight,
+    index: stock.asset,
+    with: own ? { p10: own.p10[at], p50: own.p50[at] } : mixOutcomeAt(model, amounts, market, growth),
+    without: mixOutcomeAt(without, amounts, market, growth),
+  };
+}
+
+/** Within this share of the index's figure, the middle result "barely changes". */
+const MIDDLE_SAME = 0.05;
+/** The bad cases "barely change" within this share, and get "much worse" past the second. */
+const BAD_SAME = 0.02;
+const BAD_MUCH = 0.1;
+
+export type MiddleEffect = "same" | "lower" | "higher";
+export type BadEffect = "much-worse" | "worse" | "same" | "better";
+
+/** What the stock does to the result, in words the page can say: worked out from the figures, never assumed. */
+export function concentrationEffect({ with: own, without }: Pick<Concentration, "with" | "without">): { middle: MiddleEffect; bad: BadEffect } {
+  const middle = own.p50 / without.p50 - 1;
+  const bad = own.p10 / without.p10 - 1;
+  return {
+    middle: Math.abs(middle) < MIDDLE_SAME ? "same" : middle < 0 ? "lower" : "higher",
+    bad: bad <= -BAD_MUCH ? "much-worse" : bad <= -BAD_SAME ? "worse" : bad < BAD_SAME ? "same" : "better",
+  };
 }

@@ -3,12 +3,11 @@
 import { useI18n } from "@/components/i18n";
 import { Marked } from "@/components/ui/marked";
 import type { InstrumentPrices } from "@/lib/market-data";
-import { YearChanges } from "./year-changes";
 
 /**
  * What the daily job worked out from an instrument's closes: the latest
- * close, past growth, the worst fall, how much it moves and each year's
- * change. Figures only: the closes themselves are not published.
+ * close, past growth, the worst fall and how much it moves. Figures only:
+ * the closes themselves are not published.
  */
 export function InstrumentFigures({ prices, averageCost = null }: { prices: InstrumentPrices; averageCost?: number | null }) {
   const { m, f } = useI18n();
@@ -46,7 +45,6 @@ export function InstrumentFigures({ prices, averageCost = null }: { prices: Inst
           </li>
         )}
       </ul>
-      <YearChanges years={prices.stats?.years} />
     </div>
   );
 }

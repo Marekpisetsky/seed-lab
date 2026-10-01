@@ -22,8 +22,8 @@ export interface CalculationBundle {
   base: Calculation;
   /** What each "What if…?" would change, in the fixed order of their row. */
   whatIfs: WhatIfEffect[];
-  /** How often each offered withdrawal rate lasted 30 years with this investment, lowest rate first. */
-  rates: { rate: number; lasted: number }[];
+  /** The withdrawal rates offered, lowest first; how often the plan's lasted is in `calc.result.lasted`. */
+  rates: number[];
   /** For a mix or the portfolio: its range and worst year, with the S&P 500 alone beside them. */
   mix: MixFigures | null;
 }
@@ -49,13 +49,18 @@ export function calculationFor(state: AppState, today: Date): CalculationBundle 
   const calc = state.whatIf ? calculate(state.plan, holdings, today, state.whatIf) : base;
   const whatIfs = whatIfEffects(base);
   const rates = offeredRates(state.plan.withdrawalRate);
-  const lasted = successRatesFor(calc.investment, rates);
   const mix = mixFigures(calc.investment, { start: calc.scenario.capital, monthly: calc.scenario.monthly, years: calc.result.years });
-  const bundle = { state, today, holdings, calc, base, whatIfs, rates: rates.map((rate, index) => ({ rate, lasted: lasted[index] })), mix };
+  const bundle = { state, today, holdings, calc, base, whatIfs, rates, mix };
   try {
     performance.measure("wealth-lens:report", { start, end: performance.now() });
   } catch {
     // Measuring is optional.
+  }
+  // The other rates on offer, in one pass once the page is idle: picking one then shows it at once.
+  if (typeof window !== "undefined") {
+    const ahead = () => successRatesFor(calc.investment, rates);
+    if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(ahead);
+    else window.setTimeout(ahead, 30);
   }
   last = { state, day, bundle };
   return bundle;

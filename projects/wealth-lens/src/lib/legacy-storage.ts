@@ -7,6 +7,8 @@
  */
 
 import type { AppState } from "./app-store";
+import { referenceInflation } from "./cost-of-living";
+import { toNominal } from "./investment";
 import type { Plan } from "./types";
 import {
   DEFAULT_PLAN,
@@ -89,7 +91,8 @@ export function readLegacyData(storage: LegacyStorage | null): AppState | null {
     }
     if (typeof realReturn === "number" && realReturn > -1 && realReturn < 1 && Math.abs(realReturn - 0.07) > 1e-9) {
       plan.investment = { kind: "custom" };
-      plan.assumptions = { ...plan.assumptions, growth: { rate: realReturn, basis: "real" } };
+      // Stored after rising prices: the growth banks quote that gives it, with the inflation of then.
+      plan.assumptions = { ...plan.assumptions, growth: toNominal(realReturn, plan.assumptions.inflation ?? referenceInflation(plan.pricesOf).rate) };
     }
   }
   const uploadedPrices: Record<string, UploadedPrices> = {};

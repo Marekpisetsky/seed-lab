@@ -9,7 +9,9 @@ import type { AssetId } from "@/lib/assets";
 import type { SeriesId } from "@/lib/index-ids";
 import { periodText, type ResolvedInvestment } from "@/lib/investment";
 import { SAVINGS_RATE } from "@/lib/assets";
-import { templateOf } from "@/lib/mix";
+import { MARKET, type Instrument } from "@/lib/market-data";
+import { mixStock, templateOf, type MixPart } from "@/lib/mix";
+import { stockVolatility } from "@/lib/volatility";
 
 export function assetLabel(asset: AssetId, { m }: I18n): string {
   return m.assets.name[asset];
@@ -18,6 +20,17 @@ export function assetLabel(asset: AssetId, { m }: I18n): string {
 /** Short enough for a narrow list: "Euro gov. bonds", "Savings". */
 export function assetShortLabel(asset: AssetId, { m }: I18n): string {
   return m.assets.short[asset];
+}
+
+/** "grows like the Nasdaq-100 · moves ±50% a year": how a stock in a mix is worked out, in small type beside it. */
+export function stockPartDetail(stock: Instrument, { m, f }: I18n): string {
+  const own = stockVolatility(stock, MARKET, stock.index);
+  return m.mix.part.stock(m.assets.inSentence[stock.index], f.percent(own.volatility, { decimals: 0 }), own.fallback);
+}
+
+/** A part of a mix by name: "World", "NVIDIA". */
+export function mixPartName(part: MixPart, { m }: I18n): string {
+  return mixStock(part.stock)?.name ?? m.assets.name[part.asset];
 }
 
 /** "S&P 500", "Gold", "Savings account", "Mix 60/40", "My portfolio", "Custom growth". */
@@ -34,6 +47,27 @@ export function investmentName({ investment }: Pick<ResolvedInvestment, "investm
       return template ? m.invest.mixTemplate[template.id] : m.invest.mixOf(investment.parts.length);
     }
   }
+}
+
+/**
+ * What "Invested in" shows: the investment's name, or, once any assumption
+ * is the user's (growth, ups and downs or rising prices), "Custom (based on
+ * S&P 500)". "Reset to standard" brings the name back. Custom growth has no
+ * asset behind it and keeps its own name.
+ */
+export function selectorParts(
+  investment: Pick<ResolvedInvestment, "investment" | "custom" | "customInflation">,
+  i18n: I18n,
+): { name: string; basedOn: string | null } {
+  const name = investmentName(investment, i18n);
+  if (investment.investment.kind === "custom" || !(investment.custom || investment.customInflation)) return { name, basedOn: null };
+  return { name: i18n.m.invest.customLabel, basedOn: i18n.m.invest.basedOn(name) };
+}
+
+/** The same in one line: "Custom (based on S&P 500)". */
+export function selectorName(investment: Pick<ResolvedInvestment, "investment" | "custom" | "customInflation">, i18n: I18n): string {
+  const { name, basedOn } = selectorParts(investment, i18n);
+  return basedOn ? `${name} ${basedOn}` : name;
 }
 
 type Described = Pick<ResolvedInvestment, "investment" | "custom" | "volatility" | "simulation" | "allocation" | "shift">;

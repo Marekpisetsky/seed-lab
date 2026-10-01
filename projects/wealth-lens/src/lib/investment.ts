@@ -13,8 +13,10 @@
  *   and a joint simulation of the parts (lib/mix.ts);
  * - Custom growth: the S&P 500's figures, as a starting point.
  *
- * Every one of them can be changed (Plan.assumptions): the growth, before
- * or after inflation, the swings and the inflation. Once the growth or the
+ * Every one of them can be changed (Plan.assumptions): the growth, typed
+ * as banks and news quote it (before inflation) and turned into growth
+ * after inflation here, the swings and the inflation. Everything is
+ * worked out after inflation. Once the growth or the
  * swings are the user's, the history no longer describes them, so the
  * simulations draw each year from a normal distribution with that growth
  * and those swings (lib/normal.ts); with no swings, every year grows the
@@ -25,7 +27,7 @@ import { isSeriesAsset, SAVINGS_RATE, savingsRealReturn, seriesVolatility, type 
 import { DEFAULT_PRICES_OF, countryByCode, referenceInflation } from "./cost-of-living";
 import { COMMON_PERIOD, SERIES } from "./indexes";
 import { MARKET, type PricesFile } from "./market-data";
-import { mixModel, mixVolatility, type MixModel } from "./mix";
+import { mixInputs, mixModel, mixVolatility, type MixModel } from "./mix";
 import { normalReturns } from "./normal";
 import { portfolioAllocation, portfolioInputs, type Allocation } from "./portfolio";
 import { STANDARD_ASSUMPTIONS, type AssumptionOverrides, type Holding, type Investment } from "./types";
@@ -188,7 +190,7 @@ function baseFor(investment: Investment, holdings: readonly Holding[], inflation
       break;
     }
     case "mix": {
-      const model = mixModel(investment.parts, investment.rebalance, { savingsReturn: savingsRealReturn(inflation), market });
+      const model = mixModel(mixInputs(investment.parts), investment.rebalance, { savingsReturn: savingsRealReturn(inflation), market });
       if (model) return fromModel(model, investment, null);
       break;
     }
@@ -216,7 +218,7 @@ export function resolveInvestment(
   const { growth, volatility: typedVolatility } = settings.assumptions;
   const standardReal =
     base.standard.basis === "nominal" && base.standard.nominalRate !== null ? toReal(base.standard.nominalRate, inflation) : base.standard.realReturn;
-  const realReturn = growth ? (growth.basis === "real" ? growth.rate : toReal(growth.rate, inflation)) : standardReal;
+  const realReturn = growth !== null ? toReal(growth, inflation) : standardReal;
   const volatility = typedVolatility ?? base.standard.volatility;
   const custom = base.investment.kind === "custom" || growth !== null || typedVolatility !== null;
   const shared = {

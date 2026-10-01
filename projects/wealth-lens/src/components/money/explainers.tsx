@@ -52,6 +52,8 @@ export function HowThisMixWorks() {
     <Explainer title={mix.title} className="group rounded-md">
       <p>{withPeriod(mix.growth)}</p>
       <p>{withPeriod(mix.ups)}</p>
+      <p>{mix.stocks}</p>
+      <p>{mix.concentration}</p>
       <p>{mix.weights}</p>
       <p>{mix.worst}</p>
       <p>{mix.advice}</p>

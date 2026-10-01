@@ -95,17 +95,26 @@ describe("parseInvestment", () => {
 
 describe("parseAssumptions", () => {
   it("keeps what the user changed and the standard for the rest", () => {
-    expect(parseAssumptions({ growth: { rate: 0.06, basis: "nominal" }, volatility: 0.12, inflation: 0.03 })).toEqual({
-      growth: { rate: 0.06, basis: "nominal" },
-      volatility: 0.12,
-      inflation: 0.03,
-    });
-    expect(parseAssumptions({ growth: { rate: -0.01, basis: "real" } })).toEqual({ growth: { rate: -0.01, basis: "real" }, volatility: null, inflation: null });
+    expect(parseAssumptions({ growth: 0.06, volatility: 0.12, inflation: 0.03 })).toEqual({ growth: 0.06, volatility: 0.12, inflation: 0.03 });
+    expect(parseAssumptions({ growth: -0.01 })).toEqual({ growth: -0.01, volatility: null, inflation: null });
+  });
+
+  it("reads version 6's growth, typed before or after rising prices, as the growth banks quote", () => {
+    // Before rising prices: already the quoted growth.
+    expect(parseAssumptions({ growth: { rate: 0.06, basis: "nominal" }, volatility: 0.12, inflation: 0.03 })).toEqual({ growth: 0.06, volatility: 0.12, inflation: 0.03 });
+    // After rising prices: the quoted growth that gives it, with the file's own inflation…
+    expect(parseAssumptions({ growth: { rate: 0.05, basis: "real" }, inflation: 0.03 }).growth).toBeCloseTo(1.05 * 1.03 - 1, 12);
+    // …or its country's (the Netherlands' 2% by default, Brazil's 3%).
+    expect(parseAssumptions({ growth: { rate: -0.01, basis: "real" } }).growth).toBeCloseTo(0.99 * 1.02 - 1, 12);
+    expect(parseAssumptions({ growth: { rate: 0.05, basis: "real" } }, "BR").growth).toBeCloseTo(1.05 * 1.03 - 1, 12);
   });
 
   it("drops a bad field on its own", () => {
     expect(parseAssumptions({ growth: { rate: 0.06, basis: "gross" }, volatility: -0.1, inflation: 2 })).toEqual({ growth: null, volatility: null, inflation: null });
     expect(parseAssumptions({ growth: { rate: 5, basis: "real" }, volatility: 1.5 })).toEqual({ growth: null, volatility: null, inflation: null });
+    expect(parseAssumptions({ growth: 5 })).toEqual({ growth: null, volatility: null, inflation: null });
+    // Growth after rising prices that no quoted growth under 100% could give.
+    expect(parseAssumptions({ growth: { rate: 0.95, basis: "real" }, inflation: 0.5 })).toEqual({ growth: null, volatility: null, inflation: 0.5 });
     expect(parseAssumptions("custom")).toEqual({ growth: null, volatility: null, inflation: null });
   });
 });

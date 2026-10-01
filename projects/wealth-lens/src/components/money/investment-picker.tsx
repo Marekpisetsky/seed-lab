@@ -4,12 +4,13 @@ import { Search } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n";
 import { EN, type I18n } from "@/i18n";
+import { stockPartDetail } from "@/i18n/investment-text";
 import { SAVINGS_RATE, type AssetId } from "@/lib/assets";
 import { INDEXES, INDEX_IDS, SERIES } from "@/lib/indexes";
-import { INDEX_TRACKERS } from "@/lib/market-data";
+import { INDEX_TRACKERS, INSTRUMENTS } from "@/lib/market-data";
 
-/** What the picker can choose. */
-export type PickChoice = { kind: "asset"; asset: AssetId } | { kind: "portfolio" } | { kind: "mix" } | { kind: "custom" };
+/** What the picker can choose; a stock only as a part of a mix. */
+export type PickChoice = { kind: "asset"; asset: AssetId } | { kind: "stock"; stock: string } | { kind: "portfolio" } | { kind: "mix" } | { kind: "custom" };
 
 type Group = keyof I18n["m"]["picker"]["groups"];
 
@@ -70,14 +71,27 @@ function assetOptions(i18n: I18n): Option[] {
   ];
 }
 
+/** The stocks of the list, for a mix: each grows like its index, with its own ups and downs. */
+function stockOptions(i18n: I18n): Option[] {
+  return INSTRUMENTS.filter((instrument) => instrument.kind === "stock").map((stock) => ({
+    key: `stock:${stock.id}`,
+    group: "stocks",
+    choice: { kind: "stock", stock: stock.id },
+    label: stock.name,
+    detail: stockPartDetail(stock, i18n),
+    haystack: `${stock.name} ${stock.id} ${stock.symbol} ${words(i18n, "stock")}`.toLowerCase(),
+  }));
+}
+
 /**
  * The list behind "Invested in": only what has a long history and a known
  * range (indexes, euro government bonds, gold), a savings account, Custom
  * growth (the user's own figures), the portfolio when there are holdings,
  * and "A mix…";
  * grouped, with a search by name or fund ticker. Single stocks are not on
- * it: they are never projected on their own. Opens under `top` (px from
- * the calculator's top).
+ * it: they are never projected on their own. For a mix's parts (`onlyAssets`)
+ * the assets and the stocks of the list, each stock growing like its index.
+ * Opens under `top` (px from the calculator's top).
  */
 export function InvestmentPicker({
   top,
@@ -96,7 +110,7 @@ export function InvestmentPicker({
   holdingsCount: number;
   /** Options not offered (the parts a mix already has). */
   exclude?: readonly string[];
-  /** For a mix's parts: the assets only. */
+  /** For a mix's parts: the assets and the stocks of the list. */
   onlyAssets?: boolean;
   label: string;
   onPick: (choice: PickChoice) => void;
@@ -126,7 +140,8 @@ export function InvestmentPicker({
 
   const options = useMemo(() => {
     const all = assetOptions(i18n);
-    if (!onlyAssets) {
+    if (onlyAssets) all.push(...stockOptions(i18n));
+    else {
       all.push({
         key: "custom",
         group: "own",

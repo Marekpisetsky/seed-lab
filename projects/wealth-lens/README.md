@@ -54,14 +54,26 @@ cambiar. Todo lo visible está en palabras simples: "real", "nominal",
      se marcan un momento solo las cifras que cambiaron y nada cambia de
      sitio. Debajo, los supuestos en una línea ("Grows 7.5% a year after
      rising prices · can move ±16% in a year · data 1988–2022") con
-     **Edit**: *How much it grows a year* (con conmutador *After rising
-     prices* / *Before rising prices* y la ayuda "After rising prices =
-     what your money can really buy."), *How much it can go up or down in
+     **Edit**: *How much it grows a year (as banks and news quote it)*, un
+     solo campo con el % antes de inflación, y debajo, fijo y de solo
+     lectura, "= 7.5% after rising prices: what your money can really
+     buy" (el conmutador antes/después se quitó: solo traducía la misma
+     cifra y parecía elegir entre dos cosas). Si ese crecimiento, después
+     de inflación, supera el mejor promedio de 20 años seguidos de
+     cualquier activo de los datos (calculado de los datasets en
+     `src/lib/realism.ts`: hoy el S&P 500 en 1980–1999, 13 %), debajo:
+     "Very rare: no broad index kept this for 20 years. The best was 13%
+     (S&P 500, 1980–1999)." *How much it can go up or down in
      a normal year* (con un ejemplo que cambia con la cifra: "e.g. a
-     €10,000 year could end between €9,200 and €10,800"), *Rising prices
+     €10,000 year could end between €9,200 and €10,800" y, sin tocar la
+     cifra, "Historically, assets growing about 7.5% moved about ±16% a
+     year" con el activo de crecimiento medio más cercano), *Rising prices
      in* (país, Países Bajos por defecto) y *Prices rise per year*, cada
-     uno con su estándar al lado. Un cambio marca la línea como **Custom**
-     y aparece *Reset to standard*; un "i" plegado explica cómo usan las
+     uno con su estándar al lado. Un cambio (crecimiento, altibajos o
+     inflación) marca la línea como **Custom**, el selector *Invested in*
+     pasa a decir "Custom" con "(based on S&P 500)" debajo (o el activo o
+     la mezcla que fuese) y aparece *Reset to standard*, que devuelve el
+     nombre original; un "i" plegado explica cómo usan las
      simulaciones esas cifras, con sus nombres técnicos.
   2. **El resultado**, siempre en el mismo sitio: "In 20 years you'll have
      €112,288" (grande) y justo debajo, también grande, "Grows about 7.5%
@@ -108,10 +120,17 @@ cambiar. Todo lo visible está en palabras simples: "real", "nominal",
      su fuente al tocarlas y un "+" para añadirlas a My goals).
 - **My stocks — `/stocks`** (antes Charts): ganancia, holdings (añadir,
   editar, importar CSV), cómo se movió cada uno, y los 3 ETFs (VUAA,
-  VWCE, EQQQ) y 12 acciones grandes con su gráfico y su pasado ("past, not
-  a forecast"). Un ETF puede ser la inversión ("Use as my investment");
-  una acción no se proyecta sola, y su fila dice cómo cuenta en My
-  portfolio. `/charts` y `/fire` redirigen.
+  VWCE, EQQQ) y 12 acciones grandes. Cada fila lleva una línea pequeña del
+  último año y su cambio; al abrirla, una línea semanal con selector de
+  periodo **1Y · 3Y · 5Y · Max** (los que los datos no alcanzan, desactivados)
+  y el % del periodo al lado, en verde o rojo. En una acción, en fino, la
+  línea del fondo de su índice (EQQQ, VUAA o VWCE) sobre las mismas semanas y
+  desde el mismo 100, con una nota si cotizan en monedas distintas o si el
+  fondo no llega a ese periodo. Las barras de cambio anual se quitaron. Un
+  ETF puede ser la inversión ("Use as my investment"); una acción no se
+  proyecta: "History only. One stock's future can't be predicted.", y su
+  fila dice cómo cuenta en una mezcla o en My portfolio. Los precios de un
+  CSV propio siguen con su gráfico diario. `/charts` y `/fire` redirigen.
 
 Limitaciones conocidas: no convierte entre monedas (la meta, el ingreso
 y la cartera ponderada solo cuentan holdings en EUR); las ganancias
@@ -142,7 +161,9 @@ mano desde las cifras publicadas (ver "Retornos").
 - Un solo plan (`Plan` en `src/lib/types.ts`): dos importes, la
   inversión, los años, la tasa de retiro, *Rising prices in* (`pricesOf`), lo que el usuario
   cambió de los supuestos (crecimiento real o nominal, oscilación,
-  inflación; `null` = estándar) y las metas (una lista, vacía al empezar). `src/lib/calculator.ts` deriva de él todo lo
+  inflación; `null` = estándar; el crecimiento se guarda como lo dan bancos
+y noticias, antes de inflación, y todo el cálculo lo pasa a después de
+inflación) y las metas (una lista, vacía al empezar). `src/lib/calculator.ts` deriva de él todo lo
   que se ve (resultado, metas, tabla de países, compras) y
   `src/hooks/use-calculation.ts` lo calcula una vez por cambio para todas
   las secciones (medido como `performance.measure("wealth-lens:report")`:
@@ -150,8 +171,13 @@ mano desde las cifras publicadas (ver "Retornos").
   tocar un *What if…?*, con los efectos de los cinco incluidos; cargar un
   archivo con cartera tras una sesión larga llegó a 23-34 ms; ver
   "Velocidad"). El archivo de datos va por la
-  versión 6: lleva *Rising prices in*, los supuestos cambiados y, en cada holding,
-  a qué activo se asignó si el usuario lo cambió. Lee las anteriores: un
+  versión 7: lleva *Rising prices in*, los supuestos cambiados (el
+  crecimiento como un solo % antes de inflación) y, en cada holding,
+  a qué activo se asignó si el usuario lo cambió. Lee las anteriores: el
+  crecimiento de la v6, escrito antes o después de inflación, pasa al %
+  antes de inflación que da exactamente el mismo crecimiento después de
+  ella con la inflación del archivo (la suya o la de su país), así que el
+  resultado no cambia; un
   índice (v1-v5) es ese activo; una acción proyectada sola (v5) pasa a My
   portfolio si el archivo la tiene, si no a su índice, y las acciones de
   una mezcla cuentan como su índice, cada cambio con un aviso de una línea
@@ -177,7 +203,8 @@ mano desde las cifras publicadas (ver "Retornos").
     el resultado dice cuántos años dura el retiro ("it runs out after 23
     years") y el gráfico no dibuja banda.
   - **Una mezcla** (`src/lib/mix.ts`, documentado arriba del archivo y en
-    un "i" plegado): hasta 10 de esos activos con % que suman 100,
+    un "i" plegado): hasta 10 de esos activos o de las 12 acciones de la
+    lista (en *Add*, grupo *Stocks*) con % que suman 100,
     indicador del total, "Split evenly", plantillas (100 % acciones,
     80/20, 60/40: World y bonos euro, puntos de partida de manual, no
     consejo) y *Let weights drift* / *Rebalance every year*. Crecimiento:
@@ -186,7 +213,18 @@ mano desde las cifras publicadas (ver "Retornos").
     oro se mueven juntos como lo hicieron; en 2022 cayeron acciones y
     bonos a la vez). Junto al resultado: "Range (8 in 10)" y "Worst year
     in the data", con las mismas cifras del S&P 500 solo, sobre los mismos
-    años. Ninguna optimización ni sugerencia de pesos.
+    años. Una acción crece como su índice y oscila con su propia volatilidad
+    y sus correlaciones (el motor de My portfolio); a su lado, en pequeño,
+    "grows like the Nasdaq-100 · moves ±50% a year". Si una acción pesa más
+    del 20 %, una línea con el efecto de concentración: la misma mezcla con
+    su índice en su lugar, sobre los mismos años simulados, y el percentil
+    10 y la mediana de cada una ("One stock is 40% of your mix: the middle
+    result drops, the bad cases get much worse."; la frase sale de las
+    cifras: 60 % World + 40 % NVIDIA a 20 años con €1.000 y €200/mes da,
+    con los precios del 1 de octubre de 2026, €37.012 frente a €48.190 en
+    los casos malos y €91.624 frente a €121.719 en el medio). Con crecimiento u oscilación propios no se muestra: los
+    altibajos de la acción ya no se simulan. Ninguna optimización ni
+    sugerencia de pesos.
   - **My portfolio** (`src/lib/portfolio.ts`): "Simple projection: each
     stock grows like its index. Stocks can't be predicted." Cada holding
     en EUR crece como un activo: una acción de la lista, el índice de su
@@ -196,7 +234,14 @@ mano desde las cifras publicadas (ver "Retornos").
     usuario lo cambia en la calculadora y queda guardado en el holding. Se
     pondera por valor y se simula con el motor de mezclas; una acción de
     la lista conserva sus propios altibajos (volatilidad de sus cierres
-    diarios, correlación semanal con el ETF de su índice).
+    diarios, correlación semanal con el ETF de su índice). En las
+    simulaciones una acción tiene el crecimiento **medio** esperado de su
+    índice, no su crecimiento típico: sus altibajos mayores bajan su
+    resultado típico (con ±50 % al año, NVIDIA queda en torno al 2 % al año
+    después de inflación en la mediana, frente al 10 % del Nasdaq-100),
+    como pasa con la mayoría de acciones sueltas. Igualar el crecimiento
+    típico, como hacía la ronda 7, prometía de media un 24 % al año. La
+    proyección principal no cambia: sigue usando la media del índice.
   - **Custom growth**: el % anual y la oscilación que escriba el usuario
     (arranca en los del S&P 500), sin ningún activo detrás.
   - **Supuestos cambiados**: con el crecimiento o la oscilación del
@@ -260,7 +305,20 @@ mano desde las cifras publicadas (ver "Retornos").
   cartera con una acción y de cifras propias (`src/lib/warm.ts`). La banda
   del S&P 500 que acompaña a una mezcla y los peores años se guardan
   mientras no cambien los importes o la mezcla (cachés acotadas en
-  `src/lib/projections.ts`). Medido en el navegador en la ronda 10 (108
+  `src/lib/projections.ts`). Desde la ronda 11 también se precalculan en
+  ratos libres los años simulados de las 12 acciones de la lista y una
+  mezcla de tres partes con una acción; el efecto de concentración solo
+  ordena la columna del último año; las columnas de la simulación de una
+  mezcla se reservan una vez y se reutilizan (cada recálculo dejaba ~0,2 MB
+  al recolector, y sus pausas se veían como recálculos lentos), y el
+  recálculo solo simula la tasa de retiro del plan: las otras dos se
+  calculan en el siguiente rato libre, así que cambiar de tasa sigue
+  siendo inmediato. Medido en el navegador en la ronda 11 (272 recálculos
+  en cuatro pasadas, EN y ES: aportes, años, activos, el crecimiento
+  propio con el aviso, plantillas, añadir NVIDIA, Tesla, Apple y SAP a una
+  mezcla, cambiar sus pesos y quitarlas, y las tres tasas de retiro):
+  mediana 1,5-2,0 ms, p90 8,5-9,8 ms, máximo 15,2 ms (el primer peso de
+  una acción en una mezcla). Medido en el navegador en la ronda 10 (108
   recálculos, EN y ES: aportes, años, activos, plantillas, los cinco
   *What if…?* y cargar un archivo con cartera, dos veces cada uno):
   mediana 4,0 ms, p90 7,8 ms, máximo 13,9 ms (la primera carga de una
@@ -404,7 +462,7 @@ sus condiciones publicadas conocidas y se aplica la opción más prudente):
 
 | Fuente | Condiciones | Qué se publica |
 | --- | --- | --- |
-| Yahoo Finance, Stooq | No permiten redistribuir sus datos | Solo cifras derivadas en `prices.json` (último cierre por fondo, cambio a 1 año, crecimiento anual, peor caída, cambio de cada año, volatilidad, correlaciones); nunca el historial de cierres |
+| Yahoo Finance, Stooq | No permiten redistribuir sus datos | Solo cifras derivadas en `prices.json` (último cierre por fondo, cambio a 1 año, crecimiento anual, peor caída, cambio de cada año, volatilidad, correlaciones) y series derivadas y normalizadas en `lines/` (un punto por semana, cierre del viernes, como índice base 100 al inicio de cada periodo, es decir, % de cambio acumulado, a una décima); nunca el historial de cierres ni un precio en esas series |
 | Numbeo, Wise | No permiten copiar sus datos | Solo el coste mensual en euros, combinado y redondeado a 10, con atribución; se quitaron las cifras originales que citaba `cost-of-living.json` |
 | MSCI, Nasdaq, LBMA | Datos propietarios | Solo la rentabilidad anual real derivada y la inflación usada; se quitaron las rentabilidades nominales de MSCI, los cierres del Nasdaq-100 y los precios del oro |
 | Robert Shiller (Yale) | Libre con atribución | Rentabilidad real anual derivada del S&P 500 |
@@ -415,9 +473,15 @@ sus condiciones publicadas conocidas y se aplica la opción más prudente):
 
 Riesgo residual: el último cierre de cada fondo es una cotización tal cual
 (como la de cualquier web de noticias); hace falta para valorar las
-posiciones. Si una fuente lo objetara, el job puede dejar de publicarlo y
-pedir el precio al usuario. *How it works* explica todo esto en lenguaje
-llano.
+posiciones. Las series semanales normalizadas no llevan precios, pero
+siguen la forma del precio semana a semana: junto con ese último cierre
+permitirían reconstruir cierres semanales aproximados (a una décima de
+punto). Es menos que lo que muestra cualquier gráfico de una web de
+noticias y nunca son los cierres diarios, pero no es cero. Si una fuente
+lo objetara, el job puede dejar de publicar el último cierre (y pedir el
+precio al usuario) o las series (`public/data/lines/`), y My stocks
+vuelve a las cifras sin gráfico. *How it works* explica todo esto en
+lenguaje llano.
 
 ## Test my plan (`/test`, `/es/test`)
 
@@ -524,8 +588,22 @@ correlaciones de retornos semanales entre instrumentos (semanales porque
 las bolsas cierran a horas distintas; `null` con menos de 3 años
 compartidos; si un instrumento falla ese día, se conservan las del día
 anterior). Una línea por instrumento. Se importa en el build, así que va
-dentro de la página. La carpeta `public/data/history/` que publicaban
-versiones anteriores la borra el primer run tras el merge.
+dentro de la página. Cada entrada lleva además `line1y`, la línea del
+último año (semanal, base 100) para el dibujo pequeño de su fila.
+
+Para los gráficos de My stocks escribe `public/data/lines/<id>.json`
+(`scripts/lib/lines.mts`): un punto por semana (el último cierre del
+viernes o antes, y el último cierre de la semana en curso), por periodo
+(1, 3 y 5 años y todo lo descargado, solo los que la historia cubre),
+cada periodo como índice base 100 en su primera semana, a una décima; en
+una acción, el fondo de su índice sobre las mismas semanas y desde el
+mismo 100 (sin él si el fondo empieza después). Nunca un precio. La app lo
+lee del propio sitio al abrir la fila. Si un instrumento falla ese día se
+conserva su archivo, y también el de una acción cuyo fondo falló; se
+borran los de instrumentos que salen de la lista. Hasta el primer run del
+Action tras el merge no existen, y la fila dice "No chart yet: it comes
+with the next daily price update." La carpeta `public/data/history/` que
+publicaban versiones anteriores la borra el primer run tras el merge.
 
 Si un instrumento falla o la respuesta es rara (otra moneda, datos viejos,
 un salto ×5), se conserva lo anterior; los archivos solo se reescriben si
@@ -682,17 +760,23 @@ ingreso lo paga, filas por defecto), las metas (cada tipo, varias,
 independientes, orden estable al añadir y quitar, tope de 60 años con el
 aporte para 30), las compras, el motor de hallazgos (cada regla: cuándo
 aparece, cuándo no y su número, con y sin metas), las tasas de éxito
-precalculadas (recalculadas exactas), el plan v6 y la conversión de
+precalculadas (recalculadas exactas), el plan v7, el crecimiento de la v6
+(antes o después de inflación, mismo resultado tras cargarlo), el aviso de
+realismo (el mejor promedio de 20 años recalculado a mano, solo por encima
+de él, comparado después de inflación) y la conversión de
 archivos v1 a v5 (metas; una acción proyectada sola que pasa a My
 portfolio o a su índice con su aviso; un % propio y una inflación), los
 datasets (cada retorno real recalculado desde las cifras de origen: MSCI
 contra sus fichas, bonos desde los rendimientos y el IPC, oro desde los
 precios LBMA; la inflación de referencia de cada país), los supuestos
-editables (real/nominal con la inflación de cada país, oscilación, solo
+editables (el % antes de inflación pasado a después con la inflación de cada país, oscilación, solo
 inflación, reset, Custom growth, la normal: mediana y dispersión), las
 plantillas 60/40 y 80/20, las mezclas con bonos, oro y ahorro (el mismo
 año sorteado para todos, peor año 2022 para 60/40, efecto de
-diversificar), la asignación de holdings a activos, el archivo de datos
+diversificar), las mezclas con acciones (crecen como su índice en la
+proyección, la misma media esperada y menos crecimiento típico en las
+simulaciones, rango más ancho, efecto de concentración solo por encima del
+20 % y contado desde las cifras, archivo de datos), la asignación de holdings a activos, el archivo de datos
 (ida y vuelta, archivos dañados o ajenos),
 la limpieza de datos antiguos, el importador de Trading 212, el parser de
 CSV, el precio automático desde datos estáticos o CSV (nunca pisa un
@@ -707,7 +791,7 @@ cierre se publica) y las reglas para conservar los datos anteriores.
 scripts/
   update-prices.mts            job diario: descarga y escribe public/data/prices.json (solo cifras derivadas)
   update-prices.workflow.yml   el GitHub Action (copiar a .github/workflows/)
-  lib/                         yahoo, stooq, cadena de respaldo, armado de archivos
+  lib/                         yahoo, stooq, cadena de respaldo, armado de archivos, líneas semanales
 public/data/                   precios generados por el job (no editar a mano)
 src/
   app/                         rutas: / (My money), /stocks (My stocks);
@@ -732,6 +816,7 @@ src/
     investment.ts       supuestos estándar y cambiados: crecimiento, oscilación, simulación
     assumptions.ts      la línea de supuestos y lo que muestra el panel Edit
     growth.ts           "Grows about 7.5% a year", ×Z y +P %, etiqueta y tooltip del gráfico
+    realism.ts          el mejor promedio de 20 años de los datos y el activo de crecimiento más cercano
     what-if.ts          los cinco "What if…?": qué cambia cada uno
     normal.ts           años sorteados de una normal para cifras propias
     portfolio.ts        a qué activo crece cada holding, ponderado por valor
@@ -742,6 +827,7 @@ src/
     step.ts             los botones − / + (pasos de €50 y de un año)
     indexes.ts          datasets de retornos reales: 3 índices, bonos euro, oro
     market-data.ts      lista curada + precios estáticos (formato en market-format.ts)
+    lines.ts            las líneas semanales de My stocks: carga al abrir la fila, periodos, eje
     auto-price.ts       precio actual de un holding desde datos estáticos o CSV
     data-file.ts        "Download my data" / "Load my data"
     legacy-storage.ts   limpieza de datos que dejaron versiones anteriores
