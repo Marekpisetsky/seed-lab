@@ -66,7 +66,7 @@ let lastReference: { id: string; range: [number, number] } | null = null;
 const worstYears = new Map<string, { worst: WorstYear | null; reference: WorstYear | null }>();
 const MAX_KEPT_WORST_YEARS = 16;
 
-let lastConcentration: { id: string; value: Concentration | null } | null = null;
+const concentrations = new Map<string, Concentration | null>();
 
 /**
  * The concentration effect of a mix simulated from its own figures; with
@@ -77,8 +77,14 @@ function concentrationFor(investment: ResolvedInvestment, amounts: Amounts): Con
   const { model } = investment;
   if (!model || investment.investment.kind !== "mix" || investment.simulation !== "joint") return null;
   const id = `${investment.key}|${amounts.start}|${amounts.monthly}|${amounts.years}|${investment.growthFactor}`;
-  if (lastConcentration?.id !== id) lastConcentration = { id, value: concentration(model, amounts, undefined, investment.growthFactor) };
-  return lastConcentration.value;
+  let kept = concentrations.get(id);
+  if (kept === undefined) {
+    // The mix's own band is the chart's: worked out once for both.
+    kept = concentration(model, amounts, undefined, investment.growthFactor, bandsFor(investment, amounts));
+    if (concentrations.size >= 16) concentrations.delete(concentrations.keys().next().value ?? "");
+    concentrations.set(id, kept);
+  }
+  return kept;
 }
 
 export function mixFigures(investment: ResolvedInvestment, amounts: Amounts): MixFigures | null {

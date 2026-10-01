@@ -393,8 +393,8 @@ function cachedPart(id: string, market: PricesFile, make: () => Float64Array): F
   let kept = returnsCache.get(id);
   if (!kept) {
     kept = make();
-    // About 0.5 MB each: the five assets, a savings rate and a few stocks.
-    if (returnsCache.size >= 12) returnsCache.delete(returnsCache.keys().next().value as string);
+    // About 0.5 MB each: the five assets, a savings rate and the stocks of the list.
+    if (returnsCache.size >= 24) returnsCache.delete(returnsCache.keys().next().value as string);
     returnsCache.set(id, kept);
   }
   return kept;
@@ -451,6 +451,19 @@ function stockReturns(part: StockPart, stocks: readonly StockPart[], lower: numb
 // What a mix does
 // ---------------------------------------------------------------------------
 
+let columns: Float64Array[] | null = null;
+
+/**
+ * The balance columns the simulations fill, one a year: made once and
+ * reused, so a recalculation does not leave ~0.2 MB behind for the garbage
+ * collector each time (its pauses showed as slow recalculations). Nothing
+ * keeps them after a call returns.
+ */
+function balanceColumns(span: number): Float64Array[] {
+  columns ??= Array.from({ length: MIX_YEARS + 1 }, () => new Float64Array(MIX_SIMULATIONS));
+  return columns.slice(0, span + 1);
+}
+
 /**
  * 10th, 50th and 90th percentile of the balance at each year, like
  * lib/simulation.ts's for a single history: half of each year's
@@ -465,7 +478,7 @@ export function mixPercentiles(
 ): WealthPercentiles {
   const returns = partReturns(model, market);
   const span = Math.min(years, MIX_YEARS);
-  const totals = Array.from({ length: span + 1 }, () => new Float64Array(MIX_SIMULATIONS));
+  const totals = balanceColumns(span);
   const weights = Float64Array.from(model.parts, (part) => part.weight);
   // Each way of holding the weights has its own loop, so each stays fast whichever ran last.
   if (model.rebalance) balancesRebalanced(returns, weights, start, monthly, totals, growth);
@@ -478,6 +491,18 @@ export function mixPercentiles(
     result.p90.push(percentile(column, 0.9));
   }
   return result;
+}
+
+/** 10th and 50th percentile of the balance after `years` only: one column sorted, not one a year. */
+function mixOutcomeAt(model: MixModel, { start, monthly, years }: { start: number; monthly: number; years: number }, market: PricesFile, growth: number): { p10: number; p50: number } {
+  const returns = partReturns(model, market);
+  const span = Math.min(years, MIX_YEARS);
+  const totals = balanceColumns(span);
+  const weights = Float64Array.from(model.parts, (part) => part.weight);
+  if (model.rebalance) balancesRebalanced(returns, weights, start, monthly, totals, growth);
+  else balancesDrifting(returns, weights, start, monthly, totals, growth);
+  const last = totals[span].sort();
+  return { p10: percentile(last, 0.1), p50: percentile(last, 0.5) };
 }
 
 function balancesRebalanced(returns: readonly Float64Array[], weights: Float64Array, start: number, monthly: number, totals: Float64Array[], growth: number): void {
@@ -726,6 +751,8 @@ export function concentration(
   amounts: { start: number; monthly: number; years: number },
   market: PricesFile = MARKET,
   growth = 1,
+  /** The mix's own percentiles when they are already worked out. */
+  own?: WealthPercentiles,
 ): Concentration | null {
   const stock = concentratedStock(model);
   if (!stock) return null;
@@ -737,14 +764,12 @@ export function concentration(
   const without = mixModel(inputs, model.rebalance, { savingsReturn: model.savingsReturn, market });
   if (!without) return null;
   const at = Math.min(amounts.years, MIX_YEARS);
-  const withBands = mixPercentiles(model, amounts, market, growth);
-  const withoutBands = mixPercentiles(without, amounts, market, growth);
   return {
     stock: stock.instrument,
     weight: stock.weight,
     index: stock.asset,
-    with: { p10: withBands.p10[at], p50: withBands.p50[at] },
-    without: { p10: withoutBands.p10[at], p50: withoutBands.p50[at] },
+    with: own ? { p10: own.p10[at], p50: own.p50[at] } : mixOutcomeAt(model, amounts, market, growth),
+    without: mixOutcomeAt(without, amounts, market, growth),
   };
 }
 

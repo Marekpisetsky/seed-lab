@@ -305,7 +305,20 @@ inflación) y las metas (una lista, vacía al empezar). `src/lib/calculator.ts` 
   cartera con una acción y de cifras propias (`src/lib/warm.ts`). La banda
   del S&P 500 que acompaña a una mezcla y los peores años se guardan
   mientras no cambien los importes o la mezcla (cachés acotadas en
-  `src/lib/projections.ts`). Medido en el navegador en la ronda 10 (108
+  `src/lib/projections.ts`). Desde la ronda 11 también se precalculan en
+  ratos libres los años simulados de las 12 acciones de la lista y una
+  mezcla de tres partes con una acción; el efecto de concentración solo
+  ordena la columna del último año; las columnas de la simulación de una
+  mezcla se reservan una vez y se reutilizan (cada recálculo dejaba ~0,2 MB
+  al recolector, y sus pausas se veían como recálculos lentos), y el
+  recálculo solo simula la tasa de retiro del plan: las otras dos se
+  calculan en el siguiente rato libre, así que cambiar de tasa sigue
+  siendo inmediato. Medido en el navegador en la ronda 11 (272 recálculos
+  en cuatro pasadas, EN y ES: aportes, años, activos, el crecimiento
+  propio con el aviso, plantillas, añadir NVIDIA, Tesla, Apple y SAP a una
+  mezcla, cambiar sus pesos y quitarlas, y las tres tasas de retiro):
+  mediana 1,5-2,0 ms, p90 8,5-9,8 ms, máximo 15,2 ms (el primer peso de
+  una acción en una mezcla). Medido en el navegador en la ronda 10 (108
   recálculos, EN y ES: aportes, años, activos, plantillas, los cinco
   *What if…?* y cargar un archivo con cartera, dos veces cada uno):
   mediana 4,0 ms, p90 7,8 ms, máximo 13,9 ms (la primera carga de una

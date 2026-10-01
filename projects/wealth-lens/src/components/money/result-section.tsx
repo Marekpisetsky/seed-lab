@@ -159,7 +159,7 @@ export function ResultSection({ bundle }: { bundle: CalculationBundle }) {
   const { m, f } = i18n;
   const { calc, rates, state } = bundle;
   const { result, investment } = calc;
-  const selected = rates.find((entry) => Math.abs(entry.rate - state.plan.withdrawalRate) < 1e-9) ?? rates[0];
+  const selected = { rate: state.plan.withdrawalRate, lasted: result.lasted };
   const years = m.units.years(result.years);
   const money = moneyLine(result, investment.volatility > 0, i18n);
   const grows = growsText(result.growthRate, i18n);
@@ -213,7 +213,7 @@ export function ResultSection({ bundle }: { bundle: CalculationBundle }) {
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted">
           <RadioGroup
             label={m.result.takenOut}
-            options={rates.map(({ rate }) => ({ value: rate, label: f.rate(rate) }))}
+            options={rates.map((rate) => ({ value: rate, label: f.rate(rate) }))}
             value={selected.rate}
             onChange={(withdrawalRate) => updatePlan({ withdrawalRate })}
             className="inline-flex rounded-md border border-border p-0.5"
