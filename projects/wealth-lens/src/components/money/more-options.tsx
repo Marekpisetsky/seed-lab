@@ -9,7 +9,7 @@ import { useAppState } from "@/hooks/use-app";
 import { byCountryName, countryName } from "@/i18n/countries";
 import { investmentName } from "@/i18n/investment-text";
 import { resetAssumptions, setAssumptions, setInvestment, setPricesOf } from "@/lib/app-store";
-import { historicalRiskText, upsAndDownsExample } from "@/lib/assumptions";
+import { historicalRiskText, optionsChanged, upsAndDownsExample } from "@/lib/assumptions";
 import { costOfLiving, referenceInflation } from "@/lib/cost-of-living";
 import type { ResolvedInvestment } from "@/lib/investment";
 import { mixPartKey, mixStock } from "@/lib/mix";
@@ -135,7 +135,7 @@ export function MoreOptions({ current, priced }: { current: ResolvedInvestment; 
   const { standard, inflation } = current;
   const reference = referenceInflation(current.pricesOf);
   const isCustomGrowth = current.investment.kind === "custom";
-  const changed = plan.assumptions.volatility !== null || plan.assumptions.inflation !== null || (plan.assumptions.growth !== null && !isCustomGrowth);
+  const changed = optionsChanged(plan);
   const historically = historicalRiskText(current, i18n);
 
   return (

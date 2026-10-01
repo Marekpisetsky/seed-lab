@@ -91,6 +91,12 @@ describe("My %", () => {
     expect(html).toMatch(/aria-checked="true"[^>]*>My %/);
   });
 
+  it("is a chip, not an option: More options is not marked Custom until something in it changes", () => {
+    expect(text(render("en", mine, createElement(CalculatorCard)))).not.toContain(m.assumptions.custom);
+    const moves: AppState = { ...mine, plan: { ...mine.plan, assumptions: { ...mine.plan.assumptions, volatility: 0.1 } } };
+    expect(text(render("en", moves, createElement(CalculatorCard)))).toContain(`${m.more.title} ${m.assumptions.custom}`);
+  });
+
   it("is a chip like the others: no list to open, no switch", () => {
     const html = render("en", mine, createElement(CalculatorCard));
     expect(html).not.toContain("<select");

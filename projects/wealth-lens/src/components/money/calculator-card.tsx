@@ -9,6 +9,7 @@ import { SettledNumberInput } from "@/components/ui/form";
 import { useAppState } from "@/hooks/use-app";
 import { offeredRates } from "@/hooks/use-calculation";
 import { updatePlan } from "@/lib/app-store";
+import { optionsChanged } from "@/lib/assumptions";
 import { priceHoldings } from "@/lib/auto-price";
 import { resolveInvestment } from "@/lib/investment";
 import { startingCapital } from "@/lib/plan";
@@ -123,7 +124,7 @@ export function CalculatorCard() {
     events.forEach((name) => window.addEventListener(name, start, { once: true, passive: true }));
     return () => events.forEach((name) => window.removeEventListener(name, start));
   }, [plan.withdrawalRate]);
-  const changed = current.custom || current.customInflation;
+  const changed = optionsChanged(plan);
   const monthly = plan.monthlyContribution;
 
   return (

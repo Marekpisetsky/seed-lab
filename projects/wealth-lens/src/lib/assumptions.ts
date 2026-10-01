@@ -10,6 +10,7 @@ import { dividendNote } from "@/i18n/investment-text";
 import { SAVINGS_RATE } from "./assets";
 import { periodText, toNominal, type ResolvedInvestment } from "./investment";
 import { BEST_20_YEARS, beyondHistory, closestHistory, type BestRun } from "./realism";
+import type { Plan } from "./types";
 
 /** The growth a year as banks and news quote it, before rising prices: the small line under the chips. */
 export function quotedGrowth(investment: Pick<ResolvedInvestment, "realReturn" | "inflation">): number {
@@ -21,6 +22,15 @@ export function growthText(investment: Pick<ResolvedInvestment, "realReturn">, {
   const rate = investment.realReturn;
   const say = rate < 0 ? m.assumptions.shrinks : m.assumptions.grows;
   return say(f.rate(Math.abs(rate)));
+}
+
+/**
+ * Whether something in More options differs from its standard: the ups and
+ * downs, the rising prices, or a growth typed over an investment. "My %" is
+ * a chip, not an option: choosing it changes nothing in there.
+ */
+export function optionsChanged({ assumptions, investment }: Pick<Plan, "assumptions" | "investment">): boolean {
+  return assumptions.volatility !== null || assumptions.inflation !== null || (assumptions.growth !== null && investment.kind !== "custom");
 }
 
 /**
