@@ -220,9 +220,9 @@ inflación) y las metas (una lista, vacía al empezar). `src/lib/calculator.ts` 
     su índice en su lugar, sobre los mismos años simulados, y el percentil
     10 y la mediana de cada una ("One stock is 40% of your mix: the middle
     result drops, the bad cases get much worse."; la frase sale de las
-    cifras: 60 % World + 40 % NVIDIA a 20 años con €1.000 y €200/mes da
-    €37.024 frente a €48.190 en los casos malos y €91.651 frente a €121.719
-    en el medio). Con crecimiento u oscilación propios no se muestra: los
+    cifras: 60 % World + 40 % NVIDIA a 20 años con €1.000 y €200/mes da,
+    con los precios del 1 de octubre de 2026, €37.012 frente a €48.190 en
+    los casos malos y €91.624 frente a €121.719 en el medio). Con crecimiento u oscilación propios no se muestra: los
     altibajos de la acción ya no se simulan. Ninguna optimización ni
     sugerencia de pesos.
   - **My portfolio** (`src/lib/portfolio.ts`): "Simple projection: each
