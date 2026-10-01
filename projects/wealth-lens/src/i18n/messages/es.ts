@@ -512,7 +512,6 @@ export const es: Messages = {
     legacy: "Una versión anterior guardó tus datos en este navegador. La app ya no guarda nada.",
     useIt: "Usarlos y borrarlos",
     deleteIt: "Borrarlos",
-    moved: "Esta página se mudó a",
   },
   problems: {
     "file-unreadable": ({ file }) => `No se pudo leer ${file}.`,

@@ -135,7 +135,7 @@ cambiar. Todo lo visible está en palabras simples: "real", "nominal",
   proyecta: "History only. One stock's future can't be predicted.", y su
   fila dice cómo cuenta en una mezcla o en My portfolio. Los precios de un
   CSV propio siguen con su gráfico diario. Las direcciones de versiones
-  anteriores (`/charts`, `/fire`) redirigen a las actuales.
+  anteriores (`/charts`, `/fire`) ya no existen: dan la página 404.
 
 Limitaciones conocidas: no convierte entre monedas (la meta, el ingreso
 y la cartera ponderada solo cuentan holdings en EUR); las ganancias
@@ -780,7 +780,6 @@ src/
   app/                         rutas: (en)/ las páginas en inglés, con el layout
                                que les da sus palabras; [lang]/ las demás (/es/…);
                                / (My money), /stocks (My stocks), /test;
-                               direcciones antiguas que redirigen a las actuales;
                                not-found.tsx, HTML sin código propio;
                                tokens.css (colores de seed-lab), icon.svg
   components/                  money/ (calculator-card: las preguntas; growth-chips;

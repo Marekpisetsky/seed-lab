@@ -516,7 +516,6 @@ export const en = {
     legacy: "An older version saved your data in this browser. The app no longer saves anything.",
     useIt: "Use it and delete it",
     deleteIt: "Delete it",
-    moved: "This page moved to",
   },
   problems: {
     "file-unreadable": ({ file }) => `Could not read ${file}.`,
