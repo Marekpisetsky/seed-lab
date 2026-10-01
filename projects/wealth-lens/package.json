@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "UNLICENSED",
+  "description": "Wealth Lens, the first seed-lab tool: what your money can do, in plain words. Free to use; your data never leaves your device.",
   "type": "module",
   "scripts": {
     "dev": "next dev",
