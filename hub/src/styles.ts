@@ -88,6 +88,7 @@ th, td { padding: 1rem; text-align: left; vertical-align: top; border-bottom: 1p
 tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
 thead th { font-size: .8125rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
 tbody th { position: sticky; left: 0; background: var(--card); font-size: 1.125rem; font-weight: 800; white-space: nowrap; }
+tbody th a { display: inline-flex; align-items: center; min-height: 44px; margin-top: -.625rem; }
 td { background: var(--card); }
 .note { display: block; margin-top: .5rem; font-size: .9375rem; color: var(--muted); line-height: 1.45; }
 

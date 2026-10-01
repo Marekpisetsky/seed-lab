@@ -49,7 +49,6 @@ ${TOOLS.filter((tool) => tool.status === "live").map(
 </tbody>
 </table>
 </div>`,
-  "products",
 )}`;
   return { locale, id: "principles", title: m.meta.principles.title, description: m.meta.principles.description, body };
 }
