@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useI18n } from "@/components/i18n";
 import { localePath } from "@/i18n/locales";
 import { SEED_LAB_HUB_URL } from "@/lib/seed-lab";
 import { Email } from "./email";
+import { IntentLink } from "./intent-link";
 
 /** Link names a dictionary may use instead of an address: "[seed-lab](hub)". */
 const NAMED_LINKS: Readonly<Record<string, string>> = {
@@ -40,9 +40,9 @@ export function Marked({ text, strongClassName = "font-medium text-foreground ta
         if (target === "email") return <Email key={index} className={linkClass} />;
         if (target.startsWith("/")) {
           return (
-            <Link key={index} href={localePath(target, locale)} className={linkClass}>
+            <IntentLink key={index} href={localePath(target, locale)} className={linkClass}>
               {words}
-            </Link>
+            </IntentLink>
           );
         }
         return (

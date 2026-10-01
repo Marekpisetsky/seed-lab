@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo } from "react";
 import { HoldingChartRow } from "@/components/charts/holding-chart-card";
 import { InstrumentRow } from "@/components/charts/instrument-row";
@@ -9,6 +8,7 @@ import { PricesUpdated } from "@/components/prices-updated";
 import { HoldingsList } from "@/components/portfolio/holdings-list";
 import { Card } from "@/components/ui/card";
 import { Gain } from "@/components/ui/gain";
+import { IntentLink } from "@/components/ui/intent-link";
 import { usePricedHoldings } from "@/hooks/use-plan";
 import { localePath } from "@/i18n/locales";
 import { setHoldings } from "@/lib/app-store";
@@ -37,9 +37,9 @@ function GainHeadline({ gain }: { gain: ReturnType<typeof headlineGain> }) {
         );
       })}
       <p className="text-sm">
-        <Link href={localePath("/", locale)} className="font-medium text-accent underline-offset-2 hover:underline">
+        <IntentLink href={localePath("/", locale)} className="font-medium text-accent underline-offset-2 hover:underline">
           {m.stocks.whatItMeans}
-        </Link>
+        </IntentLink>
       </p>
     </section>
   );
