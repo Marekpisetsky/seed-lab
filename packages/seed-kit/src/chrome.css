@@ -11,7 +11,7 @@
 
 .sk-header { position: relative; z-index: 20; background: var(--card); color: var(--foreground); border-bottom: 1px solid var(--border); }
 .sk-header.theme-dark { background: var(--background); }
-.sk-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; padding-top: .5rem; padding-bottom: .5rem; }
+.sk-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; padding-top: .5rem; padding-bottom: .5rem; }
 .sk-header a { color: inherit; text-decoration: none; }
 .sk-header a:focus-visible, .sk-header summary:focus-visible, .sk-footer a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 
@@ -52,6 +52,12 @@
 .sk-links a { display: flex; align-items: center; min-height: 44px; padding: 0 .5rem; color: var(--muted); font-size: .875rem; text-decoration: none; }
 .sk-links a:hover { color: var(--foreground); text-decoration: underline; text-underline-offset: .2em; }
 .sk-note { margin: 0; color: var(--muted); font-size: .8125rem; line-height: 1.5; }
+
+/* A longer tool name still fits beside EN/ES and the launcher on a 360 px phone. */
+@media (max-width: 24rem) {
+  .sk-bar { column-gap: .5rem; }
+  .sk-brand { gap: .375rem; font-size: 1rem; }
+}
 
 @media (min-width: 48rem) {
   .sk-brand { margin-right: 0; }

@@ -49,7 +49,8 @@ herramienta y la prueba de los principios.
 - `hub/` — la web de seed-lab: misión, principios, productos y hoja de
   ruta. Ver `hub/README.md`.
 - `projects/` — los productos. Publicado, uno: `projects/wealth-lens/`.
-  Betas ocultas hechas con Forja: `projects/cost-lens/`. Ver
+  Betas ocultas hechas con Forja: `projects/cost-lens/` y
+  `projects/inflation-lens/`. Ver
   `projects/README.md` para lo que pide cada producto.
 - `packages/seed-kit/` — la base común que importan el hub y cada
   producto: colores, cabecera y pie, lista de herramientas, idiomas,
