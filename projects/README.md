@@ -2,8 +2,10 @@
 
 Los productos de seed-lab: herramientas digitales gratuitas y centradas en
 la privacidad para Europa. Hoy hay uno publicado, [Wealth Lens](wealth-lens/).
-[Cost Lens](cost-lens/) es una beta oculta, hecha con Forja: funciona,
-pero aún no está publicada ni se muestra en el hub.
+[Cost Lens](cost-lens/) e [Inflation Lens](inflation-lens/) son betas
+ocultas, hechas con Forja: funcionan, pero aún no están publicadas ni se
+muestran en el hub (las cifras de Inflation Lens son, además,
+provisionales).
 
 ## Qué pide cada producto
 
