@@ -26,15 +26,9 @@ const IN_SENTENCE = {
 export const en = {
   site: {
     name: "Wealth Lens",
-    skip: "Skip to content",
     tagline: "What your money can do, in plain words.",
-    nav: { label: "Pages", money: "My money", test: "Test my plan", stocks: "My stocks" },
-    language: "Language",
+    nav: { money: "My money", test: "Test my plan", stocks: "My stocks" },
     footerNote: "Nothing is saved or sent. Not financial advice.",
-    footer: "More about Wealth Lens",
-    copyright: "© 2026 seed-lab. Free to use.",
-    partOf: "Part of seed-lab",
-    seedLab: "seed-lab",
   },
   meta: {
     money: { title: "What your money can do", description: "See how your money grows and what it pays you. Free and private." },
@@ -340,12 +334,6 @@ export const en = {
     title: "This page does not exist",
     text: "Maybe the address has a typo, or the page moved.",
     home: "Go to Wealth Lens",
-  },
-  launcher: {
-    open: "seed-lab projects",
-    hub: "All the seed-lab projects",
-    projects: "Projects",
-    current: "You are here",
   },
   money: { title: "My money" },
   stocks: {

@@ -13,7 +13,7 @@
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
-import { BRAND, INK, SEED_MARK, TOUCH_ICON } from "../src/icons.ts";
+import { BRAND, INK, SEED_MARK, TOUCH_ICON } from "../../packages/seed-kit/src/icons.ts";
 import { messages } from "../src/i18n/index.ts";
 
 const root = new URL("../../", import.meta.url);

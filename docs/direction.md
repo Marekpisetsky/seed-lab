@@ -33,6 +33,34 @@ de quien las usa. No hay ingresos ni pagos: todo es gratis, y mantenerlo
 cuesta cero (regla de seed-lab). Si algún día hay financiación, vendrá de
 los usuarios, nunca de vender sus datos ni de contratos con gobiernos.
 
+## Cómo construimos: la plataforma
+
+Como NVIDIA, que levanta cada producto sobre su propia infraestructura en
+vez de empezar de cero, cada herramienta de seed-lab nace de una base
+común, interna, que tiene dos piezas:
+
+- **seed-kit** ([`packages/seed-kit`](../packages/seed-kit/README.md)):
+  los colores (`tokens.css`), la cabecera y el pie de seed-lab (con el
+  selector EN/ES y el lanzador de herramientas), la lista única de
+  herramientas, los idiomas y los formatos de números, la página de
+  privacidad y condiciones, y las comprobaciones que toda página pasa:
+  peso, nada de otros sitios, nada guardado en el navegador, lenguaje
+  sencillo. Las apps lo importan desde el código, no lo copian: un
+  arreglo en la base llega a todas.
+- **Forja** ([`tools/forja`](../tools/forja/README.md)), con su molde
+  `web-tool`: crea una herramienta nueva ya conectada a seed-kit, en
+  inglés y en español, con un cálculo real de ejemplo, tests que pasan y
+  un límite de 50 KB por página, y la añade a la lista como beta oculta.
+
+Así, cada herramienta es privada, ligera y bilingüe desde el primer día,
+y hacer una nueva cuesta horas, no semanas. **Todo producto nuevo nace de
+esta plataforma.** El hub y Wealth Lens ya están construidos sobre ella.
+
+La plataforma es infraestructura interna, no un producto: no se publica
+por separado ni es el peldaño 2 de la escalera (herramientas para
+desarrolladores que otros adoptan), y mucho menos el 3. Si alguna de sus
+piezas se publica algún día, será al subir ese peldaño y con su condición.
+
 ## Escalera
 
 Cada peldaño se sube solo cuando se cumple su condición. **Hoy estamos en
@@ -122,8 +150,9 @@ esconde: está en esa tabla, en la página *Roadmap* del hub y en
 ## Reglas de trabajo
 
 Las del [README](../README.md): cero coste, verificación antes que
-promesa, solo lo que existe (lo pendiente va a la hoja de ruta) y un solo
-sistema visual para todo seed-lab.
+promesa, solo lo que existe (lo pendiente va a la hoja de ruta), un solo
+sistema visual para todo seed-lab y nada empieza de cero: cada producto
+nace de la plataforma.
 
 ## Contacto
 

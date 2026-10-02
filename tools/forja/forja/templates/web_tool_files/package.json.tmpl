@@ -1,0 +1,26 @@
+{
+  "name": "__ID__",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "description": "__NAME__, a seed-lab tool: static pages built on seed-kit. Nothing is saved or sent.",
+  "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "build": "node --experimental-strip-types src/build.ts",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test test/*.test.ts",
+    "check": "npm run lint && npm run typecheck && npm test",
+    "serve": "npm run build && npx --yes serve@14 dist"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.20.4",
+    "eslint": "^10.11.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.0"
+  }
+}

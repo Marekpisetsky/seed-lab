@@ -19,14 +19,14 @@ la primera herramienta de seed-lab: gratuita y centrada en la privacidad.
   analítica.
 
 **Cómo cumple los cinco principios de seed-lab** (la misma fila que la
-tabla de *Principles* del hub, `hub/content/tools.json`):
+tabla de *Principles* del hub, `packages/seed-kit/src/tools.json`):
 
 | Principio | Estado | Por qué |
 | --- | --- | --- |
 | Your data never leaves your device | Cumple | Todo se calcula en el navegador; nada se guarda ni se envía. |
 | Transparent | En parte | Gratis, con método y fuentes públicos; los cambios del método aún no se publican. |
 | Truly European | Pendiente | EN y ES, pero alojada en Vercel (EE. UU.) y sin auditoría de accesibilidad hecha por personas. |
-| Light | Cumple | De 204 a 222 KB por página en la primera visita, por debajo del límite de 350 KB. |
+| Light | Cumple | De 204 a 224 KB por página en la primera visita, por debajo del límite de 350 KB. |
 | For everyone | En parte | Palabras sencillas, teclado y objetivos de 44 px; aún sin pruebas con personas reales. |
 
 **Estado actual (2026-10-01):** dos pantallas (Next.js 16 + TypeScript +
@@ -459,9 +459,9 @@ páginas y los dos idiomas): fondo casi negro, el icono y el lema.
 
 ## Identidad visual
 
-Los colores viven en `src/app/tokens.css`, el mismo archivo, byte a byte,
-que usa el hub (`hub/src/tokens.css`), para que las dos webs se vean como
-una familia: blanco puro o casi negro (#0A0A0A), grises neutros sin tinte
+Los colores viven en el `tokens.css` de seed-kit
+(`packages/seed-kit/src/tokens.css`), el único archivo de colores de todas
+las apps de seed-lab, para que se vean como una familia: blanco puro o casi negro (#0A0A0A), grises neutros sin tinte
 cálido y un único color de marca, el verde de la semilla. `--brand`
 (#00A36C; #1FCB86 sobre oscuro) rellena lo grande: logo, iconos y el área
 de crecimiento del gráfico; `--accent` (#00774C; #3DDC97 sobre oscuro) es
@@ -472,19 +472,33 @@ daltonismo y contraste. Todo texto mantiene al menos 4,5:1 sobre el
 fondo, la tarjeta, el relleno sutil y su propio tinte.
 `globals.css` solo los importa y los nombra para Tailwind. Tipografía del
 sistema (sin fuentes descargadas), títulos en extra-negrita.
-`src/app/tokens.test.ts` comprueba que el archivo es idéntico al del hub y
-que el icono y la imagen para compartir usan sus valores.
+`src/app/tokens.test.ts` comprueba que el icono y la imagen para compartir
+usan sus valores (el contraste lo comprueban los tests de seed-kit).
 
-## Lanzador de seed-lab
+## Cabecera y pie de seed-lab
 
-En la cabecera, junto a EN/ES, un botón de rejilla abre un panel pequeño:
-"seed-lab" (enlace al hub) y la lista de proyectos, con Wealth Lens
-marcado como actual. La URL del hub es una constante única
-(`SEED_LAB_HUB_URL` en `src/lib/seed-lab.ts`, hoy
-`https://seed-lab-hub.vercel.app`, provisional) y la lista sale de
-`src/data/seed-lab-projects.json` (`id`, `name`, `url`, `current`): para
-añadir un proyecto o cambiar el hub no hace falta tocar componentes. Se
-cierra con Escape (el foco vuelve al botón) o tocando fuera.
+La cabecera y el pie son los de seed-kit (`packages/seed-kit`), los mismos
+que llevan el hub y cada herramienta: la semilla con "Wealth Lens", las
+páginas, EN/ES y el lanzador de seed-lab; en el pie, los controles de
+datos, los enlaces, "Parte de seed-lab", la nota y el copyright.
+`src/components/site/site-shell.tsx` solo dice lo propio de Wealth Lens
+(su nombre, páginas, enlaces y nota) y pasa `IntentLink`, para que
+cambiar de página o de idioma no pierda lo escrito.
+
+El lanzador es un botón de rejilla junto a EN/ES que abre un panel
+pequeño: "seed-lab" (enlace al hub) y las herramientas visibles de la
+lista común (`packages/seed-kit/src/tools.json`), con Wealth Lens marcado
+como actual. Se cierra con Escape (el foco vuelve al botón), tocando fuera
+o al elegir una herramienta. La URL del hub es una constante del kit
+(`HUB_URL` en `packages/seed-kit/src/site.ts`, hoy
+`https://seed-lab-hub.vercel.app`, provisional; `src/lib/seed-lab.ts` la
+reexporta). `src/components/site/chrome.test.ts` comprueba que el
+componente de React dibuja lo mismo que la versión HTML del kit.
+
+Para usar el kit desde fuera de su carpeta: el alias `@seed-kit/*` de
+`tsconfig.json`, `turbopack.root` en la raíz del repo (`next.config.ts`) y
+`npm run typecheck` (`tsconfig.typecheck.json`, que `npm run build` ejecuta
+antes de `next build`).
 
 ## Licencias de los datos
 
@@ -715,7 +729,8 @@ y abrir `http://<IP-de-la-máquina>:3000` desde la misma red.
 npm test          # tests unitarios (Vitest), una sola pasada
 npm run test:watch
 npm run lint      # ESLint (config de Next.js)
-npm run build     # también verifica los tipos de TypeScript
+npm run typecheck # tipos de TypeScript, también los de seed-kit
+npm run build     # primero los tipos, luego el sitio estático en out/
 ```
 
 Los tests cubren la lógica, que vive separada de la UI en `src/lib/` y
@@ -781,7 +796,7 @@ src/
                                que les da sus palabras; [lang]/ las demás (/es/…);
                                / (My money), /stocks (My stocks), /test;
                                not-found.tsx, HTML sin código propio;
-                               tokens.css (colores de seed-lab), icon.svg
+                               icon.svg (los colores y la cabecera: seed-kit)
   components/                  money/ (calculator-card: las preguntas; growth-chips;
                                more-options, cargado al abrirlo; results y
                                result-card: el resultado por niveles y sus

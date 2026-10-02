@@ -1,18 +1,17 @@
-import { html, raw } from "./html.ts";
-import type { Html } from "./html.ts";
+import { footerHtml, headerHtml } from "../../packages/seed-kit/src/chrome-html.ts";
+import { footerModel, headerModel } from "../../packages/seed-kit/src/chrome.ts";
+import type { Weight } from "../../packages/seed-kit/src/checks.ts";
+import { languageScript } from "../../packages/seed-kit/src/detect.ts";
+import { html, raw } from "../../packages/seed-kit/src/html.ts";
+import type { Html } from "../../packages/seed-kit/src/html.ts";
 import { DEFAULT_LOCALE, LOCALE_SETTINGS, LOCALES, PAGES, localePath, messages } from "./i18n/index.ts";
 import type { Locale, PageId } from "./i18n/index.ts";
-import { SEED } from "./icons.ts";
 import { STYLES } from "./styles.ts";
 import { EMAIL, EMAIL_SCRIPT, hasEmail } from "./email.ts";
 import { SITE_URL } from "./site.ts";
-import { TOOLS } from "./content.ts";
+import { SHOWN_TOOLS, toolById } from "./content.ts";
 
-/** What the footer says about the page's own weight, in bytes. */
-export interface Weight {
-  bytes: number;
-  compressed: number;
-}
+export type { Weight };
 
 export interface PageInput {
   locale: Locale;
@@ -26,18 +25,19 @@ export interface PageInput {
 /** The address a word in a dictionary link stands for, in the page's language; "[email](email)" is the email address. */
 export function linkTo(locale: Locale): (href: string) => string | Html {
   const named: Readonly<Record<string, string | Html>> = {
-    "wealth-lens": TOOLS[0].url,
+    "wealth-lens": toolById("wealth-lens").url,
     email: EMAIL,
   };
   return (href) => named[href] ?? (href.startsWith("/") ? localePath(href, locale) : href);
 }
 
 /**
- * The first visit from elsewhere to an English page, with a browser that
- * prefers Spanish, goes to the Spanish page. Coming from this site (the
- * language switch) it stays. Nothing is stored. Only on English pages.
+ * seed-kit's language script: the first visit from elsewhere to an English
+ * page, with a browser that prefers Spanish, goes to the Spanish page.
+ * Coming from this site (the language switch) or reloading, it stays.
+ * Nothing is stored. Only on English pages: the others need nothing.
  */
-const LANGUAGE_REDIRECT = `(function(){try{var r=document.referrer;if(r&&new URL(r).origin===location.origin)return;var l=((navigator.languages&&navigator.languages[0])||navigator.language||"").toLowerCase();if(l.slice(0,2)==="es")location.replace("/es"+location.pathname+location.hash)}catch(e){}})()`;
+const LANGUAGE_SCRIPT = languageScript({ folders: true });
 
 function formatKb(bytes: number, locale: Locale): string {
   return new Intl.NumberFormat(LOCALE_SETTINGS[locale].intl, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(bytes / 1000);
@@ -67,12 +67,35 @@ export function layout(page: PageInput, weight: Weight): string {
     { id: "principles", label: m.site.nav.principles },
     { id: "about", label: m.site.nav.about },
   ];
+  const header = headerModel({
+    locale,
+    name: m.site.name,
+    homeHref: localePath("/", locale),
+    homeCurrent: id === "home",
+    nav: nav.map((item) => ({ label: item.label, href: localePath(PAGES[item.id], locale), current: item.id === id })),
+    languageHrefs: Object.fromEntries(LOCALES.map((other) => [other, localePath(path, other)])) as Record<Locale, string>,
+    current: "hub",
+    hubHref: localePath("/", locale),
+    theme: "dark",
+  });
+  const footer = footerModel({
+    locale,
+    links: [
+      ...SHOWN_TOOLS.map((tool) => ({ label: tool.name, href: tool.url })),
+      { label: m.site.nav.principles, href: localePath(PAGES.principles, locale) },
+      { label: m.site.nav.about, href: localePath(PAGES.about, locale) },
+      { label: m.site.roadmap, href: localePath(PAGES.roadmap, locale), current: id === "roadmap" },
+    ],
+    notes: [m.site.weight(formatKb(weight.bytes, locale), formatKb(weight.compressed, locale)), m.site.noTracking],
+    partOf: false,
+    theme: "light",
+  });
   const doc = html`<!doctype html>
 <html lang="${locale}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-${indexed && locale === DEFAULT_LOCALE ? html`<script>${raw(LANGUAGE_REDIRECT)}</script>` : ""}
+${indexed && locale === DEFAULT_LOCALE ? html`<script>${raw(LANGUAGE_SCRIPT)}</script>` : ""}
 <title>${page.title}</title>
 <meta name="description" content="${page.description}">
 ${
@@ -98,38 +121,11 @@ ${LOCALES.map((other) => html`<link rel="alternate" hreflang="${other}" href="${
 <style>${raw(STYLES)}</style>
 </head>
 <body>
-<a class="skip" href="#main">${m.site.skip}</a>
-<header class="top theme-dark">
-<div class="wrap bar">
-<a class="mark" href="${localePath("/", locale)}"${id === "home" ? raw(' aria-current="page"') : ""}>${SEED}${m.site.name}</a>
-<nav aria-label="${m.site.nav.label}">
-<ul class="menu">
-${nav.map((item) => html`<li><a href="${localePath(PAGES[item.id], locale)}"${item.id === id ? raw(' aria-current="page"') : ""}>${item.label}</a></li>`)}
-<li><ul class="langs" aria-label="${m.site.language}">
-${LOCALES.map((other) => html`<li><a href="${localePath(path, other)}" hreflang="${other}" lang="${other}"${indexed && other === locale ? raw(' aria-current="true"') : ""}>${LOCALE_SETTINGS[other].label}<span class="sr"> ${LOCALE_SETTINGS[other].name}</span></a></li>`)}
-</ul></li>
-</ul>
-</nav>
-</div>
-</header>
+${headerHtml(header)}
 <main id="main" tabindex="-1">
 ${page.body}
 </main>
-<footer class="foot theme-light">
-<div class="wrap">
-<nav aria-label="${m.site.footerNav}">
-<ul>
-${TOOLS.filter((tool) => tool.status === "live").map((tool) => html`<li><a href="${tool.url}">${tool.name}</a></li>`)}
-<li><a href="${localePath(PAGES.principles, locale)}">${m.site.nav.principles}</a></li>
-<li><a href="${localePath(PAGES.about, locale)}">${m.site.nav.about}</a></li>
-<li><a href="${localePath(PAGES.roadmap, locale)}"${id === "roadmap" ? raw(' aria-current="page"') : ""}>${m.site.roadmap}</a></li>
-</ul>
-</nav>
-<p class="weight">${m.site.weight(formatKb(weight.bytes, locale), formatKb(weight.compressed, locale))}</p>
-<p>${m.site.noTracking}</p>
-<p class="copyright">${m.site.copyright}</p>
-</div>
-</footer>
+${footerHtml(footer)}
 ${hasEmail(page.body) ? html`<script>${EMAIL_SCRIPT}</script>\n` : ""}</body>
 </html>
 `;

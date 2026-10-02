@@ -1,7 +1,7 @@
 /*
- * seed-lab design tokens: the same file, byte for byte, in the hub
- * (hub/src/tokens.css) and in Wealth Lens (src/app/tokens.css). A test in
- * each app checks that they match, so both sites look like one family.
+ * seed-lab design tokens, the one copy: every app imports this file from
+ * seed-kit (packages/seed-kit/src/tokens.css) instead of keeping its own,
+ * so all of them look like one family. The kit's tests check the contrast.
  *
  * Pure white and near-black, neutral greys with no warm tint, and one
  * brand colour: seed green, taken from the seed in the logo (OKLCH hue

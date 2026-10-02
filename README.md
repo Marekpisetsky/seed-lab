@@ -18,6 +18,11 @@ herramienta y la prueba de los principios.
   en su página *Roadmap*.
 - **Web de seed-lab:** [`hub/`](hub/README.md), estática, en EN y ES, sin
   cookies.
+- **Cómo construimos:** cada producto nace de una plataforma interna,
+  [seed-kit](packages/seed-kit/README.md) (colores, cabecera y pie,
+  idiomas, privacidad, comprobaciones) más el molde `web-tool` de
+  [Forja](tools/forja/README.md). Ver "Cómo construimos" en
+  [`docs/direction.md`](docs/direction.md).
 - **Alojamiento:** hoy en Vercel (EE. UU.). El plan para pasar a Europa,
   sin migrar todavía, está en [`docs/hosting.md`](docs/hosting.md).
 - **Licencia:** código propietario, © 2026 Marek Pisetsky, todos los
@@ -33,8 +38,11 @@ herramienta y la prueba de los principios.
   pruebas de que funciona (tests, build, Lighthouse, accesibilidad).
 - **Solo lo que existe:** ningún texto presenta como hecho algo que aún
   no lo está; lo pendiente va a la hoja de ruta.
-- **Un solo sistema visual:** los colores viven en `tokens.css`, el mismo
-  archivo en el hub y en cada producto.
+- **Un solo sistema visual:** los colores viven en el `tokens.css` de
+  seed-kit, que importan el hub y cada producto; la cabecera y el pie
+  también son los de seed-kit.
+- **Nada empieza de cero:** cada producto nuevo nace de la plataforma
+  (seed-kit y Forja) y la usa desde el código, sin copiarla.
 
 ## Estructura
 
@@ -42,11 +50,16 @@ herramienta y la prueba de los principios.
   ruta. Ver `hub/README.md`.
 - `projects/` — los productos. Hoy, uno: `projects/wealth-lens/`. Ver
   `projects/README.md` para lo que pide cada producto.
+- `packages/seed-kit/` — la base común que importan el hub y cada
+  producto: colores, cabecera y pie, lista de herramientas, idiomas,
+  privacidad y comprobaciones. Interna, no es un producto. Ver
+  `packages/seed-kit/README.md`.
 - `docs/` — dirección (`direction.md`), plan de alojamiento
   (`hosting.md`), historia (`history.md`: cómo se definía seed-lab antes
   de septiembre de 2026) y capturas.
-- `tools/forja/` — herramienta interna: genera proyectos de Python que
-  nacen con tests que pasan. No es un producto.
+- `tools/forja/` — herramienta interna: genera herramientas web de
+  seed-lab sobre seed-kit (molde `web-tool`) y proyectos de Python, todos
+  con tests que pasan al nacer. No es un producto.
 - `cells/`, `core/` y `seed.py` — banco de pruebas: ideas rápidas en un
   archivo de Python cada una, que `seed.py` descubre y ejecuta.
 
@@ -58,11 +71,17 @@ python seed.py run fortune
 
 ## Añadir un producto
 
-1. Crear `projects/<nombre>/` con su `README.md`: qué es, qué no es, cómo
-   cumple los cinco principios y en qué estado está.
-2. Usar el `tokens.css` compartido y la familia de iconos de seed-lab.
-3. Añadirlo a `hub/content/tools.json`, con su fila de "Cómo lo cumple
-   cada producto" (cumple / en parte / pendiente por principio).
+1. Crearlo con Forja:
+   `python tools/forja/forja.py new <id> --tipo web-tool --categoria money`
+   (o `life`). Nace en `projects/<id>/`, sobre seed-kit, en EN y ES, con
+   tests que pasan, y entra en `packages/seed-kit/src/tools.json` como
+   beta oculta (`"listed": false`).
+2. Cambiar el ejemplo por lo suyo y escribir en su `README.md` qué es, qué
+   no es, cómo cumple los cinco principios y en qué estado está.
+3. Completar su entrada en `tools.json`, con su fila de "Cómo lo cumple
+   cada producto" (cumple / en parte / pendiente por principio). Se
+   muestra en el hub y en los lanzadores cuando pasa a `"listed": true` o
+   a `live`.
 
 ## Añadir una idea rápida
 

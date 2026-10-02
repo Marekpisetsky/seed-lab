@@ -1,4 +1,4 @@
-import { html } from "../html.ts";
+import { html } from "../../../packages/seed-kit/src/html.ts";
 import { LOCALES, localePath, messages } from "../i18n/index.ts";
 import { band } from "../layout.ts";
 import type { PageInput } from "../layout.ts";

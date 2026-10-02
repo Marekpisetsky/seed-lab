@@ -5,14 +5,10 @@ import type { Messages } from "./en.ts";
 export const es: Messages = {
   site: {
     name: "seed-lab",
-    skip: "Saltar al contenido",
-    nav: { label: "Páginas", principles: "Principios", about: "Acerca de" },
-    language: "Idioma",
-    footerNav: "Más",
+    nav: { principles: "Principios", about: "Acerca de" },
     roadmap: "Hoja de ruta",
     noTracking: "Sin cookies. Sin analítica. No se guarda nada sobre ti.",
     weight: (kb: string, compressed: string) => `Esta página pesa ${kb} KB (${compressed} KB comprimida), medido al construirla.`,
-    copyright: "© 2026 seed-lab. De uso gratuito.",
   },
   meta: {
     home: {

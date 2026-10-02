@@ -18,10 +18,17 @@ TypeScript, ejecutado directamente por Node 22
 dependencias en tiempo de ejecución: las de `package.json` son solo para
 lint, tipos y tests.
 
+Lo que comparte con las demás herramientas viene de **seed-kit**
+([`../packages/seed-kit`](../packages/seed-kit/README.md)), importado
+desde el código, no copiado: los colores (`tokens.css`), la cabecera y el
+pie de seed-lab (con el lanzador de herramientas y EN/ES), la lista de
+herramientas (`tools.json`), el script de idioma, los iconos, la medida
+del peso y las comprobaciones de privacidad y de lenguaje sencillo.
+
 - Sin cookies, sin almacenamiento del navegador, sin analítica, sin
   fuentes ni scripts externos.
 - Dos scripts mínimos, en línea, que no guardan nada:
-  - solo en las páginas en inglés, el del idioma: la primera visita que
+  - solo en las páginas en inglés, el del idioma (el de seed-kit): la primera visita que
     llega desde fuera con un navegador en español va a la página en
     español; el selector EN/ES siempre gana;
   - solo donde aparece el correo (About), el del contacto (`src/email.ts`).
@@ -37,15 +44,20 @@ lint, tipos y tests.
   u oscuro, así que la página nunca es un bloque oscuro continuo. Títulos
   grandes, mucho aire y un solo botón destacado por franja (un test lo
   comprueba).
-- **Colores:** `src/tokens.css`, el mismo archivo que Wealth Lens
-  (`projects/wealth-lens/src/app/tokens.css`): blanco o #0A0A0A, grises
+- **Cabecera y pie:** los de seed-kit (`headerHtml` y `footerHtml`),
+  los mismos que lleva cada herramienta: la semilla y el nombre, las
+  páginas, EN/ES y el lanzador (un `<details>`, sin script) con las
+  herramientas visibles. Aquí la cabecera es siempre oscura y el pie
+  siempre claro, y el pie no dice "Parte de seed-lab" (es seed-lab).
+- **Colores:** el `tokens.css` de seed-kit, el único archivo de colores
+  de todas las apps: blanco o #0A0A0A, grises
   neutros y un solo verde de marca, el de la semilla: `--brand` #00A36C
   (#1FCB86 sobre oscuro) para botones, logo e iconos, y `--accent`
-  #00774C (#3DDC97 sobre oscuro) para texto y enlaces. Los tests
-  comprueban que los dos archivos son idénticos, que todo texto mantiene
-  4,5:1 (WCAG AA) en los dos modos, que los grises son neutros y que el
-  verde queda lejos del de NVIDIA (#76B900).
-- **Iconos:** la semilla con brote (`src/icons.ts`), en formas rellenas
+  #00774C (#3DDC97 sobre oscuro) para texto y enlaces. Los tests de
+  seed-kit comprueban que todo texto mantiene 4,5:1 (WCAG AA) en los dos
+  modos, que los grises son neutros y que el verde queda lejos del de
+  NVIDIA (#76B900).
+- **Iconos:** la semilla con brote (`icons.ts` de seed-kit), en formas rellenas
   para que se lea a 16 px. `npm run images` dibuja
   `static/apple-touch-icon.png`, `static/og.png` y los iconos raster de
   Wealth Lens a partir de los SVG, con el Chromium de Playwright
@@ -55,20 +67,18 @@ lint, tipos y tests.
 - **Peso visible:** el pie de cada página dice cuánto pesa (HTML con su
   CSS, más el icono), sin comprimir y con gzip. Se mide al construir y se
   vuelve a generar la página hasta que el número que muestra es el real
-  (escribir el número cambia el peso). Un test lo comprueba.
+  (escribir el número cambia el peso; `renderWithWeight` de seed-kit). Un
+  test lo comprueba.
 
 ```
 hub/
-  content/tools.json    productos y cómo cumplen cada principio (la tabla)
   content/blocks.json   herramientas para desarrolladores previstas (Roadmap)
   src/build.ts          genera dist/ (una carpeta por página e idioma)
   src/i18n/en.ts, es.ts todas las palabras, con el mismo formato
   src/pages/            portada, principles, about, roadmap, 404
-  src/layout.ts         cabecera, franjas, pie con el peso, metadatos
-  src/styles.ts         el CSS, en línea
-  src/tokens.css        los colores, compartidos con Wealth Lens
-  src/icons.ts          la semilla, el favicon y los iconos de principios
-  src/weight.ts         mide y fija el peso de cada página
+  src/layout.ts         la página: cabecera y pie de seed-kit, franjas, metadatos
+  src/content.ts        las herramientas (de seed-kit) y los bloques
+  src/styles.ts         el CSS, en línea (tokens y cabecera/pie de seed-kit, y el del hub)
   scripts/images.ts     dibuja el icono táctil y la imagen para compartir
   static/               archivos que se sirven tal cual
   test/build.test.ts    peso, privacidad, franjas, enlaces y honestidad
@@ -89,8 +99,10 @@ Para verlo en local: `npx serve dist`.
 
 ## Añadir un producto o un bloque
 
-- Producto: una entrada en `content/tools.json` con `name`, `status`
-  (`live` o `coming`; la portada solo muestra los `live`), `url` (https),
+- Producto: una entrada en `packages/seed-kit/src/tools.json` (la misma
+  lista que leen los lanzadores de todas las apps) con `name`, `status`
+  (`live`, `beta` o `coming`; se muestran los `live` y las `beta` con
+  `"listed": true`), `category` (`money` o `life`), `url` (https),
   `languages`, `tagline` y `description` en cada idioma, y `principles`:
   para cada uno de los cinco principios, `status` (`meets`, `partly` o
   `pending`) y una nota corta en cada idioma. Es su fila en la tabla de

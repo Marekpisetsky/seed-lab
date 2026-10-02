@@ -1,0 +1,28 @@
+/**
+ * The result as HTML, in the page's language: the build writes it into the
+ * page (so it shows before anyone types, even without scripts) and the
+ * browser redraws it as numbers change. Same code in both places.
+ */
+
+import { formatsFor } from "__KIT__/format.ts";
+import { html, type Html } from "__KIT__/html.ts";
+import type { Locale } from "__KIT__/locales.ts";
+import { change } from "./calc.ts";
+import { WORDS } from "./i18n.ts";
+
+export function resultHtml(before: number, after: number, locale: Locale): Html {
+  const words = WORDS[locale].home;
+  const result = change(before, after);
+  if (!result) return html`<p class="sk-sentence">${words.invalid}</p>`;
+  const formats = formatsFor(locale);
+  const amount = `${result.amount > 0 ? "+" : ""}${formats.number(result.amount, 2)}`;
+  if (result.fraction === null) {
+    return html`<p class="sk-big">${amount}</p>
+<p class="sk-sentence">${result.amount === 0 ? words.same : words.fromZero}</p>`;
+  }
+  const percent = formats.percent(Math.abs(result.fraction));
+  const sentence = result.amount > 0 ? words.up(percent) : result.amount < 0 ? words.down(percent) : words.same;
+  return html`<p class="sk-big">${formats.percent(result.fraction, { signed: true })}</p>
+<p class="sk-sentence">${sentence}</p>
+<p class="sk-muted">${words.difference(amount)}</p>`;
+}

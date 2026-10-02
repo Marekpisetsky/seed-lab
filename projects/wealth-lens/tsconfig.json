@@ -20,7 +20,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@seed-kit/*": ["../../packages/seed-kit/src/*"]
     }
   },
   "include": [
