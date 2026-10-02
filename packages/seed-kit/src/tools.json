@@ -125,47 +125,47 @@
       "es"
     ],
     "tagline": {
-      "en": "Inflation Lens, a new seed-lab tool.",
-      "es": "Inflation Lens, una herramienta nueva de seed-lab."
+      "en": "What your euros from back then are worth today.",
+      "es": "Lo que valen hoy tus euros de entonces."
     },
     "description": {
-      "en": "Inflation Lens is being built. It runs in your browser: nothing is saved or sent.",
-      "es": "Inflation Lens está en construcción. Funciona en tu navegador: no se guarda ni se envía nada."
+      "en": "Pick an amount, a year and an EU country or the euro area. See what it is worth today, and the other way round, from Eurostat's figures. Nothing is saved or sent.",
+      "es": "Elige una cantidad, un año y un país de la UE o la zona euro. Mira lo que vale hoy, y al revés, con las cifras de Eurostat. No se guarda ni se envía nada."
     },
     "principles": {
       "device": {
-        "status": "pending",
+        "status": "meets",
         "note": {
-          "en": "Not checked yet.",
-          "es": "Aún sin comprobar."
+          "en": "Worked out in your browser. Nothing is saved or sent.",
+          "es": "Se calcula en tu navegador. No se guarda ni se envía nada."
         }
       },
       "transparent": {
-        "status": "pending",
+        "status": "partly",
         "note": {
-          "en": "Not checked yet.",
-          "es": "Aún sin comprobar."
+          "en": "Free, with Eurostat as its source and licence on the page. Its figures are provisional for now.",
+          "es": "Gratis, con Eurostat como fuente y su licencia en la página. Por ahora sus cifras son provisionales."
         }
       },
       "europe": {
         "status": "pending",
         "note": {
-          "en": "Not checked yet.",
-          "es": "Aún sin comprobar."
+          "en": "In English and Spanish, but hosted in the US. No audit by people yet.",
+          "es": "En inglés y español, pero alojado en EE. UU. Aún sin auditoría por personas."
         }
       },
       "light": {
-        "status": "pending",
+        "status": "meets",
         "note": {
-          "en": "Not checked yet.",
-          "es": "Aún sin comprobar."
+          "en": "About 15 KB per page, compressed, under the 350 KB limit.",
+          "es": "Unos 15 KB por página, comprimida, por debajo del límite de 350 KB."
         }
       },
       "everyone": {
-        "status": "pending",
+        "status": "partly",
         "note": {
-          "en": "Not checked yet.",
-          "es": "Aún sin comprobar."
+          "en": "Plain words, keyboard and 44 px targets. Not tested with real people yet.",
+          "es": "Palabras sencillas, teclado y objetivos de 44 px. Aún sin probar con personas reales."
         }
       }
     }

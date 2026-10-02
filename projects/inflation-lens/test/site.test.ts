@@ -10,9 +10,10 @@ import { plainLanguageProblems, textsOf } from "../../../packages/seed-kit/src/p
 import { TOOLS } from "../../../packages/seed-kit/src/tools.ts";
 import { build } from "../src/build.ts";
 import { WORDS } from "../src/i18n.ts";
-import { EXAMPLE, PAGES } from "../src/pages.ts";
+import { HICP, seriesFor } from "../src/hicp.ts";
+import { DEFAULTS, PAGES } from "../src/pages.ts";
 import { ID, LIMIT_KB, SITE_URL } from "../src/site.ts";
-import { resultHtml } from "../src/view.ts";
+import { resultHtml, timelineHtml } from "../src/view.ts";
 
 /**
  * What seed-lab promises for every tool, checked on the built site: both
@@ -78,14 +79,35 @@ describe("the site", () => {
     }
   });
 
-  it("shows the example's result before anyone types, and the browser's code draws the same", async () => {
-    const browser = (await import(pathToFileURL(join(DIST, "js/view.js")).href)) as { resultHtml: typeof resultHtml };
+  it("shows the result and the timeline before anyone types, and the browser's code draws the same", async () => {
+    const browser = (await import(pathToFileURL(join(DIST, "js/view.js")).href)) as { resultHtml: typeof resultHtml; timelineHtml: typeof timelineHtml };
     for (const locale of LOCALES) {
       const page = readFileSync(join(DIST, localePath(PAGES.home, locale), "index.html"), "utf8");
-      const shown = resultHtml(EXAMPLE.before, EXAMPLE.after, locale).value;
-      assert.ok(page.includes(shown), locale);
-      assert.equal(browser.resultHtml(EXAMPLE.before, EXAMPLE.after, locale).value, shown, locale);
+      const all = seriesFor(locale, WORDS[locale].groups);
+      for (const draw of ["resultHtml", "timelineHtml"] as const) {
+        const shown = ({ resultHtml, timelineHtml })[draw](DEFAULTS, all, locale).value;
+        assert.ok(page.includes(shown), `${locale}: ${draw}`);
+        assert.equal(browser[draw](DEFAULTS, all, locale).value, shown, `${locale}: ${draw}`);
+      }
+      const carried = JSON.parse(page.match(/<script type="application\/json" id="series">([^<]*)<\/script>/)?.[1] ?? "[]");
+      assert.deepEqual(carried, all, `${locale}: the page carries the series the browser uses`);
     }
+  });
+
+  it("opens with the key sentence for 100 euros of 2010 in the euro area, and names Eurostat and its licence", () => {
+    const en = readFileSync(join(DIST, "index.html"), "utf8");
+    const es = readFileSync(join(DIST, "es", "index.html"), "utf8");
+    assert.match(en, /€100 from 2010 buy today what ≈\u00a0€\d+ bought then\./);
+    assert.match(es, /100\u00a0€ de 2010 compran hoy lo que ≈\u00a0\d+\u00a0€ entonces\./);
+    for (const page of [en, es]) {
+      assert.match(page, /href="https:\/\/ec\.europa\.eu\/eurostat\/databrowser\/view\/prc_hicp_aind\/default\/table"/);
+      assert.match(page, /Creative Commons/);
+    }
+  });
+
+  it("says on the page when its figures are provisional", () => {
+    const page = readFileSync(join(DIST, "index.html"), "utf8");
+    assert.equal(page.includes('class="sk-card provisional"'), HICP.provisional);
   });
 });
 
@@ -98,7 +120,9 @@ describe("the words", () => {
 
   it("read plainly: no jargon, short sentences (seed-kit's check)", () => {
     for (const locale of LOCALES) {
-      assert.deepEqual(plainLanguageProblems(textsOf(WORDS[locale]), locale, { longForm: { maxWords: 22, paths: (path) => path.startsWith("footer.") } }), [], locale);
+      // The answers and the sources are read slowly: up to 22 words.
+      const longForm = (path: string) => path.startsWith("footer.") || /^home\.(worthToday|worthThen|key|provisional|sources)/.test(path);
+      assert.deepEqual(plainLanguageProblems(textsOf(WORDS[locale]), locale, { longForm: { maxWords: 22, paths: longForm } }), [], locale);
     }
   });
 });

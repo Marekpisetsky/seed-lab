@@ -6,13 +6,15 @@
  */
 
 import { formatsFor } from "../../../packages/seed-kit/src/format.ts";
-import { html, rich, type Html } from "../../../packages/seed-kit/src/html.ts";
+import { html, raw, rich, type Html } from "../../../packages/seed-kit/src/html.ts";
 import { legalLink, legalPage } from "../../../packages/seed-kit/src/legal.ts";
 import { LOCALES, type Locale } from "../../../packages/seed-kit/src/locales.ts";
 import { pagePath } from "../../../packages/seed-kit/src/page.ts";
 import { WORDS } from "./i18n.ts";
 import { BASE_PATH, NAME } from "./site.ts";
-import { resultHtml } from "./view.ts";
+import { lastYear, yearOptions } from "./calc.ts";
+import { HICP, seriesFor } from "./hicp.ts";
+import { resultHtml, timelineHtml, type Choice } from "./view.ts";
 
 /** The pages, by their address without the language. */
 export const PAGES = { home: "/", privacy: "/privacy/" } as const;
@@ -29,32 +31,54 @@ export interface Page {
   scripts: string[];
 }
 
-/** The numbers the tool opens with, so it shows a result before anyone types. */
-export const EXAMPLE = { before: 80, after: 100 } as const;
+/** What the tool opens with: the example of the key sentence, "100 € of 2010", in the euro area. */
+export const DEFAULTS: Choice = { amount: 100, year: 2010, place: "EA", direction: "today" };
+
+function json(value: unknown): Html {
+  // Inside a script element, "<" could close it: written as its escape.
+  return raw(JSON.stringify(value).replace(/</g, "\\u003c"));
+}
 
 export function home(locale: Locale): Page {
   const words = WORDS[locale];
+  const t = words.home;
   const formats = formatsFor(locale);
-  const field = (name: "before" | "after") =>
-    html`<div class="sk-field"><label for="${name}">${words.home[name]}</label><input class="sk-input" id="${name}" name="${name}" inputmode="decimal" autocomplete="off" value="${formats.number(EXAMPLE[name])}"></div>`;
+  const all = seriesFor(locale, words.groups);
+  const choice = DEFAULTS;
+  const current = all.find((series) => series.code === choice.place) ?? all[0];
+  const radio = (value: Choice["direction"], label: string) =>
+    html`<label class="choice"><input type="radio" name="direction" value="${value}"${value === choice.direction ? raw(" checked") : ""}> ${label}</label>`;
   return {
     id: "home",
     locale,
     title: words.meta.title,
     description: words.meta.description,
     scripts: ["/js/app.js"],
-    main: html`<h1>${words.home.title}</h1>
-<p class="sk-lead">${words.home.lead}</p>
+    main: html`<h1>${t.title}</h1>
+<p class="sk-lead">${t.lead}</p>
+${HICP.provisional ? html`<aside class="sk-card provisional" aria-labelledby="provisional-title"><h2 id="provisional-title">${t.provisionalTitle}</h2><p>${t.provisional}</p></aside>` : ""}
 <div class="sk-layout">
-<form class="sk-card sk-form" id="calc" aria-label="${words.home.form}">
-<div class="sk-row">${field("before")}${field("after")}</div>
+<form class="sk-card sk-form" id="calc" aria-label="${t.form}">
+<div class="sk-field"><label for="amount">${t.amount}</label><input class="sk-input" id="amount" name="amount" inputmode="decimal" autocomplete="off" value="${formats.grouped(choice.amount)}"></div>
+<div class="sk-row">
+<div class="sk-field"><label for="year">${t.year}</label><select class="sk-input" id="year" name="year">${yearOptions(current).map((year) => html`<option${year === choice.year ? raw(" selected") : ""}>${year}</option>`)}</select></div>
+<div class="sk-field"><label for="place">${t.place}</label><select class="sk-input" id="place" name="place">${all.map((series) => html`<option value="${series.code}"${series.code === choice.place ? raw(" selected") : ""}>${series.name}</option>`)}</select></div>
+</div>
+<fieldset class="sk-field directions"><legend class="sk-label">${t.direction}</legend>${radio("today", t.toToday)}${radio("then", t.toThen)}</fieldset>
 </form>
 <section class="sk-card" aria-labelledby="result-title">
-<h2 id="result-title">${words.home.result}</h2>
-<div class="sk-result" id="result" aria-live="polite">${resultHtml(EXAMPLE.before, EXAMPLE.after, locale)}</div>
-<p class="sk-small">${words.home.private}</p>
+<h2 id="result-title">${t.result}</h2>
+<div class="sk-result" id="result" aria-live="polite">${resultHtml(choice, all, locale)}</div>
+<p class="sk-small">${t.private}</p>
 </section>
-</div>`,
+</div>
+<section class="sk-card timeline-card" id="timeline" aria-labelledby="timeline-title">${timelineHtml(choice, all, locale)}</section>
+<section class="sk-prose sources" aria-labelledby="sources-title">
+<h2 id="sources-title">${t.sourcesTitle}</h2>
+<ul>${t.sources({ retrieved: formats.date(HICP.retrievedOn), today: String(lastYear(current)) }).map((line) => html`<li>${line}</li>`)}</ul>
+<p><a href="${HICP.sourceUrl}">${t.sourceLink}</a> · <a href="${HICP.licenseUrl}">${t.licenseLink}</a></p>
+</section>
+<script type="application/json" id="series">${json(all)}</script>`,
   };
 }
 

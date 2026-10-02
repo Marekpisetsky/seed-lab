@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "UNLICENSED",
-  "description": "Inflation Lens, a seed-lab tool: static pages built on seed-kit. Nothing is saved or sent.",
+  "description": "Inflation Lens, a seed-lab tool: what euros from one year are worth today, from Eurostat. Static pages built on seed-kit. Nothing is saved or sent.",
   "type": "module",
   "engines": {
     "node": "22.x"
@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test test/*.test.ts",
     "check": "npm run lint && npm run typecheck && npm test",
-    "serve": "npm run build && npx --yes serve@14 dist"
+    "serve": "npm run build && npx --yes serve@14 dist",
+    "data": "node --experimental-strip-types scripts/data.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
