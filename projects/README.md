@@ -1,7 +1,9 @@
 # projects/
 
 Los productos de seed-lab: herramientas digitales gratuitas y centradas en
-la privacidad para Europa. Hoy hay uno, [Wealth Lens](wealth-lens/).
+la privacidad para Europa. Hoy hay uno publicado, [Wealth Lens](wealth-lens/).
+[Cost Lens](cost-lens/) es una beta oculta, hecha con Forja: funciona,
+pero aún no está publicada ni se muestra en el hub.
 
 ## Qué pide cada producto
 
