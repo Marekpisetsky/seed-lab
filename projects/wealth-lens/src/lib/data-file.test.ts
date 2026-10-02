@@ -6,6 +6,8 @@ import { calculate } from "./calculator";
 import { dataFileName, parseDataFile, serializeState } from "./data-file";
 import { futureValueWithContributions } from "./finance";
 import { resolveInvestment } from "./investment";
+import { STANDARD_ASSUMPTIONS } from "./types";
+import { FORMER_CUSTOM_VOLATILITY } from "./validation";
 
 const state: AppState = {
   plan: {
@@ -60,14 +62,28 @@ describe("data file", () => {
 
   it("says what the file is and when it was saved", () => {
     const json = JSON.parse(serializeState(state, new Date("2026-09-29T10:00:00Z")));
-    expect(json).toMatchObject({ kind: "wealth-lens-data", version: 8, savedAt: "2026-09-29T10:00:00.000Z" });
+    expect(json).toMatchObject({ kind: "wealth-lens-data", version: 9, savedAt: "2026-09-29T10:00:00.000Z" });
     expect(dataFileName(new Date("2026-09-29T10:00:00Z"))).toBe("wealth-lens-2026-09-29.json");
+  });
+
+  it("reads version 8 files as they were: a chip's investment as it was, Custom growth with the S&P 500's ups and downs it had", () => {
+    const v8 = (plan: Record<string, unknown>) =>
+      parseDataFile(JSON.stringify({ kind: "wealth-lens-data", version: 8, plan: { ...INITIAL_STATE.plan, invested: 1000, monthlyContribution: 100, ...plan }, holdings: [] }));
+    const chip = v8({ investment: { kind: "asset", asset: "sp500" }, assumptions: STANDARD_ASSUMPTIONS });
+    expect(chip.ok && chip.state.plan.investment).toEqual({ kind: "asset", asset: "sp500" });
+    expect(chip.ok && chip.state.plan.assumptions).toEqual(STANDARD_ASSUMPTIONS);
+    const mine = v8({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.06 } });
+    expect(mine.ok && mine.state.plan.assumptions).toEqual({ ...STANDARD_ASSUMPTIONS, growth: 0.06, volatility: FORMER_CUSTOM_VOLATILITY });
+    // The same result as before: Custom growth moved like the S&P 500 then.
+    expect(FORMER_CUSTOM_VOLATILITY).toBe(resolveInvestment({ kind: "asset", asset: "sp500" }, []).volatility);
+    const typed = v8({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.06, volatility: 0.1 } });
+    expect(typed.ok && typed.state.plan.assumptions.volatility).toBe(0.1);
   });
 
   it("refuses files that are not Wealth Lens data", () => {
     expect(parseDataFile("not json")).toEqual({ ok: false, error: { code: "data-not-json" } });
     expect(parseDataFile('{"holdings": []}')).toEqual({ ok: false, error: { code: "data-not-ours" } });
-    expect(parseDataFile('{"kind": "wealth-lens-data", "version": 9}')).toEqual({ ok: false, error: { code: "data-newer" } });
+    expect(parseDataFile('{"kind": "wealth-lens-data", "version": 10}')).toEqual({ ok: false, error: { code: "data-newer" } });
     expect(problemText({ code: "data-newer" }, EN.m.problems)).toBe("A newer Wealth Lens made this file.");
   });
 
@@ -80,8 +96,11 @@ describe("data file", () => {
       uploadedPrices: {},
     });
     const result = parseDataFile(v1);
+    // Saved when a first visit started on the S&P 500: it still invests in it.
     expect(result.ok && result.state.plan).toEqual({
       ...INITIAL_STATE.plan,
+      investment: { kind: "asset", asset: "sp500" },
+      assumptions: STANDARD_ASSUMPTIONS,
       invested: 20_000,
       monthlyContribution: 500,
       goals: [{ id: "g1", kind: "amount", amount: 250_000 }],
@@ -176,7 +195,7 @@ describe("data file", () => {
     const result = parseDataFile(damaged);
     expect(result.ok && result.state.holdings).toEqual([state.holdings[0]]);
     // What the file lacks is 0, not the example numbers of a first visit.
-    expect(result.ok && result.state.plan).toEqual({ ...INITIAL_STATE.plan, invested: 0, monthlyContribution: 300 });
+    expect(result.ok && result.state.plan).toEqual({ ...INITIAL_STATE.plan, investment: { kind: "asset", asset: "sp500" }, assumptions: STANDARD_ASSUMPTIONS, invested: 0, monthlyContribution: 300 });
     expect(result.ok && result.state.uploadedPrices).toEqual({});
   });
 
@@ -304,11 +323,12 @@ describe("data file", () => {
       expect(custom.ok && custom.state.plan).toMatchObject({
         investment: { kind: "custom" },
         pricesOf: "NL",
-        assumptions: { growth: 0.045, volatility: null, inflation: 0.03 },
+        // Custom growth then moved like the S&P 500: it still does, so the result is the same.
+        assumptions: { growth: 0.045, volatility: FORMER_CUSTOM_VOLATILITY, inflation: 0.03 },
       });
       // The old default of 2% is the Netherlands' reference: nothing typed.
       const standard = v5({ kind: "index", index: "sp500" });
-      expect(standard.ok && standard.state.plan.assumptions).toEqual(INITIAL_STATE.plan.assumptions);
+      expect(standard.ok && standard.state.plan.assumptions).toEqual(STANDARD_ASSUMPTIONS);
     });
   });
 });

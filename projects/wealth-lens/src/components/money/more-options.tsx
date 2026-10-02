@@ -71,7 +71,7 @@ function PercentField({
         </span>
       </span>
       {hint && (
-        <div id={`${id}-hint`} className="space-y-1 text-xs text-muted">
+        <div id={`${id}-hint`} className="space-y-1 text-sm text-muted">
           {hint}
         </div>
       )}

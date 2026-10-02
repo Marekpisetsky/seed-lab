@@ -11,7 +11,7 @@ import { instrumentById } from "./market-data";
 import { CONCENTRATION_LIMIT, concentration, concentrationEffect, mixPartKey, partReturns, templateOf } from "./mix";
 import { mixFigures } from "./projections";
 import { STANDARD_ASSUMPTIONS, type Investment, type MixPart } from "./types";
-import { EXAMPLE_PLAN } from "./validation";
+import { SP500_PLAN } from "./sp500-plan";
 
 const ES = getI18n("es");
 const plain = (text: string) => text.replace(/[  ]/g, " ");
@@ -153,7 +153,7 @@ describe("the concentration effect", () => {
 });
 
 describe("a mix with a stock in the data file", () => {
-  const state = { ...INITIAL_STATE, plan: { ...EXAMPLE_PLAN, investment: withStock("NVDA", 40) } };
+  const state = { ...INITIAL_STATE, plan: { ...SP500_PLAN, investment: withStock("NVDA", 40) } };
 
   it("reads back with its stock", () => {
     const loaded = parseDataFile(serializeState(state, today));

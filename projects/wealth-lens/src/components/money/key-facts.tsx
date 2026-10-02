@@ -8,7 +8,7 @@ import type { CalculationBundle } from "@/hooks/use-calculation";
 import type { I18n } from "@/i18n";
 import { countryName } from "@/i18n/countries";
 import { simulationsText } from "@/i18n/investment-text";
-import type { CountryRow } from "@/lib/calculator";
+import { dearestCovered, type CountryRow } from "@/lib/calculator";
 import { formatShare, gainedShareOf, growsText } from "@/lib/growth";
 import { bandsFor } from "@/lib/projections";
 
@@ -27,15 +27,9 @@ interface Fact {
   from: React.ReactNode;
 }
 
-/** The most expensive country the monthly amount pays without housing, and the cheapest one (for when none is paid yet). */
-function reach(rows: readonly CountryRow[]): { dearest: CountryRow | null; cheapest: CountryRow | null } {
-  let dearest: CountryRow | null = null;
-  let cheapest: CountryRow | null = null;
-  for (const row of rows) {
-    if (row.withoutHousing.covered && (!dearest || row.withoutHousing.amount > dearest.withoutHousing.amount)) dearest = row;
-    if (!cheapest || row.withoutHousing.amount < cheapest.withoutHousing.amount) cheapest = row;
-  }
-  return { dearest, cheapest };
+/** The cheapest country, for when none is paid yet. */
+function cheapest(rows: readonly CountryRow[]): CountryRow | null {
+  return rows[0] ?? null;
 }
 
 /** Every figure of the grid, from what the calculation already holds; the bad and good cases are the simulations' 10th and 90th. */
@@ -49,9 +43,10 @@ function factsOf(bundle: CalculationBundle, i18n: I18n): Fact[] {
   const steady = investment.volatility <= 0;
   const bands = steady ? null : bandsFor(investment, { start: scenario.capital, monthly: scenario.monthly, years });
   const of = simulationsText(investment, i18n);
-  const { dearest, cheapest } = reach(calc.countries);
+  // The same country the table of "Where it reaches" shows among its first rows (lib/calculator.ts).
+  const dearest = dearestCovered(calc.countries);
   const paid = m.result.perMonth(f.smallEur(result.income));
-  const lives = dearest ?? cheapest;
+  const lives = dearest ?? cheapest(calc.countries);
   return [
     { id: "putIn", value: f.eur(result.putIn), from: t.putInFrom(f.eur(scenario.capital), f.eur(scenario.monthly), m.units.years(years)) },
     {
@@ -100,12 +95,12 @@ export function KeyFacts({ bundle }: { bundle: CalculationBundle }) {
                   pressed ? "border-accent bg-accent/10 ring-1 ring-accent" : "border-border bg-card hover:bg-border/30"
                 }`}
               >
-                <span className="text-xs text-muted">{m.facts[fact.id]}</span>
-                <span className="text-base font-semibold tabular-nums break-words">
+                <span className="text-sm text-muted">{m.facts[fact.id]}</span>
+                <span className="text-xl font-bold tabular-nums break-words">
                   <Changed value={fact.value} />
                 </span>
                 {fact.note && (
-                  <span className="text-xs text-muted tabular-nums">
+                  <span className="text-sm text-muted tabular-nums">
                     <Changed value={fact.note} />
                   </span>
                 )}

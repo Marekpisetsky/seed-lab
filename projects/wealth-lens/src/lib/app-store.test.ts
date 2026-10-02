@@ -66,8 +66,9 @@ describe("createStore", () => {
 describe("the shared app state", () => {
   it("starts with the amounts empty, to be typed, 20 years and no goals", () => {
     expect(appStore.get()).toBe(INITIAL_STATE);
-    expect(INITIAL_STATE.plan).toMatchObject({ invested: null, monthlyContribution: null, years: 20, investment: { kind: "asset", asset: "sp500" }, pricesOf: "NL", goals: [] });
-    expect(INITIAL_STATE.plan.assumptions).toEqual({ growth: null, volatility: null, inflation: null });
+    expect(INITIAL_STATE.plan).toMatchObject({ invested: null, monthlyContribution: null, years: 20, investment: { kind: "custom" }, pricesOf: "NL", goals: [] });
+    // Step 3 starts at Custom growth of 5 %; nothing in More options is changed.
+    expect(INITIAL_STATE.plan.assumptions).toEqual({ growth: 0.05, volatility: null, inflation: null });
   });
 
   it("updates one plan field and keeps the others", () => {
@@ -117,9 +118,16 @@ describe("the shared app state", () => {
   });
 
   it("resets every changed assumption to the standard one", () => {
+    setInvestment({ kind: "asset", asset: "sp500" });
     setAssumptions({ growth: 0.05 });
     setAssumptions({ volatility: 0.2 });
     expect(appStore.get().plan.assumptions).toEqual({ growth: 0.05, volatility: 0.2, inflation: null });
+    resetAssumptions();
+    expect(appStore.get().plan.assumptions).toEqual({ growth: null, volatility: null, inflation: null });
+  });
+
+  it("keeps step 3's number when Custom growth is reset: only More options goes back", () => {
+    setAssumptions({ volatility: 0.2, inflation: 0.03 });
     resetAssumptions();
     expect(appStore.get().plan.assumptions).toEqual(INITIAL_STATE.plan.assumptions);
   });

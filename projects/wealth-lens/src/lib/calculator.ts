@@ -195,9 +195,12 @@ export interface CountryRow {
   estimated: boolean;
 }
 
-/** The rows shown before "Show all": the five cheapest detailed countries, plus these. */
+/** Always among the rows shown before "Show all", to compare with: Peru and the Netherlands. */
 export const FEATURED_COUNTRIES = ["PE", "NL"] as const;
-const CHEAPEST_SHOWN = 5;
+/** The rows shown before "Show all". */
+const ROWS_SHOWN = 7;
+/** Of them, the countries already paid for, at most (more only when few are left to reach). */
+const COVERED_SHOWN = 3;
 
 /**
  * ✓ when what the money pays after the chosen years pays it: the table
@@ -231,10 +234,35 @@ export function countryRows(
     }));
 }
 
-/** The five cheapest detailed countries and the featured ones, in the table's order: seven rows. */
+/**
+ * The dearest country the monthly amount pays without housing after the
+ * years, the one "Enough to live in" names; `null` when it pays none yet.
+ * `rows` as countryRows gives them, cheapest first.
+ */
+export function dearestCovered(rows: readonly CountryRow[]): CountryRow | null {
+  let dearest: CountryRow | null = null;
+  for (const row of rows) if (row.withoutHousing.covered) dearest = row;
+  return dearest;
+}
+
+/**
+ * The seven rows before "Show all", in the table's order (cheapest first),
+ * so the table tells what "Enough to live in" says: the countries already
+ * paid for, the dearest of them (that one) included; then the ones closest
+ * to being paid for; and Peru and the Netherlands, to compare with.
+ */
 export function featuredRows(rows: readonly CountryRow[]): CountryRow[] {
-  const cheapest = new Set(rows.filter((row) => !row.estimated).slice(0, CHEAPEST_SHOWN).map((row) => row.code));
-  return rows.filter((row) => cheapest.has(row.code) || (FEATURED_COUNTRIES as readonly string[]).includes(row.code));
+  const featured = (row: CountryRow) => (FEATURED_COUNTRIES as readonly string[]).includes(row.code);
+  const others = rows.filter((row) => !featured(row));
+  const covered = others.filter((row) => row.withoutHousing.covered);
+  // Closest first: the fewest months to get there (rows are cheapest first, which breaks ties).
+  const open = others.filter((row) => !row.withoutHousing.covered).sort((a, b) => a.withoutHousing.months - b.withoutHousing.months);
+  const room = ROWS_SHOWN - rows.filter(featured).length;
+  let coveredCount = Math.min(covered.length, Math.max(COVERED_SHOWN, room - open.length), room);
+  const openCount = Math.min(open.length, room - coveredCount);
+  coveredCount = Math.min(covered.length, room - openCount);
+  const shown = new Set([...covered.slice(covered.length - coveredCount), ...open.slice(0, openCount)].map((row) => row.code));
+  return rows.filter((row) => featured(row) || shown.has(row.code));
 }
 
 /** A purchase of the list; its name and source come from the page's language (things.items). */

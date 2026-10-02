@@ -26,13 +26,15 @@ tabla de *Principles* del hub, `packages/seed-kit/src/tools.json`):
 | Your data never leaves your device | Cumple | Todo se calcula en el navegador; nada se guarda ni se envía. |
 | Transparent | En parte | Gratis, con método y fuentes públicos; los cambios del método aún no se publican. |
 | Truly European | Pendiente | EN y ES, pero alojada en Vercel (EE. UU.) y sin auditoría de accesibilidad hecha por personas. |
-| Light | Cumple | De 206 a 226 KB por página en la primera visita, por debajo del límite de 350 KB. |
+| Light | Cumple | De 207 a 227 KB por página en la primera visita, por debajo del límite de 350 KB. |
 | For everyone | En parte | Palabras sencillas, teclado y objetivos de 44 px; aún sin pruebas con personas reales. |
 
 **Estado actual (2026-10-02):** dos pantallas (Next.js 16 + TypeScript +
 Tailwind 4), exportadas como sitio estático. La principal empieza con
-**cuatro pasos numerados**, con los importes vacíos; el resultado llega al
-pulsar *See my result*, por niveles, y las metas son opcionales. La app no
+**cuatro pasos numerados**, con los importes vacíos y el crecimiento en
+5 %; el resultado llega al pulsar *See my result* (solo la primera vez),
+por niveles, colocado según el ancho de la ventana, y las metas son
+opcionales. El móvil es el diseño principal. La app no
 supone nada sobre la vida del usuario: no pregunta país, ni si alquila o
 es propietario, ni qué quiere hacer con su dinero. Nada se guarda ni se
 envía, y la app no llama a ningún servicio mientras se usa. La lógica
@@ -45,53 +47,43 @@ cambiar. Todo lo visible está en palabras simples: "real", "nominal",
 "volatility", "swings" y "percentile" solo aparecen en los "i" plegados
 (un test lo comprueba).
 
-- **My money — `/`**, de arriba abajo (pasos numerados, como la
-  calculadora de interés compuesto de investor.gov; el resultado ordenado
-  como una ficha de Google Finance):
-  1. **Cuatro pasos numerados**, cada uno con su número, su título, una
-     línea corta y su campo (en el móvil, el campo debajo; en pantalla
-     ancha, a la derecha, igual en los cuatro): *Your money today* (€),
-     *Your monthly saving* (€, con − / + de €50), *How it grows* (los
-     chips) y *Time* (1-60 años, con − / + de un año). Los importes
-     empiezan vacíos, con un ejemplo gris y en cursiva ("e.g. 1,000", "p.
-     ej. 1.000") que no parece un dato; el crecimiento y los años vienen
-     puestos y su paso lo dice como una elección: "Picked for you: the S&P
-     500. You can change it.", "Set for you: 20 years. You can change it."
-     Debajo de los pasos, **See my result**: funciona cuando están los dos
-     importes (0 es una respuesta; un campo vacío, no); antes dice "Write
-     both amounts to see your result." y, si se pulsa, lleva al campo
-     vacío. Al pulsarlo el resultado aparece con un fundido y un pequeño
-     desplazamiento (sin movimiento si el sistema lo pide), la página se
-     desliza hasta él y él recibe el foco; desde entonces sigue cada
-     cambio sin botón. Se recalcula cuando el usuario termina de escribir
-     (500 ms sin teclear, al salir del campo o con Enter), nunca con cada
-     tecla; tras un cambio se marcan un momento solo las cifras que
-     cambiaron y nada cambia de sitio. Con resultado, bajo el aporte
-     mensual: "+€50 a month → +€27,000 in 20 years"; bajo los años: "5
-     more years → +€33,000" (las cifras de sus *What if…?*). Al final,
-     discreto, **More options**.
-  2. **El crecimiento, en un toque** (paso 3): *S&P 500 ~7.5%*, *World
-     ~4.5%*, *60/40*, *Bonds*, *Savings* y *My %* (el S&P 500 viene
-     elegido; el elegido, oscuro y con ✓). Sin lista que abrir, sin panel *Edit*, sin
-     conmutador antes/después: se ve una sola cifra, "Grows 7.5% a year
-     after rising prices", y debajo, pequeña y de solo lectura, "≈ 9.7%
-     before inflation". *My %* abre un campo para escribir ese número
-     (crecimiento después de inflación), empezando por el que se veía. Si
-     supera el mejor promedio de 20 años seguidos de cualquier activo de
-     los datos (`src/lib/realism.ts`: hoy el S&P 500 en 1980–1999, 13 %),
-     debajo: "Very rare: no broad index kept this for 20 years. The best
-     was 13% (S&P 500, 1980–1999)." **More options**, plegado y cargado al
-     abrirlo: cualquier otra inversión (la lista agrupada con buscador por
-     nombre o ticker: Nasdaq-100, oro, "A mix…" con plantillas 100% stocks,
-     80/20 y 60/40 y acciones de la lista, My portfolio si hay holdings),
-     *How much it can go up or down in a normal year* (con su ejemplo en
-     euros y "Historically, assets growing about 7.5% moved about ±16% a
-     year"), *Rising prices in* (país, Países Bajos por defecto) y *Prices
-     rise per year*, cada uno con su estándar al lado, *Reset to standard*
-     y el "i" que explica cómo usan las simulaciones esas cifras. Un cambio
-     ahí marca *More options* como **Custom**, y la línea del crecimiento
-     nombra lo elegido cuando ningún chip lo es ("Nasdaq-100: Grows 9.9% a
-     year after rising prices").
+- **My money — `/`**, para cualquiera, de quien tiene prisa a quien no se
+  maneja con la tecnología: poco texto suelto, cada cosa se explica por su
+  forma, y el móvil primero (el 55 % de las visitas en Europa):
+  1. **Cuatro pasos iguales**: número, pregunta corta y una sola casilla.
+     *How much do you have?* (€), *What do you add a month?* (€, con − / +
+     de €50), *How much does it grow?* (% al año) y *For how many years?*
+     (1-60, empieza en 20, con − / +). Sin líneas de ayuda salvo en el paso
+     3. Columnas de ancho fijo y preguntas en una línea: la tarjeta mide lo
+     mismo en inglés y en español a 360, 1366 y 1920 px (lo comprueba
+     `npm run test:browser`). Los importes empiezan vacíos, con un ejemplo
+     gris y en cursiva que no parece un dato. Casillas de 16 px (el iPhone
+     no amplía al tocarlas), teclado numérico, y Enter pasa al paso
+     siguiente y del último al botón. Debajo de los pasos, **See my
+     result**, lo único destacado de la tarjeta: funciona con los dos
+     importes escritos (0 es una respuesta; vacío, no) y, si se pulsa
+     antes, lleva al campo vacío. Se usa solo para el primer resultado:
+     después desaparece y todo se actualiza en vivo (cuando el usuario
+     termina de escribir: 500 ms sin teclear, al salir del campo o con
+     Enter). **More options** sale de la tarjeta: un enlace discreto
+     debajo, con su propio panel.
+  2. **El paso 3, una casilla de %**, con 5 ya escrito: las acciones del
+     mundo crecieron un 5,2 % al año tras la inflación de 1900 a 2024
+     (UBS Global Investment Returns Yearbook 2025; la fuente está en *How
+     it works*). Bajo la casilla, en pequeño, "≈ 7.1% before inflation";
+     una línea, "World average over the long run, after inflation" (o de
+     dónde sale la cifra elegida, o "Your own number, after inflation"); y
+     **Examples:** *S&P 500 7.5%*, *World 4.5%*, *60/40*, *Bonds* y
+     *Savings*, enlaces que rellenan la casilla y marcan cuál coincide. La
+     cifra de un ejemplo usa sus propios años pasados; cualquier otra es
+     Custom growth, que sube y baja como las acciones del mundo. Si supera
+     el mejor promedio de 20 años seguidos de los datos (13 %), la línea
+     avisa en su mismo sitio y tamaño: "Very rare: the best 20 years in
+     the data gave 13%." **More options**, cargado al abrirlo: cualquier
+     otra inversión (Nasdaq-100, oro, "A mix…", My portfolio), *How much it
+     can go up or down in a normal year*, *Rising prices in* y *Prices rise
+     per year*, con *Reset to standard* (que deja el número del paso 3).
+     Un cambio ahí marca *More options* como **Custom**.
   3. **El resultado, por niveles**, al pulsar *See my result*:
      - Primero, lo que dijo el usuario: "With €1,100 today and €100 monthly
        in the S&P 500, in 20 years you could have…", y el total en grande,
@@ -114,15 +106,18 @@ cambiar. Todo lo visible está en palabras simples: "real", "nominal",
        +€63,288 (+129%) · put in €49,000" y la tabla año a año, plegada.
      - Cuatro secciones con su título siempre a la vista, en este orden;
        solo su detalle largo espera tras *See more*:
-       - **What if…?**: los cinco escenarios en una fila (*Grows 1% more /
-         less*, *+€50 a month*, *5 more years* y *A bad first decade*, con
-         los diez primeros años en el percentil 10 del Monte Carlo), cada
-         uno con lo que cambia; tocar uno lo aplica a toda la pantalla, con
+       - **What if…?** (en el móvil, bajo el gráfico; en pantalla ancha, al
+         lado, ver abajo): los cinco escenarios (*Grows 1% more / less*,
+         *+€50 a month*, *5 more years* y *A bad first decade*, con los
+         diez primeros años en el percentil 10 del Monte Carlo), cada uno
+         con lo que cambia; tocar uno lo aplica a toda la pantalla, con
          "What if: 5 more years ×" junto al total para quitarlo. No se
          guarda en el archivo.
        - **Where it reaches**: la tabla de países con dos columnas (sin /
-         con vivienda, una persona, al mes), 7 filas, buscador, "Show all
-         172" y un "+" para añadir a My goals; tras *See more*, *Things you
+         con vivienda, una persona, al mes), 7 filas: primero los países ya
+         cubiertos (✓), incluido el que nombra *Enough to live in*, luego
+         los más cercanos a cubrirse, y Perú y Países Bajos para comparar;
+         buscador, "Show all 172" y un "+" para añadir a My goals; tras *See more*, *Things you
          could buy* (las 19 compras con "✓ now" o "in N years" y su fuente
          al tocarlas).
        - **My goals**: cuatro tipos combinables (*Live somewhere*, *Buy
@@ -140,6 +135,23 @@ cambiar. Todo lo visible está en palabras simples: "real", "nominal",
 
      Los "?" quedan junto al total y a cuántas historias aguantó el
      retiro; el resto de ayudas son una frase dentro de su sección.
+  4. **Tras el primer resultado, según el ancho de la ventana**:
+     - 1440 px o más: tres columnas. A la izquierda, estrecha y a la vista
+       al desplazar, *What if…?* como lista; en el centro, la más ancha
+       (752 px a 1440), el resultado; a la derecha, estrecha y a la vista,
+       los cuatro pasos en versión reducida y *More options*. La cabecera
+       y el pie se ensanchan con ellas.
+     - De 1024 a 1439 px: dos columnas, el resultado a la izquierda y, a la
+       derecha y a la vista, los pasos y debajo *What if…?*.
+     - Menos de 1024 px (móvil): una columna, y abajo, donde llega el
+       pulgar, una barra con el plan ("€1,100 · €100/month · 5% · 20
+       years") y **Edit**, que abre los pasos desde abajo en como mucho la
+       mitad de la pantalla y mueve la página para que el número grande
+       quede encima, cambiando en vivo mientras se edita.
+     - Los pasos son siempre el mismo elemento y se deslizan a su sitio
+       con una view transition; sin animación con *prefers-reduced-motion*.
+     - Todo control mide al menos 44 × 44 px, ningún texto del resultado
+       baja de 14 px, y nada importante aparece solo al pasar el ratón.
 - **My stocks — `/stocks`**: ganancia, holdings (añadir,
   editar, importar CSV), cómo se movió cada uno, y los 3 ETFs (VUAA,
   VWCE, EQQQ) y 12 acciones grandes. Cada fila lleva una línea pequeña del
@@ -385,6 +397,17 @@ mano desde las cifras publicadas (ver "Retornos").
   mediana 0,4 ms, máximo 1,5 ms. Lighthouse móvil: `/` 99, `/es` 98,
   `/stocks` 99 de rendimiento, 100 en lo demás; axe sin fallos en el
   resultado completo, claro y oscuro.
+  **Comodidad (2026-10).** Primera visita de 207 a 227 KB por página; la
+  lista de *What if…?* al lado del resultado viaja con el código del
+  resultado. Recálculo (72 recálculos, EN y ES a 1366 px tras el primer
+  resultado: − / + del aporte y de los años, cada ejemplo del paso 3, un %
+  escrito, un *What if…?* puesto y quitado; las pestañas no recalculan):
+  mediana 0,6 ms, máximo 14,1 ms (la primera vez que se elige *Savings*).
+  Lighthouse móvil: `/` 96-99 según la pasada, `/es` 96, `/stocks` 97 de
+  rendimiento, 100 en lo demás; axe sin fallos en el resultado completo,
+  claro y oscuro. `npm run test:browser` (tras `npm run build`) lo
+  comprueba en un navegador real: tamaños iguales en EN y ES, las tres
+  disposiciones, el panel inferior, el botón una sola vez y 44 × 44 px.
 - Sin credenciales de bróker ni APIs de pago — respeta la regla de
   costo cero de seed-lab.
 
@@ -769,6 +792,7 @@ y abrir `http://<IP-de-la-máquina>:3000` desde la misma red.
 
 ```bash
 npm test          # tests unitarios (Vitest), una sola pasada
+npm run test:browser  # tras npm run build: la página en un navegador real (Playwright)
 npm run test:watch
 npm run lint      # ESLint (config de Next.js)
 npm run typecheck # tipos de TypeScript, también los de seed-kit
@@ -787,20 +811,22 @@ activar, cambiar y quitar; sigue con el plan; no se guarda; ±1 % mueve
 también las mezclas; *A bad first decade* sigue el percentil 10, retrasa
 metas y países, usa la oscilación escrita y no existe sin altibajos), la
 ausencia de jerga en los textos visibles, la entrada nueva (renderizada en
-EN y ES: los cuatro pasos numerados y en orden, cada uno con su línea
-atada a su campo, solo el crecimiento y los años rellenos y dichos como
-elección, los ejemplos como placeholder, *See my result* al final de los
-pasos y antes de More options, sin funcionar hasta tener los dos importes
-y diciendo por qué, los tres puntos de confianza y ningún resultado,
-gráfico, aviso ni "?"; los seis chips con el S&P 500 elegido y su ✓;
-*My %* con su campo y su equivalente antes de inflación; el resultado con
-la frase de lo que dijo el usuario y sus variantes, el número, los seis
-datos clave en su cuadrícula de 2 y 3 columnas, cada uno un botón, las
-pestañas del gráfico, las cuatro secciones con título en su orden y lo
-que queda tras *See more*; las líneas junto a los pasos 2 y 4; la
-llegada suave que respeta el movimiento reducido; y que el resultado, sus
-secciones, las líneas de los pasos y More options se cargan al
-necesitarse), elegir un chip y *My %* sobre el estado, `planReady`, la
+EN y ES: cuatro preguntas cortas en pasos numerados, en orden, una casilla
+cada una y sin líneas de ayuda salvo en el paso 3; el paso 3 en 5 con su
+línea, su "antes de inflación" y cinco ejemplos sin marcar; los ejemplos
+grises; teclado numérico y Enter al paso siguiente; columnas de ancho
+fijo; *See my result* lo único destacado, sin funcionar hasta tener los
+dos importes; More options fuera de la tarjeta; ningún resultado ni
+aviso; el paso 3 con otra cifra, un ejemplo marcado o el aviso de realismo
+en el mismo sitio; el botón solo la primera vez, sin volver con ningún
+cambio; las tres disposiciones por ancho y la barra con el panel inferior
+del móvil; la celda *Enough to live in* en la tabla y las mismas cifras de
+aporte, crecimiento y "could pay you" en todas partes; el resultado con la
+frase de lo que dijo el usuario, el número, los datos clave, las pestañas
+del gráfico y sus secciones; y que el resultado, sus secciones y More
+options se cargan al necesitarse), los ejemplos del paso 3 sobre el estado
+(una cifra de ejemplo usa sus datos; otra es Custom growth con las
+oscilaciones del mundo; la misma cifra no cambia nada), `planReady`, la
 tabla de países (30 filas ordenadas, dos columnas, ✓ si y solo si el
 ingreso lo paga, filas por defecto), las metas (cada tipo, varias,
 independientes, orden estable al añadir y quitar, tope de 60 años con el
@@ -846,10 +872,13 @@ src/
                                / (My money), /stocks (My stocks), /test;
                                not-found.tsx, HTML sin código propio;
                                icon.svg (los colores y la cabecera: seed-kit)
-  components/                  money/ (calculator-card: los cuatro pasos y See my
-                               result; growth-chips; step-hints: las líneas de
-                               los pasos 2 y 4; more-options, cargado al
-                               abrirlo; results: el resultado por niveles;
+  components/                  money/ (money-module: la página y sus tres
+                               disposiciones, la barra y el panel del móvil;
+                               calculator-card: los cuatro pasos, See my result
+                               y More options; growth-field: el paso 3;
+                               first-result: si ya se pidió el resultado;
+                               more-options, cargado al abrirlo; results: el
+                               resultado por niveles;
                                key-facts: los seis datos clave; result-section:
                                las secciones con título y See more; mezcla, cartera,
                                gráfico, metas, países, hallazgos, compras;
@@ -873,7 +902,7 @@ src/
     assets.ts           lo que se puede proyectar: índices, bonos, oro, ahorro
     investment.ts       supuestos estándar y cambiados: crecimiento, oscilación, simulación
     assumptions.ts      la línea del crecimiento, la de supuestos y las pistas de More options
-    chips.ts            los chips del crecimiento: qué invierte cada uno, My %
+    examples.ts         el paso 3: sus ejemplos, qué invierte cada uno y la casilla de %
     growth.ts           "Grows about 7.5% a year", ×Z y +P %, etiqueta y tooltip del gráfico
     realism.ts          el mejor promedio de 20 años de los datos y el activo de crecimiento más cercano
     what-if.ts          los cinco "What if…?": qué cambia cada uno

@@ -4,6 +4,7 @@ import { goalDetail, goalExplain, goalName } from "@/i18n/goal-text";
 import {
   calculate,
   countryRows,
+  dearestCovered,
   featuredRows,
   goalStatuses,
   itemStatuses,
@@ -118,8 +119,32 @@ describe("the country table", () => {
     expect(countries.find((row) => row.code === "CH")).toMatchObject({ withHousing: { covered: false } });
   });
 
-  it("shows the five cheapest detailed countries, Peru and the Netherlands first: seven rows", () => {
-    expect(featuredRows(countries).map((row) => row.code)).toEqual(["IN", "EG", "ID", "VN", "MA", "PE", "NL"]);
+  it("shows seven rows first: those already paid for, the dearest included, then the closest, and Peru and the Netherlands", () => {
+    const shown = featuredRows(countries);
+    expect(shown).toHaveLength(7);
+    expect(shown.map((row) => row.code)).toEqual(expect.arrayContaining(["PE", "NL"]));
+    // What "Enough to live in" names is in the table, and every row paid for comes before any that is not.
+    const dearest = dearestCovered(countries);
+    expect(dearest).not.toBeNull();
+    expect(shown).toContain(dearest);
+    const paid = shown.map((row) => row.withoutHousing.covered);
+    expect(paid).toEqual(paid.toSorted((a, b) => Number(b) - Number(a)));
+    expect(paid.filter(Boolean).length).toBeGreaterThan(0);
+    // The ones not paid for yet are the closest to it.
+    const open = countries.filter((row) => !row.withoutHousing.covered && !["PE", "NL"].includes(row.code));
+    const soonest = Math.max(...shown.filter((row) => !row.withoutHousing.covered && !["PE", "NL"].includes(row.code)).map((row) => row.withoutHousing.months));
+    expect(open.filter((row) => row.withoutHousing.months < soonest).every((row) => shown.includes(row))).toBe(true);
+  });
+
+  it("fills the seven rows the same way when nothing or everything is paid for", () => {
+    const none = countryRows(calculate({ ...plan(), invested: 0, monthlyContribution: 10 }, [], today).scenario, 240);
+    expect(dearestCovered(none)).toBeNull();
+    expect(featuredRows(none)).toHaveLength(7);
+    expect(featuredRows(none).every((row) => !row.withoutHousing.covered)).toBe(true);
+    const all = countryRows(calculate({ ...plan(), invested: 50_000_000, monthlyContribution: 0 }, [], today).scenario, 240);
+    expect(featuredRows(all)).toHaveLength(7);
+    expect(featuredRows(all)).toContain(dearestCovered(all));
+    expect(dearestCovered(all)).toBe(all.at(-1));
   });
 
   it("does not depend on any country of the user's", () => {

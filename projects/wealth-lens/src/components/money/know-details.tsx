@@ -25,26 +25,26 @@ function MixFiguresView({ figures, years }: { figures: MixFigures; years: number
     <div className="space-y-3">
       <dl className="grid gap-3 rounded-lg border border-border bg-card p-3 tabular-nums sm:grid-cols-2">
         <div>
-          <dt className="flex items-center gap-2 text-xs text-muted">
+          <dt className="flex items-center gap-2 text-sm text-muted">
             {t.range(years)}
             <Help what={t.range(years)} text={m.help.range} />
           </dt>
           <dd className="text-base font-semibold">
             <Changed value={range(figures.range)} />
           </dd>
-          <dd className="text-xs text-muted">
+          <dd className="text-sm text-muted">
             <Changed value={t.alone(range(figures.reference.range))} />
           </dd>
         </div>
         <div>
-          <dt className="flex items-center gap-2 text-xs text-muted">
+          <dt className="flex items-center gap-2 text-sm text-muted">
             {span ? t.worstSpan(span) : t.worst}
             <Help what={t.worst} text={m.help.worst} />
           </dt>
           <dd className="text-base font-semibold">
             <Changed value={worst(figures.worst)} />
           </dd>
-          <dd className="text-xs text-muted">
+          <dd className="text-sm text-muted">
             <Changed value={t.aloneSameYears(worst(figures.reference.worst))} />
           </dd>
         </div>
@@ -67,7 +67,7 @@ function ConcentrationView({ effect, years }: { effect: Concentration; years: nu
       <p className="text-sm font-medium">
         <Changed value={t.concentration(f.percent(effect.weight, { decimals: 0 }), t.middleEffect[said.middle], t.badEffect[said.bad])} />
       </p>
-      <table className="w-full text-left text-xs tabular-nums">
+      <table className="w-full text-left text-sm tabular-nums">
         <thead>
           <tr>
             <th scope="col" className="pb-1 pr-2 font-normal">
@@ -83,7 +83,7 @@ function ConcentrationView({ effect, years }: { effect: Concentration; years: nu
         </thead>
         <tbody className="text-sm">
           <tr className="border-t border-warning-border">
-            <th scope="row" className="py-1 pr-2 text-xs font-normal">
+            <th scope="row" className="py-1 pr-2 text-sm font-normal">
               {t.badCases}
             </th>
             <td className="py-1 pr-2 text-right font-semibold">
@@ -94,7 +94,7 @@ function ConcentrationView({ effect, years }: { effect: Concentration; years: nu
             </td>
           </tr>
           <tr className="border-t border-warning-border">
-            <th scope="row" className="py-1 pr-2 text-xs font-normal">
+            <th scope="row" className="py-1 pr-2 text-sm font-normal">
               {t.middle}
             </th>
             <td className="py-1 pr-2 text-right font-semibold">
@@ -119,7 +119,7 @@ function RangeView({ bundle }: { bundle: CalculationBundle }) {
   const bands = bandsFor(calc.investment, { start: calc.scenario.capital, monthly: calc.scenario.monthly, years });
   return (
     <div className="rounded-lg border border-border bg-card p-3 tabular-nums">
-      <p className="flex items-center gap-2 text-xs text-muted">
+      <p className="flex items-center gap-2 text-sm text-muted">
         {m.result.mix.range(years)}
         <Help what={m.result.mix.range(years)} text={m.help.range} />
       </p>

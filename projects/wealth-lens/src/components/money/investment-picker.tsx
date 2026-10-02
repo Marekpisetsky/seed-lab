@@ -232,7 +232,7 @@ export function InvestmentPicker({
         {shown.map((option, index) => (
           <li key={option.key} role="presentation">
             {(index === 0 || shown[index - 1].group !== option.group) && (
-              <p className="px-3 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-muted">{m.picker.groups[option.group]}</p>
+              <p className="px-3 pb-1 pt-3 text-sm font-semibold uppercase tracking-wide text-muted">{m.picker.groups[option.group]}</p>
             )}
             <div
               id={`${listId}-${option.key}`}
@@ -243,7 +243,7 @@ export function InvestmentPicker({
               className={`min-h-11 cursor-pointer rounded-md px-3 py-2 ${index === current ? "bg-accent/10" : ""} ${option.key === selected ? "font-semibold" : ""}`}
             >
               <span className="block text-sm">{option.label}</span>
-              <span className="block text-xs text-muted">{option.detail}</span>
+              <span className="block text-sm text-muted">{option.detail}</span>
             </div>
           </li>
         ))}

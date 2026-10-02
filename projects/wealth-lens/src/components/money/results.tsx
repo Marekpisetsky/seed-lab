@@ -12,6 +12,7 @@ import { growsText } from "@/lib/growth";
 import type { ResolvedInvestment } from "@/lib/investment";
 import { CONCENTRATION_LIMIT } from "@/lib/mix";
 import { GrowthChart } from "./growth-chart";
+import { TOTAL_ID } from "./first-result";
 import { KeyFacts } from "./key-facts";
 import { ResultSection, SeeMore } from "./result-section";
 import { WhatIfIndicator, WhatIfRow } from "./what-if-row";
@@ -60,7 +61,7 @@ function ResultTotal({ bundle, ref }: { bundle: CalculationBundle; ref: React.Re
         </p>
         <WhatIfIndicator applied={calc.whatIf} />
       </div>
-      <p className="flex items-center gap-2 text-4xl font-extrabold tracking-tight tabular-nums sm:text-5xl">
+      <p id={TOTAL_ID} className="flex items-center gap-2 text-5xl font-extrabold tracking-tight tabular-nums sm:text-6xl">
         <Changed value={f.eur(result.total)} />
         <Help what={m.result.inYears(years)} text={m.help.total} />
       </p>
@@ -105,7 +106,8 @@ export function Results({ bundle, arrive = false, onArrived }: { bundle: Calcula
         <KeyFacts bundle={bundle} />
       </div>
       <GrowthChart bundle={bundle} />
-      <ResultSection title={m.whatIf.title}>
+      {/* On a phone, under the chart; from 1024 px it sits beside the result instead (money-module.tsx). */}
+      <ResultSection title={m.whatIf.title} className="lg:hidden">
         <WhatIfRow bundle={bundle} />
       </ResultSection>
       <ResultSection title={m.cards.where}>

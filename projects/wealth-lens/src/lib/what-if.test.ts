@@ -8,11 +8,11 @@ import { futureValueWithContributions } from "./finance";
 import { annualizedReturn, SERIES } from "./indexes";
 import { bandsFor, successRatesFor } from "./projections";
 import { STANDARD_ASSUMPTIONS } from "./types";
-import { DEFAULT_PLAN } from "./validation";
+import { SP500_PLAN } from "./sp500-plan";
 import { badStartHead, WHAT_IF_IDS, whatIfInputs } from "./what-if";
 
 const today = parseIsoDate("2026-09-30");
-const plan = (patch: Partial<CalculatorPlan> = {}): CalculatorPlan => ({ ...DEFAULT_PLAN, invested: 10_000, monthlyContribution: 300, ...patch });
+const plan = (patch: Partial<CalculatorPlan> = {}): CalculatorPlan => ({ ...SP500_PLAN, invested: 10_000, monthlyContribution: 300, ...patch });
 const effect = (base: ReturnType<typeof calculate>, id: (typeof WHAT_IF_IDS)[number]) => whatIfEffects(base).find((entry) => entry.id === id);
 
 const ES = getI18n("es");

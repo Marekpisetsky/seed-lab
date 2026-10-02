@@ -150,13 +150,13 @@ describe("assumptions the user changes", () => {
 });
 
 describe("Custom growth", () => {
-  it("starts from the S&P 500's figures, with no asset behind it, and is always the user's own", () => {
+  it("starts from world stocks' figures, with no asset behind it, and is always the user's own", () => {
     const resolved = resolveInvestment({ kind: "custom" }, []);
     expect(resolved).toMatchObject({ custom: true, simulation: "normal", period: null });
     expect(investmentName(resolved, EN)).toBe("Custom growth");
     expect(growthSource(resolved, EN)).toBe(EN.m.invest.source.custom);
-    expect(resolved.realReturn).toBeCloseTo(SERIES.sp500.averageReturn, 12);
-    expect(resolved.volatility).toBeCloseTo(seriesVolatility("sp500"), 12);
+    expect(resolved.realReturn).toBeCloseTo(SERIES.world.averageReturn, 12);
+    expect(resolved.volatility).toBeCloseTo(seriesVolatility("world"), 12);
   });
 
   it("uses the growth and swings typed", () => {

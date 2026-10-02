@@ -29,7 +29,7 @@ function FindingCard({ finding }: { finding: Finding }) {
             <li key={line}>{line}</li>
           ))}
         </ol>
-        <ul className="space-y-1 text-xs text-muted">
+        <ul className="space-y-1 text-sm text-muted">
           {finding.assumptions.map((line) => (
             <li key={line}>{line}</li>
           ))}

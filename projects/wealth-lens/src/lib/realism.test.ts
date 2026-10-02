@@ -48,11 +48,11 @@ describe("the best 20 years in the data", () => {
 });
 
 describe("the realism warning under the growth", () => {
-  it("appears only above the best 20 years, with the figure, the index and the years from the data", () => {
+  it("appears only above the best 20 years, with the figure and the years from the data", () => {
     expect(realismWarning(typed(0.12), EN)).toBeNull();
     expect(realismWarning(typed(BEST_20_YEARS.growth - 0.0001), EN)).toBeNull();
-    expect(realismWarning(typed(0.15), EN)).toBe("Very rare: no broad index kept this for 20 years. The best was 13% (S&P 500, 1980–1999).");
-    expect(plain(realismWarning(typed(0.15), ES))).toBe("Muy raro: ningún índice amplio lo mantuvo 20 años. El mejor fue 13 % (S&P 500, 1980–1999).");
+    expect(realismWarning(typed(0.15), EN)).toBe("Very rare: the best 20 years in the data gave 13%.");
+    expect(plain(realismWarning(typed(0.15), ES))).toBe("Muy raro: los mejores 20 años de los datos dieron un 13 %.");
   });
 
   it("compares the growth after rising prices, whatever the inflation", () => {
@@ -65,7 +65,7 @@ describe("the realism warning under the growth", () => {
 
   it("uses whatever the data says is best", () => {
     const made = { asset: "gold" as const, from: 2001, to: 2020, growth: 0.05 };
-    expect(realismWarning(typed(0.06), EN, made)).toBe("Very rare: no broad index kept this for 20 years. The best was 5% (Gold, 2001–2020).");
+    expect(realismWarning(typed(0.06), EN, made)).toBe("Very rare: the best 20 years in the data gave 5%.");
   });
 });
 

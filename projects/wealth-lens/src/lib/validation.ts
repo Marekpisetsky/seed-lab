@@ -22,19 +22,27 @@ export const DEFAULT_GOAL: LegacyGoal = { amount: 100_000, targetDate: null };
 export const MAX_AMOUNT = 1e9;
 
 /**
+ * The growth step 3 starts with, after rising prices: world stocks grew
+ * 5.2 % a year from 1900 to 2024 (UBS Global Investment Returns Yearbook
+ * 2025, Dimson, Marsh and Staunton), rounded down. Custom growth, with the
+ * ups and downs of world stocks.
+ */
+export const STARTING_GROWTH = 0.05;
+
+/**
  * A first visit starts with these: the amounts empty, to be typed (the page
- * shows only the questions until they are), the S&P 500 with its standard
- * assumptions, prices of the Netherlands and 20 years. No goals: the user
- * adds them if they want.
+ * shows only the steps until they are), Custom growth at 5 % (STARTING_GROWTH),
+ * prices of the Netherlands and 20 years. No goals: the user adds them if
+ * they want.
  */
 export const DEFAULT_PLAN: Plan = {
   invested: null,
   monthlyContribution: null,
-  investment: { kind: "asset", asset: "sp500" },
+  investment: { kind: "custom" },
   years: 20,
   withdrawalRate: 0.04,
   pricesOf: DEFAULT_PRICES_OF,
-  assumptions: STANDARD_ASSUMPTIONS,
+  assumptions: { ...STANDARD_ASSUMPTIONS, growth: STARTING_GROWTH },
   goals: [],
 };
 
@@ -209,6 +217,8 @@ export function parseInvestment(value: unknown, holdings: readonly Holding[] = [
 
 /** The data file version whose plans store the growth after rising prices as one number (see parseAssumptions). */
 const GROWTH_AFTER_PRICES_SINCE = 8;
+/** Since version 9, Custom growth moves like world stocks and a plan starts at Custom growth of 5 %; before, like the S&P 500, and a plan started on it. */
+const CUSTOM_LIKE_WORLD_SINCE = 9;
 
 /** Growth before rising prices as the growth after them with this inflation: the very same result. */
 function afterPrices(rate: number, inflation: number): number | null {
@@ -238,6 +248,14 @@ export function parseAssumptions(value: unknown, pricesOf: string = DEFAULT_PRIC
   }
   return { growth, volatility, inflation };
 }
+
+/** What a file without a usable investment invests in: what a first visit started with when it was saved. */
+function startingInvestment(version: number): Investment {
+  return version < CUSTOM_LIKE_WORLD_SINCE ? { kind: "asset", asset: "sp500" } : DEFAULT_PLAN.investment;
+}
+
+/** The ups and downs Custom growth had until version 8: the S&P 500's. */
+export const FORMER_CUSTOM_VOLATILITY = resolveInvestment({ kind: "asset", asset: "sp500" }, []).volatility;
 
 /**
  * Since version 8 a typed growth is "My %", Custom growth: the calculator
@@ -377,7 +395,7 @@ function goalsFromEarlierVersions(value: Record<string, unknown>): Goal[] {
  * become changed assumptions. `holdings` are the file's, and what the
  * app no longer does is said in `notices`.
  */
-export function parsePlan(value: unknown, holdings: readonly Holding[] = [], notices: Notices = [], version: number = GROWTH_AFTER_PRICES_SINCE): Plan | null {
+export function parsePlan(value: unknown, holdings: readonly Holding[] = [], notices: Notices = [], version: number = CUSTOM_LIKE_WORLD_SINCE): Plan | null {
   if (!isRecord(value)) return null;
   const pick = <K extends keyof Plan>(key: K, parse: (v: unknown) => Plan[K] | null | undefined): Plan[K] =>
     parse(value[key]) ?? DEFAULT_PLAN[key];
@@ -391,7 +409,11 @@ export function parsePlan(value: unknown, holdings: readonly Holding[] = [], not
     const growth = investment.kind === "custom" && isRate(investment.realReturn) ? investment.realReturn : null;
     assumptions = { growth, volatility: null, inflation };
   }
-  const chosen = withGrowthAsCustom(parseInvestment(value.investment, holdings, notices) ?? DEFAULT_PLAN.investment, assumptions, pricesOf, holdings);
+  const chosen = withGrowthAsCustom(parseInvestment(value.investment, holdings, notices) ?? startingInvestment(version), assumptions, pricesOf, holdings);
+  // Custom growth of an earlier version keeps the S&P 500's ups and downs it had, so its result does not change.
+  if (version < CUSTOM_LIKE_WORLD_SINCE && chosen.investment.kind === "custom" && chosen.assumptions.volatility === null) {
+    chosen.assumptions = { ...chosen.assumptions, volatility: FORMER_CUSTOM_VOLATILITY };
+  }
   return {
     invested: amount(value.invested),
     monthlyContribution: amount(value.monthlyContribution),
