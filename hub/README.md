@@ -18,7 +18,8 @@ existe:
    seed-lab (cuenta, rastreo, datos, anuncios y peso), sin nombrar a nadie.
 6. **En cifras**, en oscuro, calculadas al construir: 0 cookies, 0
    rastreadores, los KB de la página más pesada, idiomas, países en los
-   datos y herramientas hechas sobre la plataforma.
+   datos y herramientas hechas sobre la plataforma que se pueden usar (solo
+   las que se muestran: una beta oculta no cuenta; un test lo impide).
 7. **Pie claro.**
 
 *Principles*

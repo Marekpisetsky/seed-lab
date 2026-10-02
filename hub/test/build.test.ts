@@ -8,7 +8,7 @@ import { escape } from "../../packages/seed-kit/src/html.ts";
 import { FAVICON } from "../../packages/seed-kit/src/icons.ts";
 import { plainLanguageProblems, textsOf } from "../../packages/seed-kit/src/plain-language.ts";
 import { BLOCKS, PRINCIPLE_IDS, SHOWN_TOOLS, TOOLS, parseBlocks } from "../src/content.ts";
-import { TYPICAL_PAGE_KB } from "../src/figures.ts";
+import { publishedTools, TYPICAL_PAGE_KB } from "../src/figures.ts";
 import { SHOTS } from "../src/shots.ts";
 import { en } from "../src/i18n/en.ts";
 import { es } from "../src/i18n/es.ts";
@@ -317,11 +317,38 @@ describe("the front page", () => {
     assert.ok(Math.max(...report.map(({ weight }) => weight.compressed)) <= figures.maxKb * 1000, "no page weighs more than the figure");
     assert.equal(figures.languages, LOCALES.length);
     assert.equal(figures.countries, 172);
-    assert.equal(figures.tools, TOOLS.filter((tool) => tool.status !== "coming").length);
+    assert.equal(figures.tools, SHOWN_TOOLS.length);
     for (const locale of LOCALES) {
       const shown = [...section(page(locale), "figures").matchAll(/<dd>([^<]+)<\/dd>/g)].map(([, value]) => value);
       const expected: number[] = [figures.cookies, figures.trackers, figures.maxKb, figures.languages, figures.countries, figures.tools];
       assert.deepEqual(shown, expected.map((value) => new Intl.NumberFormat(LOCALE_SETTINGS[locale].intl).format(value)), locale);
+    }
+  });
+});
+
+describe("honest figures", () => {
+  const tool = TOOLS[0];
+
+  it("counts only the tools people can find and use: never a hidden beta, nor one still to come", () => {
+    const hidden = { ...tool, id: "hidden", status: "beta" as const, shown: false };
+    const listed = { ...tool, id: "listed", status: "beta" as const, shown: true };
+    const coming = { ...tool, id: "coming", status: "coming" as const, shown: false };
+    assert.equal(publishedTools([tool, hidden, coming]), 1);
+    assert.equal(publishedTools([tool, hidden, listed]), 2);
+    assert.equal(figures.tools, TOOLS.filter((entry) => entry.shown).length);
+  });
+
+  it("never names a hidden tool on any page", () => {
+    for (const hidden of TOOLS.filter((entry) => !entry.shown)) {
+      for (const { file, text } of HTML) assert.ok(!text.includes(hidden.name) && !text.includes(hidden.url), `${file} names ${hidden.name}`);
+    }
+  });
+
+  it("speaks of one tool as one", () => {
+    for (const locale of LOCALES) {
+      const band = readFileSync(join(DIST, localePath(PAGES.home, locale), "index.html"), "utf8");
+      const title = band.match(/<h2 id="tools">([^<]+)<\/h2>/)?.[1] ?? "";
+      assert.equal(/^(A tool|Una herramienta) /.test(title), SHOWN_TOOLS.length === 1, `${locale}: ${title}`);
     }
   });
 });
