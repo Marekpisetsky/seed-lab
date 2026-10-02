@@ -9,10 +9,11 @@ import type { CalculationBundle } from "@/hooks/use-calculation";
 import type { I18n } from "@/i18n";
 import { investedInText } from "@/i18n/investment-text";
 import { valueAt } from "@/lib/calculator";
-import { formatShare, gainedShareOf, growsText } from "@/lib/growth";
+import { growsText } from "@/lib/growth";
 import type { ResolvedInvestment } from "@/lib/investment";
 import { CONCENTRATION_LIMIT } from "@/lib/mix";
 import { GrowthChart } from "./growth-chart";
+import { KeyFacts } from "./key-facts";
 import { ResultCard } from "./result-card";
 import { WhatIfIndicator, WhatIfRow } from "./what-if-row";
 
@@ -22,7 +23,6 @@ function Loading() {
 }
 
 // Each card's details are their own code, loaded when the card is opened.
-const PayDetails = dynamic(() => import("./pay-details").then((module) => module.PayDetails), { loading: Loading });
 const WhereDetails = dynamic(() => import("./where-details").then((module) => module.WhereDetails), { loading: Loading });
 const GoalsSection = dynamic(() => import("./goals-section").then((module) => module.GoalsSection), { loading: Loading });
 const KnowDetails = dynamic(() => import("./know-details").then((module) => module.KnowDetails), { loading: Loading });
@@ -40,7 +40,7 @@ function summaryText({ scenario, investment, result }: CalculationBundle["calc"]
   return t.summary(have, monthly, where, years);
 }
 
-/** Level 1: what the user said, then what the money is worth after the years, big, and how it grows, in one line. */
+/** Level 1: what the user said, then what the money is worth after the years, big. */
 function ResultTotal({ bundle, ref }: { bundle: CalculationBundle; ref: React.Ref<HTMLElement> }) {
   const i18n = useI18n();
   const { m, f } = i18n;
@@ -48,7 +48,6 @@ function ResultTotal({ bundle, ref }: { bundle: CalculationBundle; ref: React.Re
   const { result } = calc;
   const years = m.units.years(result.years);
   const grows = growsText(result.growthRate, i18n);
-  const share = gainedShareOf(result);
   return (
     // Focused (not tabbable) when the result arrives, so a screen reader starts here.
     <section ref={ref} tabIndex={-1} aria-label={m.result.label} className="scroll-mt-4 space-y-1 outline-none">
@@ -65,9 +64,6 @@ function ResultTotal({ bundle, ref }: { bundle: CalculationBundle; ref: React.Re
       <p className="flex items-center gap-2 text-4xl font-extrabold tracking-tight tabular-nums sm:text-5xl">
         <Changed value={f.eur(result.total)} />
         <Help what={m.result.inYears(years)} text={m.help.total} />
-      </p>
-      <p className="text-lg font-semibold tabular-nums">
-        <Changed value={share === null ? grows : m.result.growthLine(grows, formatShare(share, i18n))} />
       </p>
     </section>
   );
@@ -101,7 +97,6 @@ export function Results({ bundle, arrive = false, onArrived }: { bundle: Calcula
   }, [arrive, onArrived]);
   const { m, f } = i18n;
   const { calc, base, today } = bundle;
-  const { result } = calc;
   const t = m.cards;
   // The card's sentence: what +€50 a month would add (the same figure its chip shows).
   const fifty = valueAt({ ...base.scenario, monthly: base.scenario.monthly + 50 }, base.result.years * 12) - base.result.total;
@@ -111,12 +106,12 @@ export function Results({ bundle, arrive = false, onArrived }: { bundle: Calcula
 
   return (
     <div className="space-y-6 motion-safe:animate-reveal">
-      <ResultTotal bundle={bundle} ref={top} />
+      <div className="space-y-4">
+        <ResultTotal bundle={bundle} ref={top} />
+        <KeyFacts bundle={bundle} />
+      </div>
       <GrowthChart bundle={bundle} />
       <div className="space-y-2">
-        <ResultCard title={`${m.result.couldPay} ${m.result.perMonth(f.smallEur(result.income))}`}>
-          <PayDetails bundle={bundle} />
-        </ResultCard>
         <ResultCard
           title={m.whatIf.title}
           summary={calc.whatIf ? t.applied(m.whatIf.applied[calc.whatIf]) : t.whatIf(m.whatIf.chips["monthly-50"], f.eurRounded(fifty, { signed: true }))}

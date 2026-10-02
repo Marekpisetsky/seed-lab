@@ -5,10 +5,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "@/components/i18n";
 import { calculationFor } from "@/hooks/use-calculation";
 import { getI18n, type I18n } from "@/i18n";
+import { countryName } from "@/i18n/countries";
 import type { Locale } from "@/i18n/locales";
 import { INITIAL_STATE, type AppState } from "@/lib/app-store";
 import { parseIsoDate } from "@/lib/dates";
 import { toNominal } from "@/lib/investment";
+import { bandsFor } from "@/lib/projections";
 import { EXAMPLE_PLAN } from "@/lib/validation";
 import { CalculatorCard } from "./calculator-card";
 import { MoneyModule } from "./money-module";
@@ -167,17 +169,46 @@ describe.each(["en", "es"] as const)("the result in levels (%s)", (locale) => {
     expect(decode(html).indexOf(said)).toBeLessThan(decode(html).indexOf("text-4xl"));
   });
 
-  it("shows the big number with its growth line, then a small chart", () => {
+  it("shows the big number, the key figures right under it, then a small chart", () => {
     expect(text(html)).toContain(f.eur(bundle.calc.result.total));
     expect(count(html, 'role="img"')).toBe(1);
-    expect(html.indexOf(f.eur(bundle.calc.result.total))).toBeLessThan(html.indexOf('role="img"'));
+    const grid = html.indexOf(`aria-label="${m.facts.label}"`);
+    expect(html.indexOf("text-4xl")).toBeLessThan(grid);
+    expect(grid).toBeLessThan(html.indexOf('role="img"'));
   });
 
-  it("folds the rest into five one-line cards, each with what it says", () => {
-    expect(count(html, FOLDED)).toBe(5);
-    expect(count(html, "<h3>")).toBe(5);
+  it("shows six key figures, two across on a phone and three on a wide screen, each one tappable", () => {
+    const grid = html.slice(html.indexOf(`aria-label="${m.facts.label}"`), html.indexOf('role="img"'));
+    expect(grid).toContain("grid-cols-2 ");
+    expect(grid).toContain("sm:grid-cols-3");
+    const cells = [...decode(grid).matchAll(/<button type="button" aria-expanded="false" aria-controls="([^"]+)"[^>]*>(.*?)<\/button>/g)];
+    expect(cells).toHaveLength(6);
+    const panel = cells[0][1];
+    expect(cells.every((cell) => cell[1] === panel)).toBe(true);
+    expect(grid).toContain(`id="${panel}"`);
+    const { result, scenario, investment, countries } = bundle.calc;
+    const bands = bandsFor(investment, { start: scenario.capital, monthly: scenario.monthly, years: result.years });
+    const dearest = countries.filter((row) => row.withoutHousing.covered).toSorted((a, b) => b.withoutHousing.amount - a.withoutHousing.amount)[0];
+    const expected: [string, string][] = [
+      [m.facts.putIn, f.eur(result.putIn)],
+      [m.facts.grows, f.eur(result.growth)],
+      [m.facts.pays, f.smallEur(result.income)],
+      [m.facts.bad, f.eur(bands.p10[result.years])],
+      [m.facts.good, f.eur(bands.p90[result.years])],
+      [m.facts.lives, dearest ? countryName(dearest.code, getI18n(locale)) : m.facts.none],
+    ];
+    expected.forEach(([label, value], index) => {
+      expect(text(cells[index][2])).toContain(label);
+      expect(text(cells[index][2])).toContain(value);
+    });
+    // Where each comes from waits for a tap.
+    expect(text(html)).not.toContain(m.help.income);
+  });
+
+  it("puts the rest in one-line cards, each with what it says", () => {
+    expect(count(html, FOLDED)).toBe(4);
+    expect(count(html, "<h3>")).toBe(4);
     const words = text(html);
-    expect(words).toContain(`${m.result.couldPay} ${m.result.perMonth(f.smallEur(bundle.calc.result.income))}`);
     expect(words).toMatch(new RegExp(`${m.whatIf.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} \\+`));
     expect(words).toContain(m.cards.whereSummary(bundle.calc.countries.filter((row) => row.withoutHousing.covered).length, bundle.calc.countries.length));
     expect(words).toContain(m.cards.goalsNone);
@@ -226,7 +257,9 @@ describe("what loads with the first screen", () => {
     expect(source("./money-module.tsx")).toContain('import("./results")');
     expect(staticImports("./calculator-card.tsx")).not.toContain("./more-options");
     expect(source("./calculator-card.tsx")).toContain('import("./more-options")');
-    for (const details of ["./pay-details", "./where-details", "./goals-section", "./know-details"]) {
+    expect(source("./key-facts.tsx")).toContain('import("./pay-details")');
+    expect(staticImports("./key-facts.tsx")).not.toContain("./pay-details");
+    for (const details of ["./where-details", "./goals-section", "./know-details"]) {
       expect(staticImports("./results.tsx")).not.toContain(details);
       expect(source("./results.tsx")).toContain(`import("${details}")`);
     }
