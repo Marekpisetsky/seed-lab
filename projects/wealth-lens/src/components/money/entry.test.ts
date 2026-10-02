@@ -8,15 +8,17 @@ import { getI18n, type I18n } from "@/i18n";
 import { countryName } from "@/i18n/countries";
 import type { Locale } from "@/i18n/locales";
 import { INITIAL_STATE, type AppState } from "@/lib/app-store";
+import { whatIfEffects } from "@/lib/calculator";
 import { parseIsoDate } from "@/lib/dates";
 import { toNominal } from "@/lib/investment";
 import { bandsFor } from "@/lib/projections";
-import { EXAMPLE_PLAN } from "@/lib/validation";
+import { EXAMPLE_PLAN, MAX_YEARS_AHEAD } from "@/lib/validation";
 import { CalculatorCard } from "./calculator-card";
 import { GoalsSection } from "./goals-section";
 import { PERIODS, shownYears } from "./growth-chart";
 import { MoneyModule } from "./money-module";
 import { Results } from "./results";
+import { StepHint } from "./step-hints";
 import { WhereDetails } from "./where-details";
 
 // The page reads the app's state through this hook: each test gives its own.
@@ -279,6 +281,33 @@ describe.each(["en", "es"] as const)("where it reaches and my goals (%s)", (loca
   });
 });
 
+describe.each(["en", "es"] as const)("the lines beside steps 2 and 4 (%s)", (locale) => {
+  const { m, f } = getI18n(locale);
+  const bundle = calculationFor(filled, today);
+  const effects = whatIfEffects(bundle.base);
+  const change = (id: string) => f.eurRounded(effects.find((effect) => effect.id === id)?.change ?? NaN, { signed: true });
+
+  it("say what +€50 a month and five more years would add, the figures of their “What if…?”", () => {
+    const monthly = text(render(locale, filled, createElement(StepHint, { bundle, step: "monthly" })));
+    expect(monthly).toContain(m.calculator.effectIn(m.whatIf.chips["monthly-50"], change("monthly-50"), m.units.years(20)));
+    const years = text(render(locale, filled, createElement(StepHint, { bundle, step: "years" })));
+    expect(years).toContain(m.calculator.effect(m.whatIf.chips["years-5"], change("years-5")));
+  });
+
+  it("say nothing when five more years cannot apply", () => {
+    const longest: AppState = { ...filled, plan: { ...EXAMPLE_PLAN, years: MAX_YEARS_AHEAD } };
+    expect(render(locale, longest, createElement(StepHint, { bundle: calculationFor(longest, today), step: "years" }))).toBe("");
+  });
+
+  it("sit in steps 2 and 4, under their fields", () => {
+    const html = render(locale, filled, createElement(CalculatorCard, { hints: { monthly: createElement("i", null, "MONTHLY-HINT"), years: createElement("i", null, "YEARS-HINT") } }));
+    const steps = html.slice(html.indexOf("<ol")).split("<li").slice(1);
+    expect(steps[1]).toContain("MONTHLY-HINT");
+    expect(steps[3]).toContain("YEARS-HINT");
+    expect(steps[1].indexOf("<input")).toBeLessThan(steps[1].indexOf("MONTHLY-HINT"));
+  });
+});
+
 describe.each(["en", "es"] as const)("the sentence before the big number (%s)", (locale) => {
   const { m, f } = getI18n(locale);
   const t = m.result;
@@ -316,6 +345,8 @@ describe("what loads with the first screen", () => {
 
   it("loads the result, the folded cards and More options only when they are needed", () => {
     expect(staticImports("./money-module.tsx")).not.toContain("./results");
+    expect(staticImports("./money-module.tsx")).not.toContain("./step-hints");
+    expect(source("./money-module.tsx")).toContain('import("./step-hints")');
     expect(source("./money-module.tsx")).toContain('import("./results")');
     expect(staticImports("./calculator-card.tsx")).not.toContain("./more-options");
     expect(source("./calculator-card.tsx")).toContain('import("./more-options")');

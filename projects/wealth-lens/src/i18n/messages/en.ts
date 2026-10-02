@@ -595,6 +595,9 @@ export const en = {
     moreYear: "One year more",
     /** In grey in an empty field: an example, never data. */
     example: (value: string) => `e.g. ${value}`,
+    /** Under a step once there is a result: "+€50 a month → +€27,000 in 20 years", "5 more years → +€33,000". */
+    effectIn: (what: string, change: string, years: string) => `${what} → ${change} in ${years}`,
+    effect: (what: string, change: string) => `${what} → ${change}`,
     see: "See my result",
     calm: "Write both amounts to see your result.",
     addToMix: "Add to the mix",

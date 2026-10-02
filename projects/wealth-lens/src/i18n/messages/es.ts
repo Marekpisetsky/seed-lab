@@ -586,6 +586,8 @@ export const es: Messages = {
     lessYear: "Un año menos",
     moreYear: "Un año más",
     example: (value: string) => `p. ej. ${value}`,
+    effectIn: (what: string, change: string, years: string) => `${what} → ${change} en ${years}`,
+    effect: (what: string, change: string) => `${what} → ${change}`,
     see: "Ver mi resultado",
     calm: "Escribe los dos importes para ver tu resultado.",
     addToMix: "Añadir a la mezcla",

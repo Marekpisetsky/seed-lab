@@ -12,6 +12,9 @@ import { CalculatorCard } from "./calculator-card";
 const loadResults = () => import("./results").then((module) => module.Results);
 const Results = dynamic(loadResults);
 
+/** The lines under the monthly amount and the years once there is a result: with the result's code, not the first screen's. */
+const StepHint = dynamic(() => import("./step-hints").then((module) => module.StepHint));
+
 /** Kept while the page is open: once the result was asked for, coming back to "My money" shows it without asking again. */
 let askedBefore = false;
 
@@ -19,7 +22,8 @@ let askedBefore = false;
  * "My money": the four steps first, on their own, with three things to
  * trust under them (no accounts, nothing saved, the years of the data).
  * "See my result" brings the result in, gently, once both amounts are in
- * (lib/plan.ts, planReady); from then on it follows every change.
+ * (lib/plan.ts, planReady); from then on it follows every change, and
+ * the monthly amount and the years each say what one more step would add.
  */
 export function MoneyModule() {
   const { m } = useI18n();
@@ -38,7 +42,10 @@ export function MoneyModule() {
   const shown = asked && bundle.ready;
   return (
     <div className="space-y-6">
-      <CalculatorCard onSee={asked ? undefined : see} />
+      <CalculatorCard
+        onSee={asked ? undefined : see}
+        hints={shown ? { monthly: <StepHint bundle={bundle} step="monthly" />, years: <StepHint bundle={bundle} step="years" /> } : undefined}
+      />
       {shown ? (
         <Results bundle={bundle} arrive={arriving} onArrived={arrived} />
       ) : (
