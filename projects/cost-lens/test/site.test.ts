@@ -10,9 +10,10 @@ import { plainLanguageProblems, textsOf } from "../../../packages/seed-kit/src/p
 import { TOOLS } from "../../../packages/seed-kit/src/tools.ts";
 import { build } from "../src/build.ts";
 import { WORDS } from "../src/i18n.ts";
-import { EXAMPLE, PAGES } from "../src/pages.ts";
+import { countriesFor, DEFAULTS } from "../src/countries.ts";
+import { PAGES } from "../src/pages.ts";
 import { ID, LIMIT_KB, SITE_URL } from "../src/site.ts";
-import { resultHtml } from "../src/view.ts";
+import { listsHtml, resultHtml } from "../src/view.ts";
 
 /**
  * What seed-lab promises for every tool, checked on the built site: both
@@ -78,13 +79,27 @@ describe("the site", () => {
     }
   });
 
-  it("shows the example's result before anyone types, and the browser's code draws the same", async () => {
-    const browser = (await import(pathToFileURL(join(DIST, "js/view.js")).href)) as { resultHtml: typeof resultHtml };
+  it("shows the result and the lists before anyone types, and the browser's code draws the same", async () => {
+    const browser = (await import(pathToFileURL(join(DIST, "js/view.js")).href)) as { resultHtml: typeof resultHtml; listsHtml: typeof listsHtml };
     for (const locale of LOCALES) {
       const page = readFileSync(join(DIST, localePath(PAGES.home, locale), "index.html"), "utf8");
-      const shown = resultHtml(EXAMPLE.before, EXAMPLE.after, locale).value;
-      assert.ok(page.includes(shown), locale);
-      assert.equal(browser.resultHtml(EXAMPLE.before, EXAMPLE.after, locale).value, shown, locale);
+      const countries = countriesFor(locale);
+      for (const draw of ["resultHtml", "listsHtml"] as const) {
+        const shown = ({ resultHtml, listsHtml })[draw](DEFAULTS, countries, locale).value;
+        assert.ok(page.includes(shown), `${locale}: ${draw}`);
+        assert.equal(browser[draw](DEFAULTS, countries, locale).value, shown, `${locale}: ${draw}`);
+      }
+      const carried = JSON.parse(page.match(/<script type="application\/json" id="countries">([^<]*)<\/script>/)?.[1] ?? "[]");
+      assert.deepEqual(carried, countries, `${locale}: the page carries the countries the browser compares`);
+    }
+  });
+
+  it("names its sources, with dates, on the page", () => {
+    for (const locale of LOCALES) {
+      const page = readFileSync(join(DIST, localePath(PAGES.home, locale), "index.html"), "utf8");
+      assert.match(page, /Numbeo/, locale);
+      assert.match(page, /Wise/, locale);
+      assert.match(page, locale === "en" ? /World Bank, 20\d\d/ : /Banco Mundial, 20\d\d/, locale);
     }
   });
 });
@@ -98,7 +113,9 @@ describe("the words", () => {
 
   it("read plainly: no jargon, short sentences (seed-kit's check)", () => {
     for (const locale of LOCALES) {
-      assert.deepEqual(plainLanguageProblems(textsOf(WORDS[locale]), locale, { longForm: { maxWords: 22, paths: (path) => path.startsWith("footer.") } }), [], locale);
+      // The key sentence and the sources are read slowly: up to 22 words.
+      const longForm = (path: string) => path.startsWith("footer.") || path === "home.sentence" || path.startsWith("home.sources");
+      assert.deepEqual(plainLanguageProblems(textsOf(WORDS[locale]), locale, { longForm: { maxWords: 22, paths: longForm } }), [], locale);
     }
   });
 });

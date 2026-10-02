@@ -68,47 +68,47 @@
       "es"
     ],
     "tagline": {
-      "en": "Cost Lens, a new seed-lab tool.",
-      "es": "Cost Lens, una herramienta nueva de seed-lab."
+      "en": "What your money is worth in another country.",
+      "es": "Lo que vale tu dinero en otro país."
     },
     "description": {
-      "en": "Cost Lens is being built. It runs in your browser: nothing is saved or sent.",
-      "es": "Cost Lens está en construcción. Funciona en tu navegador: no se guarda ni se envía nada."
+      "en": "Type what you earn and where you live. See what you would need in another country to live the same, and where your money goes furthest, with and without housing. Nothing is saved or sent.",
+      "es": "Escribe lo que ganas y dónde vives. Mira cuánto necesitarías en otro país para vivir igual, y dónde rinde más tu dinero, con y sin vivienda. No se guarda ni se envía nada."
     },
     "principles": {
       "device": {
-        "status": "pending",
+        "status": "meets",
         "note": {
-          "en": "Not checked yet.",
-          "es": "Aún sin comprobar."
+          "en": "Worked out in your browser. Nothing is saved or sent.",
+          "es": "Se calcula en tu navegador. No se guarda ni se envía nada."
         }
       },
       "transparent": {
-        "status": "pending",
+        "status": "partly",
         "note": {
-          "en": "Not checked yet.",
-          "es": "Aún sin comprobar."
+          "en": "Free, with its sources and dates on the page. Method changes are not listed yet.",
+          "es": "Gratis, con sus fuentes y fechas en la página. Los cambios de método aún no se listan."
         }
       },
       "europe": {
         "status": "pending",
         "note": {
-          "en": "Not checked yet.",
-          "es": "Aún sin comprobar."
+          "en": "In English and Spanish, but hosted in the US. No audit by people yet.",
+          "es": "En inglés y español, pero alojado en EE. UU. Aún sin auditoría por personas."
         }
       },
       "light": {
-        "status": "pending",
+        "status": "meets",
         "note": {
-          "en": "Not checked yet.",
-          "es": "Aún sin comprobar."
+          "en": "About 16 KB per page, compressed, under the 350 KB limit.",
+          "es": "Unos 16 KB por página, comprimida, por debajo del límite de 350 KB."
         }
       },
       "everyone": {
-        "status": "pending",
+        "status": "partly",
         "note": {
-          "en": "Not checked yet.",
-          "es": "Aún sin comprobar."
+          "en": "Plain words, keyboard and 44 px targets. Not tested with real people yet.",
+          "es": "Palabras sencillas, teclado y objetivos de 44 px. Aún sin probar con personas reales."
         }
       }
     }

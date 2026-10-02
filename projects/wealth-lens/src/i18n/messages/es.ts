@@ -1,3 +1,4 @@
+import { IN_SENTENCE as COUNTRY_IN_SENTENCE } from "@seed-kit/country-names.ts";
 import type { ProblemTexts } from "@/lib/problems";
 import type { HowItWorksFacts, ProseSection, SourceEntry } from "../page-types";
 import type { Messages } from "./en";
@@ -736,10 +737,8 @@ export const es: Messages = {
     },
   },
   countries: {
-    inSentence: {
-      NL: "los Países Bajos",
-      GB: "el Reino Unido",
-    } as Record<string, string>,
+    /** Names that read with an article in a sentence ("live in the Netherlands"): seed-kit's, shared with Cost Lens. */
+    inSentence: COUNTRY_IN_SENTENCE.es as Record<string, string>,
   },
   result: {
     label: "Resultado",

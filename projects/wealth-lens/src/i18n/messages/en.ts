@@ -7,6 +7,7 @@
  * es.ts has the same shape: a key missing there does not compile.
  */
 
+import { IN_SENTENCE as COUNTRY_IN_SENTENCE } from "@seed-kit/country-names.ts";
 import type { ProblemTexts } from "@/lib/problems";
 import type { HowItWorksFacts, ProseSection, SourceEntry } from "../page-types";
 import { ENGLISH_SEARCH_WORDS } from "./search-words";
@@ -734,21 +735,8 @@ export const en = {
     },
   },
   countries: {
-    /** Names that read with an article in a sentence ("live in the Netherlands"). */
-    inSentence: {
-      NL: "the Netherlands",
-      US: "the United States",
-      GB: "the United Kingdom",
-      PH: "the Philippines",
-      AE: "the United Arab Emirates",
-      DO: "the Dominican Republic",
-      CF: "the Central African Republic",
-      BS: "the Bahamas",
-      GM: "the Gambia",
-      MV: "the Maldives",
-      KM: "the Comoros",
-      CZ: "the Czech Republic",
-    } as Record<string, string>,
+    /** Names that read with an article in a sentence ("live in the Netherlands"): seed-kit's, shared with Cost Lens. */
+    inSentence: COUNTRY_IN_SENTENCE.en as Record<string, string>,
   },
   result: {
     label: "Result",

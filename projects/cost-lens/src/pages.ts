@@ -1,18 +1,20 @@
 /**
- * The pages of Cost Lens, in each language: the tool itself, the privacy
+ * The pages of Cost Lens, in each language: the tool itself (the
+ * countries it compares travel inside the page, as JSON), the privacy
  * and terms page (seed-kit's words), and one "not found" page for every
  * language. Each says its title, description, content and scripts; the
  * build puts seed-lab's header and footer around it.
  */
 
 import { formatsFor } from "../../../packages/seed-kit/src/format.ts";
-import { html, rich, type Html } from "../../../packages/seed-kit/src/html.ts";
+import { html, raw, rich, type Html } from "../../../packages/seed-kit/src/html.ts";
 import { legalLink, legalPage } from "../../../packages/seed-kit/src/legal.ts";
 import { LOCALES, type Locale } from "../../../packages/seed-kit/src/locales.ts";
 import { pagePath } from "../../../packages/seed-kit/src/page.ts";
 import { WORDS } from "./i18n.ts";
 import { BASE_PATH, NAME } from "./site.ts";
-import { resultHtml } from "./view.ts";
+import { countriesFor, DATA, DEFAULTS } from "./countries.ts";
+import { listsHtml, resultHtml } from "./view.ts";
 
 /** The pages, by their address without the language. */
 export const PAGES = { home: "/", privacy: "/privacy/" } as const;
@@ -29,32 +31,54 @@ export interface Page {
   scripts: string[];
 }
 
-/** The numbers the tool opens with, so it shows a result before anyone types. */
-export const EXAMPLE = { before: 80, after: 100 } as const;
+function json(value: unknown): Html {
+  // Inside a script element, "<" could close it: written as its escape.
+  return raw(JSON.stringify(value).replace(/</g, "\\u003c"));
+}
 
 export function home(locale: Locale): Page {
   const words = WORDS[locale];
+  const t = words.home;
   const formats = formatsFor(locale);
-  const field = (name: "before" | "after") =>
-    html`<div class="sk-field"><label for="${name}">${words.home[name]}</label><input class="sk-input" id="${name}" name="${name}" inputmode="decimal" autocomplete="off" value="${formats.number(EXAMPLE[name])}"></div>`;
+  const countries = countriesFor(locale);
+  const choice = { ...DEFAULTS };
+  const select = (name: "from" | "to") =>
+    html`<div class="sk-field"><label for="${name}">${t[name]}</label><select class="sk-input" id="${name}" name="${name}">${countries.map(
+      (country) => html`<option value="${country.code}"${country.code === choice[name] ? raw(" selected") : ""}>${country.estimated ? "≈\u00a0" : ""}${country.name}</option>`,
+    )}</select></div>`;
+  const facts = {
+    detailed: formats.number(DATA.detailed),
+    estimated: formats.number(DATA.estimated),
+    month: formats.monthYear(new Date(`${DATA.detailedMonth}-01T00:00:00Z`)),
+    year: String(DATA.priceYear),
+    compiled: formats.date(DATA.compiledOn),
+  };
   return {
     id: "home",
     locale,
     title: words.meta.title,
     description: words.meta.description,
     scripts: ["/js/app.js"],
-    main: html`<h1>${words.home.title}</h1>
-<p class="sk-lead">${words.home.lead}</p>
+    main: html`<h1>${t.title}</h1>
+<p class="sk-lead">${t.lead(formats.number(countries.length))}</p>
 <div class="sk-layout">
-<form class="sk-card sk-form" id="calc" aria-label="${words.home.form}">
-<div class="sk-row">${field("before")}${field("after")}</div>
+<form class="sk-card sk-form" id="calc" aria-label="${t.form}">
+<div class="sk-field"><label for="amount">${t.amount}</label><input class="sk-input" id="amount" name="amount" inputmode="decimal" autocomplete="off" value="${formats.grouped(choice.amount)}"></div>
+${select("from")}
+${select("to")}
 </form>
 <section class="sk-card" aria-labelledby="result-title">
-<h2 id="result-title">${words.home.result}</h2>
-<div class="sk-result" id="result" aria-live="polite">${resultHtml(EXAMPLE.before, EXAMPLE.after, locale)}</div>
-<p class="sk-small">${words.home.private}</p>
+<h2 id="result-title">${t.result}</h2>
+<div class="sk-result" id="result" aria-live="polite">${resultHtml(choice, countries, locale)}</div>
+<p class="sk-small">${t.private}</p>
 </section>
-</div>`,
+</div>
+<div id="lists">${listsHtml(choice, countries, locale)}</div>
+<section class="sk-prose sources" aria-labelledby="sources-title">
+<h2 id="sources-title">${t.sourcesTitle}</h2>
+<ul>${t.sources(facts).map((line) => html`<li>${line}</li>`)}</ul>
+</section>
+<script type="application/json" id="countries">${json(countries)}</script>`,
   };
 }
 
