@@ -274,10 +274,12 @@ describe.each(["en", "es"] as const)("where it reaches and my goals (%s)", (loca
     expect(where).not.toContain("things-title");
   });
 
-  it("asks for a first goal, with what goals are for", () => {
-    const goals = text(render(locale, filled, createElement(GoalsSection, { calc: bundle.calc, today, inCard: true })));
-    expect(goals).toContain(m.help.goals);
-    expect(goals).toContain(m.goals.add);
+  it("asks for a first goal, with what goals are for, without naming the place again", () => {
+    const html = render(locale, filled, createElement(GoalsSection, { calc: bundle.calc, today, inCard: true }));
+    expect(text(html)).toContain(m.help.goals);
+    expect(text(html)).toContain(m.goals.add);
+    // The section around it is already titled "My goals".
+    expect(html).not.toMatch(/<section[^>]*aria-label/);
   });
 });
 
