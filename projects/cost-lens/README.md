@@ -1,0 +1,74 @@
+# Cost Lens
+
+Una herramienta de seed-lab, en inglés y en español. Nació con
+[Forja](../../tools/forja/README.md) (molde `web-tool`) sobre
+[seed-kit](../../packages/seed-kit/README.md), así que desde el primer
+día es privada, ligera y bilingüe: no guarda ni envía nada, no carga nada
+de otros sitios y cada página pesa menos de 50 KB comprimida.
+
+Hoy trae el ejemplo de Forja (cuánto cambió un número de antes a
+después): sustitúyelo por lo que haga la herramienta.
+
+## Cómo está hecha
+
+Páginas estáticas, sin framework. Un generador en TypeScript, ejecutado
+por Node 22 (`--experimental-strip-types`), escribe `dist/`: una carpeta
+por página e idioma (`/`, `/es/`, `/privacy/`, `/es/privacy/`), la
+página 404, el icono y el código del navegador. No hay dependencias en
+tiempo de ejecución.
+
+De seed-kit, importado desde el código (no copiado): los colores, la
+cabecera y el pie de seed-lab (con EN/ES y el lanzador de herramientas),
+la página de privacidad y condiciones, el documento HTML, el script de
+idioma, los formatos de números, el código para el navegador, la medida
+del peso y las comprobaciones.
+
+```
+src/
+  site.ts       quién es y dónde vive: id, nombre, dirección, límite de peso
+  calc.ts       el cálculo, puro: lo usan la página, el navegador y los tests
+  view.ts       el resultado en HTML: el build lo escribe y el navegador lo redibuja
+  i18n.ts       todas las palabras, en inglés y en español
+  pages.ts      las páginas: la herramienta, privacidad y condiciones, 404
+  app.ts        el script del navegador: lee el formulario y redibuja
+  styles.css    los estilos propios, después de los de seed-kit
+  build.ts      genera dist/ con todo lo de seed-kit alrededor
+test/
+  calc.test.ts  el cálculo y sus casos límite
+  site.test.ts  idiomas, cabecera y pie, sin peticiones ni almacenamiento,
+                peso por página, enlaces, palabras sencillas
+```
+
+## Comandos
+
+```bash
+npm ci              # solo herramientas de desarrollo: lint y tipos
+npm run build       # genera dist/ e imprime el peso de cada página
+npm test            # construye en una carpeta temporal y lo comprueba todo
+npm run lint
+npm run typecheck
+npm run check       # los tres
+npm run serve       # lo construye y lo sirve en local
+```
+
+`npm test` y `npm run build` no necesitan `npm ci`: solo Node 22.
+
+## Publicarla
+
+Un proyecto de Vercel (o cualquier hosting estático) con *Root Directory*
+`projects/cost-lens`, *Build Command* `npm run build`, *Output Directory*
+`dist` y la opción *Include files outside the root directory in the Build
+Step* activada (el build lee `packages/seed-kit`). Su dirección va en
+`src/site.ts` (`SITE_URL`) y en su entrada de
+`packages/seed-kit/src/tools.json` (`url`); un test comprueba que
+coinciden.
+
+## De ejemplo a herramienta
+
+1. Cambia `calc.ts`, `view.ts`, `i18n.ts` y `pages.ts` por lo suyo, con
+   tests de sus casos límite.
+2. Completa su entrada en `packages/seed-kit/src/tools.json`: frase,
+   descripción y cómo cumple cada principio. Nace como `beta` con
+   `"listed": false`: funciona y se puede publicar, pero ni el hub ni los
+   lanzadores la muestran hasta que pase a `"listed": true` o a `live`.
+3. `npm run check`, y que cada página siga por debajo de 50 KB.
