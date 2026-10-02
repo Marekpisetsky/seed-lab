@@ -10,14 +10,10 @@
 export const en = {
   site: {
     name: "seed-lab",
-    skip: "Skip to content",
-    nav: { label: "Pages", principles: "Principles", about: "About" },
-    language: "Language",
-    footerNav: "More",
+    nav: { principles: "Principles", about: "About" },
     roadmap: "Roadmap",
     noTracking: "No cookies. No analytics. Nothing about you is stored.",
     weight: (kb: string, compressed: string) => `This page weighs ${kb} KB (${compressed} KB compressed), measured when it was built.`,
-    copyright: "© 2026 seed-lab. Free to use.",
   },
   meta: {
     home: {

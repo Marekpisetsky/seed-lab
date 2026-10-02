@@ -1,6 +1,6 @@
-import { html, rich } from "../html.ts";
+import { html, raw, rich } from "../../../packages/seed-kit/src/html.ts";
 import { PRINCIPLE_IDS, TOOLS } from "../content.ts";
-import { icon, isIconId } from "../icons.ts";
+import { isPrincipleIconId, principleIcon } from "../../../packages/seed-kit/src/icons.ts";
 import { messages } from "../i18n/index.ts";
 import type { Locale } from "../i18n/index.ts";
 import { band, linkTo } from "../layout.ts";
@@ -25,7 +25,7 @@ ${band(
   html`<ol class="commitments">
 ${m.principles.items.map(
   (item, index) => html`<li class="commitment" id="${item.id}">
-<div class="commitment-title">${isIconId(item.id) ? html`<span class="principle-icon">${icon(item.id, 32)}</span>` : ""}<h2><span>${index + 1}.</span> ${item.title}</h2></div>
+<div class="commitment-title">${isPrincipleIconId(item.id) ? html`<span class="principle-icon">${raw(principleIcon(item.id, 32))}</span>` : ""}<h2><span>${index + 1}.</span> ${item.title}</h2></div>
 <p class="commitment-text">${item.text}</p>
 <h3 class="label">${m.principles.rulesLabel}</h3>
 <ul class="rules">${item.rules.map((rule) => html`<li>${rule}</li>`)}</ul>

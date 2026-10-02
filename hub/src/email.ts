@@ -1,6 +1,6 @@
-import { html, raw } from "./html.ts";
-import type { Html } from "./html.ts";
-import { CONTACT } from "./site.ts";
+import { html, raw } from "../../packages/seed-kit/src/html.ts";
+import type { Html } from "../../packages/seed-kit/src/html.ts";
+import { CONTACT } from "../../packages/seed-kit/src/site.ts";
 
 /**
  * seed-lab's email address in the page: two data attributes that CSS shows

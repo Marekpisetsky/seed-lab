@@ -1,4 +1,4 @@
-import { html, rich } from "../html.ts";
+import { html, rich } from "../../../packages/seed-kit/src/html.ts";
 import { BLOCKS } from "../content.ts";
 import { messages } from "../i18n/index.ts";
 import type { Locale } from "../i18n/index.ts";

@@ -1,6 +1,6 @@
-import { html } from "../html.ts";
+import { html, raw } from "../../../packages/seed-kit/src/html.ts";
 import { TOOLS } from "../content.ts";
-import { icon, isIconId } from "../icons.ts";
+import { isPrincipleIconId, principleIcon } from "../../../packages/seed-kit/src/icons.ts";
 import { LOCALE_SETTINGS, PAGES, localePath, messages } from "../i18n/index.ts";
 import type { Locale } from "../i18n/index.ts";
 import { band } from "../layout.ts";
@@ -28,7 +28,7 @@ ${band(
   "light",
   html`<div class="section-head"><h2 id="principles">${m.home.principlesTitle}</h2><p>${m.home.principlesIntro}</p></div>
 <ol class="principles">
-${m.principles.items.map((item) => html`<li>${isIconId(item.id) ? icon(item.id) : ""}${item.short}</li>`)}
+${m.principles.items.map((item) => html`<li>${isPrincipleIconId(item.id) ? raw(principleIcon(item.id)) : ""}${item.short}</li>`)}
 </ol>
 <p><a class="link" href="${localePath(PAGES.principles, locale)}">${m.home.principlesLink} →</a></p>`,
   "principles",

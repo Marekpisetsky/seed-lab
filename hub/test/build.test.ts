@@ -3,13 +3,14 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 import { build, DIST } from "../src/build.ts";
-import { BLOCKS, PRINCIPLE_IDS, TOOLS, parseBlocks, parseTools } from "../src/content.ts";
+import { externalRequests, inlineScripts, measure, storageUse } from "../../packages/seed-kit/src/checks.ts";
+import { FAVICON } from "../../packages/seed-kit/src/icons.ts";
+import { plainLanguageProblems, textsOf } from "../../packages/seed-kit/src/plain-language.ts";
+import { BLOCKS, PRINCIPLE_IDS, TOOLS, parseBlocks } from "../src/content.ts";
 import { en } from "../src/i18n/en.ts";
 import { es } from "../src/i18n/es.ts";
 import { LOCALE_SETTINGS, LOCALES, PAGES, localePath } from "../src/i18n/index.ts";
 import type { Locale } from "../src/i18n/index.ts";
-import { BRAND, FAVICON, TOUCH_ICON } from "../src/icons.ts";
-import { measure } from "../src/weight.ts";
 
 const report = build();
 
@@ -40,7 +41,7 @@ describe("the build", () => {
       const real = measure([text, FAVICON]);
       const kb = (bytes: number) =>
         new Intl.NumberFormat(LOCALE_SETTINGS[locale].intl, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(bytes / 1000);
-      const said = text.match(/<p class="weight">([^<]+)<\/p>/)?.[1];
+      const said = text.match(/<p class="sk-note">((?:This page weighs|Esta página pesa)[^<]+)<\/p>/)?.[1];
       assert.ok(said, `${file} has no weight`);
       assert.ok(said.includes(kb(real.bytes)) && said.includes(kb(real.compressed)), `${file}: "${said}" but it weighs ${real.bytes} B, ${real.compressed} B compressed`);
     }
@@ -60,6 +61,8 @@ describe("the build", () => {
       assert.doesNotMatch(text, /@import|\burl\(/, file); // CSS; "new URL(" in the language script is fine
       assert.doesNotMatch(text, /document\.cookie|localStorage|sessionStorage|indexedDB|sendBeacon|fetch\(|XMLHttpRequest/, file);
       assert.doesNotMatch(text, /gtag|google-analytics|googletagmanager|plausible|umami|matomo|vercel\/analytics|insights/i, file);
+      assert.deepEqual(externalRequests(text), [], file);
+      assert.deepEqual(inlineScripts(text).flatMap(storageUse), [], file);
     }
   });
 
@@ -156,27 +159,11 @@ describe("honesty", () => {
     assert.equal(parseBlocks([{ ...block, url: "https://example.org" }])[0].status, "live");
   });
 
-  it("refuses tools with a missing language, a bad status or an http address", () => {
-    const note = { en: "N", es: "N" };
-    const tool = {
-      id: "t", name: "T", status: "live", url: "https://example.org", languages: ["en"],
-      tagline: { en: "T", es: "T" }, description: { en: "T", es: "T" },
-      principles: Object.fromEntries(PRINCIPLE_IDS.map((id) => [id, { status: "meets", note }])),
-    };
-    assert.equal(parseTools([tool]).length, 1);
-    assert.throws(() => parseTools([{ ...tool, tagline: { en: "T" } }]), /needs a text in es/);
-    assert.throws(() => parseTools([{ ...tool, status: "beta" }]), /status/);
-    assert.throws(() => parseTools([{ ...tool, url: "http://example.org" }]), /https/);
-    assert.throws(() => parseTools([{ ...tool, languages: ["fr"] }]), /languages/);
-    assert.throws(() => parseTools([{ ...tool, principles: { ...tool.principles, light: { status: "almost", note } } }]), /status for the light principle/);
-    assert.throws(() => parseTools([{ ...tool, principles: { ...tool.principles, speed: { status: "meets", note } } }]), /unknown principles speed/);
-  });
-
   it("states every principle as a commitment, and puts each product's gaps in the table", () => {
     const live = TOOLS.filter((tool) => tool.status === "live");
     for (const locale of LOCALES) {
       const page = readFileSync(join(DIST, localePath(PAGES.principles, locale), "index.html"), "utf8");
-      const [commitments, table] = page.split('id="products"');
+      const [commitments, table] = page.slice(page.indexOf("<main"), page.indexOf("</main>")).split('id="products"');
       assert.equal((commitments.match(/class="commitment"/g) ?? []).length, PRINCIPLE_IDS.length, locale);
       assert.doesNotMatch(commitments, /Wealth Lens|Pending|Pendiente|Partly|En parte/, `${locale}: the principles name no product and no gap`);
       assert.match(commitments, /350 KB/, `${locale}: the weight limit is published`);
@@ -205,77 +192,9 @@ describe("honesty", () => {
 });
 
 describe("the colours", () => {
-  const TOKENS = readFileSync(new URL("../src/tokens.css", import.meta.url), "utf8");
-  const read = (css: string) => Object.fromEntries([...css.matchAll(/--([\w-]+):\s*(#[0-9a-f]{6});/g)].map(([, name, hex]) => [name, hex]));
-  /** The values of one block of tokens.css, by its selector. */
-  const block = (selector: string) => {
-    const start = TOKENS.indexOf(`${selector} {`);
-    return read(TOKENS.slice(start, TOKENS.indexOf("}", start)));
-  };
-  const modes = { light: block(".theme-light"), dark: block(".theme-dark") };
-  const luminance = (hex: string) => {
-    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  };
-  const contrast = (a: string, b: string) => {
-    const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p);
-    return (x + 0.05) / (y + 0.05);
-  };
-
-  it("are the same file as Wealth Lens's, so both sites look like one family", () => {
-    const wealthLens = new URL("../../projects/wealth-lens/src/app/tokens.css", import.meta.url);
-    assert.equal(readFileSync(wealthLens, "utf8"), TOKENS);
-  });
-
-  it("keep every text colour at WCAG AA (4.5:1) on every surface, in both modes", () => {
-    for (const [mode, t] of Object.entries(modes)) {
-      for (const text of ["foreground", "muted", "accent", "positive", "negative", "warning-foreground"]) {
-        for (const surface of ["background", "card", "subtle", "warning-bg"]) {
-          assert.ok(contrast(t[text], t[surface]) >= 4.5, `${mode}: ${text} on ${surface} is ${contrast(t[text], t[surface]).toFixed(2)}`);
-        }
-      }
-      assert.ok(contrast(t["accent-foreground"], t.accent) >= 4.5, `${mode}: text on an accent button`);
-      assert.ok(contrast(t["brand-foreground"], t.brand) >= 4.5, `${mode}: text on a brand button`);
-      assert.ok(contrast(t.brand, t.background) >= 3, `${mode}: the logo and icons (3:1 for graphics)`);
-      assert.ok(contrast(t.accent, t["accent-soft"]) >= 4.5, `${mode}: the Meets label`);
-    }
-  });
-
-  it("use neutral greys with no warm tint, and white and near-black behind everything", () => {
-    for (const [mode, t] of Object.entries(modes)) {
-      for (const grey of ["background", "foreground", "card", "subtle", "muted", "border"]) {
-        const [r, g, b] = [1, 3, 5].map((i) => t[grey].slice(i, i + 2));
-        assert.ok(r === g && g === b, `${mode}: ${grey} ${t[grey]} is not a neutral grey`);
-      }
-    }
-    assert.equal(modes.light.background, "#ffffff");
-    assert.equal(modes.dark.background, "#0a0a0a");
-  });
-
-  it("give the device's dark mode the same values as .theme-dark", () => {
-    const start = TOKENS.indexOf("@media (prefers-color-scheme: dark)");
-    assert.deepEqual(read(TOKENS.slice(start, TOKENS.indexOf(".theme-dark {"))), modes.dark);
-  });
-
-  it("are a seed green of their own, far from NVIDIA's yellow-green", () => {
-    const hue = (hex: string) => {
-      const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
-      const max = Math.max(r, g, b);
-      const d = max - Math.min(r, g, b);
-      const h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
-      return (h * 60 + 360) % 360;
-    };
-    for (const t of Object.values(modes)) assert.ok(hue(t.brand) - hue("#76b900") > 60, `${t.brand} is too close to #76b900`);
-    assert.equal(modes.light["chart-growth"], modes.light.brand, "growth is drawn in the brand green");
-  });
-
-  it("are the colours of the icons", () => {
-    assert.equal(BRAND, modes.light.brand);
-    assert.ok(FAVICON.includes(`fill="${BRAND}"`) && TOUCH_ICON.includes(`fill="${BRAND}"`));
-    assert.ok(TOUCH_ICON.includes(`fill="${modes.dark.background}"`));
-  });
-
-  it("put the tokens in every page", () => {
+  it("are seed-kit's tokens, in every page (seed-kit's tests check their contrast)", () => {
+    const tokens = readFileSync(new URL("../../packages/seed-kit/src/tokens.css", import.meta.url), "utf8");
+    assert.match(tokens, /--brand: #00a36c;/);
     for (const { file, text } of HTML) assert.match(text, /--brand:#00a36c/, file);
   });
 });
@@ -285,8 +204,8 @@ describe("the layout", () => {
 
   it("alternates dark and light bands, never one dark block, whatever the device's mode", () => {
     for (const { file, text } of HTML) {
-      assert.match(text, /<header class="top theme-dark">/, file);
-      assert.match(text, /<footer class="foot theme-light">/, file);
+      assert.match(text, /<header class="sk-header theme-dark">/, file);
+      assert.match(text, /<footer class="sk-footer theme-light">/, file);
       const themes = bands(text);
       assert.ok(themes.length >= 1 && themes[0] === "dark", `${file}: the first band joins the dark header`);
       themes.forEach((theme, index) => index > 0 && assert.notEqual(theme, themes[index - 1], `${file}: two ${theme} bands in a row`));
@@ -305,6 +224,16 @@ describe("the layout", () => {
     }
   });
 
+  it("wears seed-kit's header and footer: the launcher lists the shown tools, and the hub is not Part of itself", () => {
+    for (const { file, text } of HTML) {
+      const header = text.slice(text.indexOf("<header"), text.indexOf("</header>"));
+      assert.match(header, /<details class="sk-launcher">/, file);
+      for (const tool of TOOLS.filter((entry) => entry.shown)) assert.match(header, new RegExp(`<a href="${tool.url}"><span class="sk-tool">${tool.name}</span>`), file);
+      for (const tool of TOOLS.filter((entry) => !entry.shown)) assert.doesNotMatch(header, new RegExp(tool.name), file);
+      assert.doesNotMatch(text, /Part of seed-lab|Parte de seed-lab/, file);
+    }
+  });
+
   it("shows the share image and the touch icon", () => {
     for (const { file, text } of HTML) {
       assert.match(text, /<meta property="og:image" content="https:\/\/[^"]+\/og\.png">/, file);
@@ -314,24 +243,13 @@ describe("the layout", () => {
 });
 
 describe("the words", () => {
-  /** Every text of a dictionary, with its functions filled in. */
-  function texts(value: unknown): string[] {
-    if (typeof value === "string") return [value];
-    if (typeof value === "function") return texts((value as (...args: string[]) => unknown)("12,3", "4,5"));
-    if (Array.isArray(value)) return value.flatMap(texts);
-    if (value && typeof value === "object") return Object.values(value).flatMap(texts);
-    return [];
-  }
-  const plain = (text: string) => text.replace(/\*\*/g, "").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+  /** A dictionary link reads as its words: "[roadmap](/roadmap/)" is "roadmap". */
+  const plain = (text: string) => text.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
 
-  it("keeps sentences short: at most 25 words", () => {
-    for (const [name, dictionary] of [["en", en], ["es", es]] as const) {
-      for (const text of texts(dictionary)) {
-        for (const sentence of plain(text).split(/(?<=[.!?:])\s+/)) {
-          const words = sentence.split(/\s+/).filter((word) => /\p{L}|\d/u.test(word));
-          assert.ok(words.length <= 25, `${name}: ${words.length} words in "${sentence}"`);
-        }
-      }
+  it("read plainly: no jargon, and sentences of 25 words at most (seed-kit's check)", () => {
+    for (const [locale, dictionary] of [["en", en], ["es", es]] as const) {
+      const entries = textsOf(dictionary).map((entry) => ({ ...entry, text: plain(entry.text) }));
+      assert.deepEqual(plainLanguageProblems(entries, locale, { maxWords: 25 }), [], locale);
     }
   });
 

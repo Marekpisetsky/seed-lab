@@ -2,14 +2,17 @@ import { readFileSync } from "node:fs";
 
 /**
  * All the hub's styles, inlined in every page: one request less, and no
- * flash. The colours come from tokens.css, the same file Wealth Lens uses:
- * white or near-black, neutral greys, one seed green. Pages alternate
+ * flash. The colours come from seed-kit's tokens.css, the one file every
+ * app uses: white or near-black, neutral greys, one seed green. The header
+ * and footer are seed-kit's too (chrome.css). Pages alternate
  * near-black and white bands (.theme-dark and .theme-light), the same
  * whatever the device's mode, so a page is never one dark block. The
  * system's own font, big strong headings, lots of space; nothing is stored.
  */
 
-const TOKENS = readFileSync(new URL("./tokens.css", import.meta.url), "utf8");
+const KIT = new URL("../../packages/seed-kit/src/", import.meta.url);
+const TOKENS = readFileSync(new URL("tokens.css", KIT), "utf8");
+const CHROME = readFileSync(new URL("chrome.css", KIT), "utf8");
 
 const CSS = /* css */ `
 *, *::before, *::after { box-sizing: border-box; }
@@ -26,27 +29,13 @@ p, ul, ol { margin: 0 0 1rem; }
 strong { font-weight: 700; }
 .wrap { max-width: 72rem; margin: 0 auto; padding: 0 1.25rem; }
 .narrow { max-width: 42rem; }
-.skip { position: absolute; left: -999rem; top: .75rem; padding: .75rem 1rem; background: var(--card); color: var(--foreground); border-radius: 8px; z-index: 1; }
-.skip:focus { left: .75rem; }
-.sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 main:focus { outline: none; }
 .muted { color: var(--muted); }
 
 /* Bands: always dark or always light, whatever the device's mode (tokens.css). */
 .band { background: var(--background); color: var(--foreground); padding: clamp(4.5rem, 11vw, 8.5rem) 0; }
-.top { background: var(--background); color: var(--foreground); border-bottom: 1px solid var(--border); }
-.top + main > .band:first-child { padding-top: clamp(3.5rem, 9vw, 7rem); }
+.sk-header + main > .band:first-child { padding-top: clamp(3.5rem, 9vw, 7rem); }
 
-.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .25rem 1rem; padding-top: .5rem; padding-bottom: .5rem; }
-.mark { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; color: var(--foreground); font-weight: 800; font-size: 1.1875rem; letter-spacing: -.02em; text-decoration: none; }
-.mark svg { color: var(--brand); }
-.menu { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem; margin: 0 -.5rem; padding: 0; list-style: none; }
-.menu a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; justify-content: center; padding: 0 .75rem; border-radius: 6px; color: var(--foreground); font-weight: 600; text-decoration: none; }
-.menu a:hover { background: var(--subtle); }
-.menu a[aria-current="page"] { text-decoration: underline; text-decoration-color: var(--brand); text-decoration-thickness: 3px; text-underline-offset: .45em; }
-.langs { display: inline-flex; margin-left: .25rem; border: 1px solid var(--border); border-radius: 6px; padding: 0; list-style: none; }
-.langs a { font-size: .9375rem; font-weight: 700; }
-.langs a[aria-current="true"] { background: var(--foreground); color: var(--background); }
 
 h1, h2, h3 { margin: 0 0 1rem; line-height: 1.1; }
 h1 { font-size: clamp(2.75rem, 1.4rem + 5.6vw, 5.5rem); font-weight: 800; letter-spacing: -.045em; line-height: 1.02; max-width: 15ch; }
@@ -114,16 +103,11 @@ td { background: var(--card); }
 .block-name { font-weight: 800; margin-bottom: .5rem !important; }
 
 .prose section + section { margin-top: 3.5rem; }
+/* The kit's footer, on the grey it has always had here, so it never merges with a white band. */
+.sk-footer { background: var(--subtle); }
+
 .prose h2 { font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem); }
 
-.foot { background: var(--subtle); color: var(--muted); font-size: .9375rem; border-top: 1px solid var(--border); }
-.foot .wrap { display: grid; gap: .75rem; padding-top: 3rem; padding-bottom: 3.5rem; }
-.foot p { margin: 0; }
-.foot ul { display: flex; flex-wrap: wrap; gap: 0 1.5rem; margin: 0 0 .5rem; padding: 0; list-style: none; }
-.foot a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
-.foot a[aria-current="page"] { color: var(--foreground); }
-.weight { font-variant-numeric: tabular-nums; }
-.copyright { color: var(--foreground); font-weight: 700; }
 .email::before { content: attr(data-user) "\\40" attr(data-domain); }
 
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
@@ -131,7 +115,7 @@ td { background: var(--card); }
 `;
 
 /** The tokens and the styles, without comments and spare spaces. */
-export const STYLES = (TOKENS + CSS)
+export const STYLES = (TOKENS + CHROME + CSS)
   .replace(/\/\*[\s\S]*?\*\//g, "")
   .replace(/\s+/g, " ")
   .replace(/\s*([{};:,>])\s*/g, "$1")

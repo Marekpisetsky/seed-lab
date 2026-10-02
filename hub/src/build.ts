@@ -7,9 +7,11 @@
 import { cpSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { FAVICON } from "./icons.ts";
+import { renderWithWeight } from "../../packages/seed-kit/src/checks.ts";
+import { FAVICON } from "../../packages/seed-kit/src/icons.ts";
 import { LOCALES, PAGES, localePath } from "./i18n/index.ts";
 import type { Locale, PageId } from "./i18n/index.ts";
+import { layout } from "./layout.ts";
 import type { PageInput, Weight } from "./layout.ts";
 import { about } from "./pages/about.ts";
 import { home } from "./pages/home.ts";
@@ -17,7 +19,6 @@ import { notFound } from "./pages/not-found.ts";
 import { principles } from "./pages/principles.ts";
 import { roadmap } from "./pages/roadmap.ts";
 import { SITE_URL } from "./site.ts";
-import { renderWithWeight } from "./weight.ts";
 
 export const DIST = fileURLToPath(new URL("../dist/", import.meta.url));
 /** Files served as they are: the touch icon and the share image (drawn by scripts/images.ts). */
@@ -45,7 +46,7 @@ export function build(): { path: string; weight: Weight }[] {
   rmSync(DIST, { recursive: true, force: true });
   const report: { path: string; weight: Weight }[] = [];
   const page = (path: string, input: PageInput) => {
-    const { html, weight } = renderWithWeight(input, [FAVICON]);
+    const { html, weight } = renderWithWeight((measured) => layout(input, measured), [FAVICON]);
     write(path, html);
     report.push({ path, weight });
   };
