@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "test": "npm run build && node --experimental-strip-types --test test/*.test.ts",
     "check": "npm run lint && npm run typecheck && npm test",
-    "images": "playwright install chromium && node --experimental-strip-types scripts/images.ts"
+    "images": "playwright install chromium && node --experimental-strip-types scripts/images.ts",
+    "shots": "playwright install chromium && node --experimental-strip-types scripts/shots.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

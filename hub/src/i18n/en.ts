@@ -29,12 +29,60 @@ export const en = {
     title: "Free, privacy-first digital tools for Europe.",
     mission: "seed-lab builds free, privacy-first digital tools that Europeans — citizens, developers and public bodies — can use without giving up their data.",
     cta: "Try Wealth Lens",
-    principlesTitle: "Five principles",
+    heroAlt: "Wealth Lens: what €10,000 and €300 a month could become in 20 years, with a chart.",
+    principlesKicker: "Principles",
+    principlesTitle: "Five principles, each with a rule you can check",
     principlesIntro: "Every seed-lab product keeps them. Each one comes with rules anyone can check.",
     principlesLink: "What they mean in practice",
-    productKicker: "Our first tool",
+    toolsKicker: "Tools",
+    toolsTitle: "Tools for everyday life",
+    toolsIntro: "Free, in your browser, and nothing is saved.",
+    status: { live: "Live", beta: "Beta" },
     open: (name: string) => `Open ${name}`,
+    cardAlt: (name: string) => `${name}, as it looks on a computer.`,
     languages: "Languages",
+    buildKicker: "How we build",
+    buildTitle: "Every tool starts from the same base",
+    buildIntro: "We never start from zero. Each new tool stands on what the others already proved.",
+    buildSteps: [
+      { name: "seed-kit", title: "The base", text: "Colours, header and footer, languages, privacy and the checks every page passes." },
+      { name: "Forja", title: "The mould", text: "It makes a new tool on that base, with tests that already pass." },
+      { name: "The tool", title: "Only what is new", text: "Each tool adds just its own sums and its own words." },
+    ],
+    diagram: {
+      label: "How a tool is built",
+      base: "seed-kit",
+      parts: ["colours", "header and footer", "languages", "privacy", "checks"],
+      mould: "Forja makes it",
+      next: "A new tool",
+      hub: "This site",
+    },
+    buildClosing: "So every tool is private, light and in English and Spanish from day one.",
+    differentKicker: "What makes us different",
+    differentTitle: "What a typical app asks of you, and what we ask",
+    differentIntro: "We name no one. These are common habits on the web.",
+    typical: "A typical app",
+    ours: "seed-lab",
+    rows: [
+      { label: "An account", typical: "Often required", ours: "Never" },
+      { label: "Tracking", typical: "Analytics and ad trackers", ours: "None" },
+      { label: "Your data", typical: "Kept on their servers", ours: "Stays on your device" },
+      { label: "Ads", typical: "Often", ours: "Never" },
+    ],
+    weightLabel: "Page weight",
+    weightTypical: (kb: string) => `About ${kb} KB: the median web page on a phone`,
+    weightOurs: (kb: string) => `${kb} KB at most on this site, measured when it was built`,
+    weightSource: "The median comes from the [HTTP Archive Web Almanac 2024](https://almanac.httparchive.org/en/2024/page-weight).",
+    figuresKicker: "In numbers",
+    figuresTitle: "Measured when this site was built",
+    figures: {
+      cookies: "cookies",
+      trackers: "trackers",
+      weight: "KB at most per page",
+      languages: "languages",
+      countries: "countries in our data",
+      tools: (count: number): string => (count === 1 ? "tool built on the platform" : "tools built on the platform"),
+    },
   },
   principles: {
     title: "Principles",
@@ -47,6 +95,8 @@ export const en = {
     items: [
       {
         id: "device",
+        /** The rule the front page shows, from `rules`: one that holds today. */
+        homeRule: 0,
         title: "Your data never leaves your device.",
         short: "Your data stays on your device",
         text: "What you type is worked out on your device. We never see it.",
@@ -59,6 +109,8 @@ export const en = {
       },
       {
         id: "transparent",
+        /** The rule the front page shows, from `rules`: one that holds today. */
+        homeRule: 0,
         title: "Transparent.",
         short: "Transparent",
         text: "Free to use for everyone. Our methods and data sources are public. Our code is ours.",
@@ -71,6 +123,8 @@ export const en = {
       },
       {
         id: "europe",
+        /** The rule the front page shows, from `rules`: one that holds today. */
+        homeRule: 1,
         title: "Truly European.",
         short: "Truly European",
         text: "Hosted in Europe, in Europe's languages, and built for the GDPR and the European Accessibility Act from the start.",
@@ -83,6 +137,8 @@ export const en = {
       },
       {
         id: "light",
+        /** The rule the front page shows, from `rules`: one that holds today. */
+        homeRule: 1,
         title: "Light.",
         short: "Light",
         text: "Small static pages: less energy, less cost, fast on any connection.",
@@ -94,6 +150,8 @@ export const en = {
       },
       {
         id: "everyone",
+        /** The rule the front page shows, from `rules`: one that holds today. */
+        homeRule: 0,
         title: "For everyone.",
         short: "For everyone",
         text: "Clear enough for a child and their grandparent.",

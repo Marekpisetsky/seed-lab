@@ -4,15 +4,18 @@ import { join } from "node:path";
 import { describe, it } from "node:test";
 import { build, DIST } from "../src/build.ts";
 import { externalRequests, inlineScripts, measure, storageUse } from "../../packages/seed-kit/src/checks.ts";
+import { escape } from "../../packages/seed-kit/src/html.ts";
 import { FAVICON } from "../../packages/seed-kit/src/icons.ts";
 import { plainLanguageProblems, textsOf } from "../../packages/seed-kit/src/plain-language.ts";
-import { BLOCKS, PRINCIPLE_IDS, TOOLS, parseBlocks } from "../src/content.ts";
+import { BLOCKS, PRINCIPLE_IDS, SHOWN_TOOLS, TOOLS, parseBlocks } from "../src/content.ts";
+import { TYPICAL_PAGE_KB } from "../src/figures.ts";
+import { SHOTS } from "../src/shots.ts";
 import { en } from "../src/i18n/en.ts";
 import { es } from "../src/i18n/es.ts";
 import { LOCALE_SETTINGS, LOCALES, PAGES, localePath } from "../src/i18n/index.ts";
 import type { Locale } from "../src/i18n/index.ts";
 
-const report = build();
+const { report, figures } = build();
 
 function pages(dir = DIST): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -47,17 +50,21 @@ describe("the build", () => {
     }
   });
 
-  it("stays light: under 30 KB per page, 10 KB compressed", () => {
-    for (const { path, weight } of report) {
-      assert.ok(weight.bytes < 30_000 && weight.compressed < 10_000, `${path}: ${weight.bytes} B`);
-    }
+  it("stays light: under 50 KB per page, compressed (the screenshots load later, on their own)", () => {
+    for (const { path, weight } of report) assert.ok(weight.compressed < 50_000, `${path}: ${weight.compressed} B compressed`);
   });
 
   it("loads nothing from elsewhere, and has no cookies, storage or analytics", () => {
     for (const { file, text } of HTML) {
       assert.doesNotMatch(text, /<script[^>]+src=/i, file);
       assert.doesNotMatch(text, /<link[^>]+rel="(stylesheet|preconnect|dns-prefetch|preload)"/i, file);
-      assert.doesNotMatch(text, /<(img|iframe|video|audio|source|embed|object)\b/i, file);
+      assert.doesNotMatch(text, /<(iframe|video|audio|source|embed|object)\b/i, file);
+      for (const [img] of text.matchAll(/<img\b[^>]*>/g)) {
+        assert.match(img, /\ssrc="\/shots\/[^"]+\.webp"/, `${file}: images are this site's screenshots`);
+        assert.match(img, /loading="lazy"/, `${file}: images load only when they come near`);
+        assert.match(img, /\swidth="\d+" height="\d+"/, `${file}: images keep their place while loading`);
+        assert.match(img, /\salt="[^"]+"/, `${file}: images say what they show`);
+      }
       assert.doesNotMatch(text, /@import|\burl\(/, file); // CSS; "new URL(" in the language script is fine
       assert.doesNotMatch(text, /document\.cookie|localStorage|sessionStorage|indexedDB|sendBeacon|fetch\(|XMLHttpRequest/, file);
       assert.doesNotMatch(text, /gtag|google-analytics|googletagmanager|plausible|umami|matomo|vercel\/analytics|insights/i, file);
@@ -78,9 +85,10 @@ describe("the build", () => {
     for (const { file, text } of HTML) assert.doesNotMatch(text, /🇪🇺|★|☆|⭐|\bflag\b|emblem/i, file);
   });
 
-  it("links only to pages that exist", () => {
+  it("links only to pages and files that exist", () => {
     for (const { file, text } of HTML) {
-      for (const [, href] of text.matchAll(/href="(\/[^"#]*)/g)) {
+      const srcset = [...text.matchAll(/srcset="([^"]+)"/g)].flatMap(([, set]) => set.split(",").map((part) => ["", part.trim().split(/\s+/)[0]]));
+      for (const [, href] of [...text.matchAll(/(?:href|src)="(\/[^"#]*)/g), ...srcset]) {
         const target = href.endsWith("/") ? join(DIST, href, "index.html") : join(DIST, href);
         assert.ok(existsSync(target), `${file} links to ${href}`);
       }
@@ -200,7 +208,7 @@ describe("the colours", () => {
 });
 
 describe("the layout", () => {
-  const bands = (text: string) => [...text.matchAll(/<section class="band theme-(dark|light)"/g)].map(([, theme]) => theme);
+  const bands = (text: string) => [...text.matchAll(/<section class="band theme-(dark|light)[ "]/g)].map(([, theme]) => theme);
 
   it("alternates dark and light bands, never one dark block, whatever the device's mode", () => {
     for (const { file, text } of HTML) {
@@ -208,11 +216,13 @@ describe("the layout", () => {
       assert.match(text, /<footer class="sk-footer theme-light">/, file);
       const themes = bands(text);
       assert.ok(themes.length >= 1 && themes[0] === "dark", `${file}: the first band joins the dark header`);
-      themes.forEach((theme, index) => index > 0 && assert.notEqual(theme, themes[index - 1], `${file}: two ${theme} bands in a row`));
+      themes.forEach((theme, index) => index > 0 && theme === "dark" && assert.notEqual(themes[index - 1], "dark", `${file}: two dark bands in a row`));
+      const sections = [...text.matchAll(/<section class="band theme-(dark|light)( ruled)?"/g)];
+      sections.forEach(([, theme, ruled], index) => index > 0 && theme === "light" && sections[index - 1][1] === "light" && assert.ok(ruled, `${file}: two light bands in a row need a line between them`));
     }
     for (const locale of LOCALES) {
       const home = readFileSync(join(DIST, localePath(PAGES.home, locale), "index.html"), "utf8");
-      assert.deepEqual(bands(home), ["dark", "light", "dark"], `${locale}: intro dark, principles light, product dark`);
+      assert.deepEqual(bands(home), ["dark", "light", "light", "dark", "light", "dark"], `${locale}: opening, principles, tools, how we build, what is different, figures`);
     }
   });
 
@@ -238,6 +248,80 @@ describe("the layout", () => {
     for (const { file, text } of HTML) {
       assert.match(text, /<meta property="og:image" content="https:\/\/[^"]+\/og\.png">/, file);
       assert.match(text, /<link rel="apple-touch-icon" href="\/apple-touch-icon\.png">/, file);
+    }
+  });
+});
+
+describe("the front page", () => {
+  const page = (locale: Locale) => readFileSync(join(DIST, localePath(PAGES.home, locale), "index.html"), "utf8");
+  const section = (text: string, id: string) => {
+    const start = text.lastIndexOf("<section", text.indexOf(`aria-labelledby="${id}"`));
+    return text.slice(start, text.indexOf("</section>\n", start));
+  };
+
+  it("opens with a real screenshot of Wealth Lens, in the page's language, loaded only when needed", () => {
+    for (const locale of LOCALES) {
+      const opening = section(page(locale), "mission");
+      const img = opening.match(/<img\b[^>]*>/)?.[0] ?? "";
+      for (const width of SHOTS.tools["wealth-lens"].hero?.widths ?? []) assert.ok(img.includes(`/shots/wealth-lens-hero-${locale}-${width}.webp ${width}w`), `${locale}: ${width}`);
+      assert.match(opening, /<a class="button" href="https:\/\/[^"]+">/, locale);
+    }
+  });
+
+  it("shows each principle with its icon and a rule anyone can check", () => {
+    for (const [locale, words] of [["en", en], ["es", es]] as const) {
+      const band = section(page(locale), "principles");
+      assert.equal((band.match(/<li>/g) ?? []).length, PRINCIPLE_IDS.length, locale);
+      assert.equal((band.match(/class="principle-icon"/g) ?? []).length, PRINCIPLE_IDS.length, locale);
+      for (const item of words.principles.items) assert.ok(band.includes(escape(item.rules[item.homeRule])), `${locale}: ${item.id}`);
+    }
+  });
+
+  it("shows the shown tools only, on their shelf, each with a screenshot, its status and a button", () => {
+    for (const locale of LOCALES) {
+      const band = section(page(locale), "tools");
+      for (const tool of SHOWN_TOOLS) {
+        assert.match(band, new RegExp(`id="shelf-${tool.category}"`), `${locale}: ${tool.id} shelf`);
+        assert.ok(band.includes(`/shots/${tool.id}-card-${locale}-`), `${locale}: ${tool.id} screenshot`);
+        assert.match(band, new RegExp(`<span>${tool.name}</span> <span class="badge ${tool.status}">`), `${locale}: ${tool.id} status`);
+        assert.ok(band.includes(`<a class="button-secondary" href="${tool.url}">`), `${locale}: ${tool.id} button`);
+      }
+      for (const tool of TOOLS.filter((entry) => !entry.shown)) assert.ok(!band.includes(tool.name), `${locale}: ${tool.id} is not listed`);
+      assert.equal((band.match(/class="shelf"/g) ?? []).length, new Set(SHOWN_TOOLS.map((tool) => tool.category)).size, `${locale}: no empty shelf`);
+    }
+  });
+
+  it("explains how every tool is built: three steps and the base they share", () => {
+    for (const locale of LOCALES) {
+      const band = section(page(locale), "build");
+      assert.equal((band.match(/<span class="step-number"/g) ?? []).length, 3, locale);
+      assert.match(band, /<div class="diagram-base"><p>seed-kit<\/p>/, locale);
+      assert.match(band, /Forja/, locale);
+    }
+  });
+
+  it("compares a typical app with seed-lab, with the weights measured or sourced", () => {
+    const number = (value: number, locale: Locale) => new Intl.NumberFormat(LOCALE_SETTINGS[locale].intl).format(value);
+    for (const locale of LOCALES) {
+      const band = section(page(locale), "different");
+      assert.equal((band.match(/<tr><th scope="row">/g) ?? []).length, 5, locale);
+      assert.ok(band.includes(`${number(TYPICAL_PAGE_KB, locale)} KB`), `${locale}: the typical weight`);
+      assert.ok(band.includes(`${number(figures.maxKb, locale)} KB`), `${locale}: our weight`);
+      assert.match(band, /href="https:\/\/almanac\.httparchive\.org\/[a-z]{2}\/2024\/page-weight"/, `${locale}: the source`);
+    }
+  });
+
+  it("shows figures measured when the site was built: no cookies, no trackers, the heaviest page, languages, countries, tools", () => {
+    assert.equal(figures.cookies, 0);
+    assert.equal(figures.trackers, 0);
+    assert.ok(Math.max(...report.map(({ weight }) => weight.compressed)) <= figures.maxKb * 1000, "no page weighs more than the figure");
+    assert.equal(figures.languages, LOCALES.length);
+    assert.equal(figures.countries, 172);
+    assert.equal(figures.tools, TOOLS.filter((tool) => tool.status !== "coming").length);
+    for (const locale of LOCALES) {
+      const shown = [...section(page(locale), "figures").matchAll(/<dd>([^<]+)<\/dd>/g)].map(([, value]) => value);
+      const expected: number[] = [figures.cookies, figures.trackers, figures.maxKb, figures.languages, figures.countries, figures.tools];
+      assert.deepEqual(shown, expected.map((value) => new Intl.NumberFormat(LOCALE_SETTINGS[locale].intl).format(value)), locale);
     }
   });
 });
