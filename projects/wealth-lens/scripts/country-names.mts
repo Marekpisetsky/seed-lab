@@ -1,6 +1,6 @@
 /**
- * Writes src/data/country-names.json: every country of
- * src/data/cost-of-living.json and src/data/estimated-countries.json by
+ * Writes packages/seed-kit/src/data/country-names.json: every country of
+ * packages/seed-kit/src/data/cost-of-living.json and packages/seed-kit/src/data/estimated-countries.json by
  * name in each language the app speaks,
  * from the CLDR names built into Node (Intl.DisplayNames), with a few
  * shorter or friendlier names where CLDR's would read oddly in a table.
@@ -27,8 +27,8 @@ const OVERRIDES: Record<string, Partial<Record<(typeof LOCALES)[number], string>
 };
 
 const read = async (file: string) => JSON.parse(await readFile(new URL(file, root), "utf8")) as { countries: { code: string }[]; excluded?: { code: string }[] };
-const detailed = await read("src/data/cost-of-living.json");
-const estimated = await read("src/data/estimated-countries.json");
+const detailed = await read("../../packages/seed-kit/src/data/cost-of-living.json");
+const estimated = await read("../../packages/seed-kit/src/data/estimated-countries.json");
 // The countries left out are named too: How it works lists them.
 const listed = [...detailed.countries, ...estimated.countries, ...(estimated.excluded ?? [])];
 const codes = [...new Set(listed.map((country) => country.code))].sort();
@@ -39,5 +39,5 @@ for (const code of codes) {
   names[code] = Object.fromEntries(LOCALES.map((locale) => [locale, OVERRIDES[code]?.[locale] ?? displays[locale].of(code) ?? code]));
 }
 const lines = Object.entries(names).map(([code, byLocale]) => `${JSON.stringify(code)}: ${JSON.stringify(byLocale)}`);
-await writeFile(new URL("src/data/country-names.json", root), `{\n${lines.join(",\n")}\n}\n`);
+await writeFile(new URL("../../packages/seed-kit/src/data/country-names.json", root), `{\n${lines.join(",\n")}\n}\n`);
 console.log(`${codes.length} countries named in ${LOCALES.join(", ")}.`);

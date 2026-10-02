@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import raw from "@/data/cost-of-living.json";
-import estimatedRaw from "@/data/estimated-countries.json";
-import names from "@/data/country-names.json";
+import raw from "@seed-kit/data/cost-of-living.json";
+import estimatedRaw from "@seed-kit/data/estimated-countries.json";
+import names from "@seed-kit/data/country-names.json";
 import { costOfLiving, countryByCode, DEFAULT_PRICES_OF, ESTIMATE_METHOD, parseDataset, referenceInflation, REGIONS } from "./cost-of-living";
 
 const detailed = costOfLiving.countries.filter((country) => country.method === "detailed");
