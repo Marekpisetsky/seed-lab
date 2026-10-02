@@ -34,13 +34,13 @@ export function optionsChanged({ assumptions, investment }: Pick<Plan, "assumpti
 }
 
 /**
- * "Very rare: no broad index kept this for 20 years. The best was 13%
- * (S&P 500, 1980–1999).", under a growth beyond the best 20 years in the
- * data; `null` otherwise.
+ * "Very rare: the best 20 years in the data gave 13%." (the S&P 500,
+ * 1980–1999), under a growth beyond the best 20 years in the data, in the
+ * place of step 3's line; `null` otherwise.
  */
 export function realismWarning(investment: Pick<ResolvedInvestment, "realReturn">, { m, f }: I18n, best: BestRun = BEST_20_YEARS): string | null {
   if (!beyondHistory(investment.realReturn, best)) return null;
-  return m.assumptions.veryRare(best.to - best.from + 1, f.rate(best.growth), m.assets.name[best.asset], `${best.from}–${best.to}`);
+  return m.growth.veryRare(best.to - best.from + 1, f.rate(best.growth));
 }
 
 /**

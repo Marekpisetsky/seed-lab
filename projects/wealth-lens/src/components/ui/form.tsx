@@ -6,7 +6,7 @@ import { parseLooseNumber } from "@/lib/csv";
 import { createSettler, type Settler } from "@/lib/settle";
 
 export const inputClass =
-  "min-h-11 w-full rounded-md border border-border bg-background px-3 py-2 text-sm tabular-nums outline-none " +
+  "min-h-11 w-full rounded-md border border-border bg-background px-3 py-2 text-base tabular-nums outline-none " +
   "focus:border-accent focus:ring-2 focus:ring-accent/30 aria-[invalid=true]:border-negative";
 
 interface FieldProps {

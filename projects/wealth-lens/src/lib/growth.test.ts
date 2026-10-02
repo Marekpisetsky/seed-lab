@@ -13,10 +13,10 @@ import {
   yearTooltip,
 } from "./growth";
 import { toNominal } from "./investment";
-import { EXAMPLE_PLAN } from "./validation";
+import { SP500_PLAN } from "./sp500-plan";
 
 const today = parseIsoDate("2026-09-30");
-const plan = (patch: Partial<CalculatorPlan> = {}): CalculatorPlan => ({ ...EXAMPLE_PLAN, ...patch });
+const plan = (patch: Partial<CalculatorPlan> = {}): CalculatorPlan => ({ ...SP500_PLAN, ...patch });
 
 describe("the growth line under the result", () => {
   it("says how much the money grows a year, after rising prices, with the figure before them beside it", () => {

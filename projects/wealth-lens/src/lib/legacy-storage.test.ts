@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_PLAN } from "./validation";
+import { DEFAULT_PLAN, FORMER_CUSTOM_VOLATILITY } from "./validation";
 import { deleteLegacyData, hasLegacyData, readLegacyData, type LegacyStorage } from "./legacy-storage";
 
 class MemoryStorage implements LegacyStorage {
@@ -41,8 +41,9 @@ describe("data saved by earlier versions", () => {
         invested: 0,
         monthlyContribution: 400,
         goals: [{ id: "g1", kind: "amount", amount: 250_000 }],
+        // Custom growth then moved like the S&P 500: it still does.
         investment: { kind: "custom" },
-        assumptions: { growth: 0.05, volatility: null, inflation: null },
+        assumptions: { growth: 0.05, volatility: FORMER_CUSTOM_VOLATILITY, inflation: null },
         withdrawalRate: 0.035,
       },
       holdings: [{ ...holding, priceSource: "auto", priceDate: null }],
@@ -51,12 +52,12 @@ describe("data saved by earlier versions", () => {
     });
   });
 
-  it("keeps the default investment when the old default growth (7 %) was used", () => {
+  it("keeps what those versions started on, the S&P 500, when the old default growth (7 %) was used", () => {
     const storage = new MemoryStorage({
       "wealth-lens:v1:invested": 20_000,
       "wealth-lens:v1:assumptions": { realReturn: 0.07 },
     });
-    expect(readLegacyData(storage)?.plan).toMatchObject({ invested: 20_000, investment: DEFAULT_PLAN.investment });
+    expect(readLegacyData(storage)?.plan).toMatchObject({ invested: 20_000, investment: { kind: "asset", asset: "sp500" }, assumptions: { growth: null, volatility: null, inflation: null } });
   });
 
   it("is nothing to load when the first questions were never answered", () => {

@@ -87,6 +87,8 @@ export const en = {
       {
         heading: "How much it grows",
         body: [
+          "The calculator starts at 5% a year after rising prices. World stocks grew 5.2% a year from 1900 to 2024, says the UBS Global Investment Returns Yearbook 2025.",
+          "Type another number, or tap an example. An example's number uses that example's own past years. Any other number moves up and down like world stocks.",
           `Each choice grows at its average from past years. All use the same years, ${facts.period}, so none looks better for starting in a good decade.`,
           "Stocks go up and down. To show that, Wealth Lens replays past years in a random order, 1,000 times.",
           "The dashed lines show where 8 in 10 of those replays ended. A bad first decade follows the low line for ten years.",
@@ -150,6 +152,13 @@ export const en = {
     sourcesIntro: "Each source, what it gives, how far its data goes, and its terms.",
     source: { link: "Open the source", date: "Data", terms: "Terms" },
     sources: [
+      {
+        name: "UBS Global Investment Returns Yearbook 2025 (Dimson, Marsh and Staunton)",
+        what: "How much world stocks grew a year after rising prices, 1900–2024: 5.2%",
+        url: "https://www.ubs.com/global/en/media/display-page-ndp/en-20250304-global-investment-returns-yearbook-2025.html",
+        date: "1900 to 2024",
+        terms: "Only this one figure is used: the 5% the calculator starts with.",
+      },
       {
         name: "Robert J. Shiller, Yale University",
         what: "S&P 500 yearly growth, and US prices until 2022",
@@ -577,16 +586,13 @@ export const en = {
   },
   calculator: {
     label: "Calculator",
-    /** The four numbered steps: a short title, and a line on what each asks. */
+    /** The four numbered steps: one short question each, on one line in every language. */
     steps: {
-      have: { title: "Your money today", hint: "What you have saved or invested already." },
-      monthly: { title: "Your monthly saving", hint: "What you'll add each month." },
-      growth: { title: "How it grows", hint: "Pick what your money grows like." },
-      years: { title: "Time", hint: "How many years your money grows." },
+      have: "How much do you have?",
+      monthly: "What do you add a month?",
+      growth: "How much does it grow?",
+      years: "For how many years?",
     },
-    /** A step that comes filled in: what it starts with, said as a choice. */
-    presetGrowth: (name: string) => `Picked for you: ${name}. You can change it.`,
-    presetYears: (years: string) => `Set for you: ${years}. You can change it.`,
     fromHoldings: "Your euro holdings, on My stocks",
     lessMonthly: "€50 less a month",
     moreMonthly: "€50 more a month",
@@ -595,26 +601,27 @@ export const en = {
     moreYear: "One year more",
     /** In grey in an empty field: an example, never data. */
     example: (value: string) => `e.g. ${value}`,
-    /** Under a step once there is a result: "+€50 a month → +€27,000 in 20 years", "5 more years → +€33,000". */
-    effectIn: (what: string, change: string, years: string) => `${what} → ${change} in ${years}`,
-    effect: (what: string, change: string) => `${what} → ${change}`,
     see: "See my result",
     calm: "Write both amounts to see your result.",
+    /** The bar at the foot of a phone's screen once there is a result: the plan in one line, and the way to change it. */
+    summary: (have: string, monthly: string, growth: string, years: string) => `${have} · ${monthly}/month · ${growth} · ${years}`,
+    edit: "Edit",
+    editTitle: "Your plan",
+    done: "Done",
     addToMix: "Add to the mix",
   },
   growth: {
-    chips: {
-      sp500: (rate: string) => `S&P 500 ~${rate}`,
-      world: (rate: string) => `World ~${rate}`,
-      "60-40": "60/40",
-      bonds: "Bonds",
-      savings: "Savings",
-      mine: "My %",
-    },
-    mine: "My growth a year, after rising prices",
-    mineExample: "e.g. 5",
+    /** Under the field: what its number is. */
+    standard: "World average over the long run, after inflation",
+    yours: "Your own number, after inflation",
     before: (rate: string) => `≈ ${rate} before inflation`,
-    named: (name: string, grows: string) => `${name}: ${grows}`,
+    /** Inside the field, after the number. */
+    unit: "% a year",
+    examplesLabel: "Examples:",
+    examples: { sp500: "S&P 500", world: "World", "60-40": "60/40", bonds: "Bonds", savings: "Savings" },
+    /** What a screen reader says for an example: "S&P 500, 7.5%". */
+    example: (name: string, rate: string) => `${name}, ${rate}`,
+    veryRare: (years: number, best: string) => `Very rare: the best ${years} years in the data gave ${best}.`,
   },
   more: {
     title: "More options",
@@ -695,8 +702,6 @@ export const en = {
       notPromise: "Not a promise.",
       todaysEuros: "Amounts in today's euros.",
     },
-    veryRare: (years: number, best: string, name: string, span: string) =>
-      `Very rare: no broad index kept this for ${years} years. The best was ${best} (${name}, ${span}).`,
     historically: (growth: string, moves: string) => `Historically, assets growing about ${growth} moved about ±${moves} a year.`,
     upsAndDowns: "How much it can go up or down in a normal year",
     example: (start: string, low: string, high: string) => `So ${start} could end the year at ${low} to ${high}.`,

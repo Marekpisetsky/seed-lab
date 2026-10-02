@@ -13,7 +13,10 @@ function shown(i18n = EN): string {
 }
 
 describe('"Invested in" once an assumption is changed', () => {
-  beforeEach(() => appStore.set(INITIAL_STATE));
+  beforeEach(() => {
+    appStore.set(INITIAL_STATE);
+    setInvestment({ kind: "asset", asset: "sp500" });
+  });
 
   it("shows the investment's own name with the standard figures", () => {
     expect(shown()).toBe("S&P 500");

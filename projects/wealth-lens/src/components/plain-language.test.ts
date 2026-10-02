@@ -149,6 +149,8 @@ const HIDDEN_ATTRIBUTES = new Set([
   "httpEquiv",
   "content",
   "step",
+  "side",
+  "enterKeyHint",
   "preserveAspectRatio",
   "strokeLinejoin",
   "strokeLinecap",

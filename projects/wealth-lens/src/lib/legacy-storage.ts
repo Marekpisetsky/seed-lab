@@ -7,9 +7,10 @@
  */
 
 import type { AppState } from "./app-store";
-import type { Plan } from "./types";
+import { STANDARD_ASSUMPTIONS, type Plan } from "./types";
 import {
   DEFAULT_PLAN,
+  FORMER_CUSTOM_VOLATILITY,
   isRecord,
   parseGoal,
   parseHoldings,
@@ -71,8 +72,11 @@ export function readLegacyData(storage: LegacyStorage | null): AppState | null {
   const assumptions = read(storage, `${PREFIX}assumptions`);
   const goal = parseGoal(read(storage, `${PREFIX}goal`));
   // The saved euro goal becomes the goal "reach an amount"; amounts not saved are 0, not a first visit's examples.
+  // What earlier versions started on: the S&P 500 with its standard figures.
   const plan: Plan = {
     ...DEFAULT_PLAN,
+    investment: { kind: "asset", asset: "sp500" },
+    assumptions: STANDARD_ASSUMPTIONS,
     invested: 0,
     monthlyContribution: 0,
     goals: goal && goal.amount > 0 ? [{ id: "g1", kind: "amount", amount: goal.amount }] : [],
@@ -89,7 +93,7 @@ export function readLegacyData(storage: LegacyStorage | null): AppState | null {
     }
     if (typeof realReturn === "number" && realReturn > -1 && realReturn < 1 && Math.abs(realReturn - 0.07) > 1e-9) {
       plan.investment = { kind: "custom" };
-      plan.assumptions = { ...plan.assumptions, growth: realReturn };
+      plan.assumptions = { ...plan.assumptions, growth: realReturn, volatility: FORMER_CUSTOM_VOLATILITY };
     }
   }
   const uploadedPrices: Record<string, UploadedPrices> = {};

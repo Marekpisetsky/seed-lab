@@ -6,46 +6,41 @@ import { useCallback, useEffect, useState } from "react";
 import { useI18n } from "@/components/i18n";
 import { useCalculation } from "@/hooks/use-calculation";
 import { COMMON_PERIOD } from "@/lib/indexes";
-import { CalculatorCard } from "./calculator-card";
+import { CalculatorCard, MoreOptionsLink } from "./calculator-card";
+import { firstResult, useFirstResultAsked } from "./first-result";
 
 /** The result, its chart and its sections: their code loads once both amounts are in, before the button is pressed. */
 const loadResults = () => import("./results").then((module) => module.Results);
 const Results = dynamic(loadResults);
 
-/** The lines under the monthly amount and the years once there is a result: with the result's code, not the first screen's. */
-const StepHint = dynamic(() => import("./step-hints").then((module) => module.StepHint));
-
-/** Kept while the page is open: once the result was asked for, coming back to "My money" shows it without asking again. */
-let askedBefore = false;
 
 /**
  * "My money": the four steps first, on their own, with three things to
  * trust under them (no accounts, nothing saved, the years of the data).
  * "See my result" brings the result in, gently, once both amounts are in
- * (lib/plan.ts, planReady); from then on it follows every change, and
- * the monthly amount and the years each say what one more step would add.
+ * (lib/plan.ts, planReady); from then on the button is gone for good and
+ * the result follows every change.
  */
 export function MoneyModule() {
   const { m } = useI18n();
   const bundle = useCalculation();
-  const [asked, setAsked] = useState(askedBefore);
+  const asked = useFirstResultAsked();
   const [arriving, setArriving] = useState(false);
   const arrived = useCallback(() => setArriving(false), []);
   useEffect(() => {
     if (bundle.ready) void loadResults();
   }, [bundle.ready]);
   const see = () => {
-    askedBefore = true;
-    setAsked(true);
+    firstResult.set(true);
     setArriving(true);
   };
   const shown = asked && bundle.ready;
   return (
     <div className="space-y-6">
-      <CalculatorCard
-        onSee={asked ? undefined : see}
-        hints={shown ? { monthly: <StepHint bundle={bundle} step="monthly" />, years: <StepHint bundle={bundle} step="years" /> } : undefined}
-      />
+      <div className="space-y-2">
+        <CalculatorCard onSee={asked ? undefined : see} />
+        <MoreOptionsLink />
+      </div>
       {shown ? (
         <Results bundle={bundle} arrive={arriving} onArrived={arrived} />
       ) : (

@@ -93,9 +93,13 @@ export function setAssumptions(patch: Partial<AssumptionOverrides>): void {
   updatePlan((plan) => ({ assumptions: { ...plan.assumptions, ...patch } }));
 }
 
-/** "Reset to standard": the investment's own figures and the country's inflation again. */
+/**
+ * "Reset to standard": the investment's own figures and the country's
+ * inflation again. Custom growth keeps its number: it is step 3's, not an
+ * option.
+ */
 export function resetAssumptions(): void {
-  updatePlan({ assumptions: STANDARD_ASSUMPTIONS });
+  updatePlan((plan) => ({ assumptions: { ...STANDARD_ASSUMPTIONS, growth: plan.investment.kind === "custom" ? plan.assumptions.growth : null } }));
 }
 
 /** "Prices of": the country's reference inflation replaces any typed one. */

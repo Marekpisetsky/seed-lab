@@ -28,7 +28,8 @@ import {
 } from "./mix";
 import { mixFigures, successRatesFor } from "./projections";
 import { cachedSuccessRate } from "./simulation";
-import { DEFAULT_PLAN, parseInvestment } from "./validation";
+import { SP500_PLAN } from "./sp500-plan";
+import { parseInvestment } from "./validation";
 import { logStats } from "./volatility";
 
 const today = parseIsoDate("2026-09-29");
@@ -85,7 +86,7 @@ describe("weights", () => {
     const mix = model([{ asset: "sp500", weight: 50 }, { asset: "bonds", weight: 30 }, { asset: "savings", weight: 20 }]);
     const expected = 0.5 * SERIES.sp500.averageReturn + 0.3 * SERIES.bonds.averageReturn + 0.2 * -0.005;
     expect(mix.realReturn).toBeCloseTo(expected, 12);
-    const plan = { ...DEFAULT_PLAN, investment: { kind: "mix" as const, parts: [{ asset: "sp500" as const, weight: 50 }, { asset: "bonds" as const, weight: 30 }, { asset: "gold" as const, weight: 20 }], rebalance: false } };
+    const plan = { ...SP500_PLAN, investment: { kind: "mix" as const, parts: [{ asset: "sp500" as const, weight: 50 }, { asset: "bonds" as const, weight: 30 }, { asset: "gold" as const, weight: 20 }], rebalance: false } };
     const { investment, result } = calculate(plan, [], today);
     expect(investment.realReturn).toBeCloseTo(0.5 * SERIES.sp500.averageReturn + 0.3 * SERIES.bonds.averageReturn + 0.2 * SERIES.gold.averageReturn, 12);
     expect(result.lasted).toBe(mixSuccessRates(investment.model ?? model([]), [0.04])[0]);
@@ -284,7 +285,7 @@ describe("a mix in a data file", () => {
   });
 
   it("goes through Download and Load my data", () => {
-    const state = { ...INITIAL_STATE, plan: { ...INITIAL_STATE.plan, investment: { kind: "mix" as const, parts: sixtyForty, rebalance: true } } };
+    const state = { ...INITIAL_STATE, plan: { ...SP500_PLAN, investment: { kind: "mix" as const, parts: sixtyForty, rebalance: true } } };
     expect(parseDataFile(serializeState(state, today))).toEqual({ ok: true, state, notices: [] });
   });
 });

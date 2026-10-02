@@ -5,7 +5,7 @@ import { averageResult, CRISES, crisisResult, crisisResults, everyStartYear, his
 import { SERIES } from "./indexes";
 import { resolveInvestment } from "./investment";
 import type { Holding } from "./types";
-import { DEFAULT_PLAN } from "./validation";
+import { SP500_PLAN } from "./sp500-plan";
 
 const today = parseIsoDate("2026-09-30");
 const sp = (year: number) => SERIES.sp500.dataset.years.find((entry) => entry.year === year)?.realReturn ?? NaN;
@@ -142,7 +142,7 @@ describe("every start year", () => {
   });
 
   it("is compared with the plan's own average growth over the same years", () => {
-    const plan: CalculatorPlan = { ...DEFAULT_PLAN, invested: 1000, monthlyContribution: 200 };
+    const plan: CalculatorPlan = { ...SP500_PLAN, invested: 1000, monthlyContribution: 200 };
     const calc = calculate(plan, [], today);
     expect(averageResult(calc.scenario, calc.result.years)).toBeCloseTo(calc.result.total, 6);
   });

@@ -33,6 +33,8 @@ import { STANDARD_ASSUMPTIONS, type AssumptionOverrides, type Holding, type Inve
 
 /** What the plan projects with when nothing else can be used (an empty portfolio). */
 export const DEFAULT_ASSET: AssetId = "sp500";
+/** Whose ups and downs Custom growth has (until files of version 8 it was the S&P 500's: lib/validation.ts keeps theirs). */
+export const CUSTOM_BASE: AssetId = "world";
 
 /** What the resolver reads from the plan besides the investment. */
 export interface ProjectionSettings {
@@ -194,8 +196,9 @@ function baseFor(investment: Investment, holdings: readonly Holding[], inflation
       break;
     }
     case "custom": {
-      const sp500 = fromAsset("sp500", inflation);
-      return { ...sp500, investment, standard: { ...sp500.standard, period: null }, withoutDividends: 0 };
+      // A growth of one's own moves like world stocks: their ups and downs, around the typed growth.
+      const world = fromAsset(CUSTOM_BASE, inflation);
+      return { ...world, investment, standard: { ...world.standard, period: null }, withoutDividends: 0 };
     }
   }
   // A portfolio with nothing priced in euros, or a mix with no weight.
