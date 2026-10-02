@@ -8,13 +8,12 @@ import { Help } from "@/components/ui/help";
 import type { CalculationBundle } from "@/hooks/use-calculation";
 import type { I18n } from "@/i18n";
 import { investedInText } from "@/i18n/investment-text";
-import { valueAt } from "@/lib/calculator";
 import { growsText } from "@/lib/growth";
 import type { ResolvedInvestment } from "@/lib/investment";
 import { CONCENTRATION_LIMIT } from "@/lib/mix";
 import { GrowthChart } from "./growth-chart";
 import { KeyFacts } from "./key-facts";
-import { ResultCard } from "./result-card";
+import { ResultSection, SeeMore } from "./result-section";
 import { WhatIfIndicator, WhatIfRow } from "./what-if-row";
 
 function Loading() {
@@ -22,7 +21,7 @@ function Loading() {
   return <p className="text-sm text-muted">{m.cards.loading}</p>;
 }
 
-// Each card's details are their own code, loaded when the card is opened.
+// Each section's code is its own: loaded once the result shows; what you should know, once asked for.
 const WhereDetails = dynamic(() => import("./where-details").then((module) => module.WhereDetails), { loading: Loading });
 const GoalsSection = dynamic(() => import("./goals-section").then((module) => module.GoalsSection), { loading: Loading });
 const KnowDetails = dynamic(() => import("./know-details").then((module) => module.KnowDetails), { loading: Loading });
@@ -78,10 +77,10 @@ function concentratedShare(investment: ResolvedInvestment): number | null {
 }
 
 /**
- * The result in levels: the total and its growth (always), a small chart
- * (always), then folded cards of one line each, every one with what it
- * says in a sentence: what it could pay, "What if…?", where it reaches, my
- * goals and what you should know. Nothing else shows until asked for.
+ * The result in levels: what the user said and the total, the six key
+ * figures under it, the chart with its tabs, then four sections with their
+ * titles always in sight: "What if…?", where it reaches, my goals and what
+ * you should know. Only each one's long detail waits behind "See more".
  */
 export function Results({ bundle, arrive = false, onArrived }: { bundle: CalculationBundle; arrive?: boolean; onArrived?: () => void }) {
   const i18n = useI18n();
@@ -96,12 +95,7 @@ export function Results({ bundle, arrive = false, onArrived }: { bundle: Calcula
     onArrived?.();
   }, [arrive, onArrived]);
   const { m, f } = i18n;
-  const { calc, base, today } = bundle;
-  const t = m.cards;
-  // The card's sentence: what +€50 a month would add (the same figure its chip shows).
-  const fifty = valueAt({ ...base.scenario, monthly: base.scenario.monthly + 50 }, base.result.years * 12) - base.result.total;
-  const covered = calc.countries.filter((row) => row.withoutHousing.covered).length;
-  const first = calc.goals[0];
+  const { calc, today } = bundle;
   const share = concentratedShare(calc.investment);
 
   return (
@@ -111,26 +105,23 @@ export function Results({ bundle, arrive = false, onArrived }: { bundle: Calcula
         <KeyFacts bundle={bundle} />
       </div>
       <GrowthChart bundle={bundle} />
-      <div className="space-y-2">
-        <ResultCard
-          title={m.whatIf.title}
-          summary={calc.whatIf ? t.applied(m.whatIf.applied[calc.whatIf]) : t.whatIf(m.whatIf.chips["monthly-50"], f.eurRounded(fifty, { signed: true }))}
-        >
-          <WhatIfRow bundle={bundle} />
-        </ResultCard>
-        <ResultCard title={t.where} summary={t.whereSummary(covered, calc.countries.length)}>
-          <WhereDetails bundle={bundle} />
-        </ResultCard>
-        <ResultCard
-          title={m.goals.title}
-          summary={first ? t.goalsSome(calc.goals.length, first.known ? f.when(first.months, today) : m.goals.unknown) : t.goalsNone}
-        >
-          <GoalsSection calc={calc} today={today} inCard />
-        </ResultCard>
-        <ResultCard title={m.findings.title} summary={share === null ? t.knowSummary : t.concentration(f.percent(share, { decimals: 0 }))} tone={share === null ? "plain" : "warning"}>
+      <ResultSection title={m.whatIf.title}>
+        <WhatIfRow bundle={bundle} />
+      </ResultSection>
+      <ResultSection title={m.cards.where}>
+        <WhereDetails bundle={bundle} />
+      </ResultSection>
+      <ResultSection title={m.goals.title}>
+        <GoalsSection calc={calc} today={today} inCard />
+      </ResultSection>
+      <ResultSection title={m.findings.title} tone={share === null ? "plain" : "warning"}>
+        <p className={`text-sm ${share === null ? "text-muted" : "text-warning-foreground"}`}>
+          {share === null ? m.cards.knowSummary : m.cards.concentration(f.percent(share, { decimals: 0 }))}
+        </p>
+        <SeeMore what={m.findings.title}>
           <KnowDetails bundle={bundle} />
-        </ResultCard>
-      </div>
+        </SeeMore>
+      </ResultSection>
     </div>
   );
 }

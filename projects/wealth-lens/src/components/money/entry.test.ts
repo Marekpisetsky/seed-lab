@@ -13,9 +13,11 @@ import { toNominal } from "@/lib/investment";
 import { bandsFor } from "@/lib/projections";
 import { EXAMPLE_PLAN } from "@/lib/validation";
 import { CalculatorCard } from "./calculator-card";
+import { GoalsSection } from "./goals-section";
 import { PERIODS, shownYears } from "./growth-chart";
 import { MoneyModule } from "./money-module";
 import { Results } from "./results";
+import { WhereDetails } from "./where-details";
 
 // The page reads the app's state through this hook: each test gives its own.
 const app = vi.hoisted(() => ({ state: null as AppState | null }));
@@ -116,7 +118,7 @@ describe.each(["en", "es"] as const)("the first screen (%s)", (locale) => {
     expect(html).not.toContain('role="img"');
     expect(html).not.toContain("<h3>");
     expect(html).not.toContain("bg-warning-bg");
-    for (const absent of [m.result.label, m.result.couldPay, m.whatIf.title, m.cards.where, m.goals.title, m.findings.title]) expect(text(html)).not.toContain(absent);
+    for (const absent of [m.result.label, m.facts.pays, m.whatIf.title, m.cards.where, m.goals.title, m.findings.title]) expect(text(html)).not.toContain(absent);
     expect(helpButtons(html, locale)).toBe(0);
   });
 
@@ -219,25 +221,61 @@ describe.each(["en", "es"] as const)("the result in levels (%s)", (locale) => {
     expect(html.indexOf(`aria-label="${m.chart.periods}"`)).toBeLessThan(html.indexOf('role="img"'));
   });
 
-  it("puts the rest in one-line cards, each with what it says", () => {
-    expect(count(html, FOLDED)).toBe(4);
-    expect(count(html, "<h3>")).toBe(4);
-    const words = text(html);
-    expect(words).toMatch(new RegExp(`${m.whatIf.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} \\+`));
-    expect(words).toContain(m.cards.whereSummary(bundle.calc.countries.filter((row) => row.withoutHousing.covered).length, bundle.calc.countries.length));
-    expect(words).toContain(m.cards.goalsNone);
-    expect(words).toContain(m.cards.knowSummary);
+  it("follows with four sections, their titles always in sight, in order: What if…?, where it reaches, my goals, what you should know", () => {
+    expect(html).not.toContain(FOLDED);
+    const titles = [...decode(html).matchAll(/<h2 id="[^"]+" class="text-lg font-bold">([^<]*)<\/h2>/g)].map((match) => match[1]);
+    expect(titles).toEqual([m.whatIf.title, m.cards.where, m.goals.title, m.findings.title]);
+    expect(html.indexOf('role="img"')).toBeLessThan(html.indexOf(m.whatIf.title));
   });
 
-  it("shows what a card holds only once it is opened", () => {
+  it("shows the five “What if…?” in one row, each with what it changes", () => {
+    const row = decode(html).match(new RegExp(`<div role="group" aria-label="${m.whatIf.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"[^>]*>(.*?)</div>`))?.[1] ?? "";
+    const chips = [...row.matchAll(/<button[^>]*aria-pressed="false"[^>]*>(.*?)<\/button>/g)];
+    expect(chips).toHaveLength(5);
+    expect(text(row)).toContain(`${m.whatIf.chips["monthly-50"]} +`);
+    expect(text(html)).toContain(m.help.whatIf);
+  });
+
+  it("leaves only the long detail of what you should know behind “See more”", () => {
+    const know = decode(html).slice(decode(html).indexOf(m.findings.title));
+    expect(text(know)).toContain(m.cards.knowSummary);
+    expect(know).toMatch(new RegExp(`<button type="button" aria-expanded="false"[^>]*>${m.cards.more}<span class="sr-only">: ${m.findings.title}</span>`));
+    for (const inside of [m.findings.nothing, m.result.mix.range(20)]) expect(text(know)).not.toContain(inside);
+  });
+
+  it("keeps where each key figure comes from until it is tapped", () => {
     const words = text(html);
-    for (const inside of [m.help.income, m.help.whatIf, m.things.title, m.help.goals, m.result.takenOut]) expect(words).not.toContain(inside);
-    expect(html).not.toContain('type="search"');
+    for (const inside of [m.help.income, m.result.takenOut]) expect(words).not.toContain(inside);
   });
 
   it("keeps a single “?”, beside the big number", () => {
     expect(count(html, m.help.button(m.result.inYears(m.units.years(20))))).toBe(1);
     expect(helpButtons(html, locale)).toBe(1);
+  });
+});
+
+describe.each(["en", "es"] as const)("where it reaches and my goals (%s)", (locale) => {
+  const { m, f } = getI18n(locale);
+  const bundle = calculationFor(filled, today);
+  const where = render(locale, filled, createElement(WhereDetails, { bundle }));
+
+  it("shows the table of countries with seven rows, a way to see them all, and a search", () => {
+    expect(text(where)).toContain(m.countryTable.title(m.result.perMonth(f.smallEur(bundle.calc.result.income))));
+    const body = where.slice(where.indexOf("<tbody"), where.indexOf("</tbody>"));
+    expect(count(body, '<th scope="row"')).toBe(7);
+    expect(text(where)).toContain(m.countryTable.showAll(bundle.calc.countries.length));
+    expect(where).toContain('type="search"');
+  });
+
+  it("keeps the things to buy behind “See more”", () => {
+    expect(decode(where)).toContain(`${m.cards.more}<span class="sr-only">: ${m.things.title}</span>`);
+    expect(where).not.toContain("things-title");
+  });
+
+  it("asks for a first goal, with what goals are for", () => {
+    const goals = text(render(locale, filled, createElement(GoalsSection, { calc: bundle.calc, today, inCard: true })));
+    expect(goals).toContain(m.help.goals);
+    expect(goals).toContain(m.goals.add);
   });
 });
 
@@ -283,6 +321,8 @@ describe("what loads with the first screen", () => {
     expect(source("./calculator-card.tsx")).toContain('import("./more-options")');
     expect(source("./key-facts.tsx")).toContain('import("./pay-details")');
     expect(staticImports("./key-facts.tsx")).not.toContain("./pay-details");
+    expect(source("./where-details.tsx")).toContain('import("./things-section")');
+    expect(staticImports("./where-details.tsx")).not.toContain("./things-section");
     for (const details of ["./where-details", "./goals-section", "./know-details"]) {
       expect(staticImports("./results.tsx")).not.toContain(details);
       expect(source("./results.tsx")).toContain(`import("${details}")`);
