@@ -21,7 +21,7 @@
 .sk-nav { order: 3; width: 100%; margin: 0 -.25rem; overflow-x: auto; }
 .sk-nav ul, .sk-langs ul, .sk-links, .sk-panel ul { margin: 0; padding: 0; list-style: none; }
 .sk-nav ul { display: flex; gap: .25rem; white-space: nowrap; }
-.sk-nav a { display: flex; align-items: center; min-height: 44px; padding: .5rem .625rem; border-radius: 6px; color: var(--muted); font-size: .875rem; font-weight: 600; }
+.sk-nav a { display: flex; align-items: center; min-height: 44px; padding: .5rem .625rem; border-radius: 6px; color: var(--muted); font-size: .875rem; font-weight: 500; }
 .sk-nav a:hover { color: var(--foreground); background: var(--subtle); }
 .sk-nav a[aria-current="page"] { color: var(--background); background: var(--foreground); }
 
