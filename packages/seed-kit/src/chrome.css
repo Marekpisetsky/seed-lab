@@ -26,8 +26,8 @@
 .sk-nav a[aria-current="page"] { color: var(--background); background: var(--foreground); }
 
 .sk-actions { display: flex; align-items: center; gap: .5rem; margin-left: auto; }
-.sk-langs ul { display: flex; padding: 2px; border: 1px solid var(--border); border-radius: 8px; }
-.sk-langs a { display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 40px; padding: 0 .5rem; border-radius: 6px; color: var(--muted); font-size: .875rem; font-weight: 600; }
+.sk-langs ul { display: flex; padding: 0; border: 1px solid var(--border); border-radius: 8px; }
+.sk-langs a { display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0 .5rem; border-radius: 6px; color: var(--muted); font-size: .875rem; font-weight: 600; }
 .sk-langs a:hover { color: var(--foreground); }
 .sk-langs a[aria-current="true"] { color: var(--background); background: var(--foreground); }
 

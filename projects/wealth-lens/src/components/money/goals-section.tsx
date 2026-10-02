@@ -46,7 +46,7 @@ function GoalRow({ status, calc, today }: { status: GoalStatus; calc: Calculatio
                 <Changed value={status.reachable ? f.when(status.months, today) : m.goals.notAtThisPace(f.eur(status.needed ?? 0), NEEDED_WITHIN_YEARS)} />
               </span>
             )}
-            <span className="text-xs text-muted">
+            <span className="text-sm text-muted">
               <Changed value={amountLine} />
             </span>
           </span>
@@ -61,7 +61,7 @@ function GoalRow({ status, calc, today }: { status: GoalStatus; calc: Calculatio
         </button>
       </div>
       {open && (
-        <ol id={panel} className="mt-1 space-y-1 rounded-md bg-background px-3 py-2 text-xs text-muted">
+        <ol id={panel} className="mt-1 space-y-1 rounded-md bg-background px-3 py-2 text-sm text-muted">
           {goalExplain(status, calc.scenario, calc.investment, i18n).map((line) => (
             <li key={line}>{line}</li>
           ))}
@@ -141,7 +141,7 @@ function LiveForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
               {t.option(housing, f.eur(housing ? country.monthlyCostEur.withRent : country.monthlyCostEur.withoutRent))}
             </Button>
           ))}
-          <p className="text-xs text-muted sm:col-span-2">
+          <p className="text-sm text-muted sm:col-span-2">
             {country.priceLevel
               ? t.onePersonEstimated(countryInSentence(country.code, i18n), country.priceLevel.year)
               : t.onePerson(countryInSentence(country.code, i18n), country.referenceDate)}
@@ -284,7 +284,7 @@ export function GoalsSection({ calc, today, inCard = false }: { calc: Calculatio
         <button
           type="button"
           onClick={() => setAdding(true)}
-          className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-accent hover:bg-accent/10"
+          className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 py-1 text-base font-medium text-accent hover:bg-accent/10"
         >
           <Plus aria-hidden="true" className="size-4" /> {m.goals.add}
         </button>

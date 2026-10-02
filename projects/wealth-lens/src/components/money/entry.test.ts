@@ -8,6 +8,7 @@ import { getI18n, type I18n } from "@/i18n";
 import { countryName } from "@/i18n/countries";
 import type { Locale } from "@/i18n/locales";
 import { INITIAL_STATE, type AppState } from "@/lib/app-store";
+import { dearestCovered } from "@/lib/calculator";
 import { parseIsoDate } from "@/lib/dates";
 import { indexRate } from "@/lib/examples";
 import { toNominal } from "@/lib/investment";
@@ -415,6 +416,42 @@ describe.each(["en", "es"] as const)("the page after the first result, by its wi
     const source = readFileSync(new URL("./money-module.tsx", import.meta.url), "utf8");
     expect(source).toContain("startViewTransition");
     expect(source).toContain('matchMedia("(prefers-reduced-motion: reduce)")');
+  });
+});
+
+describe.each(["en", "es"] as const)("the same figures everywhere (%s)", (locale) => {
+  const i18n = getI18n(locale);
+  const { m, f } = i18n;
+  const state: AppState = { ...filled, plan: { ...EXAMPLE_PLAN, invested: 20_000, monthlyContribution: 400 } };
+  const bundle = calculationFor(state, today);
+  const { result, countries } = bundle.calc;
+  const results = decode(render(locale, state, createElement(Results, { bundle })));
+  const where = decode(render(locale, state, createElement(WhereDetails, { bundle })));
+  afterEach(() => firstResult.set(false));
+
+  it("names in the table of “Where it reaches” the country “Enough to live in” names", () => {
+    const dearest = dearestCovered(countries);
+    expect(dearest).not.toBeNull();
+    const name = countryName(dearest?.code ?? "", i18n);
+    expect(text(results)).toContain(`${m.facts.lives} ${name}`);
+    const table = where.slice(where.indexOf("<tbody"), where.indexOf("</tbody>"));
+    expect(text(table)).toContain(name);
+  });
+
+  it("says the same “could pay you” in the key figure and in the table's title", () => {
+    const paid = f.smallEur(result.income);
+    expect(text(results)).toContain(`${m.facts.pays} ${paid}`);
+    expect(text(where)).toContain(m.countryTable.title(m.result.perMonth(paid)));
+  });
+
+  it("says the same monthly amount and growth in the steps, the result's sentence and the bar", () => {
+    firstResult.set(true);
+    const page = text(render(locale, state, createElement(MoneyModule)));
+    const sentence = m.result.summary(f.eur(20_000), f.eur(400), m.result.investedIn.custom(f.rate(0.05)), m.units.years(20));
+    expect(text(results)).toContain(sentence);
+    expect(page).toContain(m.calculator.summary(f.eur(20_000), f.eur(400), f.rate(0.05), m.units.years(20)));
+    const fields = [...render(locale, state, createElement(CalculatorCard, { compact: true })).matchAll(/<input[^>]*\svalue="([^"]*)"/g)].map((match) => match[1]);
+    expect(fields).toEqual([locale === "en" ? "20,000" : "20.000", "400", "5", "20"]);
   });
 });
 

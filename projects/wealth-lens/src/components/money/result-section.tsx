@@ -33,7 +33,7 @@ export function SeeMore({ what, children }: { what: string; children: React.Reac
         aria-expanded={open}
         aria-controls={panel}
         onClick={() => setOpen(!open)}
-        className="-ml-2 inline-flex min-h-11 items-center gap-1 rounded-md px-2 text-sm font-medium text-accent hover:bg-accent/10"
+        className="-ml-2 inline-flex min-h-11 items-center gap-1 rounded-md px-2 text-base font-medium text-accent hover:bg-accent/10"
       >
         {open ? m.cards.less : m.cards.more}
         <span className="sr-only">: {what}</span>

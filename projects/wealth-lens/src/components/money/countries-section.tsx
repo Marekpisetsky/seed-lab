@@ -18,7 +18,7 @@ function Cell({ cell }: { cell: CountryCell }) {
   return (
     <td className="px-1.5 py-2 align-top tabular-nums">
       <span className="block">{f.eur(cell.amount)}</span>
-      <span className="block whitespace-nowrap text-xs">
+      <span className="block whitespace-nowrap text-sm">
         {cell.covered ? (
           <span className="font-medium text-positive">
             <Check aria-hidden="true" className="inline size-4 align-[-3px]" />
@@ -53,7 +53,7 @@ function AddRow({ row, onClose }: { row: CountryRow; onClose: () => void }) {
             </span>
           ) : (
             <>
-              <span className="w-full text-xs text-muted">{t.addPrompt(name)}</span>
+              <span className="w-full text-sm text-muted">{t.addPrompt(name)}</span>
               {[false, true].map((housing) => (
                 <button
                   key={String(housing)}
@@ -104,7 +104,7 @@ export function CountriesSection({ income, rows }: { income: number; rows: reado
       </label>
       <div className="rounded-xl border border-border bg-card">
         <table className="w-full text-left text-sm">
-          <thead className="text-xs text-muted">
+          <thead className="text-sm text-muted">
             <tr className="border-b border-border">
               <th scope="col" className="px-2 py-2 font-medium">
                 {t.month}
@@ -166,16 +166,16 @@ export function CountriesSection({ income, rows }: { income: number; rows: reado
             type="button"
             onClick={() => setAll(!all)}
             aria-expanded={all}
-            className="min-h-11 w-full border-t border-border px-3 py-2 text-sm font-medium text-accent hover:bg-accent/5"
+            className="min-h-11 w-full border-t border-border px-3 py-2 text-base font-medium text-accent hover:bg-accent/5"
           >
             {all ? t.showFewer : t.showAll(rows.length)}
           </button>
         )}
       </div>
-      <p className="text-xs text-muted">
+      <p className="text-sm text-muted">
         {t.note(costOfLiving.compiledOn.slice(0, 7))} {t.paidBy(i18n.f.smallEur(income))}
       </p>
-      {shown.some((row) => row.estimated) && <p className="text-xs text-muted">{t.estimatedNote(ESTIMATES_YEAR)}</p>}
+      {shown.some((row) => row.estimated) && <p className="text-sm text-muted">{t.estimatedNote(ESTIMATES_YEAR)}</p>}
     </section>
   );
 }

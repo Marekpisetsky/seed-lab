@@ -69,7 +69,7 @@ export function MixEditor({ mix, onAddPart }: { mix: Mix; onAddPart: (anchor: HT
 
   return (
     <div className="col-span-2 space-y-3 rounded-lg bg-background p-3 sm:col-span-4">
-      <div className="flex flex-wrap items-center gap-2 text-xs">
+      <div className="flex flex-wrap items-center gap-2 text-sm">
         <span className="text-muted">{m.mix.quick}</span>
         {TEMPLATES.map((entry) => (
           <button
@@ -89,7 +89,7 @@ export function MixEditor({ mix, onAddPart }: { mix: Mix; onAddPart: (anchor: HT
           <li key={mixPartKey(part)} className="flex items-center gap-2">
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-medium">{mixPartName(part, i18n)}</span>
-              <span className="block text-xs leading-snug text-muted">{partDetail(part, i18n)}</span>
+              <span className="block text-sm leading-snug text-muted">{partDetail(part, i18n)}</span>
             </span>
             <span className="relative w-24 shrink-0">
               <SettledNumberInput
@@ -139,7 +139,7 @@ export function MixEditor({ mix, onAddPart }: { mix: Mix; onAddPart: (anchor: HT
         ]}
         value={mix.rebalance}
         onChange={(rebalance) => setInvestment({ ...mix, rebalance })}
-        className="inline-flex rounded-md border border-border p-0.5 text-xs"
+        className="inline-flex rounded-md border border-border p-0.5 text-sm"
         optionClassName={(checked) => `min-h-11 rounded px-3 py-1 font-medium ${checked ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
       />
       <HowThisMixWorks />

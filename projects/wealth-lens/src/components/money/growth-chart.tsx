@@ -132,7 +132,7 @@ function Plot({ points, startYear }: { points: YearPoint[]; startYear: number })
         )}
       </svg>
       {shown && (
-        <div ref={tip} className="pointer-events-none absolute top-0 left-0 z-10 whitespace-nowrap rounded-md border border-border bg-card px-2 py-1 text-xs shadow-sm tabular-nums">
+        <div ref={tip} className="pointer-events-none absolute top-0 left-0 z-10 whitespace-nowrap rounded-md border border-border bg-card px-2 py-1 text-sm shadow-sm tabular-nums">
           <p className="font-medium">{yearTooltip(shown, startYear, i18n)}</p>
           <p>
             <Swatch color="var(--chart-put-in)" /> {m.chart.putIn} {f.eur(shown.putIn)}
@@ -151,7 +151,7 @@ function YearTable({ points, startYear }: { points: YearPoint[]; startYear: numb
   const columns = m.chart.columns;
   const [open, setOpen] = useState(false);
   return (
-    <details className="text-xs" onToggle={(event) => setOpen(event.currentTarget.open)}>
+    <details className="text-sm" onToggle={(event) => setOpen(event.currentTarget.open)}>
       <summary className="flex min-h-11 cursor-pointer items-center text-muted hover:text-foreground">{m.chart.table}</summary>
       {open && (
         // Focusable, so a keyboard can scroll it.
@@ -239,11 +239,11 @@ export function GrowthChart({ bundle }: { bundle: CalculationBundle }) {
         }))}
         value={picked}
         onChange={setPeriod}
-        className="inline-flex rounded-md border border-border p-0.5 text-sm"
+        className="inline-flex rounded-md border border-border p-0.5 text-base"
         optionClassName={(checked) => `min-h-11 min-w-11 rounded px-2.5 py-1 font-medium tabular-nums ${checked ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
       />
       <figure className="space-y-2">
-        <figcaption className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
+        <figcaption className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted">
           <span>
             <Swatch color="var(--chart-put-in)" /> {m.chart.putIn}
           </span>
@@ -252,7 +252,7 @@ export function GrowthChart({ bundle }: { bundle: CalculationBundle }) {
           </span>
         </figcaption>
         <Plot points={view} startYear={startYear} />
-        <div className="space-y-0.5 text-xs text-muted">
+        <div className="space-y-0.5 text-sm text-muted">
           {money && <p className="tabular-nums">{`${money} · ${m.result.putIn(i18n.f.eur(result.putIn))}`}</p>}
           <p>{assumptionsNote(investment, i18n)}</p>
         </div>

@@ -35,15 +35,17 @@ export function Things({ scenario, goals }: { scenario: Scenario; goals: readonl
               className="min-h-11 min-w-0 flex-1 rounded-md text-left hover:bg-border/30"
             >
               <span className="block text-sm">{words.name}</span>
-              <span className="block text-xs text-muted">{f.eur(item.amount)}</span>
+              <span className="block text-sm text-muted">{f.eur(item.amount)}</span>
             </button>
             <span className={`shrink-0 whitespace-nowrap pt-0.5 text-sm ${now ? "font-medium text-positive" : "text-muted"}`}>
               {now && <Check aria-hidden="true" className="mr-0.5 inline size-4 align-[-3px]" />}
               <Changed value={f.when(months)} />
             </span>
             {chosen.has(item.id) ? (
-              <span className="flex size-11 shrink-0 items-center justify-center text-positive" title={t.inGoals}>
+              // Said in words, not in a tooltip: a finger cannot hover.
+              <span className="flex min-h-11 shrink-0 items-center gap-1 text-sm font-medium text-positive">
                 <Check aria-hidden="true" className="size-4" />
+                <span aria-hidden="true">{t.inGoals}</span>
                 <span className="sr-only">{t.isInGoals(words.name)}</span>
               </span>
             ) : (
@@ -57,7 +59,7 @@ export function Things({ scenario, goals }: { scenario: Scenario; goals: readonl
               </button>
             )}
             {source === item.id && (
-              <p className="mt-1 w-full rounded-md bg-background px-3 py-2 text-xs text-muted">
+              <p className="mt-1 w-full rounded-md bg-background px-3 py-2 text-sm text-muted">
                 {words.source} ({item.referenceDate})
               </p>
             )}

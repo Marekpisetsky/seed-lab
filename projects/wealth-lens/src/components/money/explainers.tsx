@@ -19,7 +19,7 @@ const withPeriod = (text: string) => text.replace("{period}", PERIOD);
 /** An "i" that folds its explanation away. */
 function Explainer({ title, className = "", children }: { title: string; className?: string; children: React.ReactNode }) {
   return (
-    <details className={`text-xs text-muted ${className}`}>
+    <details className={`text-sm text-muted ${className}`}>
       <summary className="flex min-h-11 cursor-pointer list-none items-center font-medium text-foreground [&::-webkit-details-marker]:hidden">
         <span aria-hidden="true" className="mr-1 inline-flex size-4 items-center justify-center rounded-full border border-current text-[10px]">
           i
