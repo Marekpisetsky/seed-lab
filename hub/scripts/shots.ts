@@ -37,7 +37,9 @@ const SCENES: Readonly<Record<string, (page: Page) => Promise<void>>> = {
     await inputs.nth(0).fill("10000");
     await inputs.nth(1).fill("300");
     await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
-    await page.waitForTimeout(1200);
+    // "See my result" (the one button that can be on or off): the page glides to the result.
+    await page.locator('main button[aria-disabled="false"]').click();
+    await page.waitForTimeout(1500);
   },
 };
 

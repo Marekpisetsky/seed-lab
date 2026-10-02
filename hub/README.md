@@ -87,7 +87,8 @@ del peso y las comprobaciones de privacidad y de lenguaje sencillo.
   comando lo instala primero si falta).
 - **Capturas:** `npm run shots` fotografía cada herramienta visible desde
   su build real (`projects/<id>/out` o `dist`, servido en local), en
-  inglés y en español, con datos escritos para que se vea un resultado;
+  inglés y en español, con datos escritos (y, en Wealth Lens, "See my
+  result" pulsado) para que se vea un resultado;
   las guarda en WebP a varios anchos en `static/shots/` y las anota en
   `content/shots.json`. Se cargan solo al acercarse a la pantalla
   (`loading="lazy"`), con su tamaño fijado para que nada salte. Hay que
