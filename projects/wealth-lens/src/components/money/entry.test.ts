@@ -45,10 +45,43 @@ describe.each(["en", "es"] as const)("the first screen (%s)", (locale) => {
   const { m } = getI18n(locale);
   const html = render(locale, INITIAL_STATE, createElement(MoneyModule));
 
-  it("asks the four questions, with nothing filled in but the years", () => {
-    for (const question of [m.calculator.haveQ, m.calculator.monthlyQ, m.calculator.growthQ, m.calculator.yearsQ]) expect(text(html)).toContain(question);
+  it("asks in four numbered steps, with nothing filled in but the growth and the years", () => {
+    const { steps } = m.calculator;
+    const titles = [steps.have.title, steps.monthly.title, steps.growth.title, steps.years.title];
+    const words = text(html);
+    // In order, each with its number before it.
+    titles.forEach((title, index) => expect(words).toContain(`${index + 1} ${title}`));
+    expect(titles.map((title) => words.indexOf(title))).toEqual(titles.map((title) => words.indexOf(title)).toSorted((a, b) => a - b));
+    expect(count(html, "<ol")).toBe(1);
+    const list = html.slice(html.indexOf("<ol"), html.indexOf("</ol>"));
+    expect(count(list, "<li")).toBe(4);
     const values = [...html.matchAll(/<input[^>]*\svalue="([^"]*)"/g)].map((match) => match[1]);
     expect(values).toEqual(["", "", "20"]);
+  });
+
+  it("gives every step a short line under its title, tied to its field", () => {
+    const { steps } = m.calculator;
+    expect(text(html)).toContain(steps.have.hint);
+    expect(text(html)).toContain(steps.monthly.hint);
+    for (const [label, hint] of [[steps.have.title, steps.have.hint], [steps.monthly.title, steps.monthly.hint]]) {
+      const id = decode(html).match(new RegExp(`<p id="([^"]+)"[^>]*>(?:<[^>]+>)*${hint}`))?.[1];
+      expect(id, label).toBeTruthy();
+      expect(html).toContain(`aria-describedby="${id}"`);
+    }
+  });
+
+  it("shows what comes filled in as the step's choice, with a way to change it", () => {
+    expect(text(html)).toContain(m.calculator.presetGrowth(m.assets.inSentence.sp500));
+    expect(text(html)).toContain(m.calculator.presetYears(m.units.years(20)));
+    // The picked chip carries a tick, and the line before rising prices sits under the chips, inside step 3.
+    expect(html).toMatch(/aria-checked="true"[^>]*>S&amp;P 500 ~7[.,]5[^<]*<svg/);
+    const step3 = html.slice(html.indexOf(m.calculator.steps.growth.title), html.indexOf(m.calculator.steps.years.title));
+    expect(text(step3)).toMatch(/≈\s\d/);
+    expect(step3.indexOf('role="radiogroup"')).toBeLessThan(step3.indexOf("≈"));
+  });
+
+  it("keeps More options last, after the steps", () => {
+    expect(html.lastIndexOf("</ol>")).toBeLessThan(html.indexOf(m.more.title));
   });
 
   it("shows examples that read as examples, never as data", () => {

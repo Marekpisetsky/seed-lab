@@ -577,13 +577,20 @@ export const en = {
   },
   calculator: {
     label: "Calculator",
-    haveQ: "How much do you have now?",
+    /** The four numbered steps: a short title, and a line on what each asks. */
+    steps: {
+      have: { title: "Your money today", hint: "What you have saved or invested already." },
+      monthly: { title: "Your monthly saving", hint: "What you'll add each month." },
+      growth: { title: "How it grows", hint: "Pick what your money grows like." },
+      years: { title: "Time", hint: "How many years your money grows." },
+    },
+    /** A step that comes filled in: what it starts with, said as a choice. */
+    presetGrowth: (name: string) => `Picked for you: ${name}. You can change it.`,
+    presetYears: (years: string) => `Set for you: ${years}. You can change it.`,
     fromHoldings: "Your euro holdings, on My stocks",
-    monthlyQ: "How much will you add each month?",
     lessMonthly: "€50 less a month",
     moreMonthly: "€50 more a month",
-    growthQ: "How much does it grow a year?",
-    yearsQ: "For how many years?",
+    yearsUnit: (years: number): string => (years === 1 ? "year" : "years"),
     lessYear: "One year less",
     moreYear: "One year more",
     /** In grey in an empty field: an example, never data. */

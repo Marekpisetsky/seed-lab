@@ -16,6 +16,7 @@ export interface RadioOption<T> {
  */
 export function RadioGroup<T extends string | number | boolean>({
   label,
+  describedBy,
   options,
   value,
   onChange,
@@ -23,6 +24,8 @@ export function RadioGroup<T extends string | number | boolean>({
   optionClassName,
 }: {
   label: string;
+  /** The id of a line that says more about the choice. */
+  describedBy?: string;
   options: readonly RadioOption<T>[];
   value: T | null;
   onChange: (value: T) => void;
@@ -43,7 +46,7 @@ export function RadioGroup<T extends string | number | boolean>({
     buttons.current[next]?.focus();
   };
   return (
-    <div role="radiogroup" aria-label={label} className={className}>
+    <div role="radiogroup" aria-label={label} aria-describedby={describedBy} className={className}>
       {options.map((option, index) => (
         <button
           key={String(option.value)}
