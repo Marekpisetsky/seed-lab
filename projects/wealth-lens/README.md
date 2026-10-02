@@ -138,7 +138,7 @@ cambiar. Todo lo visible está en palabras simples: "real", "nominal",
   4. **Tras el primer resultado, según el ancho de la ventana**:
      - 1440 px o más: tres columnas. A la izquierda, estrecha y a la vista
        al desplazar, *What if…?* como lista; en el centro, la más ancha
-       (768 px a 1440), el resultado; a la derecha, estrecha y a la vista,
+       (752 px a 1440), el resultado; a la derecha, estrecha y a la vista,
        los cuatro pasos en versión reducida y *More options*. La cabecera
        y el pie se ensanchan con ellas.
      - De 1024 a 1439 px: dos columnas, el resultado a la izquierda y, a la
