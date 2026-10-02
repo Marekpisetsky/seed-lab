@@ -14,3 +14,6 @@ export const firstResult = createStore(false);
 export function useFirstResultAsked(): boolean {
   return useSyncExternalStore(firstResult.subscribe, firstResult.get, firstResult.get);
 }
+
+/** The big number's id: the bottom sheet on a phone keeps it in sight while the plan is changed. */
+export const TOTAL_ID = "result-total";

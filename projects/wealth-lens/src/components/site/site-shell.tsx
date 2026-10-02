@@ -46,7 +46,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     <>
       <SiteHeader model={header} Link={IntentLink} />
       <LegacyDataNotice />
-      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 outline-none sm:py-12">
+      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-(--sk-width) flex-1 px-4 py-8 outline-none sm:py-12">
         {children}
       </main>
       <SiteFooter model={footer} Link={IntentLink}>

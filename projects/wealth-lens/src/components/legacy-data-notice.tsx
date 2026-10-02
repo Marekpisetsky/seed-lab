@@ -31,7 +31,7 @@ export function LegacyDataNotice() {
 
   return (
     <div role="status" className="border-b border-warning-border bg-warning-bg text-warning-foreground">
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2 text-sm">
+      <div className="mx-auto flex max-w-(--sk-width) flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2 text-sm">
         <p className="flex-1">{m.data.legacy}</p>
         <Button size="sm" variant="primary" onClick={() => finish(true)}>
           {m.data.useIt}

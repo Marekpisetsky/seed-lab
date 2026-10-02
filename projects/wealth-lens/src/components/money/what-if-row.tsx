@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import { useId } from "react";
 import { useI18n } from "@/components/i18n";
 import { Changed } from "@/components/ui/changed";
 import { whatIfsFor } from "@/hooks/calculation-details";
@@ -34,21 +35,23 @@ export function WhatIfIndicator({ applied }: { applied: WhatIfId | null }) {
 }
 
 /**
- * "What if…?", in its card: five quick scenarios, each with what it changes
- * in euros on the plan as it is (worked out when the card is opened).
- * Tapping one applies it to the whole screen, tapping another switches,
- * tapping the one applied takes it away. The row never changes order or
- * size: the chips have a fixed width and scroll sideways on a phone.
+ * "What if…?": five quick scenarios, each with what it changes in euros on
+ * the plan as it is. Tapping one applies it to the whole screen, tapping
+ * another switches, tapping the one applied takes it away. Under the chart
+ * on a phone, two across (`grid`); beside the result on a wide screen, one
+ * under the other (`list`). Nothing moves: the buttons keep their place
+ * and size.
  */
-export function WhatIfRow({ bundle }: { bundle: CalculationBundle }) {
+export function WhatIfRow({ bundle, layout = "grid" }: { bundle: CalculationBundle; layout?: "grid" | "list" }) {
   const i18n = useI18n();
   const { m } = i18n;
   const effects = whatIfsFor(bundle);
   const applied = bundle.calc.whatIf;
+  const list = layout === "list";
   return (
     <div className="space-y-2">
-      <p className="text-sm text-muted">{m.help.whatIf}</p>
-      <div role="group" aria-label={m.whatIf.title} className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:px-0">
+      {!list && <p className="text-base text-muted">{m.help.whatIf}</p>}
+      <div role="group" aria-label={m.whatIf.title} className={list ? "flex flex-col gap-2" : "grid grid-cols-2 gap-2 sm:grid-cols-3"}>
         {effects.map((effect) => {
           const pressed = applied === effect.id;
           const tone = !effect.available ? "text-muted" : effect.change >= 0 ? "text-positive" : "text-negative";
@@ -59,12 +62,12 @@ export function WhatIfRow({ bundle }: { bundle: CalculationBundle }) {
               aria-pressed={pressed}
               disabled={!effect.available}
               onClick={() => toggleWhatIf(effect.id)}
-              className={`flex w-36 shrink-0 flex-col items-start gap-0.5 rounded-lg border px-3 py-2 text-left sm:w-auto ${
+              className={`flex min-h-14 w-full rounded-lg border px-3 py-2 text-left ${list ? "items-center justify-between gap-2" : "flex-col items-start justify-center gap-0.5"} ${
                 pressed ? "border-accent bg-accent/10 ring-1 ring-accent" : "border-border bg-card hover:bg-border/30"
               } disabled:opacity-60`}
             >
-              <span className="text-sm font-medium">{m.whatIf.chips[effect.id]}</span>
-              <span className={`text-xs font-medium tabular-nums ${tone}`}>
+              <span className="text-base font-medium">{m.whatIf.chips[effect.id]}</span>
+              <span className={`shrink-0 text-sm font-semibold tabular-nums ${tone}`}>
                 <Changed value={effectText(effect, i18n)} />
               </span>
             </button>
@@ -72,5 +75,19 @@ export function WhatIfRow({ bundle }: { bundle: CalculationBundle }) {
         })}
       </div>
     </div>
+  );
+}
+
+/** "What if…?" beside the result, with its title: the left column on a wide screen, under the steps on a middle one. */
+export function WhatIfPanel({ bundle }: { bundle: CalculationBundle }) {
+  const { m } = useI18n();
+  const heading = useId();
+  return (
+    <section aria-labelledby={heading} className="space-y-3">
+      <h2 id={heading} className="text-lg font-bold">
+        {m.whatIf.title}
+      </h2>
+      <WhatIfRow bundle={bundle} layout="list" />
+    </section>
   );
 }

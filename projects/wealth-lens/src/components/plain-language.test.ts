@@ -151,6 +151,7 @@ const HIDDEN_ATTRIBUTES = new Set([
   "step",
   "side",
   "enterKeyHint",
+  "layout",
   "preserveAspectRatio",
   "strokeLinejoin",
   "strokeLinecap",

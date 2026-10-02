@@ -5,10 +5,10 @@ import { useId, useState } from "react";
 import { useI18n } from "@/components/i18n";
 
 /** A part of the result with its title always in sight: never folded, only its long detail waits behind "See more". */
-export function ResultSection({ title, tone = "plain", children }: { title: string; tone?: "plain" | "warning"; children: React.ReactNode }) {
+export function ResultSection({ title, tone = "plain", className = "", children }: { title: string; tone?: "plain" | "warning"; className?: string; children: React.ReactNode }) {
   const heading = useId();
   return (
-    <section aria-labelledby={heading} className={`space-y-3 rounded-xl border bg-card p-4 sm:p-5 ${tone === "warning" ? "border-warning-border" : "border-border"}`}>
+    <section aria-labelledby={heading} className={`space-y-3 rounded-xl border bg-card p-4 sm:p-5 ${tone === "warning" ? "border-warning-border" : "border-border"} ${className}`}>
       <h2 id={heading} className="text-lg font-bold">
         {title}
       </h2>

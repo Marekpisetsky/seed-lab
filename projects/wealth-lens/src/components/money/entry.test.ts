@@ -15,7 +15,7 @@ import { bandsFor } from "@/lib/projections";
 import { STANDARD_ASSUMPTIONS } from "@/lib/types";
 import { EXAMPLE_PLAN } from "@/lib/validation";
 import { CalculatorCard, MoreOptionsLink } from "./calculator-card";
-import { firstResult } from "./first-result";
+import { firstResult, TOTAL_ID } from "./first-result";
 import { GoalsSection } from "./goals-section";
 import { PERIODS, shownYears } from "./growth-chart";
 import { MoneyModule } from "./money-module";
@@ -192,14 +192,15 @@ describe.each(["en", "es"] as const)("the result in levels (%s)", (locale) => {
     const said = m.result.summary(f.eur(1000), f.eur(200), m.result.investedIn.custom(f.rate(0.05)), m.units.years(20));
     expect(text(html)).toContain(said);
     expect(decode(html).indexOf(said)).toBeGreaterThan(0);
-    expect(decode(html).indexOf(said)).toBeLessThan(decode(html).indexOf("text-4xl"));
+    expect(decode(html).indexOf(said)).toBeLessThan(decode(html).indexOf(`id="${TOTAL_ID}"`));
   });
 
   it("shows the big number, the key figures right under it, then a small chart", () => {
     expect(text(html)).toContain(f.eur(bundle.calc.result.total));
     expect(count(html, 'role="img"')).toBe(1);
     const grid = html.indexOf(`aria-label="${m.facts.label}"`);
-    expect(html.indexOf("text-4xl")).toBeLessThan(grid);
+    expect(html.indexOf(`id="${TOTAL_ID}"`)).toBeGreaterThan(0);
+    expect(html.indexOf(`id="${TOTAL_ID}"`)).toBeLessThan(grid);
     expect(grid).toBeLessThan(html.indexOf('role="img"'));
   });
 
@@ -352,6 +353,68 @@ describe.each(["en", "es"] as const)("“See my result”, only the first time (
     // An amount taken away: the line says what is missing, and typing it back brings the result, no press.
     expect(text(render(locale, { ...filled, plan: { ...EXAMPLE_PLAN, monthlyContribution: null } }, createElement(MoneyModule)))).toContain(m.calculator.calm);
     expect(text(render(locale, filled, createElement(MoneyModule)))).not.toContain(m.calculator.calm);
+  });
+});
+
+describe.each(["en", "es"] as const)("the page after the first result, by its width (%s)", (locale) => {
+  const { m, f } = getI18n(locale);
+  afterEach(() => firstResult.set(false));
+  const page = () => {
+    firstResult.set(true);
+    return render(locale, filled, createElement(MoneyModule));
+  };
+
+  it("starts as one column with the steps, and turns into the result layout once asked", () => {
+    expect(render(locale, filled, createElement(MoneyModule))).toContain('data-layout="start"');
+    expect(page()).toContain('data-layout="results"');
+  });
+
+  it("is three columns from 1440 px (What if…? | result, at least 640 px | steps) and two from 1024 px (result | steps)", () => {
+    const html = page();
+    const root = html.match(/<div data-layout="results" class="([^"]+)"/)?.[1] ?? "";
+    expect(root).toContain("lg:grid-cols-[minmax(0,1fr)_19rem]");
+    expect(root).toContain("wide:grid-cols-[15rem_minmax(40rem,1fr)_19rem]");
+    // The left column, What if…?, only from 1440 px, in sight while the page scrolls.
+    expect(html).toMatch(/<aside class="hidden wide:sticky wide:top-4 wide:block/);
+    // The steps on the right from 1024 px, in sight, compact (the field under each question).
+    const steps = html.match(/<div id="[^"]+" style="view-transition-name:steps" class="([^"]+)"/)?.[1] ?? "";
+    expect(steps).toContain("lg:sticky");
+    expect(html).not.toContain("md:grid-cols-[1.75rem_16rem_22rem]");
+    // Under the steps, What if…? from 1024 to 1439 px only.
+    expect(html).toContain("hidden lg:block wide:hidden");
+  });
+
+  it("on a phone, hides the steps behind a bar at the foot of the screen: the plan in one line and Edit", () => {
+    const html = decode(page());
+    const steps = html.match(/<div id="([^"]+)" style="view-transition-name:steps" class="([^"]+)"/);
+    expect(steps?.[2]).toContain("max-lg:hidden");
+    const bar = html.slice(html.lastIndexOf('<div class="fixed inset-x-0 bottom-0'));
+    expect(bar).toContain("lg:hidden");
+    expect(text(bar)).toContain(m.calculator.summary(f.eur(1000), f.eur(200), f.rate(0.05), m.units.years(20)));
+    expect(bar).toMatch(new RegExp(`<button type="button" aria-expanded="false" aria-controls="${steps?.[1]}"[^>]*>.*${m.calculator.edit}`));
+  });
+
+  it("opens the steps from below over at most half the screen, leaving the big number in sight", () => {
+    const source = readFileSync(new URL("./money-module.tsx", import.meta.url), "utf8");
+    expect(source).toContain("max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0");
+    expect(source).toContain("max-lg:max-h-[50dvh]");
+    expect(source).toContain("document.getElementById(TOTAL_ID)");
+    // It slides up only for those who allow motion.
+    expect(source).toContain("motion-safe:max-lg:starting:translate-y-full");
+  });
+
+  it("shows What if…? as a section under the chart on a phone only", () => {
+    const bundle = calculationFor(filled, today);
+    const html = decode(render(locale, filled, createElement(Results, { bundle })));
+    const section = html.match(new RegExp(`<section aria-labelledby="[^"]+" class="([^"]+)"><h2[^>]*>${m.whatIf.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
+    expect(section?.[1]).toContain("lg:hidden");
+    expect(html.indexOf('role="img"')).toBeLessThan(html.indexOf(m.whatIf.title));
+  });
+
+  it("glides from the steps to the result with a view transition, never for those who ask for less motion", () => {
+    const source = readFileSync(new URL("./money-module.tsx", import.meta.url), "utf8");
+    expect(source).toContain("startViewTransition");
+    expect(source).toContain('matchMedia("(prefers-reduced-motion: reduce)")');
   });
 });
 
