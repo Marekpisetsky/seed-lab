@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { CHROME_WORDS } from "@seed-kit/chrome.ts";
 import { getI18n } from "@/i18n";
 
 /** Colours of tokens.css: a dark band with the seed green (an image cannot read CSS variables; a test keeps them equal). */
@@ -40,7 +41,7 @@ export function GET() {
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 30, color: COLORS.muted }}>
           <div style={{ display: "flex" }}>{EN.site.footerNote}</div>
-          <div style={{ display: "flex", color: COLORS.brand, fontWeight: 700 }}>{EN.site.seedLab}</div>
+          <div style={{ display: "flex", color: COLORS.brand, fontWeight: 700 }}>{CHROME_WORDS.en.hub}</div>
         </div>
       </div>
     ),

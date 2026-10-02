@@ -1,6 +1,13 @@
 @import "tailwindcss";
-/* Colours and font: the seed-lab tokens, the same file as the hub's (tokens.css). */
-@import "./tokens.css";
+/* Colours and font, and the header and footer: seed-kit's, the files every seed-lab app uses (packages/seed-kit). */
+@import "../../../../packages/seed-kit/src/tokens.css";
+@import "../../../../packages/seed-kit/src/chrome.css";
+
+/* The header and footer as wide as the pages, with their gutter (max-w-5xl, px-4). */
+:root {
+  --sk-width: 64rem;
+  --sk-gutter: 1rem;
+}
 
 @theme inline {
   --color-background: var(--background);

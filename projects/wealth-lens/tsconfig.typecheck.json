@@ -1,0 +1,12 @@
+{
+  "//": "The type check (npm run typecheck): tsconfig.json, plus where React's types are for seed-kit's component, which lives outside this folder. Only for tsc: given to the bundler, these paths would point React itself at its types.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"],
+      "@seed-kit/*": ["../../packages/seed-kit/src/*"],
+      "react": ["./node_modules/@types/react"],
+      "react/jsx-runtime": ["./node_modules/@types/react/jsx-runtime"]
+    }
+  }
+}

@@ -22,15 +22,9 @@ const to = (name: string) => (name.startsWith("el ") ? `al ${name.slice(3)}` : `
 export const es: Messages = {
   site: {
     name: "Wealth Lens",
-    skip: "Ir al contenido",
     tagline: "Lo que tu dinero puede hacer, en palabras simples.",
-    nav: { label: "Páginas", money: "Mi dinero", test: "Probar mi plan", stocks: "Mis acciones" },
-    language: "Idioma",
+    nav: { money: "Mi dinero", test: "Probar mi plan", stocks: "Mis acciones" },
     footerNote: "No se guarda ni se envía nada. No es consejo financiero.",
-    footer: "Más sobre Wealth Lens",
-    copyright: "© 2026 seed-lab. De uso gratuito.",
-    partOf: "Parte de seed-lab",
-    seedLab: "seed-lab",
   },
   meta: {
     money: { title: "Lo que tu dinero puede hacer", description: "Mira cómo crece tu dinero y cuánto te paga. Gratis y privado. Gratis, privado, sin registro." },
@@ -336,12 +330,6 @@ export const es: Messages = {
     title: "Esta página no existe",
     text: "Quizá la dirección tiene un error, o la página se mudó.",
     home: "Ir a Wealth Lens",
-  },
-  launcher: {
-    open: "Proyectos de seed-lab",
-    hub: "Todos los proyectos de seed-lab",
-    projects: "Proyectos",
-    current: "Estás aquí",
   },
   money: { title: "Mi dinero" },
   stocks: {

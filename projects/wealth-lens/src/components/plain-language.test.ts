@@ -3,6 +3,7 @@ import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+import { JARGON, hasJargon, plainLanguageProblems } from "@seed-kit/plain-language.ts";
 import { getI18n } from "@/i18n";
 import { LOCALES } from "@/i18n/locales";
 import { connectionsData } from "@/lib/connections";
@@ -11,19 +12,13 @@ import { connectionsData } from "@/lib/connections";
  * Every word on the screen comes from the dictionaries (src/i18n/messages),
  * and reads without help: no jargon, short sentences. The technical words
  * may only appear in `explain`, the folded "i" explanations, each next to
- * its plain name.
+ * its plain name. The words and the counting are seed-kit's plain-language
+ * check, the one every seed-lab tool runs; this file finds the texts.
  */
 
 const SRC = fileURLToPath(new URL("..", import.meta.url));
 const MESSAGES = join(SRC, "i18n/messages");
 
-/** Words a normal person should never have to read, per language. */
-const JARGON: Record<string, RegExp> = {
-  en: /\b(real|nominal|volatility|volatile|swings?|swung|percentiles?)\b/i,
-  es: /\b(real(es)?|nominal(es)?|volatilidad|vol[aá]til(es)?|percentil(es)?|oscilaci[oó]n(es)?)\b/i,
-};
-/** Plain phrases that happen to use one of those words. */
-const ALLOWED = [/\breal history\b/i, /\bhistoria real\b/i];
 /** Namespaces where the technical words may appear: the folded explanations. */
 const TECHNICAL = new Set(["explain"]);
 /** At most this many words in a sentence, about ten ("1 %", "9700 €" and a filled-in value are one word each). */
@@ -66,14 +61,6 @@ function dictionaryTexts(file: string): Entry[] {
   return entries;
 }
 
-function words(sentence: string): number {
-  return sentence
-    .replace(/\*\*/g, "")
-    .replace(/(\d)[\s ]+(?=[%€])/g, "$1")
-    .split(/\s+/)
-    .filter((word) => /[\p{L}\p{N}X]/u.test(word)).length;
-}
-
 const dictionaries = LOCALES.map((locale) => ({ locale, entries: dictionaryTexts(join(MESSAGES, `${locale}.ts`)) }));
 
 describe("the dictionaries", () => {
@@ -88,7 +75,7 @@ describe("the dictionaries", () => {
     const found = dictionaries.flatMap(({ locale, entries }) =>
       entries
         .filter((entry) => !TECHNICAL.has(entry.path.split(".")[0]))
-        .filter((entry) => JARGON[locale].test(ALLOWED.reduce((text, allowed) => text.replace(allowed, ""), entry.text)))
+        .filter((entry) => hasJargon(entry.text, locale))
         .map((entry) => `${locale} ${entry.path}: ${entry.text}`),
     );
     expect(found).toEqual([]);
@@ -106,15 +93,13 @@ describe("the dictionaries", () => {
 
   it("speak in short sentences", () => {
     const long = dictionaries.flatMap(({ locale, entries }) =>
-      entries.flatMap((entry) => {
+      plainLanguageProblems(entries, locale, {
+        maxWords: MAX_WORDS,
+        longForm: { maxWords: MAX_WORDS_PAGES, paths: (path) => PAGES.has(path.split(".")[0]) },
+        // Jargon has its own test above.
+        technical: () => true,
         // A source is a citation ("average cost of a Dutch B licence in 2025, 41 lessons and exams"), not a sentence to read.
-        if (entry.path.endsWith(".source")) return [];
-        const max = PAGES.has(entry.path.split(".")[0]) ? MAX_WORDS_PAGES : MAX_WORDS;
-        return entry.text
-          // "·" separates short pieces, each read on its own.
-          .split(/(?<=[.!?:])\s+|\s+·\s+/)
-          .filter((sentence) => words(sentence) > max)
-          .map((sentence) => `${locale} ${entry.path} (${words(sentence)}): ${sentence}`);
+        skip: (path) => path.endsWith(".source"),
       }),
     );
     expect(long).toEqual([]);
