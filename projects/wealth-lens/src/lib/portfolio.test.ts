@@ -91,6 +91,6 @@ describe("the portfolio as a projection", () => {
   });
 
   it("says it is a simple projection", () => {
-    expect(EN.m.portfolio.label).toBe("Simple projection: each stock grows like its index. Stocks can't be predicted.");
+    expect(EN.m.portfolio.label).toBe("A simple projection: each stock grows like its index. Single stocks can't be predicted.");
   });
 });

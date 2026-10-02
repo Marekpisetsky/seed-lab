@@ -28,29 +28,34 @@ const exampleClass = "placeholder:italic placeholder:text-muted";
 
 /**
  * One numbered step: its number, its short question, and its one field.
- * The columns have fixed widths and the question stays on one line, so the
- * card is the same size in every language. On a phone (and compact, beside
- * or under a result) the field goes under the question; on a wide screen,
- * on its right.
+ * The columns have fixed widths, and the question has a box of fixed
+ * height: two lines on a phone and beside a result, one line on a wide
+ * screen. So the card is the same size in every language. On a phone (and
+ * compact, beside or under a result) the field goes under the question; on
+ * a wide screen, on its right.
  */
 function Step({ number, question, fieldId, compact, children }: { number: number; question: string; fieldId?: string; compact: boolean; children: React.ReactNode }) {
+  const line = compact ? "h-12" : "h-12 lg:h-7";
+  const text = compact ? "line-clamp-2" : "line-clamp-2 lg:line-clamp-none lg:whitespace-nowrap";
   return (
     <li
       className={`grid grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-x-3 gap-y-2 first:pt-0 last:pb-0 ${
-        compact ? "py-3" : "py-4 md:grid-cols-[1.75rem_16rem_22rem] md:gap-x-4"
+        compact ? "py-3" : "py-4 lg:grid-cols-[1.75rem_minmax(0,1fr)_22rem] lg:gap-x-4"
       }`}
     >
-      <span aria-hidden="true" className="flex size-7 items-center justify-center rounded-full bg-foreground text-sm font-bold text-background tabular-nums">
-        {number}
+      <span aria-hidden="true" className={`flex items-center ${line}`}>
+        <span className="flex size-7 items-center justify-center rounded-full bg-foreground text-sm font-bold text-background tabular-nums">{number}</span>
       </span>
       {fieldId ? (
-        <label htmlFor={fieldId} className="flex min-h-7 items-center whitespace-nowrap text-base font-semibold">
-          {question}
+        <label htmlFor={fieldId} className={`flex items-center text-base font-semibold leading-6 ${line}`}>
+          <span className={text}>{question}</span>
         </label>
       ) : (
-        <p className="flex min-h-7 items-center whitespace-nowrap text-base font-semibold">{question}</p>
+        <p className={`flex items-center text-base font-semibold leading-6 ${line}`}>
+          <span className={text}>{question}</span>
+        </p>
       )}
-      <div className={`col-span-2 min-w-0 ${compact ? "" : "md:col-span-1"}`}>{children}</div>
+      <div className={`col-span-2 min-w-0 ${compact ? "" : "lg:col-span-1"}`}>{children}</div>
     </li>
   );
 }
@@ -138,7 +143,7 @@ export function CalculatorCard({ onSee, compact = false }: { onSee?: () => void;
   };
 
   return (
-    <section aria-label={t.label} className={`rounded-xl border border-border bg-card ${compact ? "p-4" : "p-4 sm:p-6 md:w-fit"}`}>
+    <section aria-label={t.label} className={`rounded-xl border border-border bg-card ${compact ? "p-4" : "p-4 sm:p-6"}`}>
       {/* The order the eye reads is the order Tab follows: have, add, grow, years. */}
       <ol className="divide-y divide-border">
         <Step number={1} question={t.steps.have} fieldId={capital.source === "holdings" ? undefined : ids.have} compact={compact}>
@@ -183,7 +188,7 @@ export function CalculatorCard({ onSee, compact = false }: { onSee?: () => void;
               onKeyDown={enter(ids.monthly)}
               max={MAX_AMOUNT}
               placeholder={t.example(f.grouped(EXAMPLE_AMOUNTS.monthlyContribution))}
-              className={`px-7 text-center ${exampleClass}`}
+              className={`${exampleClass} ${before ? "pl-8" : "pr-8"}`}
             />
           </Stepper>
         </Step>
@@ -207,14 +212,14 @@ export function CalculatorCard({ onSee, compact = false }: { onSee?: () => void;
               onKeyDown={enter(ids.years)}
               max={MAX_YEARS_AHEAD}
               placeholder="20"
-              className="px-14 text-center"
+              className="pr-16"
             />
             <Affix side="right">{t.yearsUnit(plan.years)}</Affix>
           </Stepper>
         </Step>
       </ol>
       {onSee && (
-        <div className={`mt-2 border-t border-border pt-4 ${compact ? "" : "md:grid md:grid-cols-[1.75rem_16rem_22rem] md:gap-x-4"}`}>
+        <div className={`mt-2 border-t border-border pt-4 ${compact ? "" : "lg:grid lg:grid-cols-[1.75rem_minmax(0,1fr)_22rem] lg:gap-x-4"}`}>
           {/* Not "disabled": a press before both amounts are in takes you to the empty one. */}
           <button
             ref={seeButton}
@@ -222,7 +227,7 @@ export function CalculatorCard({ onSee, compact = false }: { onSee?: () => void;
             aria-disabled={!ready}
             aria-describedby={ready ? undefined : ids.see}
             onClick={see}
-            className={`inline-flex min-h-12 w-full items-center justify-center gap-1.5 rounded-md bg-accent px-5 text-base font-semibold text-accent-foreground hover:opacity-90 aria-disabled:opacity-50 aria-disabled:hover:opacity-50 ${compact ? "" : "md:col-start-3"}`}
+            className={`inline-flex min-h-12 w-full items-center justify-center gap-1.5 rounded-md bg-accent px-5 text-base font-semibold text-accent-foreground hover:opacity-90 aria-disabled:opacity-50 aria-disabled:hover:opacity-50 ${compact ? "" : "lg:col-start-3"}`}
           >
             {t.see}
             <ArrowDown aria-hidden="true" className="size-4" />

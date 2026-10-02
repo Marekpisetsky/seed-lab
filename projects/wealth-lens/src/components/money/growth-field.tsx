@@ -24,10 +24,10 @@ function lineFor(current: ResolvedInvestment, i18n: I18n): { text: string; warni
 }
 
 /**
- * Step 3's field: the growth a year after rising prices, 5 to start, and
- * small under it the same before rising prices; then one line on what the
- * number is ("World average over the long run, after inflation"), and
- * examples to fill it with one tap, the one it matches marked. Every part
+ * Step 3's field: the growth a year after rising prices, 5 to start; under
+ * it one line on what the number is ("World average over the long run, after
+ * inflation"), the same before rising prices, small, and examples to fill
+ * it with one tap, the one it matches marked. Every part
  * keeps its height, whatever the language or the number.
  */
 export function GrowthField({ id, current, compact, onEnter }: { id: string; current: ResolvedInvestment; compact: boolean; onEnter: () => void }) {
@@ -46,7 +46,7 @@ export function GrowthField({ id, current, compact, onEnter }: { id: string; cur
       <span className="relative block">
         <SettledNumberInput
           id={id}
-          aria-describedby={`${before} ${about}`}
+          aria-describedby={`${about} ${before}`}
           enterKeyHint="next"
           value={fieldPercent(current.realReturn)}
           min={-50}
@@ -57,24 +57,25 @@ export function GrowthField({ id, current, compact, onEnter }: { id: string; cur
             event.preventDefault();
             onEnter();
           }}
-          className="px-20 text-center"
+          className="pr-12"
         />
         <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted">
           {t.unit}
         </span>
       </span>
+      {/* What the number is: two lines kept on a phone and beside a result, one on a wide screen, so nothing moves. */}
+      <p id={about} className={`text-sm ${compact ? "line-clamp-2 h-10" : "line-clamp-2 h-10 lg:line-clamp-1 lg:h-5"} ${line.warning ? "font-medium text-warning-foreground" : "text-muted"}`}>
+        <Changed value={line.text} />
+      </p>
       <p id={before} className="h-5 truncate text-sm text-muted tabular-nums">
         <Changed value={t.before(f.rate(quotedGrowth(current)))} />
-      </p>
-      <p id={about} className={`line-clamp-2 h-10 text-sm ${line.warning ? "font-medium text-warning-foreground" : "text-muted"}`}>
-        <Changed value={line.text} />
       </p>
       <div role="group" aria-labelledby={`${id}-examples`}>
         <p id={`${id}-examples`} className="h-5 text-sm text-muted">
           {t.examplesLabel}
         </p>
         {/* Three across on a phone, one row on a wide screen: rows of fixed height either way. */}
-        <div className={`grid grid-cols-3 ${compact ? "" : "md:flex md:justify-between"}`}>
+        <div className={`grid grid-cols-3 ${compact ? "" : "lg:flex lg:justify-between"}`}>
           {EXAMPLE_IDS.map((example) => {
             const pressed = example === picked;
             const name = t.examples[example];

@@ -45,8 +45,8 @@ describe("standard assumptions: filled in from the data", () => {
     expect(gold.volatility).toBeGreaterThan(bonds.volatility);
     expect(bonds.realReturn).toBeLessThan(sp500.realReturn);
     expect(gold.realReturn).toBeLessThan(bonds.realReturn);
-    expect(simulationsText(bonds, EN)).toBe("euro bond histories");
-    expect(simulationsText(gold, EN)).toBe("gold histories");
+    expect(simulationsText(bonds, EN)).toBe("euro bond simulations");
+    expect(simulationsText(gold, EN)).toBe("gold simulations");
   });
 
   it("gives a savings account its rate less the country's inflation, with no swings: it can be below zero", () => {

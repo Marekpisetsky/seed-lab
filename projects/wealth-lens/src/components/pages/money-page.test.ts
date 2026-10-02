@@ -6,7 +6,8 @@ import { MoneyPage } from "./money-page";
 
 // Only the page's own top: the header, footer and calculator have their tests.
 vi.mock("@/components/site/site", () => ({ Site: ({ children }: { children: ReactNode }) => children }));
-vi.mock("@/components/money/money-module", () => ({ MoneyModule: () => null }));
+// The module places the headline (in the first screen's centred column): here it only shows it.
+vi.mock("@/components/money/money-module", () => ({ MoneyModule: ({ header }: { header?: ReactNode }) => header }));
 
 describe.each(["en", "es"] as const)("My money's first screen (%s)", (locale) => {
   const { m } = getI18n(locale);
