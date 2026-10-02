@@ -373,8 +373,8 @@ describe.each(["en", "es"] as const)("the page after the first result, by its wi
   it("is three columns from 1440 px (What if…? | result, at least 640 px | steps) and two from 1024 px (result | steps)", () => {
     const html = page();
     const root = html.match(/<div data-layout="results" class="([^"]+)"/)?.[1] ?? "";
-    expect(root).toContain("lg:grid-cols-[minmax(0,1fr)_19rem]");
-    expect(root).toContain("wide:grid-cols-[15rem_minmax(40rem,1fr)_19rem]");
+    expect(root).toContain("lg:grid-cols-[minmax(0,1fr)_20rem]");
+    expect(root).toContain("wide:grid-cols-[15rem_minmax(40rem,1fr)_20rem]");
     // The left column, What if…?, only from 1440 px, in sight while the page scrolls.
     expect(html).toMatch(/<aside class="hidden wide:sticky wide:top-4 wide:block/);
     // The steps on the right from 1024 px, in sight, compact (the field under each question).

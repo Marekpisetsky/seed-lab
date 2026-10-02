@@ -132,7 +132,7 @@ export function MoneyModule() {
   return (
     <div
       data-layout={asked ? "results" : "start"}
-      className={asked ? "lg:grid lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start lg:gap-8 wide:grid-cols-[15rem_minmax(40rem,1fr)_19rem]" : "space-y-6"}
+      className={asked ? "lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-8 wide:grid-cols-[15rem_minmax(40rem,1fr)_20rem]" : "space-y-6"}
     >
       {asked && <aside className="hidden wide:sticky wide:top-4 wide:block wide:max-h-[calc(100dvh-2rem)] wide:overflow-y-auto">{shown && <WhatIfPanel bundle={bundle} />}</aside>}
       {asked && (

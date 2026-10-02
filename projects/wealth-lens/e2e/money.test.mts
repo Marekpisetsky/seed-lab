@@ -155,7 +155,9 @@ describe("the result, by the width of the window", () => {
       assert.ok(left.left < middle.left && middle.left < right.left);
       assert.ok(middle.width >= 640 && middle.width > left.width && middle.width > right.width, JSON.stringify({ left, middle, right }));
       // Both side columns stay in sight while the page scrolls through the result.
-      await page.getByRole("heading", { name: "Mis metas" }).waitFor();
+      // Once every section is there (the table of countries loads last).
+      await page.locator("tbody tr").first().waitFor();
+      await page.waitForLoadState("networkidle");
       await page.mouse.wheel(0, 700);
       await page.waitForTimeout(300);
       for (const side of ["aside", '[style*="view-transition-name"]']) {
@@ -190,6 +192,28 @@ describe("the result, by the width of the window", () => {
     const whatIf = await page.getByRole("heading", { name: "¿Y si…?" }).boundingBox();
     assert.ok(chart && whatIf && whatIf.y > chart.y);
     await page.close();
+  });
+});
+
+describe("the compact steps beside the result and in the sheet", () => {
+  it("fit their questions and fields in English and Spanish, nothing overflowing", async () => {
+    for (const lang of ["en", "es"] as const) {
+      for (const width of [360, 1024, 1366, 1440, 1920]) {
+        const page = await open(lang, width, 800);
+        await firstResult(page, lang);
+        if (width < 1024) await page.getByRole("button", { name: WORDS[lang].edit }).click();
+        const card = page.locator(`[style*="view-transition-name"] section[aria-label]`).first();
+        await card.waitFor();
+        const overflowing = await card.evaluate((element) => {
+          const edge = element.getBoundingClientRect().right;
+          return [...element.querySelectorAll("label, p, span:not(.sr-only), input, button")]
+            .filter((node) => node.scrollWidth > node.clientWidth + 1 || node.getBoundingClientRect().right > edge + 0.5)
+            .map((node) => node.textContent || node.getAttribute("aria-label"));
+        });
+        assert.deepEqual(overflowing, [], `${lang} at ${width}`);
+        await page.close();
+      }
+    }
   });
 });
 
