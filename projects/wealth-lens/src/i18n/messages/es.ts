@@ -828,6 +828,8 @@ export const es: Messages = {
     noUps: "Aquí no hay altibajos",
   },
   chart: {
+    periods: "Años que muestra el gráfico",
+    all: "Todo",
     putIn: "Lo que pones",
     growth: "Crecimiento",
     noUps: "Sin altibajos: cada año crece igual",

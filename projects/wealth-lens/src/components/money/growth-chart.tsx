@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n";
+import { RadioGroup } from "@/components/ui/radio-group";
 import type { CalculationBundle } from "@/hooks/use-calculation";
 import { useWidth } from "@/hooks/use-width";
 import { assumptionsNote } from "@/lib/assumptions";
@@ -191,10 +192,21 @@ function YearTable({ points, startYear }: { points: YearPoint[]; startYear: numb
   );
 }
 
+/** The chart's tabs: the first 5, 10, 20 or 30 years, or all of them. */
+export const PERIODS = [5, 10, 20, 30, "all"] as const;
+export type Period = (typeof PERIODS)[number];
+
+/** How many years a tab shows: never more than the plan has; a tab longer than the plan is shown but cannot be picked. */
+export function shownYears(period: Period, years: number): number {
+  return period === "all" ? years : Math.min(period, years);
+}
+
 /**
  * Level 2: the years to the result, small and plain: what was put in and
  * what growth added, stacked, with the % gained at the end of the curve.
- * Where 8 in 10 simulations ended is in "What you should know".
+ * Tabs above it, as on a stock chart, show the first 5, 10, 20 or 30
+ * years or all of them: they change only what the chart shows, never the
+ * figures. Where 8 in 10 simulations ended is in "What you should know".
  */
 export function GrowthChart({ bundle }: { bundle: CalculationBundle }) {
   const i18n = useI18n();
@@ -202,24 +214,50 @@ export function GrowthChart({ bundle }: { bundle: CalculationBundle }) {
   const { calc, today } = bundle;
   const { scenario, investment, result } = calc;
   const points = useMemo(() => yearlyPath(scenario, result.years), [scenario, result.years]);
+  const [period, setPeriod] = useState<Period>("all");
+  // A tab the plan has become too short for falls back to all of it.
+  const picked = period !== "all" && period > result.years ? "all" : period;
+  const view = useMemo(() => points.slice(0, shownYears(picked, result.years) + 1), [points, picked, result.years]);
   const startYear = today.getUTCFullYear();
   const money = moneyLine(result, investment.volatility > 0, i18n);
   return (
-    <figure className="space-y-2">
-      <figcaption className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
-        <span>
-          <Swatch color="var(--chart-put-in)" /> {m.chart.putIn}
-        </span>
-        <span>
-          <Swatch color="var(--chart-growth)" /> {m.chart.growth}
-        </span>
-      </figcaption>
-      <Plot points={points} startYear={startYear} />
-      <div className="space-y-0.5 text-xs text-muted">
-        {money && <p className="tabular-nums">{`${money} · ${m.result.putIn(i18n.f.eur(result.putIn))}`}</p>}
-        <p>{assumptionsNote(investment, i18n)}</p>
-      </div>
-      <YearTable points={points} startYear={startYear} />
-    </figure>
+    <div className="space-y-2">
+      <RadioGroup
+        label={m.chart.periods}
+        options={PERIODS.map((value) => ({
+          value,
+          label:
+            value === "all" ? (
+              m.chart.all
+            ) : (
+              <>
+                <span aria-hidden="true">{value}</span>
+                <span className="sr-only">{m.units.years(value)}</span>
+              </>
+            ),
+          disabled: value !== "all" && value > result.years,
+        }))}
+        value={picked}
+        onChange={setPeriod}
+        className="inline-flex rounded-md border border-border p-0.5 text-sm"
+        optionClassName={(checked) => `min-h-11 min-w-11 rounded px-2.5 py-1 font-medium tabular-nums ${checked ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
+      />
+      <figure className="space-y-2">
+        <figcaption className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
+          <span>
+            <Swatch color="var(--chart-put-in)" /> {m.chart.putIn}
+          </span>
+          <span>
+            <Swatch color="var(--chart-growth)" /> {m.chart.growth}
+          </span>
+        </figcaption>
+        <Plot points={view} startYear={startYear} />
+        <div className="space-y-0.5 text-xs text-muted">
+          {money && <p className="tabular-nums">{`${money} · ${m.result.putIn(i18n.f.eur(result.putIn))}`}</p>}
+          <p>{assumptionsNote(investment, i18n)}</p>
+        </div>
+        <YearTable points={points} startYear={startYear} />
+      </figure>
+    </div>
   );
 }

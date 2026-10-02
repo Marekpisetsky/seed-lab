@@ -13,6 +13,7 @@ import { toNominal } from "@/lib/investment";
 import { bandsFor } from "@/lib/projections";
 import { EXAMPLE_PLAN } from "@/lib/validation";
 import { CalculatorCard } from "./calculator-card";
+import { PERIODS, shownYears } from "./growth-chart";
 import { MoneyModule } from "./money-module";
 import { Results } from "./results";
 
@@ -205,6 +206,19 @@ describe.each(["en", "es"] as const)("the result in levels (%s)", (locale) => {
     expect(text(html)).not.toContain(m.help.income);
   });
 
+  it("puts tabs over the chart, as on a stock chart: 5, 10, 20, 30 years and all, starting with all", () => {
+    const tabs = decode(html).match(new RegExp(`<div role="radiogroup" aria-label="${m.chart.periods}"[^>]*>(.*?)</div>`))?.[1] ?? "";
+    const options = [...tabs.matchAll(/<button([^>]*)>(.*?)<\/button>/g)];
+    expect(options.map((option) => text(option[2]).trim())).toEqual([
+      ...[5, 10, 20, 30].map((years) => `${years} ${m.units.years(years)}`),
+      m.chart.all,
+    ]);
+    expect(options.map((option) => option[1].includes('aria-checked="true"'))).toEqual([false, false, false, false, true]);
+    // A 20-year plan: 30 years is there, but cannot be picked.
+    expect(options.map((option) => /\sdisabled=/.test(option[1]))).toEqual([false, false, false, true, false]);
+    expect(html.indexOf(`aria-label="${m.chart.periods}"`)).toBeLessThan(html.indexOf('role="img"'));
+  });
+
   it("puts the rest in one-line cards, each with what it says", () => {
     expect(count(html, FOLDED)).toBe(4);
     expect(count(html, "<h3>")).toBe(4);
@@ -245,6 +259,16 @@ describe.each(["en", "es"] as const)("the sentence before the big number (%s)", 
     expect(said({ investment: { kind: "asset", asset: "savings" } })).toContain(t.investedIn.asset(m.assets.inSentence.savings));
     expect(said({ investment: { kind: "custom" }, assumptions: { ...EXAMPLE_PLAN.assumptions, growth: 0.06 } })).toContain(t.investedIn.custom(f.rate(0.06)));
     expect(said({ investment: { kind: "mix", parts: [{ asset: "world", weight: 60 }, { asset: "bonds", weight: 40 }], rebalance: false } })).toContain(t.investedIn.mix);
+  });
+});
+
+describe("the chart's tabs", () => {
+  it("change only how many years it shows, never more than the plan has", () => {
+    expect(PERIODS).toEqual([5, 10, 20, 30, "all"]);
+    expect(shownYears(5, 20)).toBe(5);
+    expect(shownYears(20, 20)).toBe(20);
+    expect(shownYears(30, 20)).toBe(20);
+    expect(shownYears("all", 37)).toBe(37);
   });
 });
 

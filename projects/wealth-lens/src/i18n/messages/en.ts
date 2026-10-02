@@ -829,6 +829,8 @@ export const en = {
     noUps: "No ups and downs here",
   },
   chart: {
+    periods: "Years the chart shows",
+    all: "All",
     putIn: "Put in",
     growth: "Growth",
     noUps: "No ups and downs: every year grows the same",
