@@ -1,0 +1,24 @@
+{
+  "takenOn": "2026-10-02",
+  "tools": {
+    "wealth-lens": {
+      "hero": {
+        "width": 1280,
+        "height": 900,
+        "widths": [
+          640,
+          1280,
+          1920
+        ]
+      },
+      "card": {
+        "width": 1040,
+        "height": 650,
+        "widths": [
+          480,
+          960
+        ]
+      }
+    }
+  }
+}
