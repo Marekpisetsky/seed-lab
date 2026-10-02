@@ -91,15 +91,25 @@ describe.each(["en", "es"] as const)("the first screen (%s)", (locale) => {
     expect(html).toContain("placeholder:italic");
   });
 
-  it("says under the calm line what to trust: no accounts, nothing saved, the data's years", () => {
-    const trust = html.slice(html.indexOf(m.calculator.calm));
+  it("says under the form what to trust: no accounts, nothing saved, the data's years", () => {
+    const trust = html.slice(html.indexOf("</section>"));
     for (const point of [m.money.trust.noAccount, m.money.trust.nothingSaved, m.money.trust.data("1988–2022")]) expect(text(trust)).toContain(point);
     expect(count(trust, "<svg")).toBe(3);
     expect(count(trust, 'aria-hidden="true"')).toBeGreaterThanOrEqual(3);
   });
 
-  it("shows one calm line and no result, chart, card or warning", () => {
-    expect(text(html)).toContain(m.calculator.calm);
+  it("ends the steps with “See my result”, not yet working, and says why", () => {
+    const button = decode(html).match(/<button[^>]*aria-disabled="true"[^>]*>([^<]*)/);
+    expect(button?.[1]).toBe(m.calculator.see);
+    expect(button?.[0]).not.toMatch(/\sdisabled=/);
+    const why = button?.[0].match(/aria-describedby="([^"]+)"/)?.[1];
+    expect(decode(html)).toContain(`<p id="${why}" class="text-sm text-muted">${m.calculator.calm}</p>`);
+    // After the four steps, before More options.
+    expect(html.indexOf("</ol>")).toBeLessThan(html.indexOf(m.calculator.see));
+    expect(html.indexOf(m.calculator.see)).toBeLessThan(html.indexOf(m.more.title));
+  });
+
+  it("shows no result, chart, card or warning", () => {
     expect(html).not.toContain('role="img"');
     expect(html).not.toContain("<h3>");
     expect(html).not.toContain("bg-warning-bg");
@@ -150,8 +160,14 @@ describe.each(["en", "es"] as const)("the result in levels (%s)", (locale) => {
   const bundle = calculationFor(filled, today);
   const html = render(locale, filled, createElement(Results, { bundle }));
 
+  it("starts with what the user said, then the big number", () => {
+    const said = m.result.summary(f.eur(1000), f.eur(200), m.result.investedIn.asset(m.assets.inSentence.sp500), m.units.years(20));
+    expect(text(html)).toContain(said);
+    expect(decode(html).indexOf(said)).toBeGreaterThan(0);
+    expect(decode(html).indexOf(said)).toBeLessThan(decode(html).indexOf("text-4xl"));
+  });
+
   it("shows the big number with its growth line, then a small chart", () => {
-    expect(text(html)).toContain(m.result.inYears(m.units.years(20)));
     expect(text(html)).toContain(f.eur(bundle.calc.result.total));
     expect(count(html, 'role="img"')).toBe(1);
     expect(html.indexOf(f.eur(bundle.calc.result.total))).toBeLessThan(html.indexOf('role="img"'));
@@ -180,6 +196,27 @@ describe.each(["en", "es"] as const)("the result in levels (%s)", (locale) => {
   });
 });
 
+describe.each(["en", "es"] as const)("the sentence before the big number (%s)", (locale) => {
+  const { m, f } = getI18n(locale);
+  const t = m.result;
+  const said = (plan: Partial<AppState["plan"]>) => {
+    const state = { ...filled, plan: { ...EXAMPLE_PLAN, ...plan } };
+    return text(render(locale, state, createElement(Results, { bundle: calculationFor(state, today) })));
+  };
+  const sp500 = t.investedIn.asset(m.assets.inSentence.sp500);
+
+  it("leaves out a monthly amount of zero, or money today of zero", () => {
+    expect(said({ monthlyContribution: 0 })).toContain(t.summaryToday(f.eur(1000), sp500, m.units.years(20)));
+    expect(said({ invested: 0 })).toContain(t.summaryMonthly(f.eur(200), sp500, m.units.years(20)));
+  });
+
+  it("names where the money goes: a chip's index, a mix, or the user's own growth", () => {
+    expect(said({ investment: { kind: "asset", asset: "savings" } })).toContain(t.investedIn.asset(m.assets.inSentence.savings));
+    expect(said({ investment: { kind: "custom" }, assumptions: { ...EXAMPLE_PLAN.assumptions, growth: 0.06 } })).toContain(t.investedIn.custom(f.rate(0.06)));
+    expect(said({ investment: { kind: "mix", parts: [{ asset: "world", weight: 60 }, { asset: "bonds", weight: 40 }], rebalance: false } })).toContain(t.investedIn.mix);
+  });
+});
+
 describe("what loads with the first screen", () => {
   const source = (file: string) => readFileSync(new URL(file, import.meta.url), "utf8");
   const staticImports = (file: string) => [...source(file).matchAll(/^import [^;]* from "([^"]+)";$/gm)].map((match) => match[1]);
@@ -195,11 +232,23 @@ describe("what loads with the first screen", () => {
     }
   });
 
-  it("shows the result once both amounts are typed, and the calm line until then", () => {
+  it("turns “See my result” on once both amounts are typed, and waits for it to be pressed", () => {
     const { m } = getI18n("en");
-    expect(text(render("en", { ...INITIAL_STATE, plan: { ...EXAMPLE_PLAN, monthlyContribution: null } }, createElement(MoneyModule)))).toContain(m.calculator.calm);
-    expect(text(render("en", { ...INITIAL_STATE, plan: { ...EXAMPLE_PLAN, invested: null } }, createElement(MoneyModule)))).toContain(m.calculator.calm);
-    expect(text(render("en", filled, createElement(MoneyModule)))).not.toContain(m.calculator.calm);
-    expect(text(render("en", filled, createElement(MoneyModule)))).not.toContain(m.money.trust.noAccount);
+    const seeButton = (state: AppState) => decode(render("en", state, createElement(MoneyModule))).match(new RegExp(`<button[^>]*>${m.calculator.see}`))?.[0] ?? "";
+    expect(seeButton({ ...INITIAL_STATE, plan: { ...EXAMPLE_PLAN, monthlyContribution: null } })).toContain('aria-disabled="true"');
+    expect(seeButton({ ...INITIAL_STATE, plan: { ...EXAMPLE_PLAN, invested: null } })).toContain('aria-disabled="true"');
+    expect(seeButton(filled)).toContain('aria-disabled="false"');
+    const ready = text(render("en", filled, createElement(MoneyModule)));
+    expect(ready).not.toContain(m.calculator.calm);
+    // Nothing of the result before the press: the steps, the button and what to trust.
+    expect(ready).not.toContain(m.result.label);
+    expect(ready).toContain(m.money.trust.noAccount);
+  });
+
+  it("brings the result in with a short fade and rise, only for those who allow motion, and glides to it", () => {
+    expect(source("./results.tsx")).toContain("motion-safe:animate-reveal");
+    expect(source("../../app/globals.css")).toMatch(/--animate-reveal: reveal [\d.]+s/);
+    expect(source("./results.tsx")).toContain('matchMedia("(prefers-reduced-motion: reduce)")');
+    expect(source("./results.tsx")).toContain("scrollIntoView");
   });
 });

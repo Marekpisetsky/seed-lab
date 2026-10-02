@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Minus, Plus } from "lucide-react";
+import { ArrowDown, ChevronDown, Minus, Plus } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useEffect, useId, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n";
@@ -8,12 +8,12 @@ import { Changed } from "@/components/ui/changed";
 import { SettledNumberInput } from "@/components/ui/form";
 import { useAppState } from "@/hooks/use-app";
 import { offeredRates } from "@/hooks/use-calculation";
-import { updatePlan } from "@/lib/app-store";
+import { appStore, updatePlan } from "@/lib/app-store";
 import { optionsChanged } from "@/lib/assumptions";
 import { priceHoldings } from "@/lib/auto-price";
 import { chipOf } from "@/lib/chips";
 import { resolveInvestment } from "@/lib/investment";
-import { startingCapital } from "@/lib/plan";
+import { planReady, startingCapital } from "@/lib/plan";
 import { warmUp } from "@/lib/warm";
 import { MONTHLY_STEP, stepValue, YEARS_STEP } from "@/lib/step";
 import { DEFAULT_PLAN, EXAMPLE_AMOUNTS, MAX_AMOUNT, MAX_YEARS_AHEAD, MIN_YEARS } from "@/lib/validation";
@@ -144,11 +144,12 @@ const monthlyStep = { ...MONTHLY_STEP, max: MAX_AMOUNT };
  * what you add each month, how it grows (chips, or "My %") and for how many
  * years. The amounts start empty, with an example in grey; the growth and
  * the years start filled in, and say so ("You can change it"). Under the
- * steps, the page's own button (`action`); last, "More options", folded:
- * mixes, My portfolio, ups and downs and rising prices. Once there is a
- * result, `hints` puts a line under the monthly amount and the years.
+ * steps, with `onSee`, "See my result": it works once both amounts are in.
+ * Last, "More options", folded: mixes, My portfolio, ups and downs and
+ * rising prices. Once there is a result, `hints` puts a line under the
+ * monthly amount and the years.
  */
-export function CalculatorCard({ action, hints }: { action?: React.ReactNode; hints?: { monthly?: React.ReactNode; years?: React.ReactNode } }) {
+export function CalculatorCard({ onSee, hints }: { onSee?: () => void; hints?: { monthly?: React.ReactNode; years?: React.ReactNode } }) {
   const i18n = useI18n();
   const { m, f } = i18n;
   const t = m.calculator;
@@ -159,7 +160,18 @@ export function CalculatorCard({ action, hints }: { action?: React.ReactNode; hi
   const [more, setMore] = useState(false);
   const moreId = useId();
   const ids = { have: useId(), monthly: useId(), years: useId() };
-  const hintIds = { have: useId(), monthly: useId(), growth: useId(), years: useId() };
+  const hintIds = { have: useId(), monthly: useId(), growth: useId(), years: useId(), see: useId() };
+  const ready = planReady(plan, priced);
+  // Read from the store at the press, not from this render: leaving a field for the button saves its number just before.
+  const see = () => {
+    const now = appStore.get();
+    if (planReady(now.plan, now.holdings)) {
+      onSee?.();
+      return;
+    }
+    const empty = now.holdings.length === 0 && now.plan.invested === null ? ids.have : ids.monthly;
+    document.getElementById(empty)?.focus();
+  };
   // Once the user starts using the page, idle moments work out ahead what the next choice will need
   // (not before: a page only looked at does no extra work).
   useEffect(() => {
@@ -254,7 +266,28 @@ export function CalculatorCard({ action, hints }: { action?: React.ReactNode; hi
           {hints?.years}
         </Step>
       </ol>
-      {action && <div className="mt-2 border-t border-border pt-4 md:grid md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-x-6">{action}</div>}
+      {onSee && (
+        <div className="mt-2 border-t border-border pt-4 md:grid md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-x-6">
+          <div className="space-y-2 md:col-start-2">
+            {/* Not "disabled": a press before both amounts are in takes you to the empty one. */}
+            <button
+              type="button"
+              aria-disabled={!ready}
+              aria-describedby={ready ? undefined : hintIds.see}
+              onClick={see}
+              className="inline-flex min-h-12 w-full max-w-72 items-center justify-center gap-1.5 rounded-md bg-accent px-5 text-base font-semibold text-accent-foreground hover:opacity-90 aria-disabled:opacity-50 aria-disabled:hover:opacity-50"
+            >
+              {t.see}
+              <ArrowDown aria-hidden="true" className="size-4" />
+            </button>
+            {!ready && (
+              <p id={hintIds.see} className="text-sm text-muted">
+                {t.calm}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
       <div className="mt-3">
         <button
           type="button"

@@ -586,7 +586,8 @@ export const es: Messages = {
     lessYear: "Un año menos",
     moreYear: "Un año más",
     example: (value: string) => `p. ej. ${value}`,
-    calm: "Escribe tus números para ver tu resultado",
+    see: "Ver mi resultado",
+    calm: "Escribe los dos importes para ver tu resultado.",
     addToMix: "Añadir a la mezcla",
   },
   growth: {
@@ -748,6 +749,15 @@ export const es: Messages = {
   result: {
     label: "Resultado",
     inYears: (years: string) => `En ${years} tendrás`,
+    summary: (have: string, monthly: string, inWhat: string, years: string) => `Con ${have} hoy y ${monthly} al mes ${inWhat}, en ${years} podrías tener…`,
+    summaryToday: (have: string, inWhat: string, years: string) => `Con ${have} hoy ${inWhat}, en ${years} podrías tener…`,
+    summaryMonthly: (monthly: string, inWhat: string, years: string) => `Con ${monthly} al mes ${inWhat}, en ${years} podrías tener…`,
+    investedIn: {
+      asset: (name: string) => `en ${name}`,
+      mix: "en tu mezcla",
+      portfolio: "en tu cartera",
+      custom: (rate: string) => `creciendo un ${rate} al año`,
+    },
     announce: (years: string, total: string, grows: string) => `En ${years} tendrás ${total}. ${grows}.`,
     announceWhatIf: (label: string) => ` ¿Y si… ${label}?`,
     perYear: (rate: string) => `${rate} al año`,

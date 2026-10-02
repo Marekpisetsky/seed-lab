@@ -1,10 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useEffect, useRef } from "react";
 import { useI18n } from "@/components/i18n";
 import { Changed } from "@/components/ui/changed";
 import { Help } from "@/components/ui/help";
 import type { CalculationBundle } from "@/hooks/use-calculation";
+import type { I18n } from "@/i18n";
+import { investedInText } from "@/i18n/investment-text";
 import { valueAt } from "@/lib/calculator";
 import { formatShare, gainedShareOf, growsText } from "@/lib/growth";
 import type { ResolvedInvestment } from "@/lib/investment";
@@ -24,8 +27,21 @@ const WhereDetails = dynamic(() => import("./where-details").then((module) => mo
 const GoalsSection = dynamic(() => import("./goals-section").then((module) => module.GoalsSection), { loading: Loading });
 const KnowDetails = dynamic(() => import("./know-details").then((module) => module.KnowDetails), { loading: Loading });
 
-/** Level 1: what the money is worth after the years, big, and how it grows, in one line. */
-function ResultTotal({ bundle }: { bundle: CalculationBundle }) {
+/** What the user said, in one sentence: "With €1,100 today and €100 a month in the S&P 500, in 20 years you could have…" */
+function summaryText({ scenario, investment, result }: CalculationBundle["calc"], i18n: I18n): string {
+  const { m, f } = i18n;
+  const t = m.result;
+  const where = investedInText(investment, i18n);
+  const years = m.units.years(result.years);
+  const have = f.eur(scenario.capital);
+  const monthly = f.eur(scenario.monthly);
+  if (scenario.monthly === 0 && scenario.capital > 0) return t.summaryToday(have, where, years);
+  if (scenario.capital === 0 && scenario.monthly > 0) return t.summaryMonthly(monthly, where, years);
+  return t.summary(have, monthly, where, years);
+}
+
+/** Level 1: what the user said, then what the money is worth after the years, big, and how it grows, in one line. */
+function ResultTotal({ bundle, ref }: { bundle: CalculationBundle; ref: React.Ref<HTMLElement> }) {
   const i18n = useI18n();
   const { m, f } = i18n;
   const { calc } = bundle;
@@ -34,14 +50,15 @@ function ResultTotal({ bundle }: { bundle: CalculationBundle }) {
   const grows = growsText(result.growthRate, i18n);
   const share = gainedShareOf(result);
   return (
-    <section aria-label={m.result.label} className="space-y-1">
+    // Focused (not tabbable) when the result arrives, so a screen reader starts here.
+    <section ref={ref} tabIndex={-1} aria-label={m.result.label} className="scroll-mt-4 space-y-1 outline-none">
       {/* What a screen reader says after a change: one short sentence, not the whole section. */}
       <p className="sr-only" aria-live="polite" aria-atomic="true">
         {m.result.announce(years, f.eur(result.total), grows) + (calc.whatIf ? m.result.announceWhatIf(m.whatIf.applied[calc.whatIf]) : "")}
       </p>
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-        <p className="text-base text-muted">
-          <Changed value={m.result.inYears(years)} />
+        <p className="text-base text-muted sm:text-lg">
+          <Changed value={summaryText(calc, i18n)} />
         </p>
         <WhatIfIndicator applied={calc.whatIf} />
       </div>
@@ -70,8 +87,18 @@ function concentratedShare(investment: ResolvedInvestment): number | null {
  * says in a sentence: what it could pay, "What if…?", where it reaches, my
  * goals and what you should know. Nothing else shows until asked for.
  */
-export function Results({ bundle }: { bundle: CalculationBundle }) {
+export function Results({ bundle, arrive = false, onArrived }: { bundle: CalculationBundle; arrive?: boolean; onArrived?: () => void }) {
   const i18n = useI18n();
+  const top = useRef<HTMLElement>(null);
+  // Asked for with "See my result": the page glides to it (or jumps, for those who asked for less motion).
+  useEffect(() => {
+    const element = top.current;
+    if (!arrive || !element) return;
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    element.focus({ preventScroll: true });
+    element.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+    onArrived?.();
+  }, [arrive, onArrived]);
   const { m, f } = i18n;
   const { calc, base, today } = bundle;
   const { result } = calc;
@@ -83,8 +110,8 @@ export function Results({ bundle }: { bundle: CalculationBundle }) {
   const share = concentratedShare(calc.investment);
 
   return (
-    <div className="space-y-6">
-      <ResultTotal bundle={bundle} />
+    <div className="space-y-6 motion-safe:animate-reveal">
+      <ResultTotal bundle={bundle} ref={top} />
       <GrowthChart bundle={bundle} />
       <div className="space-y-2">
         <ResultCard title={`${m.result.couldPay} ${m.result.perMonth(f.smallEur(result.income))}`}>

@@ -595,7 +595,8 @@ export const en = {
     moreYear: "One year more",
     /** In grey in an empty field: an example, never data. */
     example: (value: string) => `e.g. ${value}`,
-    calm: "Write your numbers to see your result",
+    see: "See my result",
+    calm: "Write both amounts to see your result.",
     addToMix: "Add to the mix",
   },
   growth: {
@@ -748,6 +749,16 @@ export const en = {
   result: {
     label: "Result",
     inYears: (years: string) => `In ${years} you'll have`,
+    /** What the user said, before the big number: "With €1,100 today and €100 monthly in the S&P 500, in 20 years you could have…" */
+    summary: (have: string, monthly: string, inWhat: string, years: string) => `With ${have} today and ${monthly} monthly ${inWhat}, in ${years} you could have…`,
+    summaryToday: (have: string, inWhat: string, years: string) => `With ${have} today ${inWhat}, in ${years} you could have…`,
+    summaryMonthly: (monthly: string, inWhat: string, years: string) => `With ${monthly} monthly ${inWhat}, in ${years} you could have…`,
+    investedIn: {
+      asset: (name: string) => `in ${name}`,
+      mix: "in your mix",
+      portfolio: "in your portfolio",
+      custom: (rate: string) => `growing ${rate} a year`,
+    },
     announce: (years: string, total: string, grows: string) => `In ${years} you'll have ${total}. ${grows}.`,
     announceWhatIf: (label: string) => ` What if: ${label}.`,
     perYear: (rate: string) => `${rate} a year`,

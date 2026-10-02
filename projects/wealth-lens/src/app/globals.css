@@ -27,9 +27,22 @@
   --font-sans: var(--font-system);
 }
 
-/* A figure the user's last change moved: a tint that fades (components/ui/changed.tsx). */
+/* A figure the user's last change moved: a tint that fades (components/ui/changed.tsx).
+   The result, the first time it is asked for: it fades in and rises a little (only with motion-safe). */
 @theme {
   --animate-changed: changed 1.6s ease-out;
+  --animate-reveal: reveal 0.45s ease-out both;
+
+  @keyframes reveal {
+    from {
+      opacity: 0;
+      transform: translateY(0.75rem);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
 
   @keyframes changed {
     0%,

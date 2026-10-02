@@ -49,6 +49,21 @@ export function investmentName({ investment }: Pick<ResolvedInvestment, "investm
   }
 }
 
+/** Where the money goes, as the result's first sentence says it: "in the S&P 500", "in your mix", "growing 6% a year". */
+export function investedInText({ investment, realReturn }: Pick<ResolvedInvestment, "investment" | "realReturn">, { m, f }: I18n): string {
+  const t = m.result.investedIn;
+  switch (investment.kind) {
+    case "asset":
+      return t.asset(m.assets.inSentence[investment.asset]);
+    case "mix":
+      return t.mix;
+    case "portfolio":
+      return t.portfolio;
+    case "custom":
+      return t.custom(f.rate(realReturn));
+  }
+}
+
 /**
  * What "Invested in" shows: the investment's name, or, once any assumption
  * is the user's (growth, ups and downs or rising prices), "Custom (based on
