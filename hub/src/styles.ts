@@ -94,6 +94,7 @@ td { background: var(--card); }
 
 .state { display: inline-block; padding: .125rem .625rem; border-radius: 999px; font-size: .8125rem; font-weight: 800; line-height: 1.6; white-space: nowrap; }
 .state.meets { color: var(--accent); background: var(--accent-soft); }
+.state.progress { color: var(--foreground); background: var(--subtle); border: 1px solid var(--accent); }
 .state.partly { color: var(--foreground); background: var(--subtle); border: 1px solid var(--border); }
 .state.pending { color: var(--muted); border: 1px dashed currentColor; }
 

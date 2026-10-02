@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { SEED_LAB_HUB_URL, SEED_LAB_PROJECTS } from "./seed-lab";
+import { hubPath, SEED_LAB_PROJECTS } from "./seed-lab";
 
 describe("seed-lab", () => {
-  it("links the hub from one constant", () => {
-    expect(SEED_LAB_HUB_URL).toMatch(/^https:\/\//);
+  it("links the hub at the root of the same site, in the page's language", () => {
+    expect(hubPath("en")).toBe("/");
+    expect(hubPath("es")).toBe("/es/");
   });
 
   it("lists its projects from the JSON, with Wealth Lens as the current one", () => {

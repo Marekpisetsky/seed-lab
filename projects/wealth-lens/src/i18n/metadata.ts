@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
 import { getI18n } from ".";
+import { WEALTH_LENS_URL } from "@/lib/site";
 import { LOCALE_SETTINGS, LOCALES, localePath, PAGES, type Locale, type PageId } from "./locales";
 
-/** Where the site is published: absolute links for sharing cards and the other languages. */
-export const SITE_URL = "https://seed-lab-omega.vercel.app";
+/**
+ * What the pages' relative addresses ("/stocks", "/og.png") resolve
+ * against: Wealth Lens's folder on seed-lab's site
+ * ("https://…/wealth-lens/"), so canonical and language links and the
+ * sharing card are absolute and inside it (Next joins the two paths).
+ */
+export const METADATA_BASE = new URL(WEALTH_LENS_URL);
 
 /** The sharing picture (app/og.png/route.tsx), the same for every page and language. */
 const SHARE_IMAGE = { url: "/og.png", width: 1200, height: 630, alt: "Wealth Lens" };

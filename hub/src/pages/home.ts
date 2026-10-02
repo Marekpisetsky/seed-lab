@@ -1,5 +1,5 @@
 import { html } from "../html.ts";
-import { TOOLS } from "../content.ts";
+import { TOOLS, toolHref } from "../content.ts";
 import { icon, isIconId } from "../icons.ts";
 import { LOCALE_SETTINGS, PAGES, localePath, messages } from "../i18n/index.ts";
 import type { Locale } from "../i18n/index.ts";
@@ -20,7 +20,7 @@ ${band(
   html`<div class="hero">
 <h1 id="mission">${m.home.title}</h1>
 <p class="lead">${m.home.mission}</p>
-<p class="actions"><a class="button" href="${live[0].url}">${m.home.cta}</a></p>
+<p class="actions"><a class="button" href="${toolHref(live[0], locale)}">${m.home.cta}</a></p>
 </div>`,
   "mission",
 )}
@@ -42,7 +42,7 @@ ${live.map((tool) =>
 <p class="tagline">${tool.tagline[locale]}</p>
 <p class="muted">${tool.description[locale]}</p>
 <p class="muted">${m.home.languages}: ${tool.languages.map((code) => LOCALE_SETTINGS[code].name).join(", ")}</p>
-<p class="actions"><a class="button" href="${tool.url}">${m.home.open(tool.name)}</a></p>
+<p class="actions"><a class="button" href="${toolHref(tool, locale)}">${m.home.open(tool.name)}</a></p>
 </div>`,
     tool.id,
   ),

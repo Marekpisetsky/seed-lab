@@ -7,7 +7,7 @@
 
 import blocksJson from "../content/blocks.json" with { type: "json" };
 import toolsJson from "../content/tools.json" with { type: "json" };
-import { LOCALES, type Locale } from "./i18n/locales.ts";
+import { DEFAULT_LOCALE, LOCALES, type Locale } from "./i18n/locales.ts";
 
 /** "live": people can use it today. "coming": it does not exist yet as its own thing. */
 export type Status = "live" | "coming";
@@ -16,14 +16,18 @@ export type Localized = Readonly<Record<Locale, string>>;
 /** The five principles, in the order of the Principles page (the dictionaries use the same ids). */
 export const PRINCIPLE_IDS = ["device", "transparent", "europe", "light", "everyone"] as const;
 export type PrincipleId = (typeof PRINCIPLE_IDS)[number];
-/** How a product meets a principle's rules today. */
-export type Compliance = "meets" | "partly" | "pending";
-export const COMPLIANCE: readonly Compliance[] = ["meets", "partly", "pending"];
+/**
+ * How a product meets a principle's rules today. "progress": the change
+ * that meets it is ready and under way, not yet in effect.
+ */
+export type Compliance = "meets" | "progress" | "partly" | "pending";
+export const COMPLIANCE: readonly Compliance[] = ["meets", "progress", "partly", "pending"];
 
 export interface Tool {
   id: string;
   name: string;
   status: Status;
+  /** "https://…" elsewhere, or its folder on this same site, "/wealth-lens/". */
   url: string;
   languages: Locale[];
   tagline: Localized;
@@ -62,6 +66,12 @@ function https(value: unknown, where: string): string {
   return value;
 }
 
+/** A tool's address: an https one, or a folder of this same site ("/wealth-lens/"). */
+function address(value: unknown, where: string): string {
+  if (typeof value === "string" && /^\/[a-z0-9-]+\/$/.test(value)) return value;
+  return https(value, where);
+}
+
 function compliance(value: unknown, where: string): Tool["principles"] {
   const entries = (value ?? {}) as Record<string, { status?: unknown; note?: unknown } | undefined>;
   const unknown = Object.keys(entries).filter((id) => !(PRINCIPLE_IDS as readonly string[]).includes(id));
@@ -69,7 +79,7 @@ function compliance(value: unknown, where: string): Tool["principles"] {
   return Object.fromEntries(
     PRINCIPLE_IDS.map((id) => {
       const entry = entries[id];
-      if (!entry || !(COMPLIANCE as readonly unknown[]).includes(entry.status)) fail(`${where} needs a status for the ${id} principle: meets, partly or pending`);
+      if (!entry || !(COMPLIANCE as readonly unknown[]).includes(entry.status)) fail(`${where} needs a status for the ${id} principle: meets, progress, partly or pending`);
       return [id, { status: entry.status as Compliance, note: localized(entry.note, `${where} ${id} note`) }];
     }),
   ) as Tool["principles"];
@@ -88,7 +98,7 @@ export function parseTools(value: unknown): Tool[] {
       id: entry.id,
       name: entry.name,
       status: status(entry.status, where),
-      url: https(entry.url, where),
+      url: address(entry.url, where),
       languages: languages as Locale[],
       tagline: localized(entry.tagline, `${where} tagline`),
       description: localized(entry.description, `${where} description`),
@@ -112,6 +122,16 @@ export function parseBlocks(value: unknown): Block[] {
       text: localized(entry.text, `${where} text`),
     };
   });
+}
+
+/**
+ * Where a link to a tool goes from a page in `locale`: a tool of this site
+ * that speaks that language opens in it, in its own folder
+ * ("/wealth-lens/es/", as the hub's pages do); any other address as is.
+ */
+export function toolHref(tool: Pick<Tool, "url" | "languages">, locale: Locale): string {
+  if (!tool.url.startsWith("/") || locale === DEFAULT_LOCALE || !tool.languages.includes(locale)) return tool.url;
+  return `${tool.url}${locale}/`;
 }
 
 export const TOOLS: readonly Tool[] = parseTools(toolsJson);

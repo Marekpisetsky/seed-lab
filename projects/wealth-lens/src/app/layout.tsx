@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { LANGUAGE_SCRIPT } from "@/i18n/detect";
-import { SITE_URL } from "@/i18n/metadata";
+import { METADATA_BASE } from "@/i18n/metadata";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
+  metadataBase: METADATA_BASE,
   title: { default: "Wealth Lens", template: "%s · Wealth Lens" },
 };
 

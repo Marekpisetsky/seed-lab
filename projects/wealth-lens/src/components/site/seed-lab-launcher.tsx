@@ -5,7 +5,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n";
 import { IntentLink } from "@/components/ui/intent-link";
 import { localePath } from "@/i18n/locales";
-import { SEED_LAB_HUB_URL, SEED_LAB_PROJECTS } from "@/lib/seed-lab";
+import { hubPath, SEED_LAB_PROJECTS } from "@/lib/seed-lab";
 
 /**
  * The seed-lab launcher: a small grid button that opens the family's
@@ -55,7 +55,7 @@ export function SeedLabLauncher() {
         hidden={!open}
         className="absolute right-0 top-full z-30 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-card p-2 shadow-lg"
       >
-        <a href={SEED_LAB_HUB_URL} rel="noopener" className="flex min-h-11 flex-col justify-center rounded-lg px-3 py-2 hover:bg-border/40">
+        <a href={hubPath(locale)} className="flex min-h-11 flex-col justify-center rounded-lg px-3 py-2 hover:bg-border/40">
           <span className="font-semibold">{m.site.seedLab}</span>
           <span className="text-xs text-muted">{t.hub}</span>
         </a>

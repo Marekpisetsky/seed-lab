@@ -1,5 +1,5 @@
 import { html, rich } from "../html.ts";
-import { PRINCIPLE_IDS, TOOLS } from "../content.ts";
+import { PRINCIPLE_IDS, TOOLS, toolHref } from "../content.ts";
 import { icon, isIconId } from "../icons.ts";
 import { messages } from "../i18n/index.ts";
 import type { Locale } from "../i18n/index.ts";
@@ -7,7 +7,7 @@ import { band, linkTo } from "../layout.ts";
 import type { PageInput } from "../layout.ts";
 
 /** A small mark beside each state, so the table never relies on colour alone. */
-const MARK = { meets: "✓", partly: "◐", pending: "○" } as const;
+const MARK = { meets: "✓", progress: "→", partly: "◐", pending: "○" } as const;
 
 /**
  * The principles as commitments of seed-lab, for any product, each with
@@ -41,7 +41,7 @@ ${band(
 <thead><tr><th scope="col">${m.principles.product}</th>${PRINCIPLE_IDS.map((id) => html`<th scope="col">${byId.get(id)?.short ?? id}</th>`)}</tr></thead>
 <tbody>
 ${TOOLS.filter((tool) => tool.status === "live").map(
-  (tool) => html`<tr><th scope="row"><a href="${tool.url}">${tool.name}</a></th>${PRINCIPLE_IDS.map((id) => {
+  (tool) => html`<tr><th scope="row"><a href="${toolHref(tool, locale)}">${tool.name}</a></th>${PRINCIPLE_IDS.map((id) => {
     const { status, note } = tool.principles[id];
     return html`<td><span class="state ${status}"><span aria-hidden="true">${MARK[status]}</span> ${m.principles.status[status]}</span><span class="note">${note[locale]}</span></td>`;
   })}</tr>`,

@@ -3,7 +3,7 @@
     "id": "wealth-lens",
     "name": "Wealth Lens",
     "status": "live",
-    "url": "https://seed-lab-omega.vercel.app",
+    "url": "/wealth-lens/",
     "languages": ["en", "es"],
     "tagline": {
       "en": "Plan your money without giving it away.",
@@ -29,10 +29,10 @@
         }
       },
       "europe": {
-        "status": "pending",
+        "status": "progress",
         "note": {
-          "en": "In English and Spanish, but hosted in the US. No audit by people yet.",
-          "es": "En inglés y español, pero alojado en EE. UU. Aún sin auditoría hecha por personas."
+          "en": "Moving from Vercel (US) to statichost.eu (Sweden). In English and Spanish; no audit by people yet.",
+          "es": "En traslado de Vercel (EE. UU.) a statichost.eu (Suecia). En inglés y español; aún sin auditoría hecha por personas."
         }
       },
       "light": {

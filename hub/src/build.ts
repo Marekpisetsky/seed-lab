@@ -7,6 +7,7 @@
 import { cpSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { TOOLS } from "./content.ts";
 import { FAVICON } from "./icons.ts";
 import { LOCALES, PAGES, localePath } from "./i18n/index.ts";
 import type { Locale, PageId } from "./i18n/index.ts";
@@ -57,7 +58,9 @@ export function build(): { path: string; weight: Weight }[] {
   page("404.html", notFound());
   write("favicon.svg", FAVICON);
   cpSync(STATIC, DIST, { recursive: true });
-  write("robots.txt", `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
+  // The hub's sitemap, and one per tool published in a folder of this site (Wealth Lens writes its own).
+  const sitemaps = [`${SITE_URL}/sitemap.xml`, ...TOOLS.filter((tool) => tool.status === "live" && tool.url.startsWith("/")).map((tool) => `${SITE_URL}${tool.url}sitemap.xml`)];
+  write("robots.txt", `User-agent: *\nAllow: /\n\n${sitemaps.map((url) => `Sitemap: ${url}\n`).join("")}`);
   write("sitemap.xml", sitemap());
   return report;
 }
