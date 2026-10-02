@@ -8,7 +8,7 @@
 
 import { costOfLiving } from "../../packages/seed-kit/src/cost-of-living.ts";
 import { LOCALES } from "../../packages/seed-kit/src/locales.ts";
-import { TOOLS } from "./content.ts";
+import { TOOLS, type Tool } from "./content.ts";
 
 export interface Figures {
   /** Places in the built pages that could store something in the browser (document.cookie, localStorage…). */
@@ -20,8 +20,13 @@ export interface Figures {
   languages: number;
   /** Countries in the cost-of-living data: the detailed ones and the estimated ones. */
   countries: number;
-  /** Tools built on seed-kit and published (live or beta). */
+  /** Tools built on seed-kit that people can find and use: the shown ones, never a hidden beta. */
   tools: number;
+}
+
+/** The tools the figures count: only those the hub and the launchers show ("listed"), so a hidden beta is never counted as existing. */
+export function publishedTools(tools: readonly Tool[]): number {
+  return tools.filter((tool) => tool.shown).length;
 }
 
 const countries = costOfLiving.countries.length;
@@ -31,7 +36,7 @@ export function figures(measured: Pick<Figures, "cookies" | "trackers" | "maxKb"
     ...measured,
     languages: LOCALES.length,
     countries,
-    tools: TOOLS.filter((tool) => tool.status !== "coming").length,
+    tools: publishedTools(TOOLS),
   };
 }
 

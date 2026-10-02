@@ -57,7 +57,7 @@ ${isPrincipleIconId(item.id) ? html`<span class="principle-icon">${raw(principle
 )}
 ${band(
   "light",
-  html`<div class="section-head"><p class="kicker">${t.toolsKicker}</p><h2 id="tools">${t.toolsTitle}</h2><p>${t.toolsIntro}</p></div>
+  html`<div class="section-head"><p class="kicker">${t.toolsKicker}</p><h2 id="tools">${t.toolsTitle(SHOWN_TOOLS.length)}</h2><p>${t.toolsIntro}</p></div>
 ${shelves.map(
   ({ category, tools }) => html`<section class="shelf" aria-labelledby="shelf-${category}">
 <h3 id="shelf-${category}">${CATEGORY_NAMES[category][locale]}</h3>

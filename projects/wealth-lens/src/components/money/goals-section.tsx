@@ -260,7 +260,8 @@ export function GoalsSection({ calc, today, inCard = false }: { calc: Calculatio
   const [adding, setAdding] = useState(false);
   const { goals } = calc;
   return (
-    <section aria-labelledby={goals.length > 0 && !inCard ? "goals-title" : undefined} aria-label={goals.length > 0 && !inCard ? undefined : m.goals.title} className="space-y-2">
+    // Under a section titled "My goals" (inCard) it needs no name of its own: two places with one name confuse a screen reader.
+    <section aria-labelledby={goals.length > 0 && !inCard ? "goals-title" : undefined} aria-label={goals.length > 0 || inCard ? undefined : m.goals.title} className="space-y-2">
       {inCard && <p className="text-sm text-muted">{m.help.goals}</p>}
       {goals.length > 0 && (
         <>

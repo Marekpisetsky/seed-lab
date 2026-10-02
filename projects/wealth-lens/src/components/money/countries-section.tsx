@@ -94,9 +94,9 @@ export function CountriesSection({ income, rows }: { income: number; rows: reado
   const paid = m.result.perMonth(i18n.f.smallEur(income));
   return (
     <section aria-labelledby="countries-title" className="space-y-2">
-      <h2 id="countries-title" className="text-base font-bold">
+      <h3 id="countries-title" className="text-base font-bold">
         <Changed value={t.title(paid)} />
-      </h2>
+      </h3>
       <p className="text-sm text-muted">{m.help.countries}</p>
       <label className="relative block">
         <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />

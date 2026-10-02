@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n";
 import { Changed } from "@/components/ui/changed";
@@ -43,12 +44,12 @@ function MyGrowth({ value, focus }: { value: number; focus: boolean }) {
 }
 
 /**
- * "How much does it grow a year?": chips to pick with one tap (S&P 500,
+ * "How it grows": chips to pick with one tap (S&P 500,
  * World, 60/40, bonds, savings) or "My %" to type a number. The one number
  * shown is the growth after rising prices; its equivalent before them is
  * read-only, small, below it. No list to open, no switch.
  */
-export function GrowthChips({ current, label }: { current: ResolvedInvestment; label: string }) {
+export function GrowthChips({ current, label, describedBy }: { current: ResolvedInvestment; label: string; describedBy?: string }) {
   const i18n = useI18n();
   const { m, f } = i18n;
   const t = m.growth;
@@ -56,9 +57,15 @@ export function GrowthChips({ current, label }: { current: ResolvedInvestment; l
   const picked = chipOf(plan.investment);
   // Set by a tap on "My %" (not by arriving with it chosen): its field then takes the focus.
   const [tapped, setTapped] = useState(false);
+  // The picked chip is marked twice: dark, and with a tick.
   const options = CHIP_IDS.map((id) => ({
     value: id,
-    label: id === "sp500" || id === "world" ? t.chips[id](f.rate(chipRate(id))) : t.chips[id],
+    label: (
+      <>
+        {id === "sp500" || id === "world" ? t.chips[id](f.rate(chipRate(id))) : t.chips[id]}
+        {id === picked && <Check aria-hidden="true" className="ml-1 inline size-4 align-[-3px]" />}
+      </>
+    ),
   }));
   const pick = (id: ChipId) => {
     setTapped(id === "mine");
@@ -74,6 +81,7 @@ export function GrowthChips({ current, label }: { current: ResolvedInvestment; l
     <div className="space-y-2">
       <RadioGroup
         label={label}
+        describedBy={describedBy}
         options={options}
         value={picked}
         onChange={pick}
@@ -85,11 +93,12 @@ export function GrowthChips({ current, label }: { current: ResolvedInvestment; l
         }
       />
       {picked === "mine" && <MyGrowth value={current.realReturn} focus={tapped} />}
+      {/* What the pick means, right under the chips: its growth a year, and the same before rising prices. */}
       <div>
-        <p className="text-base font-semibold tabular-nums">
+        <p className="text-sm font-semibold tabular-nums">
           <Changed value={line} />
         </p>
-        <p className="text-xs text-muted tabular-nums">
+        <p className="text-sm text-muted tabular-nums">
           <Changed value={t.before(f.rate(quotedGrowth(current)))} />
         </p>
       </div>
