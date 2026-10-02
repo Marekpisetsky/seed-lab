@@ -335,7 +335,11 @@ export const en = {
     text: "Maybe the address has a typo, or the page moved.",
     home: "Go to Wealth Lens",
   },
-  money: { title: "My money" },
+  money: {
+    headline: "How much will your money grow?",
+    support: "See what your savings could become, in plain words.",
+    trust: { noAccount: "No accounts", nothingSaved: "Nothing is saved", data: (years: string) => `Data from ${years}` },
+  },
   stocks: {
     title: "My stocks",
     question: "What do I have, and how did it do?",

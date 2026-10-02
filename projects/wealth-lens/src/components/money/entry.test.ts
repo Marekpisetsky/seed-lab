@@ -58,6 +58,13 @@ describe.each(["en", "es"] as const)("the first screen (%s)", (locale) => {
     expect(html).toContain("placeholder:italic");
   });
 
+  it("says under the calm line what to trust: no accounts, nothing saved, the data's years", () => {
+    const trust = html.slice(html.indexOf(m.calculator.calm));
+    for (const point of [m.money.trust.noAccount, m.money.trust.nothingSaved, m.money.trust.data("1988–2022")]) expect(text(trust)).toContain(point);
+    expect(count(trust, "<svg")).toBe(3);
+    expect(count(trust, 'aria-hidden="true"')).toBeGreaterThanOrEqual(3);
+  });
+
   it("shows one calm line and no result, chart, card or warning", () => {
     expect(text(html)).toContain(m.calculator.calm);
     expect(html).not.toContain('role="img"');
@@ -160,5 +167,6 @@ describe("what loads with the first screen", () => {
     expect(text(render("en", { ...INITIAL_STATE, plan: { ...EXAMPLE_PLAN, monthlyContribution: null } }, createElement(MoneyModule)))).toContain(m.calculator.calm);
     expect(text(render("en", { ...INITIAL_STATE, plan: { ...EXAMPLE_PLAN, invested: null } }, createElement(MoneyModule)))).toContain(m.calculator.calm);
     expect(text(render("en", filled, createElement(MoneyModule)))).not.toContain(m.calculator.calm);
+    expect(text(render("en", filled, createElement(MoneyModule)))).not.toContain(m.money.trust.noAccount);
   });
 });
