@@ -434,6 +434,17 @@ meses en Portugal, un máster en NL) se calculan con el costo de vida de
 ese país, con vivienda. Importes en euros de hoy; los de USD se
 convierten con el tipo guardado en el archivo.
 
+## La primera pantalla de *My money*
+
+Arriba, antes de la calculadora, un titular corto ("How much will your
+money grow?" / "¿Cuánto crecerá tu dinero?") y una frase de apoyo
+(`money.headline` y `money.support`). Debajo del aviso "Write your
+numbers to see your result", tres puntos de confianza en línea, con su
+icono: sin cuentas, no se guarda nada y los años de los datos ("Data
+from 1988–2022", sacados de `COMMON_PERIOD`, así que no se desactualizan).
+Se ven mientras no hay resultado; con el resultado, su sitio lo ocupa él.
+Los cálculos y el flujo por niveles no cambian.
+
 ## Páginas del sitio
 
 About, How it works, Privacy y Terms (`/about`, `/how-it-works`,
@@ -746,7 +757,7 @@ también las mezclas; *A bad first decade* sigue el percentil 10, retrasa
 metas y países, usa la oscilación escrita y no existe sin altibajos), la
 ausencia de jerga en los textos visibles, la entrada nueva (renderizada en
 EN y ES: las cuatro preguntas con solo los años rellenos, los ejemplos
-como placeholder, una línea tranquila y ningún resultado, gráfico,
+como placeholder, una línea tranquila con los tres puntos de confianza y ningún resultado, gráfico,
 tarjeta, aviso ni "?"; los seis chips con el S&P 500 elegido; *My %* con
 su campo y su equivalente antes de inflación; el resultado con su número,
 un gráfico y cinco tarjetas plegadas cuyo contenido no está hasta

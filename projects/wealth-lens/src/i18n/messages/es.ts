@@ -331,7 +331,11 @@ export const es: Messages = {
     text: "Quizá la dirección tiene un error, o la página se mudó.",
     home: "Ir a Wealth Lens",
   },
-  money: { title: "Mi dinero" },
+  money: {
+    headline: "¿Cuánto crecerá tu dinero?",
+    support: "Mira en qué podría convertirse tu ahorro, con palabras sencillas.",
+    trust: { noAccount: "Sin cuentas", nothingSaved: "No se guarda nada", data: (years: string) => `Datos de ${years}` },
+  },
   stocks: {
     title: "Mis acciones",
     question: "¿Qué tengo y cómo le ha ido?",
