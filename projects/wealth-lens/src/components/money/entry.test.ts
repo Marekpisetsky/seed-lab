@@ -109,11 +109,30 @@ describe.each(["en", "es"] as const)("the first screen (%s)", (locale) => {
     expect(inputs.map((input) => input.match(/enterKeyHint="(\w+)"/)?.[1])).toEqual(["next", "next", "next", "next"]);
   });
 
-  it("keeps the columns at fixed widths, the questions on one line", () => {
+  it("keeps the columns at fixed widths, and each question in a box of fixed height: two lines on a phone, one on a wide screen", () => {
     for (const step of steps) {
-      expect(step).toContain("md:grid-cols-[1.75rem_16rem_22rem]");
-      expect(step).toContain("whitespace-nowrap");
+      expect(step).toContain("lg:grid-cols-[1.75rem_minmax(0,1fr)_22rem]");
+      expect(step).toMatch(/<label[^>]*class="[^"]*h-12 lg:h-7[^"]*"><span class="line-clamp-2 lg:line-clamp-none lg:whitespace-nowrap">/);
     }
+  });
+
+  it("aligns the text and the example of all four fields the same way: on the left", () => {
+    const inputs = [...html.matchAll(/<input[^>]*class="([^"]*)"/g)].map((match) => match[1]);
+    expect(inputs).toHaveLength(4);
+    for (const classes of inputs) {
+      expect(classes).not.toMatch(/text-center|text-right/);
+    }
+  });
+
+  it("says in step 3 first what the number is, then the same before inflation, then the examples", () => {
+    const words = text(steps[2]);
+    const about = words.indexOf(m.growth.standard);
+    const before = words.indexOf("≈");
+    expect(about).toBeGreaterThan(0);
+    expect(about).toBeLessThan(before);
+    expect(before).toBeLessThan(words.indexOf(m.growth.examplesLabel));
+    // One line on a wide screen: no empty line before the examples.
+    expect(steps[2]).toContain("lg:line-clamp-1 lg:h-5");
   });
 
   it("ends the card with “See my result”, the one thing that stands out, not yet working", () => {

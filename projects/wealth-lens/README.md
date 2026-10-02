@@ -51,13 +51,18 @@ cambiar. Todo lo visible está en palabras simples: "real", "nominal",
   maneja con la tecnología: poco texto suelto, cada cosa se explica por su
   forma, y el móvil primero (el 55 % de las visitas en Europa):
   1. **Cuatro pasos iguales**: número, pregunta corta y una sola casilla.
-     *How much do you have?* (€), *What do you add a month?* (€, con − / +
-     de €50), *How much does it grow?* (% al año) y *For how many years?*
-     (1-60, empieza en 20, con − / +). Sin líneas de ayuda salvo en el paso
-     3. Columnas de ancho fijo y preguntas en una línea: la tarjeta mide lo
-     mismo en inglés y en español a 360, 1366 y 1920 px (lo comprueba
-     `npm run test:browser`). Los importes empiezan vacíos, con un ejemplo
-     gris y en cursiva que no parece un dato. Casillas de 16 px (el iPhone
+     *How much do you have now?* (€), *How much do you add each month?*
+     (€, con − / + de €50), *How much does it grow each year?* (%) y *For
+     how many years?* (1-60, empieza en 20, con − / +). Sin líneas de ayuda
+     salvo en el paso 3. Columnas de ancho fijo y cada pregunta en una caja
+     de altura fija (dos líneas en el móvil y junto al resultado, una en
+     pantalla ancha): la tarjeta mide lo mismo en inglés y en español a
+     360, 1366 y 1920 px (lo comprueba `npm run test:browser`). Antes del
+     primer resultado, el titular, la tarjeta, *More options* y la fila de
+     confianza forman una sola columna centrada, del ancho de la tarjeta.
+     Las cuatro casillas alinean el texto y el ejemplo a la izquierda. Los
+     importes empiezan vacíos, con un ejemplo gris y en cursiva que no
+     parece un dato. Casillas de 16 px (el iPhone
      no amplía al tocarlas), teclado numérico, y Enter pasa al paso
      siguiente y del último al botón. Debajo de los pasos, **See my
      result**, lo único destacado de la tarjeta: funciona con los dos
@@ -70,9 +75,10 @@ cambiar. Todo lo visible está en palabras simples: "real", "nominal",
   2. **El paso 3, una casilla de %**, con 5 ya escrito: las acciones del
      mundo crecieron un 5,2 % al año tras la inflación de 1900 a 2024
      (UBS Global Investment Returns Yearbook 2025; la fuente está en *How
-     it works*). Bajo la casilla, en pequeño, "≈ 7.1% before inflation";
-     una línea, "World average over the long run, after inflation" (o de
-     dónde sale la cifra elegida, o "Your own number, after inflation"); y
+     it works*). Bajo la casilla, una línea, "World average over the long
+     run, after inflation" (o de dónde sale la cifra elegida, o "Your own
+     number, after inflation"); debajo, en pequeño, "≈ 7.1% before
+     inflation", sin hueco antes de los ejemplos; y
      **Examples:** *S&P 500 7.5%*, *World 4.5%*, *60/40*, *Bonds* y
      *Savings*, enlaces que rellenan la casilla y marcan cuál coincide. La
      cifra de un ejemplo usa sus propios años pasados; cualquier otra es

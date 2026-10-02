@@ -18,6 +18,9 @@ const WhatIfPanel = dynamic(() => import("./what-if-row").then((module) => modul
 
 const stillWanted = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/** The first screen's one column: the whole width on a phone, the card's width from 1024 px (its columns are fixed there), centred. */
+export const START_COLUMN = "mx-auto w-full max-w-xl lg:max-w-[49rem]";
+
 /** A change of layout as a view transition (the steps glide to their new place), where the browser has them and motion is welcome. */
 function withTransition(change: () => void): void {
   const doc = document as Document & { startViewTransition?: (update: () => void) => unknown };
@@ -31,7 +34,7 @@ function withTransition(change: () => void): void {
 function TrustPoints() {
   const { m } = useI18n();
   return (
-    <ul className="flex flex-wrap gap-x-5 gap-y-2 px-1 text-base text-muted">
+    <ul className="flex flex-wrap gap-x-5 gap-y-2 text-base text-muted">
       {[
         { Icon: UserX, text: m.money.trust.noAccount },
         { Icon: ShieldCheck, text: m.money.trust.nothingSaved },
@@ -94,7 +97,7 @@ function PlanBar({ bundle, sheet, onEdit, button }: { bundle: CalculationBundle;
  * The card is the same element throughout, so nothing typed is lost; it
  * glides to its new place (no motion for those who ask for less).
  */
-export function MoneyModule() {
+export function MoneyModule({ header }: { header?: React.ReactNode }) {
   const { m } = useI18n();
   const bundle = useCalculation();
   const asked = useFirstResultAsked();
@@ -130,10 +133,13 @@ export function MoneyModule() {
   const sheetOpen = asked && editing;
 
   return (
-    <div
-      data-layout={asked ? "results" : "start"}
-      className={asked ? "lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-8 wide:grid-cols-[15rem_minmax(40rem,1fr)_20rem]" : "space-y-6"}
-    >
+    // At first, one column in the middle of the page, as wide as the card: the headline, the card, More options and what to trust, aligned.
+    <div className={asked ? "space-y-6 sm:space-y-8" : `${START_COLUMN} space-y-6 sm:space-y-8`}>
+      {header}
+      <div
+        data-layout={asked ? "results" : "start"}
+        className={asked ? "lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-8 wide:grid-cols-[15rem_minmax(40rem,1fr)_20rem]" : "space-y-6"}
+      >
       {asked && <aside className="hidden wide:sticky wide:top-4 wide:block wide:max-h-[calc(100dvh-2rem)] wide:overflow-y-auto">{shown && <WhatIfPanel bundle={bundle} />}</aside>}
       {asked && (
         <div className="min-w-0 space-y-6">
@@ -189,6 +195,7 @@ export function MoneyModule() {
       </div>
       {!asked && <TrustPoints />}
       {asked && !editing && <PlanBar bundle={bundle} sheet={sheet} onEdit={openSheet} button={editButton} />}
+      </div>
     </div>
   );
 }

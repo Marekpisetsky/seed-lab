@@ -19,7 +19,7 @@ const OUT = fileURLToPath(new URL("../out/", import.meta.url));
 const TYPES: Record<string, string> = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".json": "application/json", ".txt": "text/plain", ".ico": "image/x-icon" };
 
 const WORDS = {
-  en: { path: "/", have: "How much do you have?", monthly: "What do you add a month?", growth: "How much does it grow?", years: "For how many years?", see: "See my result", edit: "Edit", done: "Done", more: "€50 more a month", sp500: /^S&P 500,/, world: /^World,/, result: "Result" },
+  en: { path: "/", have: "How much do you have now?", monthly: "How much do you add each month?", growth: "How much does it grow each year?", years: "For how many years?", see: "See my result", edit: "Edit", done: "Done", more: "€50 more a month", sp500: /^S&P 500,/, world: /^World,/, result: "Result" },
   es: { path: "/es", have: "¿Cuánto tienes hoy?", monthly: "¿Cuánto añades al mes?", growth: "¿Cuánto crece al año?", years: "¿Durante cuántos años?", see: "Ver mi resultado", edit: "Editar", done: "Listo", more: "50 € más al mes", sp500: /^S&P 500,/, world: /^Mundo,/, result: "Resultado" },
 } as const;
 type Lang = keyof typeof WORDS;
@@ -67,6 +67,35 @@ async function firstResult(page: Page, lang: Lang): Promise<void> {
 
 const bigNumber = (page: Page) => page.locator("#result-total").innerText();
 
+describe("the first screen", () => {
+  it("is one column in the middle of the page: headline, card, More options and what to trust, all as wide as the card", async () => {
+    for (const lang of ["en", "es"] as const) {
+      for (const width of [360, 1366, 1920]) {
+        const page = await open(lang, width);
+        const edges = await page.evaluate(() => {
+          const box = (element: Element | null) => element?.getBoundingClientRect();
+          const card = box(document.querySelector("main section[aria-label]"));
+          const column = box(document.querySelector("main h1")?.parentElement?.parentElement ?? null);
+          const headline = box(document.querySelector("main h1")?.parentElement ?? null);
+          const trust = box(document.querySelector('[data-layout="start"] > ul'));
+          const more = box(document.querySelector('[data-layout="start"] button[aria-expanded]'));
+          return { card, column, headline, trust, more, page: document.querySelector("main")?.getBoundingClientRect() };
+        });
+        const { card, column, headline, trust, more, page: main } = edges;
+        assert.ok(card && column && headline && trust && more && main);
+        for (const [name, part] of [["headline", headline], ["column", column]] as const) {
+          assert.ok(Math.abs(part.left - card.left) < 1 && Math.abs(part.right - card.right) < 1, `${name} as wide as the card (${lang} ${width})`);
+        }
+        assert.ok(Math.abs(trust.left - card.left) < 1 && trust.right <= card.right + 1, `what to trust inside the column (${lang} ${width})`);
+        assert.ok(more.left >= card.left - 9 && more.right <= card.right, `More options inside the column (${lang} ${width})`);
+        // Centred: as much room on the left as on the right.
+        assert.ok(Math.abs(card.left - main.left - (main.right - card.right)) < 2, `centred (${lang} ${width})`);
+        await page.close();
+      }
+    }
+  });
+});
+
 describe("the four steps", () => {
   it("keep the same size in English and Spanish at 360, 1366 and 1920 px, nothing overflowing", async () => {
     for (const width of [360, 1366, 1920]) {
@@ -82,6 +111,25 @@ describe("the four steps", () => {
         await page.close();
       }
       assert.deepEqual(boxes[0], boxes[1], `card at ${width} px`);
+    }
+  });
+
+  it("show step 3's line on what the number is, then the line before inflation, with no empty line before the examples", async () => {
+    for (const lang of ["en", "es"] as const) {
+      for (const width of [360, 1366, 1920]) {
+        const page = await open(lang, width);
+        const { slot, text, gap } = await page.evaluate(() => {
+          const about = document.querySelector('[id$="-about"]') as HTMLElement;
+          const range = document.createRange();
+          range.selectNodeContents(about);
+          const before = about.nextElementSibling as HTMLElement;
+          return { slot: about.clientHeight, text: range.getBoundingClientRect().height, gap: before.getBoundingClientRect().top - about.getBoundingClientRect().bottom };
+        });
+        // The glyphs of two 20 px lines measure about 36 px; an empty line would leave about 18.
+        assert.ok(slot - text < 8, `the line fills its place (${lang} ${width}: ${text} of ${slot})`);
+        assert.ok(gap < 8, `the line before inflation right under it (${lang} ${width})`);
+        await page.close();
+      }
     }
   });
 

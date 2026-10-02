@@ -57,8 +57,8 @@ describe("the Edit panel's example", () => {
 });
 
 describe("the note under it", () => {
-  it("says gold protects rather than grows", () => {
-    expect(assumptionsNote(resolveInvestment({ kind: "asset", asset: "gold" }, []), EN)).toMatch(/^Gold protects\. It hardly grows\. Past, not a promise\./);
+  it("says gold holds its value rather than grows", () => {
+    expect(assumptionsNote(resolveInvestment({ kind: "asset", asset: "gold" }, []), EN)).toMatch(/^Gold holds its value but hardly grows\. Past, not a promise\./);
   });
 
   it("says My portfolio's figures come from the past", () => {

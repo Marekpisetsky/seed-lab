@@ -79,7 +79,7 @@ export const en = {
       {
         heading: "Your money grows",
         body: [
-          "You start with an amount and add some every month. Each year the money grows by a percent, and that growth grows too.",
+          "You start with an amount and add some every month. Each year the money grows by a percentage, and that growth grows too.",
           "All amounts are in today's euros. Prices rise over time, so the growth shown is growth after rising prices.",
           "Each monthly amount goes in at the end of its month, and it rises with prices.",
         ],
@@ -87,8 +87,8 @@ export const en = {
       {
         heading: "How much it grows",
         body: [
-          "The calculator starts at 5% a year after rising prices. World stocks grew 5.2% a year from 1900 to 2024, says the UBS Global Investment Returns Yearbook 2025.",
-          "Type another number, or tap an example. An example's number uses that example's own past years. Any other number moves up and down like world stocks.",
+          "The calculator starts at 5% a year after rising prices. World stocks grew 5.2% a year from 1900 to 2024, according to the UBS Global Investment Returns Yearbook 2025.",
+          "Type another number, or tap an example. An example uses its own past years. Any other number moves up and down like world stocks.",
           `Each choice grows at its average from past years. All use the same years, ${facts.period}, so none looks better for starting in a good decade.`,
           "Stocks go up and down. To show that, Wealth Lens replays past years in a random order, 1,000 times.",
           "The dashed lines show where 8 in 10 of those replays ended. A bad first decade follows the low line for ten years.",
@@ -108,7 +108,7 @@ export const en = {
         body: [
           `The table has ${facts.countries} countries. For ${facts.detailed}, the monthly cost for one person comes from Numbeo (without rent) and Wise (rent of a 1-bedroom outside the centre).`,
           `The other ${facts.estimated} are estimated from each country's price level, from the World Bank (${facts.priceYear}). They are marked with ≈.`,
-          "How: the Netherlands' costs × how expensive the country is next to the Netherlands. Rent × that number squared, because rent differs more.",
+          "How: the Netherlands' costs × how expensive the country is compared with the Netherlands. Rent × that number squared, because rent differs more.",
           `On the ${facts.detailed} detailed countries, the estimate is off by ${facts.medianWithout} without housing and ${facts.medianWith} with housing, in the middle case.`,
           `One in ten is off by ${facts.tenthWithout} or ${facts.tenthWith} or more. Cities also differ a lot from their country's average.`,
           `Left out: countries without enough price data, and those where prices rose over 30% a year (${facts.leftOut}).`,
@@ -154,7 +154,7 @@ export const en = {
     sources: [
       {
         name: "UBS Global Investment Returns Yearbook 2025 (Dimson, Marsh and Staunton)",
-        what: "How much world stocks grew a year after rising prices, 1900–2024: 5.2%",
+        what: "World stocks' yearly growth after rising prices, 1900–2024: 5.2%",
         url: "https://www.ubs.com/global/en/media/display-page-ndp/en-20250304-global-investment-returns-yearbook-2025.html",
         date: "1900 to 2024",
         terms: "Only this one figure is used: the 5% the calculator starts with.",
@@ -231,7 +231,7 @@ export const en = {
       },
       {
         name: "Central banks",
-        what: "Their goals for rising prices",
+        what: "Their targets for rising prices",
         url: "https://www.bis.org/cbanks.htm",
         date: "checked September 2026",
         terms: "Public information.",
@@ -276,7 +276,7 @@ export const en = {
       {
         heading: "Your numbers",
         body: [
-          "What you type stays in this page, in your browser's memory. Close or reload the tab and it is gone.",
+          "What you type stays on this page, in your browser's memory. Close or reload the tab and it is gone.",
           "Wealth Lens has no accounts, no database and no server of its own. Your numbers never leave your device.",
           "**Download my data** saves a file on your device. **Load my data** reads that file on your device. Nothing is uploaded.",
           "Files you import, like a CSV of holdings or prices, are read the same way, on your device.",
@@ -292,13 +292,13 @@ export const en = {
       },
       {
         heading: "Prices",
-        body: ["Fund and stock prices are downloaded once a day by the site itself, not by your browser. Your visit asks no one else for anything."],
+        body: ["Fund and stock prices are downloaded once a day by the site itself, not by your browser. Your visit contacts no one else."],
       },
       {
         heading: "Hosting",
         body: [
           "The site is hosted by Vercel. To deliver the pages and keep them safe, Vercel's servers may record technical data about each visit.",
-          "That can include your IP address, the page asked for, the time and your browser. Wealth Lens does not see or use these records.",
+          "That can include your IP address, the page requested, the time and your browser. Wealth Lens does not see or use these records.",
           "See [Vercel's privacy policy](https://vercel.com/legal/privacy-policy).",
         ],
       },
@@ -321,7 +321,7 @@ export const en = {
         body: [
           "Every figure is an estimate. Growth comes from the past, and the past does not promise the future.",
           "Costs of living and prices are rough and can be out of date. Wealth Lens may contain mistakes.",
-          "It is offered as it is, with no warranty of any kind.",
+          "It is provided as is, with no warranty of any kind.",
         ],
       },
       {
@@ -342,7 +342,7 @@ export const en = {
   },
   notFound: {
     title: "This page does not exist",
-    text: "Maybe the address has a typo, or the page moved.",
+    text: "Maybe the address has a typo, or the page has moved.",
     home: "Go to Wealth Lens",
   },
   money: {
@@ -367,7 +367,7 @@ export const en = {
     oneYear: "1 year",
     lastClose: (price: string, day: string) => `Last price ${price} on ${day}.`,
     vsPaid: (percent: string, above: boolean, paid: string) => `**${percent} ${above ? "above" : "below"}** what you paid (${paid}).`,
-    grew: (rate: string, year: string) => `Grew **${rate} a year** since ${year}, before rising prices. Past, not a promise.`,
+    grew: (rate: string, year: string) => `Has grown **${rate} a year** since ${year}, before rising prices. Past, not a promise.`,
     worstFall: (year: string, fall: string) => `Worst fall since ${year}: **${fall}**.`,
     moves: (percent: string) => `Moves about **±${percent}** in a normal year.`,
     noPrices: "No prices downloaded yet.",
@@ -413,7 +413,7 @@ export const en = {
     title: "Test my plan",
     question: "What would the big crashes have done to it?",
     realHistory: "Real history, not a forecast.",
-    notReady: "First write your numbers in My money.",
+    notReady: "First, enter your numbers in My money.",
     goWrite: "Go to My money",
     plan: (capital: string, monthly: string, name: string, years: number) => `Your plan: ${capital} now + ${monthly} a month in ${name}, ${years} years.`,
     change: "Change it",
@@ -432,10 +432,10 @@ export const en = {
     noHistoryHint: "Choose a fund or a mix in My money to test it.",
     started: (year: number) => `If you had started in ${year}:`,
     dropped: (from: string, to: string, drop: string) => `your money would have dropped from **${from}** to **${to}** (**−${drop}**).`,
-    noDrop: "at the end of each year, your money was not lower.",
+    noDrop: "your money was never lower at the end of a year.",
     withinYear: "Prices fell and came back within the same year.",
     tookYears: (span: string) => `It took ${span} to get back.`,
-    notBack: (year: number) => `It was not back when the data ends (${year}).`,
+    notBack: (year: number) => `It had not recovered by the end of the data (${year}).`,
     after: (years: number, amount: string) => `After ${years} years you would have **${amount}**.`,
     dataEnds: (years: number, year: number, amount: string) => `The data ends after ${years} years (${year}): **${amount}**.`,
     average: (amount: string) => `With the average growth: ${amount}.`,
@@ -467,7 +467,7 @@ export const en = {
   },
   holdings: {
     title: "Your holdings",
-    add: "Add holding",
+    add: "Add a holding",
     save: (ticker: string) => `Save ${ticker}`,
     empty: "No holdings yet. Add one to see what you really gained.",
     confirmRemove: (ticker: string) => `Remove ${ticker}?`,
@@ -556,7 +556,7 @@ export const en = {
     name: { sp500: "S&P 500", world: "World", nasdaq100: "Nasdaq-100", bonds: "Euro government bonds", gold: "Gold", savings: "Savings account" },
     short: { sp500: "S&P 500", world: "World", nasdaq100: "Nasdaq-100", bonds: "Euro gov. bonds", gold: "Gold", savings: "Savings" },
     inSentence: IN_SENTENCE,
-    histories: { sp500: "S&P 500 histories", world: "World histories", nasdaq100: "Nasdaq-100 histories", bonds: "euro bond histories", gold: "gold histories" },
+    histories: { sp500: "S&P 500 simulations", world: "world stock simulations", nasdaq100: "Nasdaq-100 simulations", bonds: "euro bond simulations", gold: "gold simulations" },
   },
   invest: {
     portfolio: "My portfolio",
@@ -586,14 +586,14 @@ export const en = {
   },
   calculator: {
     label: "Calculator",
-    /** The four numbered steps: one short question each, on one line in every language. */
+    /** The four numbered steps: one short question each, in a box of two lines on a phone and one on a wide screen. */
     steps: {
-      have: "How much do you have?",
-      monthly: "What do you add a month?",
-      growth: "How much does it grow?",
+      have: "How much do you have now?",
+      monthly: "How much do you add each month?",
+      growth: "How much does it grow each year?",
       years: "For how many years?",
     },
-    fromHoldings: "Your euro holdings, on My stocks",
+    fromHoldings: "Your euro holdings, from My stocks",
     lessMonthly: "€50 less a month",
     moreMonthly: "€50 more a month",
     yearsUnit: (years: number): string => (years === 1 ? "year" : "years"),
@@ -602,7 +602,7 @@ export const en = {
     /** In grey in an empty field: an example, never data. */
     example: (value: string) => `e.g. ${value}`,
     see: "See my result",
-    calm: "Write both amounts to see your result.",
+    calm: "Enter both amounts to see your result.",
     /** The bar at the foot of a phone's screen once there is a result: the plan in one line, and the way to change it. */
     summary: (have: string, monthly: string, growth: string, years: string) => `${have} · ${monthly}/month · ${growth} · ${years}`,
     edit: "Edit",
@@ -615,8 +615,8 @@ export const en = {
     standard: "World average over the long run, after inflation",
     yours: "Your own number, after inflation",
     before: (rate: string) => `≈ ${rate} before inflation`,
-    /** Inside the field, after the number. */
-    unit: "% a year",
+    /** Inside the field, after the number: the question says "each year". */
+    unit: "%",
     examplesLabel: "Examples:",
     examples: { sp500: "S&P 500", world: "World", "60-40": "60/40", bonds: "Bonds", savings: "Savings" },
     /** What a screen reader says for an example: "S&P 500, 7.5%". */
@@ -643,7 +643,7 @@ export const en = {
     groups: { indexes: "Indexes", bonds: "Bonds", gold: "Gold", savings: "Savings", stocks: "Stocks", own: "Your own numbers", portfolio: "My portfolio", mix: "A mix" },
     index: (rate: string, etf: string) => `${rate} a year after rising prices · e.g. ${etf}`,
     bonds: (rate: string, etf: string) => `${rate} a year after rising prices · German 10-year bond · e.g. ${etf}`,
-    gold: (rate: string) => `Grows little, big ups and downs · ${rate} a year`,
+    gold: (rate: string) => `Grows little, with big ups and downs · ${rate} a year`,
     savings: (rate: string) => `${rate} interest, minus rising prices · no ups and downs`,
     custom: "Type your own growth and ups and downs",
     portfolio: (n: number) => `${n === 1 ? "1 holding" : `${n} holdings`}, each growing like its index`,
@@ -659,7 +659,7 @@ export const en = {
     quickWhat: "world stocks / euro bonds",
     part: {
       savings: (rate: string) => `${rate} interest, minus rising prices`,
-      gold: (etf: string) => `Grows little, big ups and downs · e.g. ${etf}`,
+      gold: (etf: string) => `Grows little, with big ups and downs · e.g. ${etf}`,
       asset: (rate: string, etf: string) => `${rate} a year after rising prices · e.g. ${etf}`,
       stock: (index: string, moves: string, guess: boolean) => `grows like ${index} · moves ±${moves} a year${guess ? " · a guess: little data" : ""}`,
     },
@@ -668,7 +668,7 @@ export const en = {
     total: (total: string) => `Total ${total}`,
     left: (amount: string) => `${amount} left to place`,
     tooMuch: (amount: string) => `${amount} too much`,
-    usingLast: "Until then, the last mix that made 100% is used.",
+    usingLast: "Until then, the last mix that added up to 100% is used.",
     add: "Add",
     split: "Split evenly",
     weights: "Weights over time",
@@ -676,7 +676,7 @@ export const en = {
     rebalance: "Rebalance every year",
   },
   portfolio: {
-    label: "Simple projection: each stock grows like its index. Stocks can't be predicted.",
+    label: "A simple projection: each stock grows like its index. Single stocks can't be predicted.",
     hint: "Each holding grows like the one beside it. Change any.",
     ownUpsAndDowns: "its own ups and downs",
     guess: "a guess: change it",
@@ -696,7 +696,7 @@ export const en = {
     yourNumbersNotData: "your numbers, not the data",
     custom: "Custom",
     notes: {
-      gold: "Gold protects. It hardly grows.",
+      gold: "Gold holds its value but hardly grows.",
       past: "Past, not a promise.",
       yours: "Your own numbers, not a promise.",
       notPromise: "Not a promise.",
@@ -706,7 +706,7 @@ export const en = {
     upsAndDowns: "How much it can go up or down in a normal year",
     example: (start: string, low: string, high: string) => `So ${start} could end the year at ${low} to ${high}.`,
     exampleNone: "0: it grows the same every year.",
-    hintVolCustom: (percent: string) => `Starts at the S&P 500's: ±${percent}.`,
+    hintVolCustom: (percent: string) => `Starts at world stocks' figure: ±${percent}.`,
     hintVol: (percent: string) => `Standard: ±${percent}.`,
     hintVolNone: "Standard: 0, the same every year.",
     risingIn: "Rising prices in",
@@ -754,15 +754,15 @@ export const en = {
   result: {
     label: "Result",
     inYears: (years: string) => `In ${years} you'll have`,
-    /** What the user said, before the big number: "With €1,100 today and €100 monthly in the S&P 500, in 20 years you could have…" */
-    summary: (have: string, monthly: string, inWhat: string, years: string) => `With ${have} today and ${monthly} monthly ${inWhat}, in ${years} you could have…`,
-    summaryToday: (have: string, inWhat: string, years: string) => `With ${have} today ${inWhat}, in ${years} you could have…`,
-    summaryMonthly: (monthly: string, inWhat: string, years: string) => `With ${monthly} monthly ${inWhat}, in ${years} you could have…`,
+    /** What the user said, before the big number: "With €1,100 and €100 a month at 5% a year, in 20 years you could have…" */
+    summary: (have: string, monthly: string, inWhat: string, years: string) => `With ${have} and ${monthly} a month ${inWhat}, in ${years} you could have…`,
+    summaryToday: (have: string, inWhat: string, years: string) => `With ${have} ${inWhat}, in ${years} you could have…`,
+    summaryMonthly: (monthly: string, inWhat: string, years: string) => `With ${monthly} a month ${inWhat}, in ${years} you could have…`,
     investedIn: {
       asset: (name: string) => `in ${name}`,
       mix: "in your mix",
       portfolio: "in your portfolio",
-      custom: (rate: string) => `growing ${rate} a year`,
+      custom: (rate: string) => `at ${rate} a year`,
     },
     announce: (years: string, total: string, grows: string) => `In ${years} you'll have ${total}. ${grows}.`,
     announceWhatIf: (label: string) => ` What if: ${label}.`,
@@ -779,7 +779,7 @@ export const en = {
     perMonth: (amount: string) => `${amount}/month`,
     underOne: "under €1",
     takenOut: "Taken out each year",
-    takenOutText: "taken out a year:",
+    takenOutText: "taken out each year:",
     lasted: (percent: string, of: string) => `lasted 30 years in ${percent} of ${of}`,
     growing: (rate: string) => `growing ${rate} every year after rising prices`,
     shrinking: (rate: string) => `shrinking ${rate} every year after rising prices`,
@@ -810,8 +810,8 @@ export const en = {
   facts: {
     label: "Key figures",
     putIn: "What you put in",
-    grows: "What it grows",
-    pays: "Could pay you monthly",
+    grows: "Growth",
+    pays: "Could pay you each month",
     bad: "Bad case (1 in 10)",
     good: "Good case (1 in 10)",
     lives: "Enough to live in",
@@ -828,7 +828,7 @@ export const en = {
     chips: { "grow-more": "Grows 1% more", "grow-less": "Grows 1% less", "monthly-50": "+€50 a month", "years-5": "5 more years", "bad-decade": "A bad first decade" },
     applied: { "grow-more": "grows 1% more", "grow-less": "grows 1% less", "monthly-50": "+€50 a month", "years-5": "5 more years", "bad-decade": "a bad first decade" },
     indicator: (label: string) => `What if: ${label}`,
-    stop: (label: string) => `Stop "What if: ${label}"`,
+    stop: (label: string) => `Remove "What if: ${label}"`,
     maxYears: "60 years at most",
     noUps: "No ups and downs here",
   },
@@ -852,7 +852,7 @@ export const en = {
     income: "What you could take out each month, from then on.",
     lasted: "How often that amount lasted 30 years in past markets.",
     whatIf: "Tap one to see your plan with that change.",
-    countries: "✓ means your monthly amount pays it, after your years.",
+    countries: "✓ means what your money could pay each month covers it.",
     goals: "When your plan gets there, if you keep going.",
     range: "8 in 10 simulations ended between these amounts.",
     worst: "The worst calendar year this mix had in the data.",
@@ -869,8 +869,8 @@ export const en = {
     withoutHousing: "without housing",
     reach: (amount: string) => `Reach ${amount}`,
     monthlyName: "A monthly amount",
-    unknown: "Not in the list any more",
-    unknownExplain: "A file named something the list no longer has. Remove it with ×.",
+    unknown: "No longer on the list",
+    unknownExplain: "Your file names something the list no longer has. Remove it with ×.",
     perMonthNeeded: (amount: string, target: string) => `${amount} a month · ${target} needed`,
     notAtThisPace: (needed: string, years: number) => `not at this pace. It needs ${needed}/month for ${years} years.`,
     explain: {
@@ -889,7 +889,7 @@ export const en = {
     form: {
       where: "Where?",
       chooseCountry: "Choose a country",
-      search: "Search a country",
+      search: "Search for a country",
       option: (housing: boolean, amount: string) => `${housing ? "With housing" : "Without housing"}: ${amount} a month`,
       onePerson: (country: string, date: string) => `One person in ${country}. Estimates (${date}).`,
       onePersonEstimated: (country: string, year: number) => `One person in ${country}. Rough estimate from price levels (${year}).`,
@@ -925,7 +925,7 @@ export const en = {
     close: "Close",
     showAll: (count: number) => `Show all ${count}`,
     showFewer: "Show fewer",
-    search: "Search a country",
+    search: "Search for a country",
     noMatch: (query: string) => `No country matches “${query}”.`,
     note: (date: string) => `Estimates for one person (${date}). With housing adds renting a 1-bedroom outside the centre. Cities differ a lot.`,
     paidBy: (amount: string) => `✓ means ${amount}/month pays it. Otherwise: when this plan gets there.`,
