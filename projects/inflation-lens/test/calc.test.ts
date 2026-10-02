@@ -1,0 +1,40 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { change } from "../src/calc.ts";
+import { resultHtml } from "../src/view.ts";
+
+describe("the change between two numbers", () => {
+  it("measures a rise and a fall, in amount and against where it started", () => {
+    assert.deepEqual(change(80, 100), { before: 80, after: 100, amount: 20, fraction: 0.25 });
+    assert.deepEqual(change(100, 80), { before: 100, after: 80, amount: -20, fraction: -0.2 });
+    assert.deepEqual(change(50, 50), { before: 50, after: 50, amount: 0, fraction: 0 });
+  });
+
+  it("has no percent when it starts at zero", () => {
+    assert.equal(change(0, 50)?.fraction, null);
+    assert.equal(change(0, 50)?.amount, 50);
+    assert.equal(change(0, 0)?.fraction, null);
+  });
+
+  it("measures a change from a negative number against its size", () => {
+    assert.equal(change(-100, -50)?.fraction, 0.5);
+    assert.equal(change(-100, -150)?.fraction, -0.5);
+  });
+
+  it("refuses what is not a number", () => {
+    assert.equal(change(Number.NaN, 1), null);
+    assert.equal(change(1, Number.POSITIVE_INFINITY), null);
+  });
+});
+
+describe("the result", () => {
+  it("says it in each language's way of writing numbers", () => {
+    assert.match(resultHtml(80, 100, "en").value, /<p class="sk-big">\+25\.0%<\/p>[\s\S]*It went up 25\.0%\.[\s\S]*Difference: \+20\./);
+    assert.match(resultHtml(1000, 750, "es").value, /<p class="sk-big">-25,0\u00a0%<\/p>[\s\S]*Bajó un 25,0\u00a0%\.[\s\S]*Diferencia: -250\./);
+  });
+
+  it("explains a start at zero, and asks for numbers when there are none", () => {
+    assert.match(resultHtml(0, 40, "en").value, /\+40[\s\S]*It started at zero/);
+    assert.match(resultHtml(Number.NaN, 40, "es").value, /Escribe dos números/);
+  });
+});

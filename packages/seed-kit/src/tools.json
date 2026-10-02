@@ -112,5 +112,62 @@
         }
       }
     }
+  },
+  {
+    "id": "inflation-lens",
+    "name": "Inflation Lens",
+    "status": "beta",
+    "listed": false,
+    "category": "money",
+    "url": "https://seed-lab-inflation-lens.vercel.app",
+    "languages": [
+      "en",
+      "es"
+    ],
+    "tagline": {
+      "en": "Inflation Lens, a new seed-lab tool.",
+      "es": "Inflation Lens, una herramienta nueva de seed-lab."
+    },
+    "description": {
+      "en": "Inflation Lens is being built. It runs in your browser: nothing is saved or sent.",
+      "es": "Inflation Lens está en construcción. Funciona en tu navegador: no se guarda ni se envía nada."
+    },
+    "principles": {
+      "device": {
+        "status": "pending",
+        "note": {
+          "en": "Not checked yet.",
+          "es": "Aún sin comprobar."
+        }
+      },
+      "transparent": {
+        "status": "pending",
+        "note": {
+          "en": "Not checked yet.",
+          "es": "Aún sin comprobar."
+        }
+      },
+      "europe": {
+        "status": "pending",
+        "note": {
+          "en": "Not checked yet.",
+          "es": "Aún sin comprobar."
+        }
+      },
+      "light": {
+        "status": "pending",
+        "note": {
+          "en": "Not checked yet.",
+          "es": "Aún sin comprobar."
+        }
+      },
+      "everyone": {
+        "status": "pending",
+        "note": {
+          "en": "Not checked yet.",
+          "es": "Aún sin comprobar."
+        }
+      }
+    }
   }
 ]
