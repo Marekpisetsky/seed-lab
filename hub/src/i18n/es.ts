@@ -24,12 +24,60 @@ export const es: Messages = {
     title: "Herramientas digitales gratuitas y privadas para Europa.",
     mission: "seed-lab crea herramientas digitales gratuitas y centradas en la privacidad que los europeos (ciudadanos, desarrolladores y organismos públicos) pueden usar sin renunciar a sus datos.",
     cta: "Prueba Wealth Lens",
-    principlesTitle: "Cinco principios",
+    heroAlt: "Wealth Lens: en qué podrían convertirse 10.000 € y 300 € al mes en 20 años, con un gráfico.",
+    principlesKicker: "Principios",
+    principlesTitle: "Cinco principios, cada uno con una regla que puedes comprobar",
     principlesIntro: "Todos los productos de seed-lab los cumplen. Cada uno viene con reglas que cualquiera puede comprobar.",
     principlesLink: "Qué significan en la práctica",
-    productKicker: "Nuestra primera herramienta",
+    toolsKicker: "Herramientas",
+    toolsTitle: "Herramientas para el día a día",
+    toolsIntro: "Gratis, en tu navegador, y no se guarda nada.",
+    status: { live: "Disponible", beta: "Beta" },
     open: (name: string) => `Abrir ${name}`,
+    cardAlt: (name: string) => `${name}, tal como se ve en un ordenador.`,
     languages: "Idiomas",
+    buildKicker: "Cómo construimos",
+    buildTitle: "Cada herramienta nace de la misma base",
+    buildIntro: "Nunca empezamos de cero. Cada herramienta nueva se apoya en lo que las demás ya probaron.",
+    buildSteps: [
+      { name: "seed-kit", title: "La base", text: "Colores, cabecera y pie, idiomas, privacidad y las comprobaciones que pasa cada página." },
+      { name: "Forja", title: "El molde", text: "Crea una herramienta nueva sobre esa base, con tests que ya pasan." },
+      { name: "La herramienta", title: "Solo lo nuevo", text: "Cada herramienta añade solo sus cálculos y sus palabras." },
+    ],
+    diagram: {
+      label: "Cómo se construye una herramienta",
+      base: "seed-kit",
+      parts: ["colores", "cabecera y pie", "idiomas", "privacidad", "comprobaciones"],
+      mould: "Forja la crea",
+      next: "Una herramienta nueva",
+      hub: "Esta web",
+    },
+    buildClosing: "Por eso todas son privadas, ligeras y bilingües desde el primer día.",
+    differentKicker: "Qué nos hace distintos",
+    differentTitle: "Lo que te pide una app típica, y lo que te pedimos nosotros",
+    differentIntro: "No nombramos a nadie. Son costumbres habituales en la web.",
+    typical: "Una app típica",
+    ours: "seed-lab",
+    rows: [
+      { label: "Una cuenta", typical: "A menudo obligatoria", ours: "Nunca" },
+      { label: "Rastreo", typical: "Analítica y rastreadores de anuncios", ours: "Ninguno" },
+      { label: "Tus datos", typical: "Guardados en sus servidores", ours: "Se quedan en tu dispositivo" },
+      { label: "Anuncios", typical: "A menudo", ours: "Nunca" },
+    ],
+    weightLabel: "Peso de la página",
+    weightTypical: (kb: string) => `Unos ${kb} KB: la página web mediana en un móvil`,
+    weightOurs: (kb: string) => `${kb} KB como máximo en esta web, medido al construirla`,
+    weightSource: "La mediana sale del [Web Almanac 2024 de HTTP Archive](https://almanac.httparchive.org/es/2024/page-weight).",
+    figuresKicker: "En cifras",
+    figuresTitle: "Medido al construir esta web",
+    figures: {
+      cookies: "cookies",
+      trackers: "rastreadores",
+      weight: "KB como máximo por página",
+      languages: "idiomas",
+      countries: "países en nuestros datos",
+      tools: (count: number) => (count === 1 ? "herramienta hecha sobre la plataforma" : "herramientas hechas sobre la plataforma"),
+    },
   },
   principles: {
     title: "Principios",
@@ -42,6 +90,8 @@ export const es: Messages = {
     items: [
       {
         id: "device",
+        /** The rule the front page shows, from `rules`: one that holds today. */
+        homeRule: 0,
         title: "Tus datos nunca salen de tu dispositivo.",
         short: "Tus datos se quedan contigo",
         text: "Lo que escribes se calcula en tu dispositivo. Nosotros nunca lo vemos.",
@@ -54,6 +104,8 @@ export const es: Messages = {
       },
       {
         id: "transparent",
+        /** The rule the front page shows, from `rules`: one that holds today. */
+        homeRule: 0,
         title: "Transparente.",
         short: "Transparente",
         text: "De uso gratuito para todos. Nuestros métodos y fuentes de datos son públicos. Nuestro código es nuestro.",
@@ -66,6 +118,8 @@ export const es: Messages = {
       },
       {
         id: "europe",
+        /** The rule the front page shows, from `rules`: one that holds today. */
+        homeRule: 1,
         title: "Europeo de verdad.",
         short: "Europeo de verdad",
         text: "Alojado en Europa, en las lenguas de Europa, y hecho para el RGPD y la Ley Europea de Accesibilidad desde el principio.",
@@ -78,6 +132,8 @@ export const es: Messages = {
       },
       {
         id: "light",
+        /** The rule the front page shows, from `rules`: one that holds today. */
+        homeRule: 1,
         title: "Ligero.",
         short: "Ligero",
         text: "Páginas estáticas y pequeñas: menos energía, menos coste, rápidas con cualquier conexión.",
@@ -89,6 +145,8 @@ export const es: Messages = {
       },
       {
         id: "everyone",
+        /** The rule the front page shows, from `rules`: one that holds today. */
+        homeRule: 0,
         title: "Para todos.",
         short: "Para todos",
         text: "Lo bastante claro para un niño y para su abuelo.",

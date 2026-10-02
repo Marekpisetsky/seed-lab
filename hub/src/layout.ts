@@ -46,10 +46,11 @@ function formatKb(bytes: number, locale: Locale): string {
 /**
  * A band of the page, always dark or always light whatever the device's
  * mode: the hub alternates them (tokens.css, .theme-dark and .theme-light),
- * so a page is never one dark block.
+ * so a page is never one dark block. Two light bands in a row are "ruled":
+ * a line between them.
  */
-export function band(theme: "dark" | "light", content: Html, labelledBy?: string): Html {
-  return html`<section class="band theme-${theme}"${labelledBy ? html` aria-labelledby="${labelledBy}"` : ""}>
+export function band(theme: "dark" | "light", content: Html, labelledBy?: string, variant?: "ruled"): Html {
+  return html`<section class="band theme-${theme}${variant ? ` ${variant}` : ""}"${labelledBy ? html` aria-labelledby="${labelledBy}"` : ""}>
 <div class="wrap">
 ${content}
 </div>

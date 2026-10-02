@@ -12,7 +12,7 @@ export function about(locale: Locale): PageInput {
 ${band("dark", html`<div class="hero"><h1 id="title">${m.about.title}</h1><p class="lead">${m.about.lead}</p></div>`, "title")}
 ${band(
   "light",
-  html`<div class="narrow prose">
+  html`<div class="prose">
 ${m.about.sections.map(
   (section) => html`<section>
 <h2>${section.heading}</h2>

@@ -1,7 +1,27 @@
 # seed-lab hub
 
-La web de seed-lab, en inglés y en español. La portada muestra solo lo que
-existe: la misión, los cinco principios y Wealth Lens. *Principles*
+La web de seed-lab, en inglés y en español. La portada, en franjas
+negras y blancas como la web de un fabricante, muestra solo lo que
+existe:
+
+1. **Apertura oscura:** el titular, la misión en una frase, un botón verde
+   y una captura grande y real de Wealth Lens.
+2. **Principios**, en blanco: cada uno con su icono, su título y una regla
+   que cualquiera puede comprobar.
+3. **Herramientas**, en blanco, por estantes ("Dinero", "Vida y países"):
+   una tarjeta por herramienta, con su captura, una frase, su estado
+   (*Live* o *Beta*) y un botón. Una beta solo aparece con `"listed":
+   true`, y un estante vacío no se muestra.
+4. **Cómo construimos**, en oscuro: la plataforma (seed-kit y Forja) en
+   tres pasos y un esquema.
+5. **Qué nos hace distintos**, en blanco: una app típica frente a
+   seed-lab (cuenta, rastreo, datos, anuncios y peso), sin nombrar a nadie.
+6. **En cifras**, en oscuro, calculadas al construir: 0 cookies, 0
+   rastreadores, los KB de la página más pesada, idiomas, países en los
+   datos y herramientas hechas sobre la plataforma.
+7. **Pie claro.**
+
+*Principles*
 describe los compromisos de seed-lab con reglas comprobables y una tabla
 de cómo los cumple cada producto. *Roadmap* (enlazada desde el pie)
 guarda la escalera de peldaños y todo lo pendiente. *About* cuenta qué es
@@ -64,6 +84,17 @@ del peso y las comprobaciones de privacidad y de lenguaje sencillo.
   (dependencia de desarrollo, fijada en 1.56.1: la versión cuyo navegador
   ya traen los entornos en la nube de Claude Code; en otra máquina el
   comando lo instala primero si falta).
+- **Capturas:** `npm run shots` fotografía cada herramienta visible desde
+  su build real (`projects/<id>/out` o `dist`, servido en local), en
+  inglés y en español, con datos escritos para que se vea un resultado;
+  las guarda en WebP a varios anchos en `static/shots/` y las anota en
+  `content/shots.json`. Se cargan solo al acercarse a la pantalla
+  (`loading="lazy"`), con su tamaño fijado para que nada salte. Hay que
+  repetirlo cuando cambia el aspecto de una herramienta.
+- **Cifras medidas:** el build cuenta en las páginas construidas lo que
+  guardarían en el navegador (cookies) y lo que pedirían a otros sitios
+  (rastreadores), pesa la página más pesada, y vuelve a construir hasta
+  que la portada dice exactamente eso (`src/figures.ts`).
 - **Peso visible:** el pie de cada página dice cuánto pesa (HTML con su
   CSS, más el icono), sin comprimir y con gzip. Se mide al construir y se
   vuelve a generar la página hasta que el número que muestra es el real
@@ -79,6 +110,9 @@ hub/
   src/layout.ts         la página: cabecera y pie de seed-kit, franjas, metadatos
   src/content.ts        las herramientas (de seed-kit) y los bloques
   src/styles.ts         el CSS, en línea (tokens y cabecera/pie de seed-kit, y el del hub)
+  src/figures.ts        las cifras de la portada, calculadas al construir
+  src/shots.ts          las capturas de las herramientas (content/shots.json)
+  scripts/shots.ts      toma esas capturas desde el build real de cada herramienta
   scripts/images.ts     dibuja el icono táctil y la imagen para compartir
   static/               archivos que se sirven tal cual
   test/build.test.ts    peso, privacidad, franjas, enlaces y honestidad
@@ -93,6 +127,7 @@ npm run lint
 npm run typecheck
 npm test            # construye y comprueba el resultado
 npm run check       # los tres
+npm run shots       # vuelve a tomar las capturas (antes: npm run build en cada herramienta)
 ```
 
 Para verlo en local: `npx serve dist`.
