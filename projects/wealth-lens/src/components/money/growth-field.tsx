@@ -52,7 +52,11 @@ export function GrowthField({ id, current, compact, onEnter }: { id: string; cur
           min={-50}
           max={50}
           onCommit={(percent) => setGrowth(percent / 100, current.realReturn, rates, plan.investment)}
-          onKeyDown={(event) => event.key === "Enter" && onEnter()}
+          onKeyDown={(event) => {
+            if (event.key !== "Enter") return;
+            event.preventDefault();
+            onEnter();
+          }}
           className="px-20 text-center"
         />
         <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted">

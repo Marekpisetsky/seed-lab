@@ -120,7 +120,12 @@ export function CalculatorCard({ onSee, compact = false }: { onSee?: () => void;
     if (after) document.getElementById(after)?.focus();
     else seeButton.current?.focus();
   };
-  const enter = (from: string) => (event: React.KeyboardEvent) => event.key === "Enter" && next(from)();
+  // The key stops here: else the same press would also press the button it lands on.
+  const enter = (from: string) => (event: React.KeyboardEvent) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    next(from)();
+  };
   // Read from the store at the press, not from this render: leaving a field for the button saves its number just before.
   const see = () => {
     const now = appStore.get();
