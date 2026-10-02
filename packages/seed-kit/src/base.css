@@ -1,0 +1,55 @@
+/*
+ * The base of a seed-lab web tool (the ones Forja makes): the page, the
+ * text, a form, a result and a page of prose, mobile first, only the
+ * tokens' colours and 44 px targets. With tokens.css and chrome.css, a
+ * tool looks like the rest of seed-lab before it writes a line of CSS.
+ */
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { display: flex; flex-direction: column; min-height: 100vh; margin: 0; background: var(--background); color: var(--foreground); font: 1rem/1.6 var(--font-system); -webkit-font-smoothing: antialiased; }
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: .2em; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+p, ul, ol { margin: 0 0 1rem; }
+
+.sk-main { flex: 1; width: 100%; max-width: var(--sk-width, 72rem); margin: 0 auto; padding: 2rem var(--sk-gutter, 1.25rem) 3.5rem; }
+.sk-main:focus { outline: none; }
+.sk-main h1 { margin: 0 0 .5rem; font-size: clamp(1.875rem, 1.3rem + 2.6vw, 3rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.1; }
+.sk-main h2 { margin: 0 0 .75rem; font-size: 1.25rem; font-weight: 800; letter-spacing: -.01em; line-height: 1.25; }
+.sk-lead { max-width: 40rem; margin-bottom: 1.75rem; color: var(--muted); font-size: 1.125rem; }
+.sk-muted { color: var(--muted); }
+.sk-small { color: var(--muted); font-size: .875rem; }
+
+.sk-layout { display: grid; gap: 1.25rem; align-items: start; }
+.sk-card { padding: 1.25rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
+.sk-card > :last-child { margin-bottom: 0; }
+
+.sk-form { display: grid; gap: 1rem; margin: 0; }
+.sk-field { display: grid; gap: .375rem; }
+.sk-field > label, .sk-label { font-weight: 700; }
+.sk-input { width: 100%; min-height: 44px; padding: .5rem .75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--foreground); font: inherit; font-variant-numeric: tabular-nums; }
+.sk-input:focus-visible { outline-offset: 0; border-color: var(--accent); }
+select.sk-input { appearance: auto; }
+.sk-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+
+.sk-result { display: grid; gap: .5rem; }
+.sk-big { margin: 0; font-size: clamp(2rem, 1.5rem + 2.4vw, 3rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.sk-sentence { margin: 0; font-size: 1.125rem; font-weight: 600; }
+.sk-up { color: var(--positive); }
+.sk-down { color: var(--negative); }
+
+.sk-list { margin: 0; padding: 0; list-style: none; }
+.sk-list li { display: flex; justify-content: space-between; gap: 1rem; padding: .625rem 0; border-top: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.sk-list li:first-child { border-top: 0; }
+
+.sk-prose { max-width: 42rem; }
+.sk-prose section + section { margin-top: 2rem; }
+
+.sk-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+@media (min-width: 48rem) {
+  .sk-main { padding-top: 3rem; }
+  .sk-layout { grid-template-columns: minmax(0, 22rem) minmax(0, 1fr); gap: 2rem; }
+}
+@media (forced-colors: active) { .sk-input, .sk-card { border: 1px solid; } }

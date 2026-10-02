@@ -17,6 +17,8 @@ el molde `web-tool` de [Forja](../../tools/forja/README.md) forma la
 src/
   tokens.css         los colores y la fuente de seed-lab: el único archivo de colores
   chrome.css         estilos de la cabecera y el pie (solo tokens; clases sk-*)
+  base.css           la base de una herramienta web: página, formulario, resultado, prosa
+  css.ts             lee esas hojas de estilo y las minimiza, para ponerlas en línea
   chrome.ts          el modelo de cabecera y pie: palabras EN/ES, enlaces, lanzador
   chrome-html.ts     cabecera y pie en HTML estático (hub, herramientas de Forja)
   react/chrome.tsx   cabecera y pie en React (Wealth Lens): el mismo marcado
@@ -28,6 +30,9 @@ src/
   plain-language.ts  el test anti-jerga y de frases cortas, reutilizable
   checks.ts          peso por página, peticiones a otros sitios, almacenamiento
   html.ts            plantillas HTML que escapan todo por defecto
+  page.ts            el documento de una página estática: head, cabecera, página, pie
+  legal.ts           la página de privacidad y condiciones de cada herramienta, EN/ES
+  browser.ts         el código de una herramienta para el navegador, sin bundler
   icons.ts           la semilla, el favicon, el lanzador y los iconos de principios
   site.ts            la dirección del hub y el contacto
 test/                los tests del kit (node --test)
@@ -46,6 +51,11 @@ Reglas del kit:
   compara los dos.
 - **Sin cookies ni almacenamiento.** El script de idioma no guarda nada;
   `checks.ts` da a cada app los tests para comprobarlo en sus páginas.
+- **Sin bundler.** `browser.ts` toma el script de una página y todo lo
+  que importa (de la herramienta y del kit), le quita los tipos con el
+  propio Node (`stripTypeScriptTypes`) y lo escribe como módulos `.js`
+  con la misma estructura, así que el navegador corre el mismo código
+  que los tests.
 
 ## La lista de herramientas
 
@@ -64,8 +74,10 @@ publicarse.
 ## Cómo lo usa cada app
 
 - **Apps estáticas** (el hub, las que crea Forja): importan los módulos
-  por ruta relativa (`../../packages/seed-kit/src/chrome-html.ts`) y leen
-  `tokens.css` y `chrome.css` para ponerlos en línea.
+  por ruta relativa (`../../packages/seed-kit/src/chrome-html.ts`) y
+  ponen en línea `tokens.css`, `chrome.css` y, las herramientas,
+  `base.css` (`kitCss` y `minifyCss`). Las de Forja usan además
+  `page.ts`, `legal.ts` y `browser.ts`.
 - **Wealth Lens** (Next.js): el alias `@seed-kit/*` de `tsconfig.json`,
   `turbopack.root` en la raíz del repo, y `globals.css` importa
   `tokens.css` y `chrome.css`. Los tipos se comprueban con

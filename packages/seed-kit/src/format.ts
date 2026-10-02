@@ -158,3 +158,19 @@ export function numberFormats(intl: string): NumberFormats {
 export function formatsFor(locale: Locale): NumberFormats {
   return numberFormats(LOCALE_SETTINGS[locale].intl);
 }
+
+/**
+ * A number as someone types it in their language: "2.500,5" or "2500,5"
+ * in Spanish, "2,500.5" in English; spaces, "€" and "%" are ignored, and a
+ * decimal mark typed the other language's way is still read ("2.5" in
+ * Spanish is 2.5, "1.000" is 1000). NaN when it is not a number.
+ */
+export function parseNumber(text: string, decimalSeparator: string): number {
+  const typed = text.replace(/[\s\u00a0\u202f€%]/g, "").replace(/^\+/, "");
+  const group = decimalSeparator === "," ? "." : ",";
+  let plain: string;
+  if (typed.includes(decimalSeparator)) plain = typed.split(group).join("").replace(decimalSeparator, ".");
+  else if (new RegExp(`^-?\\d{1,3}(\\${group}\\d{3})+$`).test(typed)) plain = typed.split(group).join("");
+  else plain = typed.replace(group, ".");
+  return /^-?(\d+\.?\d*|\.\d+)$/.test(plain) ? Number(plain) : Number.NaN;
+}

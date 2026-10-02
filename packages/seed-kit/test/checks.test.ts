@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
 import { describe, it } from "node:test";
 import { externalRequests, inlineScripts, measure, overWeight, renderWithWeight, storageUse } from "../src/checks.ts";
-import { formatsFor } from "../src/format.ts";
+import { formatsFor, parseNumber } from "../src/format.ts";
 
 describe("the page checks", () => {
   it("measure what a first visit downloads, and name the pages over a limit", () => {
@@ -43,5 +43,21 @@ describe("the formats", () => {
     assert.equal(formatsFor("es").eur(25000), "25.000 €");
     assert.equal(formatsFor("en").percent(0.0914), "9.1%");
     assert.equal(formatsFor("es").rate(0.045), "4,5 %");
+  });
+
+  it("read numbers the way each language types them", () => {
+    const en = formatsFor("en").decimalSeparator;
+    const es = formatsFor("es").decimalSeparator;
+    assert.equal(parseNumber("2,500.5", en), 2500.5);
+    assert.equal(parseNumber("2.500,5", es), 2500.5);
+    assert.equal(parseNumber("2500,5 €", es), 2500.5);
+    assert.equal(parseNumber("1.000", es), 1000);
+    assert.equal(parseNumber("2.5", es), 2.5);
+    assert.equal(parseNumber("1,5", en), 1.5);
+    assert.equal(parseNumber("€ 1 000", en), 1000);
+    assert.equal(parseNumber("-40", en), -40);
+    assert.ok(Number.isNaN(parseNumber("", en)));
+    assert.ok(Number.isNaN(parseNumber("12abc", en)));
+    assert.ok(Number.isNaN(parseNumber("1.2.3", en)));
   });
 });

@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { kitCss, minifyCss } from "../../packages/seed-kit/src/css.ts";
 
 /**
  * All the hub's styles, inlined in every page: one request less, and no
@@ -10,9 +10,6 @@ import { readFileSync } from "node:fs";
  * system's own font, big strong headings, lots of space; nothing is stored.
  */
 
-const KIT = new URL("../../packages/seed-kit/src/", import.meta.url);
-const TOKENS = readFileSync(new URL("tokens.css", KIT), "utf8");
-const CHROME = readFileSync(new URL("chrome.css", KIT), "utf8");
 
 const CSS = /* css */ `
 *, *::before, *::after { box-sizing: border-box; }
@@ -114,10 +111,5 @@ td { background: var(--card); }
 @media (forced-colors: active) { .state, .button { border: 1px solid; } }
 `;
 
-/** The tokens and the styles, without comments and spare spaces. */
-export const STYLES = (TOKENS + CHROME + CSS)
-  .replace(/\/\*[\s\S]*?\*\//g, "")
-  .replace(/\s+/g, " ")
-  .replace(/\s*([{};:,>])\s*/g, "$1")
-  .replace(/;}/g, "}")
-  .trim();
+/** seed-kit's tokens and header/footer styles, then the hub's, without comments and spare spaces. */
+export const STYLES = minifyCss(kitCss("tokens.css", "chrome.css") + CSS);
