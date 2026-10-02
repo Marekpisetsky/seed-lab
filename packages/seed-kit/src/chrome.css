@@ -1,0 +1,59 @@
+/*
+ * seed-lab's header and footer (chrome.ts, chrome-html.ts, react/chrome.tsx),
+ * for every app: only the tokens' colours, 44 px targets, mobile first.
+ * An app can set --sk-width (its content width) and --sk-gutter.
+ */
+
+.sk-skip { position: absolute; left: -999rem; top: .75rem; z-index: 50; padding: .75rem 1rem; border-radius: 8px; background: var(--card); color: var(--foreground); font-weight: 600; }
+.sk-skip:focus { left: .75rem; }
+
+.sk-wrap { width: 100%; max-width: var(--sk-width, 72rem); margin: 0 auto; padding: 0 var(--sk-gutter, 1.25rem); }
+
+.sk-header { position: relative; z-index: 20; background: var(--card); color: var(--foreground); border-bottom: 1px solid var(--border); }
+.sk-header.theme-dark { background: var(--background); }
+.sk-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; padding-top: .5rem; padding-bottom: .5rem; }
+.sk-header a { color: inherit; text-decoration: none; }
+.sk-header a:focus-visible, .sk-header summary:focus-visible, .sk-footer a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+.sk-brand { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; margin-right: auto; font-size: 1.125rem; font-weight: 800; letter-spacing: -.01em; }
+.sk-seed { display: inline-flex; color: var(--brand); }
+
+.sk-nav { order: 3; width: 100%; margin: 0 -.25rem; overflow-x: auto; }
+.sk-nav ul, .sk-langs ul, .sk-links, .sk-panel ul { margin: 0; padding: 0; list-style: none; }
+.sk-nav ul { display: flex; gap: .25rem; white-space: nowrap; }
+.sk-nav a { display: flex; align-items: center; min-height: 44px; padding: .5rem .625rem; border-radius: 6px; color: var(--muted); font-size: .875rem; font-weight: 600; }
+.sk-nav a:hover { color: var(--foreground); background: var(--subtle); }
+.sk-nav a[aria-current="page"] { color: var(--background); background: var(--foreground); }
+
+.sk-actions { display: flex; align-items: center; gap: .5rem; margin-left: auto; }
+.sk-langs ul { display: flex; padding: 2px; border: 1px solid var(--border); border-radius: 8px; }
+.sk-langs a { display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 40px; padding: 0 .5rem; border-radius: 6px; color: var(--muted); font-size: .875rem; font-weight: 600; }
+.sk-langs a:hover { color: var(--foreground); }
+.sk-langs a[aria-current="true"] { color: var(--background); background: var(--foreground); }
+
+.sk-icon { display: inline-flex; }
+.sk-launcher { position: relative; }
+.sk-launcher > summary { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); cursor: pointer; list-style: none; }
+.sk-launcher > summary::-webkit-details-marker { display: none; }
+.sk-launcher > summary:hover { color: var(--foreground); }
+.sk-launcher[open] > summary { color: var(--background); background: var(--foreground); border-color: var(--foreground); }
+.sk-panel { position: absolute; right: 0; top: calc(100% + .5rem); z-index: 30; width: 16rem; max-width: calc(100vw - 2rem); padding: .5rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); color: var(--foreground); box-shadow: 0 12px 32px rgb(0 0 0 / .18); }
+.sk-panel a { display: flex; align-items: center; gap: .5rem; min-height: 44px; padding: .5rem .75rem; border-radius: 8px; }
+.sk-panel a:hover { background: var(--subtle); }
+.sk-hub { flex-direction: column; align-items: flex-start !important; justify-content: center; gap: 0 !important; }
+.sk-hub span { color: var(--muted); font-size: .75rem; }
+.sk-panel-title { margin: .5rem .75rem .25rem; color: var(--muted); font-size: .75rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+.sk-tool { flex: 1; font-weight: 600; }
+.sk-here { display: inline-flex; align-items: center; gap: .25rem; color: var(--muted); font-size: .75rem; }
+
+.sk-footer { background: var(--background); color: var(--foreground); border-top: 1px solid var(--border); padding: 2rem 0; }
+.sk-footer .sk-wrap > * + * { margin-top: 1rem; }
+.sk-links { display: flex; flex-wrap: wrap; margin: 0 -.5rem !important; }
+.sk-links a { display: flex; align-items: center; min-height: 44px; padding: 0 .5rem; color: var(--muted); font-size: .875rem; text-decoration: none; }
+.sk-links a:hover { color: var(--foreground); text-decoration: underline; text-underline-offset: .2em; }
+.sk-note { margin: 0; color: var(--muted); font-size: .8125rem; line-height: 1.5; }
+
+@media (min-width: 48rem) {
+  .sk-brand { margin-right: 0; }
+  .sk-nav { order: 0; width: auto; margin: 0 auto 0 .5rem; }
+}
