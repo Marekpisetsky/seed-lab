@@ -1,0 +1,23 @@
+/*
+ * Cost Lens's own styles, after seed-kit's (tokens.css, chrome.css,
+ * base.css): only what the kit does not already do. Colours only through
+ * the tokens (var(--…)), targets of 44 px, mobile first.
+ */
+
+#amount { text-align: right; }
+.lists-intro { margin: 2rem 0 1rem; }
+.lists { display: grid; gap: 1.25rem; }
+.rank h2 { margin-bottom: .5rem; }
+.rank table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.rank th, .rank td { padding: .625rem 0; border-top: 1px solid var(--border); text-align: right; font-weight: 400; }
+.rank thead th { border-top: 0; color: var(--muted); font-size: .8125rem; font-weight: 700; }
+.rank th[scope="row"], .rank thead th:first-child { text-align: left; font-weight: 600; }
+.rank td:last-child, .rank th:last-child { padding-left: .75rem; }
+.rank abbr { color: var(--muted); text-decoration: none; }
+.sources { margin-top: 3rem; }
+.sources ul { padding-left: 1.25rem; color: var(--muted); }
+.sources li { margin-bottom: .5rem; }
+
+@media (min-width: 48rem) {
+  .lists { grid-template-columns: 1fr 1fr; }
+}

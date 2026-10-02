@@ -1,7 +1,7 @@
 /**
- * Writes src/data/estimated-countries.json: a monthly cost of living for
+ * Writes packages/seed-kit/src/data/estimated-countries.json: a monthly cost of living for
  * every country with World Bank price data that is not among the detailed
- * countries of src/data/cost-of-living.json, estimated from its price level.
+ * countries of packages/seed-kit/src/data/cost-of-living.json, estimated from its price level.
  *
  * Method (documented in How it works and in the file itself):
  * - The price level ratio (World Bank WDI PA.NUS.PPPC.RF: PPP conversion
@@ -133,7 +133,7 @@ const median = (values: number[]) => {
 };
 const quantile = (values: number[], q: number) => [...values].sort((a, b) => a - b)[Math.min(values.length - 1, Math.floor(q * values.length))];
 
-const detailed = JSON.parse(await readFile(new URL("src/data/cost-of-living.json", root), "utf8")) as {
+const detailed = JSON.parse(await readFile(new URL("../../packages/seed-kit/src/data/cost-of-living.json", root), "utf8")) as {
   countries: { code: string; name: string; monthlyCostEur: { withoutRent: number; withRent: number } }[];
 };
 const priceLevels = await indicator("pa.nus.pppc.rf.csv");
@@ -235,7 +235,7 @@ const dataset = {
   countries,
 };
 
-await writeFile(new URL("src/data/estimated-countries.json", root), `${JSON.stringify(dataset, null, 2)}\n`);
+await writeFile(new URL("../../packages/seed-kit/src/data/estimated-countries.json", root), `${JSON.stringify(dataset, null, 2)}\n`);
 console.log(`${countries.length} estimated countries, ${excluded.length} left out.`);
 console.log(`Rent exponent fitted on ${checks.length} detailed countries: ${round2(fitted)} (used: ${RENT_EXPONENT}).`);
 console.log(`Median error without housing ${Math.round(median(withoutErrors) * 100)}%, with housing ${Math.round(median(withErrors) * 100)}%.`);

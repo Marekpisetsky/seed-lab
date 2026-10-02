@@ -6,8 +6,7 @@
  * list.
  */
 
-import costOfLiving from "../../projects/wealth-lens/src/data/cost-of-living.json" with { type: "json" };
-import estimatedCountries from "../../projects/wealth-lens/src/data/estimated-countries.json" with { type: "json" };
+import { costOfLiving } from "../../packages/seed-kit/src/cost-of-living.ts";
 import { LOCALES } from "../../packages/seed-kit/src/locales.ts";
 import { TOOLS } from "./content.ts";
 
@@ -25,7 +24,7 @@ export interface Figures {
   tools: number;
 }
 
-const countries = new Set([...costOfLiving.countries, ...estimatedCountries.countries].map((country) => country.code)).size;
+const countries = costOfLiving.countries.length;
 
 export function figures(measured: Pick<Figures, "cookies" | "trackers" | "maxKb">): Figures {
   return {

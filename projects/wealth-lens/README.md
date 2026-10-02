@@ -381,11 +381,14 @@ más baratos, Perú y Países Bajos); un buscador (en la tabla y al añadir
 la meta "vivir en…") encuentra cualquiera por su nombre en el idioma de
 la página o en inglés, sin importar tildes.
 
-- **30 detallados** (`src/data/cost-of-living.json`), compilados a mano:
+Los datos de países son de seed-kit (`packages/seed-kit/src/data/` y
+`cost-of-living.ts`), la única fuente que comparten Wealth Lens y Cost Lens:
+
+- **30 detallados** (`cost-of-living.json`), compilados a mano:
   Numbeo (sin alquiler) + Wise (1 dormitorio fuera del centro),
   convertidos a euros y redondeados a 10. Solo se publican esas cifras
   derivadas, nunca las de las fuentes (ver licencias en *How it works*).
-- **142 estimados por nivel de precios** (`src/data/estimated-countries.json`,
+- **142 estimados por nivel de precios** (`estimated-countries.json`,
   marcados con "≈"): la cesta de Países Bajos × el *price level ratio*
   del país frente al de Países Bajos (Banco Mundial, WDI
   `PA.NUS.PPPC.RF`: PPP del PIB entre el tipo de cambio de mercado;
@@ -859,10 +862,9 @@ src/
     sp500-real-returns.json     S&P 500 (Shiller)
     msci-world-real-returns.json, nasdaq100-real-returns.json
     euro-bonds-real-returns.json, gold-real-returns.json
-    cost-of-living.json         30 países detallados (EUR, con/sin alquiler, inflación de referencia)
-    estimated-countries.json    142 países estimados por nivel de precios (scripts/estimate-countries.mts)
-    country-names.json          nombres de los 172 países en cada idioma (scripts/country-names.mts)
     connections.json            las compras, con fuente y fecha
+                                (los 172 países: packages/seed-kit/src/data/, de seed-kit;
+                                scripts/estimate-countries.mts y country-names.mts los escriben allí)
 ```
 
 **Nota para quien retome esto en una sesión nueva (incluida una sesión

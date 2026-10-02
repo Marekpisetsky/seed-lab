@@ -1,11 +1,11 @@
 /**
- * Countries by name in the page's language (src/data/country-names.json,
- * made by scripts/country-names.mts), as a table lists them ("Netherlands")
+ * Countries by name in the page's language (seed-kit's
+ * data/country-names.json, made by scripts/country-names.mts), as a table lists them ("Netherlands")
  * and as a sentence says them ("the Netherlands", "los Países Bajos").
  */
 
 import type { I18n } from ".";
-import names from "@/data/country-names.json";
+import names from "@seed-kit/data/country-names.json";
 import { LOCALE_SETTINGS } from "./locales";
 
 const NAMES: Readonly<Record<string, Readonly<Record<string, string>>>> = names;
