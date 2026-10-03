@@ -42,7 +42,7 @@ export function WhatIfIndicator({ bundle }: { bundle: CalculationBundle }) {
     <button
       type="button"
       onClick={clearWhatIf}
-      aria-label={m.whatIf.stop(label)}
+      aria-label={m.whatIf.stop(`${label} (${change})`)}
       className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full bg-accent/10 px-3 py-1 text-sm font-medium text-accent hover:bg-accent/20"
     >
       {m.whatIf.indicator(label, change)}

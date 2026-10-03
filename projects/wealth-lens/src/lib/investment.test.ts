@@ -163,7 +163,7 @@ describe("Custom growth", () => {
     const resolved = resolveInvestment({ kind: "custom" }, [], settings({ growth: 0.06, volatility: 0.1 }));
     expect(resolved.realReturn).toBeCloseTo(0.06, 12);
     expect(resolved.volatility).toBe(0.1);
-    expect(decadeSource(resolved, EN)).toBe("world stocks, moved to your growth");
+    expect(decadeSource(resolved, EN)).toBe("world stocks, moved to this plan's growth");
     expect(annualizedReturn(resolved.returns)).toBeCloseTo(0.06, 4);
   });
 });

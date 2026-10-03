@@ -575,13 +575,15 @@ export const en = {
       mix: (period: string) => `the weighted average of its parts, ${period}`,
       portfolio: (period: string) => `what your holdings grow like, ${period}`,
       custom: "your own number",
+      /** Step 3's starting 5 %: not the user's own, the world's long-run average. */
+      world: "the world's long-run average (UBS)",
     },
     dividends: { all: "price only: dividends are not included", part: "the Nasdaq-100 part is price only: no dividends" },
     /** Whose real years a bad decade takes (lib/decade.ts). */
     decade: {
       mix: "your mix's parts",
       portfolio: "what your holdings grow like",
-      custom: "world stocks, moved to your growth",
+      custom: "world stocks, moved to this plan's growth",
       typed: (what: string) => `${what}, moved to your numbers`,
     },
   },
@@ -697,12 +699,14 @@ export const en = {
     data: (period: string) => `data ${period}`,
     savingsSource: (rate: string, inflation: string) => `${rate} interest, prices rise ${inflation}`,
     yourNumbers: "your numbers",
+    worldAverage: "world average over the long run",
     yourNumbersNotData: "your numbers, not the data",
     custom: "Custom",
     notes: {
       gold: "Gold holds its value but hardly grows.",
       past: "Past, not a promise.",
       yours: "Your own numbers, not a promise.",
+      world: "World average over the long run, not a promise.",
       notPromise: "Not a promise.",
       todaysEuros: "Amounts in today's euros.",
     },
@@ -825,8 +829,6 @@ export const en = {
     none: "none yet",
     putInFrom: (have: string, monthly: string, years: string) => `${have} today, plus ${monthly} a month for ${years}.`,
     growsFrom: "The total minus what you put in, in today's euros.",
-    /** Under the grid's "Growth": what the money became, without a percent. */
-    growsNote: (multiple: string) => `${multiple} what you put in`,
     badFrom: (amount: string) => `In 1 of 10 possible futures, you end up below ${amount}.`,
     goodFrom: (amount: string) => `In 1 of 10 possible futures, you end up above ${amount}.`,
     /** After badFrom, under the chart: the other end. */
@@ -858,8 +860,11 @@ export const en = {
     aria: (count: number, year: number, low: string, high: string) => `${count} possible futures to ${year}. 8 in 10 end between ${low} and ${high}.`,
     shuffle: (of: string, period: string) => `Each possible future shuffles real years ${of}, ${period}.`,
     shuffleParts: (period: string) => `Each possible future shuffles real years, ${period}, for all parts at once.`,
-    normal: (rate: string, period: string) => `Each year is drawn at random near your ${rate}: it moves like world stocks in ${period}.`,
-    normalOwn: (rate: string, moves: string, amount: string, base: string) => `Each year is drawn at random near your ${rate}: it moves about ±${moves} (±${amount} on ${base}).`,
+    normal: (rate: string, amount: string, period: string) => `Each year is drawn at random near ${rate} (${amount}): it moves like world stocks in ${period}.`,
+    normalOwn: (rate: string, amount: string, moves: string, swing: string, base: string) =>
+      `Each year is drawn at random near ${rate} (${amount}): it moves about ±${moves} (±${swing} on ${base}).`,
+    /** What the growth is in euros, beside it: "€1,000 a year on €20,000". */
+    onBase: (amount: string, base: string) => `${amount} a year on ${base}`,
     count: (total: string, shown: number) => `We work out ${total} possible futures; you see ${shown} here.`,
     meaning: (count: string, amount: string) => `“1 in 10”: ${count} of them end below ${amount}.`,
     test: "See real crises in Test my plan",
@@ -1011,7 +1016,7 @@ export const en = {
     risk: "Risk",
     lever: {
       monthlyLabel: (monthly: string) => `+€100 a month (${monthly})`,
-      returnLabel: (rate: string) => `+1% growth (${rate})`,
+      returnLabel: (rate: string, amount: string) => `+1% growth (${rate}, ${amount} the first year)`,
       earlierLabel: "Starting a year earlier",
       goalMonthly: (when: string) => `€100 more a month reaches your first goal ${when} sooner.`,
       goalReturn: (when: string, amount: string) => `1% more growth, ${amount} the first year: your first goal ${when} sooner.`,

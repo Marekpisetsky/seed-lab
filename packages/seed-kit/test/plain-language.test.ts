@@ -1,9 +1,20 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { hasJargon, plainLanguageProblems, sentences, textsOf, words } from "../src/plain-language.ts";
+import { hasJargon, percentWithoutMoney, plainLanguageProblems, sentences, textBlocks, textsOf, words } from "../src/plain-language.ts";
 import { CHROME_WORDS } from "../src/chrome.ts";
 import { CATEGORY_NAMES, TOOLS } from "../src/tools.ts";
 import { LOCALES } from "../src/locales.ts";
+
+describe("no percentage without its euros", () => {
+  it("reads a page as blocks of text and screen-reader labels", () => {
+    const html = '<section><p>A fall like 2008&#x27;s (−37&nbsp;%) = <strong>−407&nbsp;€</strong> of your 1.100 €</p><ul><li>Grows 5% a year</li></ul><input aria-valuetext="4%: €374 a month"/></section>';
+    assert.deepEqual(textBlocks(html), ["A fall like 2008's (−37\u00a0%) = −407\u00a0€ of your 1.100 €", "Grows 5% a year", "4%: €374 a month"]);
+  });
+
+  it("finds a percent with no amount in euros beside it, and lets a count of futures be", () => {
+    assert.deepEqual(percentWithoutMoney(["−37 % (2008) = −407 € de tus 1.100 €", "Grows 5% a year", "In 8 of 10 possible futures", "4%: €374 a month"]), ["Grows 5% a year"]);
+  });
+});
 
 describe("the plain-language check", () => {
   it("counts the words a reader meets", () => {

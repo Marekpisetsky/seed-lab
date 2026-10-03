@@ -25,7 +25,7 @@ export function WhereDetails({ bundle }: { bundle: CalculationBundle }) {
           <h3 id="things-title" className="text-base font-bold">
             {m.things.title}
           </h3>
-          <Things scenario={calc.scenario} goals={state.plan.goals} />
+          <Things scenario={calc.scenario} goals={state.plan.goals} today={today} />
           <p className="text-sm text-muted">{m.things.note}</p>
         </section>
       </SeeMore>

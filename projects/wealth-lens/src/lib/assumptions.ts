@@ -6,7 +6,7 @@
  */
 
 import type { I18n } from "@/i18n";
-import { dividendNote } from "@/i18n/investment-text";
+import { dividendNote, isStartingGrowth } from "@/i18n/investment-text";
 import { SAVINGS_RATE } from "./assets";
 import { periodText, toNominal, type ResolvedInvestment } from "./investment";
 import { BEST_20_YEARS, beyondHistory, closestHistory, type BestRun } from "./realism";
@@ -68,6 +68,7 @@ export function upsAndDownsExample(volatility: number, { m, f }: I18n): string {
 
 /** Where the figures come from: "data 1988–2022", "1.5% interest, prices rise 2%", "your numbers". */
 export function sourceText(investment: ResolvedInvestment, { m, f }: I18n): string {
+  if (isStartingGrowth(investment)) return m.assumptions.worldAverage;
   if (investment.custom) return investment.investment.kind === "custom" ? m.assumptions.yourNumbers : m.assumptions.yourNumbersNotData;
   if (investment.investment.kind === "asset" && investment.investment.asset === "savings") {
     return m.assumptions.savingsSource(f.rate(SAVINGS_RATE), f.rate(investment.inflation));
@@ -106,7 +107,7 @@ export function assumptionsNote(investment: ResolvedInvestment, i18n: I18n): str
   if (chosen.kind === "asset" && chosen.asset === "gold") said.push(notes.gold);
   const dividends = dividendNote(investment, i18n);
   if (dividends) said.push(`${dividends.charAt(0).toUpperCase()}${dividends.slice(1)}.`);
-  said.push(investment.custom ? notes.yours : investment.period ? notes.past : notes.notPromise);
+  said.push(isStartingGrowth(investment) ? notes.world : investment.custom ? notes.yours : investment.period ? notes.past : notes.notPromise);
   said.push(notes.todaysEuros);
   return said.join(" ");
 }

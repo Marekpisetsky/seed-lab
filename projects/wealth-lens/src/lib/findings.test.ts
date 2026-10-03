@@ -235,8 +235,11 @@ describe("where the growth comes from, in the assumptions", () => {
     expect(doublingFinding(small)?.assumptions[0]).toMatch(/: S&P 500, 1988–2022 average\. Past, not a promise\.$/);
     const bonds = doublingFinding(context({ investment: { kind: "asset", asset: "bonds" } }));
     expect(bonds?.assumptions[0]).toMatch(/: Euro government bonds, 1988–2022 average\./);
-    const own = doublingFinding(context({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.05 } }));
-    expect(own?.assumptions[0]).toBe("Growth 5% a year after rising prices, +€105 the first year: your own number. Not a promise.");
+    const own = doublingFinding(context({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.06 } }));
+    expect(own?.assumptions[0]).toBe("Growth 6% a year after rising prices, +€125 the first year: your own number. Not a promise.");
+    // Step 3's starting 5 % is not the user's own: it is the world's long-run average.
+    const starting = doublingFinding(context({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.05 } }));
+    expect(starting?.assumptions[0]).toBe("Growth 5% a year after rising prices, +€105 the first year: the world's long-run average (UBS). Not a promise.");
   });
 
   it("quotes the inflation of the country whose prices the user chose", () => {

@@ -344,6 +344,14 @@ describe("the way to the first result", () => {
       await page.getByLabel(t.monthly, { exact: true }).fill("400");
       await page.waitForLoadState("networkidle");
       await page.getByRole("button", { name: t.see }).click();
+      // Once React has drawn the change: the card's move and the result's parts, all under way together.
+      await page.waitForFunction(
+        () =>
+          document.getAnimations().some((animation) => (animation.effect as KeyframeEffect).target instanceof HTMLElement && ((animation.effect as KeyframeEffect).target as HTMLElement).getAttribute("aria-label") === "Calculator") &&
+          document.getAnimations().filter((animation) => (animation as CSSAnimation).animationName === "reveal").length >= 3,
+        undefined,
+        { timeout: 2000, polling: "raf" },
+      );
       const running = await page.evaluate(() =>
         document.getAnimations().map((animation) => {
           const effect = animation.effect as KeyframeEffect;
@@ -363,6 +371,10 @@ describe("the way to the first result", () => {
       assert.ok(parts.every((animation) => animation.delay + animation.duration <= 400));
       await page.waitForTimeout(600);
       assert.equal(await page.evaluate(() => document.getAnimations().filter((animation) => animation.playState === "running" && animation.timeline === document.timeline).length), 0);
+      // The steps' column scrolls again once the card is in place: its last "What if…?" can be reached.
+      assert.equal(await page.locator("[data-steps]").evaluate((element) => getComputedStyle(element).overflowY), "auto");
+      await page.getByRole("button", { name: /^First 10 years like 2000–2009/ }).filter({ visible: true }).click();
+      await page.getByRole("button", { name: /What if: first 10 years like 2000–2009/ }).waitFor();
       await page.close();
     }
   });

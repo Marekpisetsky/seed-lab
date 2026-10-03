@@ -11,22 +11,34 @@ import { investedInText } from "@/i18n/investment-text";
 import { growsText } from "@/lib/growth";
 import type { ResolvedInvestment } from "@/lib/investment";
 import { CONCENTRATION_LIMIT } from "@/lib/mix";
-import { StocksSummary } from "./stocks-summary";
+import { GoalsSection } from "./goals-section";
 import { GrowthChart } from "./growth-chart";
 import { TOTAL_ID } from "./first-result";
 import { KeyFacts } from "./key-facts";
 import { ResultSection, SeeMore } from "./result-section";
+import { StocksSummary } from "./stocks-summary";
 import { WhatIfIndicator, whatIfApplied, WhatIfRow } from "./what-if-row";
+import { WhereDetails } from "./where-details";
 
 function Loading() {
   const { m } = useI18n();
   return <p className="text-sm text-muted">{m.cards.loading}</p>;
 }
 
-// Each section's code is its own: loaded once the result shows; what you should know, once asked for.
-const WhereDetails = dynamic(() => import("./where-details").then((module) => module.WhereDetails), { loading: Loading });
-const GoalsSection = dynamic(() => import("./goals-section").then((module) => module.GoalsSection), { loading: Loading });
-const KnowDetails = dynamic(() => import("./know-details").then((module) => module.KnowDetails), { loading: Loading });
+/**
+ * The sections in sight come with the result's code, so none arrives late
+ * and pushes the page. What opens with a tap (what you should know, the
+ * withdrawal slider, the things to buy, the possible futures) has its own
+ * code, fetched as soon as the result is shown, ready before it is asked for.
+ */
+const loadKnow = () => import("./know-details");
+const KnowDetails = dynamic(() => loadKnow().then((module) => module.KnowDetails), { loading: Loading });
+const preloadTaps = () => {
+  void loadKnow();
+  void import("./pay-details");
+  void import("./things-section");
+  void import("./futures-view");
+};
 
 /** What the user said, in one sentence: "With €1,100 today and €100 a month in the S&P 500, in 20 years you could have…" */
 function summaryText({ scenario, investment, result }: CalculationBundle["calc"], i18n: I18n): string {
@@ -91,6 +103,7 @@ export function Results({ bundle, arrive = false, onArrived }: { bundle: Calcula
   const top = useRef<HTMLElement>(null);
   // Asked for with "See my result", it comes in by parts (kept for its whole first showing, so the animation is never cut).
   const [stagger] = useState(arrive);
+  useEffect(preloadTaps, []);
   // The page goes to it only when it is out of sight (on a phone, where the button was further down): it glides, or jumps for those who asked for less motion.
   useEffect(() => {
     const element = top.current;

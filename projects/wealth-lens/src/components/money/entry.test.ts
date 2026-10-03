@@ -314,6 +314,29 @@ describe.each(["en", "es"] as const)("where it reaches and my goals (%s)", (loca
     expect(where).not.toContain("things-title");
   });
 
+  it("never shows a ✓ without its date: “✓ from 2031, in 5 years”, “in 25 years (2051)” or “not at this pace”", () => {
+    // A plan that pays some countries well before its 20 years end, and goals near, far and out of reach.
+    const state: AppState = {
+      ...filled,
+      plan: { ...EXAMPLE_PLAN, invested: 200_000, monthlyContribution: 400, goals: [
+        { id: "a", kind: "amount", amount: 150_000 },
+        { id: "b", kind: "amount", amount: 900_000 },
+        { id: "c", kind: "amount", amount: 50_000_000 },
+        { id: "d", kind: "live", country: "PE", housing: false },
+      ] },
+    };
+    const calc = calculationFor(state, today).calc;
+    const html = decode(render(locale, state, createElement(WhereDetails, { bundle: calculationFor(state, today) })) + render(locale, state, createElement(GoalsSection, { calc, today, inCard: true })));
+    const since = locale === "en" ? /^(from \d{4}|from today)/ : /^(desde \d{4}|desde hoy)/;
+    const checks = html.split('class="lucide lucide-check').slice(1);
+    expect(checks.length).toBeGreaterThan(3);
+    for (const after of checks) expect(text(after.slice(after.indexOf("</svg>") + 6)).replace(/^\s*(covered|reached|cubierto|conseguido)\s*/, "").trim()).toMatch(since);
+    // Reached within the plan's years, though well before their end: the year it is reached, and in how long.
+    expect(text(html)).toMatch(locale === "en" ? /from 20\d\d,? in \d+ years?/ : /desde 20\d\d,? en \d+ años?/);
+    expect(text(html)).toContain(m.goals.notAtThisPace(f.eur(calc.goals[2].needed ?? 0), 30));
+    expect(text(html)).toMatch(locale === "en" ? /in \d+ years \(20\d\d\)/ : /en \d+ años \(20\d\d\)/);
+  });
+
   it("asks for a first goal, with what goals are for, without naming the place again", () => {
     const html = render(locale, filled, createElement(GoalsSection, { calc: bundle.calc, today, inCard: true }));
     expect(text(html)).toContain(m.help.goals);
@@ -513,10 +536,10 @@ describe("what loads with the first screen", () => {
     expect(staticImports("./key-facts.tsx")).not.toContain("./pay-details");
     expect(source("./where-details.tsx")).toContain('import("./things-section")');
     expect(staticImports("./where-details.tsx")).not.toContain("./things-section");
-    for (const details of ["./where-details", "./goals-section", "./know-details"]) {
-      expect(staticImports("./results.tsx")).not.toContain(details);
-      expect(source("./results.tsx")).toContain(`import("${details}")`);
-    }
+    // The sections in sight come with the result (none arrives late and pushes the page); what a tap opens is fetched as the result shows.
+    for (const details of ["./where-details", "./goals-section"]) expect(staticImports("./results.tsx")).toContain(details);
+    expect(staticImports("./results.tsx")).not.toContain("./know-details");
+    for (const tapped of ["./know-details", "./pay-details", "./things-section", "./futures-view"]) expect(source("./results.tsx")).toContain(`import("${tapped}")`);
   });
 
   it("turns “See my result” on once both amounts are typed, and waits for it to be pressed", () => {

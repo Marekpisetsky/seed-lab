@@ -49,6 +49,13 @@ export function measure(targets: readonly FlipTarget[]): FlipSnapshot {
  */
 export function play({ targets, first }: FlipSnapshot): void {
   if (wantsLessMotion()) return;
+  // Each scrolling ancestor once, unclipped for the move and given back its own overflow after it.
+  for (const ancestor of new Set(targets.map((target) => target.unclip as HTMLElement | null | undefined))) {
+    if (!ancestor) continue;
+    const overflow = ancestor.style.overflow;
+    ancestor.style.overflow = "visible";
+    setTimeout(() => (ancestor.style.overflow = overflow), FLIP_MS + 50);
+  }
   targets.forEach((target, index) => {
     const { element, content } = target;
     if (!element.isConnected || typeof (element as HTMLElement).animate !== "function") return;
@@ -72,12 +79,6 @@ export function play({ targets, first }: FlipSnapshot): void {
     }
     const options: KeyframeAnimationOptions = { duration: FLIP_MS, easing: "linear" };
     const htmlElement = element as HTMLElement;
-    const ancestor = target.unclip as HTMLElement | null | undefined;
-    if (ancestor) {
-      const overflow = ancestor.style.overflow;
-      ancestor.style.overflow = "visible";
-      setTimeout(() => (ancestor.style.overflow = overflow), FLIP_MS + 50);
-    }
     if (content && content.isConnected) {
       // While the box is smaller than its content, the content does not spill out of it.
       const overflow = htmlElement.style.overflow;

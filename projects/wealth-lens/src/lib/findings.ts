@@ -118,7 +118,11 @@ export function leverFinding(context: FindingContext): Finding | null {
   const { scenario, investment } = calc;
   const options = [
     { key: "monthly", label: t.monthlyLabel(f.eur(scenario.monthly + 100)), scenario: { ...scenario, monthly: scenario.monthly + 100 } },
-    { key: "return", label: t.returnLabel(f.rate(scenario.realReturn + 0.01)), scenario: { ...scenario, realReturn: scenario.realReturn + 0.01 } },
+    {
+      key: "return",
+      label: t.returnLabel(f.rate(scenario.realReturn + 0.01), f.eur(firstYearGrowth(scenario, 0.01) - firstYearGrowth(scenario), { signed: true })),
+      scenario: { ...scenario, realReturn: scenario.realReturn + 0.01 },
+    },
     { key: "earlier", label: t.earlierLabel, scenario: { ...scenario, capital: valueAt(scenario, 12) } },
   ] as const;
   const assumptions = [growthAssumption(scenario, investment, i18n), monthlyAssumption(scenario, i18n)];

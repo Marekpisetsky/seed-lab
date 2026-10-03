@@ -10,6 +10,7 @@ import { periodText, type ResolvedInvestment } from "@/lib/investment";
 import { SAVINGS_RATE } from "@/lib/assets";
 import { MARKET, type Instrument } from "@/lib/market-data";
 import { mixStock, templateOf, type MixPart } from "@/lib/mix";
+import { STARTING_GROWTH } from "@/lib/validation";
 import { stockVolatility } from "@/lib/volatility";
 
 export function assetLabel(asset: AssetId, { m }: I18n): string {
@@ -85,8 +86,22 @@ export function selectorName(investment: Pick<ResolvedInvestment, "investment" |
 }
 
 /**
+ * Step 3's starting value as it is: Custom growth at 5 %, with world
+ * stocks' ups and downs. Not the user's own number: the world's long-run
+ * average, and said so.
+ */
+export function isStartingGrowth(investment: Pick<ResolvedInvestment, "investment" | "realReturn" | "volatility" | "standard" | "shift">): boolean {
+  return (
+    investment.investment.kind === "custom" &&
+    investment.shift === 0 &&
+    Math.abs(investment.realReturn - STARTING_GROWTH) < 1e-9 &&
+    Math.abs(investment.volatility - investment.standard.volatility) < 1e-9
+  );
+}
+
+/**
  * Whose real years a bad decade takes (lib/decade.ts): "the S&P 500",
- * "your mix's parts", "world stocks, moved to your growth"; with figures
+ * "your mix's parts", "world stocks, moved to this plan's growth"; with figures
  * the user typed, "the S&P 500, moved to your numbers".
  */
 export function decadeSource(investment: Pick<ResolvedInvestment, "investment" | "custom">, { m }: I18n): string {
@@ -98,8 +113,12 @@ export function decadeSource(investment: Pick<ResolvedInvestment, "investment" |
 }
 
 /** Where the growth figure comes from: "S&P 500, 1988–2022 average", "1.5% interest minus 2% rising prices". */
-export function growthSource(investment: Pick<ResolvedInvestment, "investment" | "custom" | "allocation" | "inflation" | "period">, i18n: I18n): string {
+export function growthSource(
+  investment: Pick<ResolvedInvestment, "investment" | "custom" | "allocation" | "inflation" | "period" | "realReturn" | "volatility" | "standard" | "shift">,
+  i18n: I18n,
+): string {
   const { m, f } = i18n;
+  if (isStartingGrowth(investment)) return m.invest.source.world;
   if (investment.custom) return m.invest.source.custom;
   const period = periodText(investment);
   const chosen = investment.investment;

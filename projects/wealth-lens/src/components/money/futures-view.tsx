@@ -34,9 +34,10 @@ export function futuresSource(investment: ResolvedInvestment, scenario: Pick<Sce
   if (investment.simulation === "history" && chosen.kind === "asset") return t.shuffle(m.assets.of[chosen.asset], PERIOD);
   if (investment.simulation === "joint") return t.shuffleParts(PERIOD);
   const rate = f.rate(investment.realReturn);
-  if (chosen.kind === "custom" && Math.abs(investment.volatility - investment.standard.volatility) < 1e-9) return t.normal(rate, PERIOD);
   const base = scenario.capital > 0 ? scenario.capital : total;
-  return t.normalOwn(rate, f.percent(investment.volatility, { decimals: 0 }), f.eur(base * investment.volatility), f.eur(base));
+  const amount = t.onBase(f.eur(base * investment.realReturn), f.eur(base));
+  if (chosen.kind === "custom" && Math.abs(investment.volatility - investment.standard.volatility) < 1e-9) return t.normal(rate, amount, PERIOD);
+  return t.normalOwn(rate, amount, f.percent(investment.volatility, { decimals: 0 }), f.eur(base * investment.volatility), f.eur(base));
 }
 
 function FuturesPlot({ samples, low, high, average, startYear, label }: { samples: number[][]; low: number[]; high: number[]; average: number[]; startYear: number; label: string }) {
@@ -74,10 +75,13 @@ function FuturesPlot({ samples, low, high, average, startYear, label }: { sample
           </g>
         ))}
         <g clipPath={`url(#${clip})`}>
-          <path d={band} fill="var(--accent)" fillOpacity={0.14} />
           {samples.map((path, index) => (
-            <path key={index} d={line(path)} fill="none" stroke="var(--chart-growth)" strokeOpacity={0.55} strokeWidth={1} />
+            <path key={index} d={line(path)} fill="none" stroke="var(--chart-growth)" strokeOpacity={0.5} strokeWidth={1} />
           ))}
+          {/* The band over the lines, with its edges: where 8 in 10 of them end. */}
+          <path d={band} fill="var(--accent)" fillOpacity={0.16} />
+          <path d={line(low)} fill="none" stroke="var(--accent)" strokeWidth={1.5} strokeDasharray="5 4" />
+          <path d={line(high)} fill="none" stroke="var(--accent)" strokeWidth={1.5} strokeDasharray="5 4" />
           <path d={line(average)} fill="none" stroke="var(--foreground)" strokeWidth={3} strokeLinejoin="round" />
         </g>
         {labelYears.map((year) => (
@@ -92,7 +96,7 @@ function FuturesPlot({ samples, low, high, average, startYear, label }: { sample
           {m.futures.lines(samples.length)}
         </li>
         <li className="flex items-center gap-1.5">
-          <span aria-hidden="true" className="inline-block size-3 rounded-sm bg-accent/15 ring-1 ring-accent/30" />
+          <span aria-hidden="true" className="inline-block size-3 rounded-sm border border-dashed border-accent bg-accent/15" />
           {m.futures.band}
         </li>
         <li className="flex items-center gap-1.5">

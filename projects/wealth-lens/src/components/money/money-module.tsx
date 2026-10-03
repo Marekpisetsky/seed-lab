@@ -10,18 +10,10 @@ import { CalculatorCard, MoreOptionsLink } from "./calculator-card";
 import { firstResult, TOTAL_ID, useFirstResultAsked } from "./first-result";
 import { measure, play, type FlipSnapshot } from "./flip";
 
-/**
- * The result, its chart and its sections: their code loads once both
- * amounts are in, before the button is pressed, with the two sections in
- * sight under it, so nothing arrives late and pushes the page.
- */
+/** The result, its chart and its sections in sight: their code loads once both amounts are in, before the button is pressed. */
 const loadResults = () => import("./results").then((module) => module.Results);
 const Results = dynamic(loadResults);
-const preloadResults = () => {
-  void loadResults();
-  void import("./goals-section");
-  void import("./where-details");
-};
+const preloadResults = () => void loadResults();
 /** "What if…?" beside the result on a wide screen: with the result's code, not the first screen's. */
 const WhatIfPanel = dynamic(() => import("./what-if-row").then((module) => module.WhatIfPanel));
 
