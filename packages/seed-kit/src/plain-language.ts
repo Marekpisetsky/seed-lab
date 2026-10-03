@@ -20,7 +20,17 @@ export const JARGON: Readonly<Record<Locale, RegExp>> = {
 };
 
 /** Plain phrases that happen to use one of those words. */
-export const ALLOWED = [/\breal history\b/i, /\bhistoria real\b/i, /\breal people\b/i, /\bpersonas reales\b/i];
+export const ALLOWED = [
+  /\breal history\b/i,
+  /\bhistoria real\b/i,
+  /\breal people\b/i,
+  /\bpersonas reales\b/i,
+  // Years and crises that happened, not "real returns".
+  /\breal years\b/i,
+  /\baños reales\b/i,
+  /\breal crises\b/i,
+  /\bcrisis reales\b/i,
+];
 
 /**
  * How many words a reader meets: "**" marks and a number joined to its

@@ -309,7 +309,8 @@ describe("for a finger", () => {
     assert.deepEqual(await small(), []);
     await page.getByRole("button", { name: WORDS.es.edit }).click();
     assert.deepEqual(await small(), []);
-    const fields = await page.evaluate(() => [...document.querySelectorAll("input:not([type=file]):not([type=search])")].filter((input) => input.getBoundingClientRect().width > 0).map((input) => parseFloat(getComputedStyle(input).fontSize)));
+    // Fields one types in (a slider has no text to zoom in on).
+    const fields = await page.evaluate(() => [...document.querySelectorAll("input:not([type=file]):not([type=search]):not([type=range])")].filter((input) => input.getBoundingClientRect().width > 0).map((input) => parseFloat(getComputedStyle(input).fontSize)));
     assert.ok(fields.length >= 4 && fields.every((size) => size >= 16), String(fields));
     await page.close();
   });

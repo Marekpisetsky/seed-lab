@@ -11,11 +11,12 @@ import { investedInText } from "@/i18n/investment-text";
 import { growsText } from "@/lib/growth";
 import type { ResolvedInvestment } from "@/lib/investment";
 import { CONCENTRATION_LIMIT } from "@/lib/mix";
+import { StocksSummary } from "./stocks-summary";
 import { GrowthChart } from "./growth-chart";
 import { TOTAL_ID } from "./first-result";
 import { KeyFacts } from "./key-facts";
 import { ResultSection, SeeMore } from "./result-section";
-import { WhatIfIndicator, WhatIfRow } from "./what-if-row";
+import { WhatIfIndicator, whatIfApplied, WhatIfRow } from "./what-if-row";
 
 function Loading() {
   const { m } = useI18n();
@@ -53,13 +54,14 @@ function ResultTotal({ bundle, ref }: { bundle: CalculationBundle; ref: React.Re
     <section ref={ref} tabIndex={-1} aria-label={m.result.label} className="scroll-mt-4 space-y-1 outline-none">
       {/* What a screen reader says after a change: one short sentence, not the whole section. */}
       <p className="sr-only" aria-live="polite" aria-atomic="true">
-        {m.result.announce(years, f.eur(result.total), grows) + (calc.whatIf ? m.result.announceWhatIf(m.whatIf.applied[calc.whatIf]) : "")}
+        {m.result.announce(years, f.eur(result.total), grows) +
+          (calc.whatIf ? m.result.announceWhatIf(whatIfApplied(calc.whatIf, bundle.base.investment, bundle.base.result.years, i18n)) : "")}
       </p>
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <p className="text-base text-muted sm:text-lg">
           <Changed value={summaryText(calc, i18n)} />
         </p>
-        <WhatIfIndicator applied={calc.whatIf} />
+        <WhatIfIndicator bundle={bundle} />
       </div>
       <p id={TOTAL_ID} className="flex items-center gap-2 text-5xl font-extrabold tracking-tight tabular-nums sm:text-6xl">
         <Changed value={f.eur(result.total)} />
@@ -79,9 +81,10 @@ function concentratedShare(investment: ResolvedInvestment): number | null {
 
 /**
  * The result in levels: what the user said and the total, the six key
- * figures under it, the chart with its tabs, then four sections with their
- * titles always in sight: "What if…?", where it reaches, my goals and what
- * you should know. Only each one's long detail waits behind "See more".
+ * figures under it, the chart with its tabs (the main picture), then, with
+ * their titles always in sight: "What if…?", my stocks today (only with
+ * holdings), my goals, where it reaches and what you should know. Only each
+ * one's long detail waits behind "See more".
  */
 export function Results({ bundle, arrive = false, onArrived }: { bundle: CalculationBundle; arrive?: boolean; onArrived?: () => void }) {
   const i18n = useI18n();
@@ -97,6 +100,7 @@ export function Results({ bundle, arrive = false, onArrived }: { bundle: Calcula
   }, [arrive, onArrived]);
   const { m, f } = i18n;
   const { calc, today } = bundle;
+  const { result } = calc;
   const share = concentratedShare(calc.investment);
 
   return (
@@ -110,15 +114,16 @@ export function Results({ bundle, arrive = false, onArrived }: { bundle: Calcula
       <ResultSection title={m.whatIf.title} className="lg:hidden">
         <WhatIfRow bundle={bundle} />
       </ResultSection>
-      <ResultSection title={m.cards.where}>
-        <WhereDetails bundle={bundle} />
-      </ResultSection>
+      <StocksSummary holdings={bundle.holdings} />
       <ResultSection title={m.goals.title}>
         <GoalsSection calc={calc} today={today} inCard />
       </ResultSection>
+      <ResultSection title={m.cards.where}>
+        <WhereDetails bundle={bundle} />
+      </ResultSection>
       <ResultSection title={m.findings.title} tone={share === null ? "plain" : "warning"}>
         <p className={`text-sm ${share === null ? "text-muted" : "text-warning-foreground"}`}>
-          {share === null ? m.cards.knowSummary : m.cards.concentration(f.percent(share, { decimals: 0 }))}
+          {share === null ? m.cards.knowSummary : m.cards.concentration(f.percent(share, { decimals: 0 }), f.eur(share * (calc.scenario.capital > 0 ? calc.scenario.capital : result.total)))}
         </p>
         <SeeMore what={m.findings.title}>
           <KnowDetails bundle={bundle} />

@@ -18,7 +18,7 @@ import { EXAMPLE_PLAN } from "@/lib/validation";
 import { CalculatorCard, MoreOptionsLink } from "./calculator-card";
 import { firstResult, TOTAL_ID } from "./first-result";
 import { GoalsSection } from "./goals-section";
-import { PERIODS, shownYears } from "./growth-chart";
+import { PERIODS, periodsFor, shownYears } from "./growth-chart";
 import { MoneyModule } from "./money-module";
 import { Results } from "./results";
 import { WhereDetails } from "./where-details";
@@ -252,23 +252,21 @@ describe.each(["en", "es"] as const)("the result in levels (%s)", (locale) => {
     expect(text(html)).not.toContain(m.help.income);
   });
 
-  it("puts tabs over the chart, as on a stock chart: 5, 10, 20, 30 years and all, starting with all", () => {
+  it("puts tabs over the chart, “Show: 5 years · 10 years · All”, starting with all: none as long as the 20-year plan", () => {
     const tabs = decode(html).match(new RegExp(`<div role="radiogroup" aria-label="${m.chart.periods}"[^>]*>(.*?)</div>`))?.[1] ?? "";
     const options = [...tabs.matchAll(/<button([^>]*)>(.*?)<\/button>/g)];
-    expect(options.map((option) => text(option[2]).trim())).toEqual([
-      ...[5, 10, 20, 30].map((years) => `${years} ${m.units.years(years)}`),
-      m.chart.all,
-    ]);
-    expect(options.map((option) => option[1].includes('aria-checked="true"'))).toEqual([false, false, false, false, true]);
-    // A 20-year plan: 30 years is there, but cannot be picked.
-    expect(options.map((option) => /\sdisabled=/.test(option[1]))).toEqual([false, false, false, true, false]);
+    expect(options.map((option) => text(option[2]).trim())).toEqual([m.units.years(5), m.units.years(10), m.chart.all]);
+    expect(options.map((option) => option[1].includes('aria-checked="true"'))).toEqual([false, false, true]);
+    expect(options.some((option) => /\sdisabled=/.test(option[1]))).toBe(false);
+    // "Show:" in sight before them.
+    expect(text(html)).toContain(`${m.chart.periods} ${m.units.years(5)}`);
     expect(html.indexOf(`aria-label="${m.chart.periods}"`)).toBeLessThan(html.indexOf('role="img"'));
   });
 
-  it("follows with four sections, their titles always in sight, in order: What if…?, where it reaches, my goals, what you should know", () => {
+  it("follows with four sections, their titles always in sight, in order: What if…?, my goals, where it reaches, what you should know", () => {
     expect(html).not.toContain(FOLDED);
     const titles = [...decode(html).matchAll(/<h2 id="[^"]+" class="text-lg font-bold">([^<]*)<\/h2>/g)].map((match) => match[1]);
-    expect(titles).toEqual([m.whatIf.title, m.cards.where, m.goals.title, m.findings.title]);
+    expect(titles).toEqual([m.whatIf.title, m.goals.title, m.cards.where, m.findings.title]);
     expect(html.indexOf('role="img"')).toBeLessThan(html.indexOf(m.whatIf.title));
   });
 
@@ -475,12 +473,23 @@ describe.each(["en", "es"] as const)("the same figures everywhere (%s)", (locale
 });
 
 describe("the chart's tabs", () => {
-  it("change only how many years it shows, never more than the plan has", () => {
-    expect(PERIODS).toEqual([5, 10, 20, 30, "all"]);
+  it("are “Show: 5 years · 10 years · 20 years · All” and change only how many years it shows", () => {
+    expect(PERIODS).toEqual([5, 10, 20, "all"]);
     expect(shownYears(5, 20)).toBe(5);
     expect(shownYears(20, 20)).toBe(20);
-    expect(shownYears(30, 20)).toBe(20);
     expect(shownYears("all", 37)).toBe(37);
+    expect(getI18n("en").m.chart.periods).toBe("Show:");
+    expect(getI18n("es").m.chart.periods).toBe("Ver:");
+  });
+
+  it("leave out every tab as long as the plan or longer, and All alone", () => {
+    expect(periodsFor(37)).toEqual([5, 10, 20, "all"]);
+    expect(periodsFor(20)).toEqual([5, 10, "all"]);
+    expect(periodsFor(12)).toEqual([5, 10, "all"]);
+    expect(periodsFor(10)).toEqual([5, "all"]);
+    expect(periodsFor(6)).toEqual([5, "all"]);
+    expect(periodsFor(5)).toEqual([]);
+    expect(periodsFor(1)).toEqual([]);
   });
 });
 

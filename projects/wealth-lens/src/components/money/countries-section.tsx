@@ -13,19 +13,35 @@ import { costOfLiving } from "@/lib/cost-of-living";
 /** The year of the price levels behind most estimates. */
 const ESTIMATES_YEAR = Math.max(...costOfLiving.countries.map((country) => country.priceLevel?.year ?? 0));
 
-function Cell({ cell }: { cell: CountryCell }) {
+/** The plan's years and today, to say when each cell is reached. */
+interface When {
+  horizonMonths: number;
+  today: Date;
+}
+
+/**
+ * A cost and when it is paid, always with a date: ✓ "from 2031, in 5
+ * years" when the plan pays it within its years (even well before their
+ * end), "in 25 years (2051)" after them, "not at this pace" past 60 years.
+ */
+function Cell({ cell, when }: { cell: CountryCell; when: When }) {
   const { m, f } = useI18n();
+  // Paid at the end of the plan's years is paid since the month it was first reached.
+  const reach = f.reach(cell.months, when.horizonMonths, when.today);
   return (
     <td className="px-1.5 py-2 align-top tabular-nums">
       <span className="block">{f.eur(cell.amount)}</span>
-      <span className="block whitespace-nowrap text-sm">
-        {cell.covered ? (
-          <span className="font-medium text-positive">
-            <Check aria-hidden="true" className="inline size-4 align-[-3px]" />
-            <span className="sr-only">{m.countryTable.covered}</span>
+      {/* Two short lines, so a narrow cell does not break them anywhere: "✓ from 2031" / "in 5 years". */}
+      <span className={`block text-sm ${cell.covered ? "font-medium text-positive" : "text-muted"}`}>
+        <span className="block whitespace-nowrap">
+          {cell.covered && <Check aria-hidden="true" className="mr-0.5 inline size-4 align-[-3px]" />}
+          {cell.covered && <span className="sr-only">{m.countryTable.covered} </span>}
+          <Changed value={reach.lines[0]} />
+        </span>
+        {reach.lines[1] && (
+          <span className="block whitespace-nowrap">
+            <Changed value={reach.lines[1]} />
           </span>
-        ) : (
-          <Changed value={f.when(cell.months)} className="text-muted" />
         )}
       </span>
     </td>
@@ -82,7 +98,8 @@ function AddRow({ row, onClose }: { row: CountryRow; onClose: () => void }) {
  * Each cell says ✓ when the income after the chosen years pays it, or when
  * the plan gets there. Seven rows until "Show all"; a search finds any.
  */
-export function CountriesSection({ income, rows }: { income: number; rows: readonly CountryRow[] }) {
+export function CountriesSection({ income, rows, horizonMonths, today }: { income: number; rows: readonly CountryRow[] } & When) {
+  const when = { horizonMonths, today };
   const i18n = useI18n();
   const { m } = i18n;
   const t = m.countryTable;
@@ -97,7 +114,7 @@ export function CountriesSection({ income, rows }: { income: number; rows: reado
       <h3 id="countries-title" className="text-base font-bold">
         <Changed value={t.title(paid)} />
       </h3>
-      <p className="text-sm text-muted">{m.help.countries}</p>
+      <p className="text-sm text-muted">{t.paidBy(i18n.f.smallEur(income))}</p>
       <label className="relative block">
         <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
         <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} aria-label={t.search} placeholder={t.search} className={`${inputClass} pl-9 text-base`} />
@@ -135,8 +152,8 @@ export function CountriesSection({ income, rows }: { income: number; rows: reado
                       </>
                     )}
                   </th>
-                  <Cell cell={row.withoutHousing} />
-                  <Cell cell={row.withHousing} />
+                  <Cell cell={row.withoutHousing} when={when} />
+                  <Cell cell={row.withHousing} when={when} />
                   <td className="px-1 py-1.5 align-top">
                     <button
                       type="button"
@@ -173,7 +190,7 @@ export function CountriesSection({ income, rows }: { income: number; rows: reado
         )}
       </div>
       <p className="text-sm text-muted">
-        {t.note(costOfLiving.compiledOn.slice(0, 7))} {t.paidBy(i18n.f.smallEur(income))}
+        {t.note(costOfLiving.compiledOn.slice(0, 7))}
       </p>
       {shown.some((row) => row.estimated) && <p className="text-sm text-muted">{t.estimatedNote(ESTIMATES_YEAR)}</p>}
     </section>

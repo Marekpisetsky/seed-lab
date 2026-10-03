@@ -76,9 +76,26 @@ export function sourceText(investment: ResolvedInvestment, { m, f }: I18n): stri
   return period && m.assumptions.data(period);
 }
 
-/** The compact line: growth after rising prices · ups and downs · where from. */
-export function assumptionsLine(investment: ResolvedInvestment, i18n: I18n): string {
-  return [growthText(investment, i18n), upsAndDownsText(investment.volatility, i18n), sourceText(investment, i18n)].filter(Boolean).join(" · ");
+/** The user's money, for the euros beside each percent: what growth adds in the first year, and what a year's move is measured on. */
+export interface OnYourMoney {
+  firstYear: number;
+  base: number;
+}
+
+/**
+ * The compact line: growth after rising prices · ups and downs · where
+ * from; with the user's money, each percent with its euros ("Grows 5% a
+ * year after rising prices: +€55 the first year · can move ±18% in a year:
+ * ±€198 on €1,100 · your numbers").
+ */
+export function assumptionsLine(investment: ResolvedInvestment, i18n: I18n, money?: OnYourMoney): string {
+  const { m, f } = i18n;
+  const growth = money ? m.assumptions.growsEuros(growthText(investment, i18n), f.eur(money.firstYear, { signed: true })) : growthText(investment, i18n);
+  const moves =
+    money && investment.volatility > 0 && money.base > 0
+      ? m.assumptions.canMoveEuros(f.percent(investment.volatility, { decimals: 0 }), f.eur(money.base * investment.volatility), f.eur(money.base))
+      : upsAndDownsText(investment.volatility, i18n);
+  return [growth, moves, sourceText(investment, i18n)].filter(Boolean).join(" · ");
 }
 
 /** The short note under the line: what matters about this choice (My portfolio's label sits over its holdings). */
