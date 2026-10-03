@@ -33,7 +33,7 @@ export const en = {
   },
   meta: {
     money: { title: "What your money can do", description: "See how your money grows and what it pays you. Free and private." },
-    test: { title: "Test my plan", description: "Your plan through big market crashes: 1929, 2000, 2008, 2020, 2022." },
+    test: { title: "Test my plan", description: "Your plan through the market crises of history, from 1929 to 2022." },
     stocks: { title: "My stocks", description: "What you hold, what you gained, and each fund's years." },
     about: { title: "About", description: "What Wealth Lens is, who makes it, and why it is free." },
     howItWorks: { title: "How it works", description: "The method and every source, with links and dates." },
@@ -413,14 +413,33 @@ export const en = {
   },
   test: {
     title: "Test my plan",
-    question: "What would the big crashes have done to it?",
+    /** The page's one-line headline. */
+    headline: "What would the real crises have done to your plan?",
     realHistory: "Real history, not a forecast.",
     notReady: "First, enter your numbers in My money.",
     goWrite: "Go to My money",
     plan: (capital: string, monthly: string, name: string, years: number) => `Your plan: ${capital} now + ${monthly} a month in ${name}, ${years} years.`,
+    /** For Custom growth (the starting 5 % among them): whose real years it is tested with. */
+    customHistory: "Your growth moves like world stocks: these are their real years.",
     change: "Change it",
-    cardsTitle: "Crashes from history",
+    cardsTitle: "Crises from history",
     tapHint: "Tap one to see your plan in it.",
+    /** A card's one figure, in the user's euros: "−€407 and 3 years to get it back". */
+    card: {
+      fall: (amount: string, span: string) => `${amount} and ${span} to get it back`,
+      notBack: (amount: string, year: number) => `${amount}, not back by ${year}`,
+      noFall: "No fall at year ends",
+    },
+    /** What happened in the world, in one sentence. */
+    happened: {
+      depression: "The 1929 crash began a decade of bank failures and joblessness.",
+      oil: "Oil prices quadrupled; prices rose fast while economies stalled.",
+      dotcom: "Shares of internet companies, priced far above their profits, collapsed.",
+      financial: "Unpaid US home loans brought down big banks around the world.",
+      covid: "The pandemic shut much of the world; markets fell and soon recovered.",
+      inflation: "Prices and interest rates rose fast; stocks and bonds fell together.",
+    },
+    detailsTitle: "Your plan in it, year by year",
     crises: {
       depression: "Great Depression",
       oil: "Oil crisis",
@@ -441,9 +460,10 @@ export const en = {
     after: (years: number, amount: string) => `After ${years} years you would have **${amount}**.`,
     dataEnds: (years: number, year: number, amount: string) => `The data ends after ${years} years (${year}): **${amount}**.`,
     average: (amount: string) => `With the average growth: ${amount}.`,
-    mixFell: (mix: string, alone: string) => `Your mix fell ${mix}. The S&P 500 alone fell ${alone}.`,
-    mixNoFall: (alone: string) => `Your mix did not fall at year ends. The S&P 500 alone fell ${alone}.`,
-    mixAfter: (years: number, mix: string, alone: string) => `After ${years} years: ${mix} with your mix, ${alone} with the S&P 500 alone.`,
+    /** Beside the S&P 500 alone, the same money at the top: "Your plan fell 41% (−€971). The S&P 500 alone fell 39% (−€929)." */
+    mixFell: (mix: string, mixAmount: string, alone: string, aloneAmount: string) => `Your plan fell ${mix} (${mixAmount}). The S&P 500 alone fell ${alone} (${aloneAmount}).`,
+    mixNoFall: (alone: string, aloneAmount: string) => `Your plan did not fall at year ends. The S&P 500 alone fell ${alone} (${aloneAmount}).`,
+    mixAfter: (years: number, mix: string, alone: string) => `After ${years} years: ${mix} with your plan, ${alone} with the S&P 500 alone.`,
     yourMoney: "Your money",
     averageLine: "Average growth",
     crash: "The crash",
@@ -463,7 +483,7 @@ export const en = {
       amountIn: (year: number, amount: string) => `${amount} (${year})`,
       aria: (count: number, worst: string, best: string) => `${count} start years. Worst ${worst}, best ${best}.`,
       startYear: "Start",
-      vsSp500: (mix: string, alone: string) => `Worst start: ${mix} with your mix, ${alone} with the S&P 500 alone.`,
+      vsSp500: (mix: string, alone: string) => `Worst start: ${mix} with your plan, ${alone} with the S&P 500 alone.`,
     },
     yearEnds: "Figures at the end of each year, in today's money.",
   },

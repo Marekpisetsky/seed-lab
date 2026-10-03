@@ -432,3 +432,55 @@ describe("seed-lab's header", () => {
     }
   });
 });
+
+describe("Test my plan", () => {
+  const TEST = {
+    en: { path: "/test", headline: "What would the real crises have done to your plan?", financial: /^Financial crisis/, more: /^See more/, started: "If you had started in 2007" },
+    es: { path: "/es/test", headline: "¿Qué le habría pasado a tu plan en las crisis reales?", financial: /^Crisis financiera/, more: /^Ver más/, started: "Si hubieras empezado en 2007" },
+  } as const;
+
+  it("puts its headline on one line from 1024 px, and each crisis in a big card with a small line and its figure in euros", async () => {
+    for (const lang of ["en", "es"] as const) {
+      for (const width of [360, 1366, 1920]) {
+        const page = await open(lang, width, 900);
+        // The plan typed in My money, then the page, as a person goes there.
+        await page.getByLabel(WORDS[lang].have, { exact: true }).fill("1100");
+        await page.getByLabel(WORDS[lang].monthly, { exact: true }).fill("100");
+        await page.getByRole("link", { name: lang === "en" ? "Test my plan" : "Probar mi plan" }).first().click();
+        await page.waitForURL(/test/);
+        const headline = page.getByRole("heading", { level: 1 });
+        assert.equal(await headline.innerText(), TEST[lang].headline);
+        if (width >= 1024) {
+          const lines = await headline.evaluate((element) => element.getBoundingClientRect().height / parseFloat(getComputedStyle(element).lineHeight));
+          assert.ok(lines < 1.5, `${lang} at ${width}: ${lines} lines`);
+        }
+        const cards = page.locator('ul > li > button[aria-pressed]');
+        assert.equal(await cards.count(), 6);
+        const boxes = await cards.evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect()).map((box) => ({ width: box.width, height: box.height })));
+        assert.ok(boxes.every((box) => box.width >= 44 && box.height >= 44));
+        const figure = await page.getByRole("button", { name: TEST[lang].financial }).innerText();
+        assert.match(figure, /€/);
+        assert.doesNotMatch(figure, /%/);
+        await page.close();
+      }
+    }
+  });
+
+  it("opens a crisis with what happened, its chart and its figure; the rest behind “See more”", async () => {
+    for (const lang of ["en", "es"] as const) {
+      const page = await open(lang, 360, 780);
+      await page.getByLabel(WORDS[lang].have, { exact: true }).fill("1100");
+      await page.getByLabel(WORDS[lang].monthly, { exact: true }).fill("100");
+      await page.getByRole("link", { name: lang === "en" ? "Test my plan" : "Probar mi plan" }).first().click();
+      await page.waitForURL(/test/);
+      await page.getByRole("button", { name: TEST[lang].financial }).click();
+      const panel = page.locator('section[aria-labelledby="crisis-title"]');
+      await panel.waitFor();
+      assert.ok(await panel.locator('svg[role="img"]').isVisible());
+      assert.equal(await panel.getByText(TEST[lang].started).count(), 0);
+      await panel.getByRole("button", { name: TEST[lang].more }).click();
+      assert.ok(await panel.getByText(TEST[lang].started).isVisible());
+      await page.close();
+    }
+  });
+});

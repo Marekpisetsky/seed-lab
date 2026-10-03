@@ -643,7 +643,18 @@ lenguaje llano.
 
 El plan tal cual está en My money (mismo activo o mezcla, mismos importes,
 sin *What if…?*) pasado por la historia real de los datos, año a año, sin
-simulación (`src/lib/history-test.ts`, tests en `history-test.test.ts`):
+simulación (`src/lib/history-test.ts`, tests en `history-test.test.ts`).
+Se lee como My money: un titular de una línea, "What would the real crises
+have done to your plan?" (en una línea desde 1024 px; lo comprueba
+`npm run test:browser`), **tarjetas grandes por crisis** (una por fila en
+el móvil, dos en tableta, tres en ordenador) con su año, una línea pequeña
+de lo que hizo 1 € durante la crisis y **una sola cifra en euros del
+usuario**: "−€971 and 6 years to get it back", "−€586, not back by 2024" o
+"No fall at year ends". Al tocar una, su detalle: lo que pasó en el mundo
+en una frase, la cifra, el gráfico grande y, tras *See more*, todo lo
+demás (la caída en detalle, el final del plan, el crecimiento medio y la
+comparación con el S&P 500). Ningún porcentaje sin sus euros (lo comprueba
+`src/components/test/test-module.test.ts`).
 
 - **Seis crisis** (`CRISES`): Great Depression (1929, 1929–1931), Oil
   crisis (1973, 1973–1974), Dot-com crash (2000, 2000–2002), Financial
@@ -651,8 +662,10 @@ simulación (`src/lib/history-test.ts`, tests en `history-test.test.ts`):
   año anterior ("If you had started in 2007"). Solo se activan las que el
   activo o todas las partes de la mezcla tienen en sus datos: el S&P 500
   llega a 1928, el resto a 1986/1988, así que 1929 y 1973 son solo del
-  S&P 500; las demás tarjetas dicen "no data for this". Una cuenta de
-  ahorro o un crecimiento propio no tienen historia que probar.
+  S&P 500; las demás tarjetas dicen "no data for this". El crecimiento
+  propio (el 5 % del paso 3, entre otros) se mueve como las acciones del
+  mundo, así que se prueba con sus años reales (y lo dice). Una cuenta de
+  ahorro, o un crecimiento sin altibajos, no tiene historia que probar.
 - **La caída** se mide sobre el dinero que había en lo más alto, sin los
   aportes que llegan después (que la esconderían): "de 1.000 € a 608 €
   (−39 %)", y "tardó N años en volver" es lo que tardó ese dinero en
@@ -666,7 +679,8 @@ simulación (`src/lib/history-test.ts`, tests en `history-test.test.ts`):
 - **Mezclas y cartera**: cada parte sigue su propia historia
   (reequilibrada cada año si la mezcla se reequilibra; las acciones de la
   cartera siguen a su índice), y se muestra al lado lo que hizo el S&P 500
-  solo: su caída en cada crisis y su peor año de inicio. Sin sugerir pesos.
+  solo: su caída en cada crisis, sobre el mismo dinero en lo más alto, y
+  su peor año de inicio. Sin sugerir pesos.
 - Aportes como en las simulaciones: la mitad de los del año al empezarlo y
   la mitad al acabarlo. Cifras a final de año, en euros de hoy.
 
