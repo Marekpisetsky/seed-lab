@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n";
 import { Changed } from "@/components/ui/changed";
 import { Help } from "@/components/ui/help";
@@ -89,46 +89,61 @@ function concentratedShare(investment: ResolvedInvestment): number | null {
 export function Results({ bundle, arrive = false, onArrived }: { bundle: CalculationBundle; arrive?: boolean; onArrived?: () => void }) {
   const i18n = useI18n();
   const top = useRef<HTMLElement>(null);
-  // Asked for with "See my result": the page glides to it (or jumps, for those who asked for less motion).
+  // Asked for with "See my result", it comes in by parts (kept for its whole first showing, so the animation is never cut).
+  const [stagger] = useState(arrive);
+  // The page goes to it only when it is out of sight (on a phone, where the button was further down): it glides, or jumps for those who asked for less motion.
   useEffect(() => {
     const element = top.current;
     if (!arrive || !element) return;
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     element.focus({ preventScroll: true });
-    element.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+    const box = element.getBoundingClientRect();
+    if (box.top < 0 || box.top > window.innerHeight * 0.5) element.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
     onArrived?.();
   }, [arrive, onArrived]);
+  /** Number, grid, chart: one after the other, 60 ms apart, each 220 ms (340 ms in all). */
+  const part = (delay: number, className = "") => (stagger ? { className: `${className} motion-safe:animate-arrive`, style: { animationDelay: `${delay}ms` } } : { className });
   const { m, f } = i18n;
   const { calc, today } = bundle;
   const { result } = calc;
   const share = concentratedShare(calc.investment);
 
   return (
-    <div className="space-y-6 motion-safe:animate-reveal">
+    <div className="space-y-6">
       <div className="space-y-4">
-        <ResultTotal bundle={bundle} ref={top} />
-        <KeyFacts bundle={bundle} />
+        <div {...part(0)}>
+          <ResultTotal bundle={bundle} ref={top} />
+        </div>
+        <div {...part(60)}>
+          <KeyFacts bundle={bundle} />
+        </div>
       </div>
-      <GrowthChart bundle={bundle} />
-      {/* On a phone, under the chart; from 1024 px it sits beside the result instead (money-module.tsx). */}
-      <ResultSection title={m.whatIf.title} className="lg:hidden">
-        <WhatIfRow bundle={bundle} />
-      </ResultSection>
-      <StocksSummary holdings={bundle.holdings} />
-      <ResultSection title={m.goals.title}>
-        <GoalsSection calc={calc} today={today} inCard />
-      </ResultSection>
-      <ResultSection title={m.cards.where}>
-        <WhereDetails bundle={bundle} />
-      </ResultSection>
-      <ResultSection title={m.findings.title} tone={share === null ? "plain" : "warning"}>
-        <p className={`text-sm ${share === null ? "text-muted" : "text-warning-foreground"}`}>
-          {share === null ? m.cards.knowSummary : m.cards.concentration(f.percent(share, { decimals: 0 }), f.eur(share * (calc.scenario.capital > 0 ? calc.scenario.capital : result.total)))}
-        </p>
-        <SeeMore what={m.findings.title}>
-          <KnowDetails bundle={bundle} />
-        </SeeMore>
-      </ResultSection>
+      <div {...part(120)}>
+        <GrowthChart bundle={bundle} />
+      </div>
+      <div {...part(120, "space-y-6")}>
+        {/* On a phone, under the chart; from 1024 px it sits beside the result instead (money-module.tsx). */}
+        <ResultSection title={m.whatIf.title} className="lg:hidden">
+          <WhatIfRow bundle={bundle} />
+        </ResultSection>
+        <StocksSummary holdings={bundle.holdings} />
+        <ResultSection title={m.goals.title}>
+          <GoalsSection calc={calc} today={today} inCard />
+        </ResultSection>
+        <ResultSection title={m.cards.where}>
+          <WhereDetails bundle={bundle} />
+        </ResultSection>
+        <ResultSection title={m.findings.title} tone={share === null ? "plain" : "warning"}>
+          <p className={`text-sm ${share === null ? "text-muted" : "text-warning-foreground"}`}>
+            {share === null
+              ? m.cards.knowSummary
+              : m.cards.concentration(f.percent(share, { decimals: 0 }), f.eur(share * (calc.scenario.capital > 0 ? calc.scenario.capital : result.total)))}
+          </p>
+          <SeeMore what={m.findings.title}>
+            <KnowDetails bundle={bundle} />
+          </SeeMore>
+        </ResultSection>
+      </div>
     </div>
   );
 }

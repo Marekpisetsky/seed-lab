@@ -256,7 +256,7 @@ export function MoreOptionsLink() {
   const panel = useId();
   const changed = optionsChanged(plan);
   return (
-    <div>
+    <div data-more-options>
       <button
         type="button"
         aria-expanded={open}

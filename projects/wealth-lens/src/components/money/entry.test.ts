@@ -393,10 +393,11 @@ describe.each(["en", "es"] as const)("the page after the first result, by its wi
     expect(root).toContain("lg:grid-cols-[minmax(0,1fr)_20rem]");
     expect(root).toContain("wide:grid-cols-[15rem_minmax(40rem,1fr)_20rem]");
     // The left column, What if…?, only from 1440 px, in sight while the page scrolls.
-    expect(html).toMatch(/<aside class="hidden wide:sticky wide:top-4 wide:block/);
+    // Under seed-lab's header, which stays in sight too (seed-kit's chrome.css, --sk-header-space).
+    expect(html).toMatch(/<aside class="hidden wide:sticky wide:top-\[calc\(var\(--sk-header-space\)\+1rem\)\] wide:block/);
     // The steps on the right from 1024 px, in sight, compact (the field under each question).
-    const steps = html.match(/<div id="[^"]+" style="view-transition-name:steps" class="([^"]+)"/)?.[1] ?? "";
-    expect(steps).toContain("lg:sticky");
+    const steps = html.match(/<div id="[^"]+" data-steps="true" class="([^"]+)"><section aria-label/)?.[1] ?? "";
+    expect(steps).toContain("lg:sticky lg:top-[calc(var(--sk-header-space)+1rem)]");
     expect(html).not.toContain("md:grid-cols-[1.75rem_16rem_22rem]");
     // Under the steps, What if…? from 1024 to 1439 px only.
     expect(html).toContain("hidden lg:block wide:hidden");
@@ -404,7 +405,7 @@ describe.each(["en", "es"] as const)("the page after the first result, by its wi
 
   it("on a phone, hides the steps behind a bar at the foot of the screen: the plan in one line and Edit", () => {
     const html = decode(page());
-    const steps = html.match(/<div id="([^"]+)" style="view-transition-name:steps" class="([^"]+)"/);
+    const steps = html.match(/<div id="([^"]+)" data-steps="true" class="([^"]+)"><section aria-label/);
     expect(steps?.[2]).toContain("max-lg:hidden");
     const bar = html.slice(html.lastIndexOf('<div class="fixed inset-x-0 bottom-0'));
     expect(bar).toContain("lg:hidden");
@@ -429,10 +430,16 @@ describe.each(["en", "es"] as const)("the page after the first result, by its wi
     expect(html.indexOf('role="img"')).toBeLessThan(html.indexOf(m.whatIf.title));
   });
 
-  it("glides from the steps to the result with a view transition, never for those who ask for less motion", () => {
+  it("glides and shrinks the card into its place beside the result (FLIP), never for those who ask for less motion", () => {
     const source = readFileSync(new URL("./money-module.tsx", import.meta.url), "utf8");
-    expect(source).toContain("startViewTransition");
-    expect(source).toContain('matchMedia("(prefers-reduced-motion: reduce)")');
+    const flip = readFileSync(new URL("./flip.ts", import.meta.url), "utf8");
+    expect(source).toContain("before.current = measure([");
+    expect(source).toMatch(/useLayoutEffect\(\(\) => \{\s*if \(!asked \|\| !before\.current\) return;\s*play\(before\.current\)/);
+    expect(source).not.toContain("startViewTransition");
+    expect(flip).toContain('matchMedia("(prefers-reduced-motion: reduce)")');
+    // Transforms only, in 300-400 ms, ease-out.
+    expect(flip).toMatch(/FLIP_MS = 3\d\d;/);
+    expect(flip).not.toMatch(/\b(width|height|top|left|margin):/);
   });
 });
 
@@ -525,9 +532,11 @@ describe("what loads with the first screen", () => {
     expect(ready).toContain(m.money.trust.noAccount);
   });
 
-  it("brings the result in with a short fade and rise, only for those who allow motion, and glides to it", () => {
-    expect(source("./results.tsx")).toContain("motion-safe:animate-reveal");
-    expect(source("../../app/globals.css")).toMatch(/--animate-reveal: reveal [\d.]+s/);
+  it("brings the result in by parts, number, grid and chart, in 300-400 ms, only for those who allow motion, and goes to it", () => {
+    expect(source("./results.tsx")).toContain("motion-safe:animate-arrive");
+    expect(source("./results.tsx")).toMatch(/part\(0\)[\s\S]*ResultTotal[\s\S]*part\(60\)[\s\S]*KeyFacts[\s\S]*part\(120\)[\s\S]*GrowthChart/);
+    // 120 ms of delay and 0.22 s each: 340 ms in all.
+    expect(source("../../app/globals.css")).toMatch(/--animate-arrive: reveal 0\.22s ease-out both/);
     expect(source("./results.tsx")).toContain('matchMedia("(prefers-reduced-motion: reduce)")');
     expect(source("./results.tsx")).toContain("scrollIntoView");
   });
