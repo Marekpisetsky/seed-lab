@@ -14,7 +14,7 @@ function useItems() {
 }
 
 /** The purchase list with ✓ now or when the plan gets there, each addable to My goals. */
-export function Things({ scenario, goals }: { scenario: Scenario; goals: readonly Goal[] }) {
+export function Things({ scenario, goals, today }: { scenario: Scenario; goals: readonly Goal[]; today: Date }) {
   const { m, f } = useI18n();
   const t = m.things;
   const items = useItems();
@@ -39,7 +39,7 @@ export function Things({ scenario, goals }: { scenario: Scenario; goals: readonl
             </button>
             <span className={`shrink-0 whitespace-nowrap pt-0.5 text-sm ${now ? "font-medium text-positive" : "text-muted"}`}>
               {now && <Check aria-hidden="true" className="mr-0.5 inline size-4 align-[-3px]" />}
-              <Changed value={f.when(months)} />
+              <Changed value={f.when(months, today)} />
             </span>
             {chosen.has(item.id) ? (
               // Said in words, not in a tooltip: a finger cannot hover.

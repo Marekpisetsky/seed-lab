@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n";
 import { Changed } from "@/components/ui/changed";
 import { Help } from "@/components/ui/help";
@@ -11,21 +11,34 @@ import { investedInText } from "@/i18n/investment-text";
 import { growsText } from "@/lib/growth";
 import type { ResolvedInvestment } from "@/lib/investment";
 import { CONCENTRATION_LIMIT } from "@/lib/mix";
+import { GoalsSection } from "./goals-section";
 import { GrowthChart } from "./growth-chart";
 import { TOTAL_ID } from "./first-result";
 import { KeyFacts } from "./key-facts";
 import { ResultSection, SeeMore } from "./result-section";
-import { WhatIfIndicator, WhatIfRow } from "./what-if-row";
+import { StocksSummary } from "./stocks-summary";
+import { WhatIfIndicator, whatIfApplied, WhatIfRow } from "./what-if-row";
+import { WhereDetails } from "./where-details";
 
 function Loading() {
   const { m } = useI18n();
   return <p className="text-sm text-muted">{m.cards.loading}</p>;
 }
 
-// Each section's code is its own: loaded once the result shows; what you should know, once asked for.
-const WhereDetails = dynamic(() => import("./where-details").then((module) => module.WhereDetails), { loading: Loading });
-const GoalsSection = dynamic(() => import("./goals-section").then((module) => module.GoalsSection), { loading: Loading });
-const KnowDetails = dynamic(() => import("./know-details").then((module) => module.KnowDetails), { loading: Loading });
+/**
+ * The sections in sight come with the result's code, so none arrives late
+ * and pushes the page. What opens with a tap (good to know, the
+ * withdrawal slider, the things to buy, the possible futures) has its own
+ * code, fetched as soon as the result is shown, ready before it is asked for.
+ */
+const loadKnow = () => import("./know-details");
+const KnowDetails = dynamic(() => loadKnow().then((module) => module.KnowDetails), { loading: Loading });
+const preloadTaps = () => {
+  void loadKnow();
+  void import("./pay-details");
+  void import("./things-section");
+  void import("./futures-view");
+};
 
 /** What the user said, in one sentence: "With €1,100 today and €100 a month in the S&P 500, in 20 years you could have…" */
 function summaryText({ scenario, investment, result }: CalculationBundle["calc"], i18n: I18n): string {
@@ -53,13 +66,14 @@ function ResultTotal({ bundle, ref }: { bundle: CalculationBundle; ref: React.Re
     <section ref={ref} tabIndex={-1} aria-label={m.result.label} className="scroll-mt-4 space-y-1 outline-none">
       {/* What a screen reader says after a change: one short sentence, not the whole section. */}
       <p className="sr-only" aria-live="polite" aria-atomic="true">
-        {m.result.announce(years, f.eur(result.total), grows) + (calc.whatIf ? m.result.announceWhatIf(m.whatIf.applied[calc.whatIf]) : "")}
+        {m.result.announce(years, f.eur(result.total), grows) +
+          (calc.whatIf ? m.result.announceWhatIf(whatIfApplied(calc.whatIf, bundle.base.investment, bundle.base.result.years, i18n)) : "")}
       </p>
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <p className="text-base text-muted sm:text-lg">
           <Changed value={summaryText(calc, i18n)} />
         </p>
-        <WhatIfIndicator applied={calc.whatIf} />
+        <WhatIfIndicator bundle={bundle} />
       </div>
       <p id={TOTAL_ID} className="flex items-center gap-2 text-5xl font-extrabold tracking-tight tabular-nums sm:text-6xl">
         <Changed value={f.eur(result.total)} />
@@ -79,51 +93,70 @@ function concentratedShare(investment: ResolvedInvestment): number | null {
 
 /**
  * The result in levels: what the user said and the total, the six key
- * figures under it, the chart with its tabs, then four sections with their
- * titles always in sight: "What if…?", where it reaches, my goals and what
- * you should know. Only each one's long detail waits behind "See more".
+ * figures under it, the chart with its tabs (the main picture), then, with
+ * their titles always in sight: "What if…?", my stocks today (only with
+ * holdings), my goals, where it reaches and good to know. Only each
+ * one's long detail waits behind "See more".
  */
 export function Results({ bundle, arrive = false, onArrived }: { bundle: CalculationBundle; arrive?: boolean; onArrived?: () => void }) {
   const i18n = useI18n();
   const top = useRef<HTMLElement>(null);
-  // Asked for with "See my result": the page glides to it (or jumps, for those who asked for less motion).
+  // Asked for with "See my result", it comes in by parts (kept for its whole first showing, so the animation is never cut).
+  const [stagger] = useState(arrive);
+  useEffect(preloadTaps, []);
+  // The page goes to it only when it is out of sight (on a phone, where the button was further down): it glides, or jumps for those who asked for less motion.
   useEffect(() => {
     const element = top.current;
     if (!arrive || !element) return;
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     element.focus({ preventScroll: true });
-    element.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+    const box = element.getBoundingClientRect();
+    if (box.top < 0 || box.top > window.innerHeight * 0.5) element.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
     onArrived?.();
   }, [arrive, onArrived]);
+  /** Number, grid, chart: one after the other, 60 ms apart, each 220 ms (340 ms in all). */
+  const part = (delay: number, className = "") => (stagger ? { className: `${className} motion-safe:animate-arrive`, style: { animationDelay: `${delay}ms` } } : { className });
   const { m, f } = i18n;
   const { calc, today } = bundle;
+  const { result } = calc;
   const share = concentratedShare(calc.investment);
 
   return (
-    <div className="space-y-6 motion-safe:animate-reveal">
+    <div className="space-y-6">
       <div className="space-y-4">
-        <ResultTotal bundle={bundle} ref={top} />
-        <KeyFacts bundle={bundle} />
+        <div {...part(0)}>
+          <ResultTotal bundle={bundle} ref={top} />
+        </div>
+        <div {...part(60)}>
+          <KeyFacts bundle={bundle} />
+        </div>
       </div>
-      <GrowthChart bundle={bundle} />
-      {/* On a phone, under the chart; from 1024 px it sits beside the result instead (money-module.tsx). */}
-      <ResultSection title={m.whatIf.title} className="lg:hidden">
-        <WhatIfRow bundle={bundle} />
-      </ResultSection>
-      <ResultSection title={m.cards.where}>
-        <WhereDetails bundle={bundle} />
-      </ResultSection>
-      <ResultSection title={m.goals.title}>
-        <GoalsSection calc={calc} today={today} inCard />
-      </ResultSection>
-      <ResultSection title={m.findings.title} tone={share === null ? "plain" : "warning"}>
-        <p className={`text-sm ${share === null ? "text-muted" : "text-warning-foreground"}`}>
-          {share === null ? m.cards.knowSummary : m.cards.concentration(f.percent(share, { decimals: 0 }))}
-        </p>
-        <SeeMore what={m.findings.title}>
-          <KnowDetails bundle={bundle} />
-        </SeeMore>
-      </ResultSection>
+      <div {...part(120)}>
+        <GrowthChart bundle={bundle} />
+      </div>
+      <div {...part(120, "space-y-6")}>
+        {/* On a phone, under the chart; from 1024 px it sits beside the result instead (money-module.tsx). */}
+        <ResultSection title={m.whatIf.title} className="lg:hidden">
+          <WhatIfRow bundle={bundle} />
+        </ResultSection>
+        <StocksSummary holdings={bundle.holdings} />
+        <ResultSection title={m.goals.title}>
+          <GoalsSection calc={calc} today={today} inCard />
+        </ResultSection>
+        <ResultSection title={m.cards.where}>
+          <WhereDetails bundle={bundle} />
+        </ResultSection>
+        <ResultSection title={m.findings.title} tone={share === null ? "plain" : "warning"}>
+          <p className={`text-sm ${share === null ? "text-muted" : "text-warning-foreground"}`}>
+            {share === null
+              ? m.cards.knowSummary
+              : m.cards.concentration(f.percent(share, { decimals: 0 }), f.eur(share * (calc.scenario.capital > 0 ? calc.scenario.capital : result.total)))}
+          </p>
+          <SeeMore what={m.findings.title}>
+            <KnowDetails bundle={bundle} />
+          </SeeMore>
+        </ResultSection>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { languageScript } from "@seed-kit/detect.ts";
+import { themeScript } from "@seed-kit/theme.ts";
 
 /**
  * Runs in the <head> of every page, before anything is painted: seed-kit's
@@ -10,3 +11,10 @@ import { languageScript } from "@seed-kit/detect.ts";
  * Nothing is stored.
  */
 export const LANGUAGE_SCRIPT = languageScript();
+
+/**
+ * seed-kit's theme script, first in the <head>: the light or dark mode
+ * picked in the header for this tab, if any, before anything is painted
+ * (theme.ts). The header's menu itself is React (seed-kit's chrome).
+ */
+export const THEME_SCRIPT = themeScript();

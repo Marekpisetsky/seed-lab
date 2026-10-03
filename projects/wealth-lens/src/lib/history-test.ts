@@ -15,7 +15,7 @@
 import { isSeriesAsset, type AssetId } from "./assets";
 import { valueAt, type Scenario } from "./calculator";
 import { SERIES } from "./indexes";
-import type { ResolvedInvestment } from "./investment";
+import { CUSTOM_BASE, type ResolvedInvestment } from "./investment";
 
 /**
  * The crashes of the data: the year each hit, and how many calendar years
@@ -55,12 +55,14 @@ export interface Amounts {
 
 /**
  * The history of an investment: its asset, or a mix's or the portfolio's
- * parts (a stock follows its index). `null` for a savings account or custom
- * growth: they have no history of ups and downs.
+ * parts (a stock follows its index). Custom growth (the starting 5 % among
+ * them) moves like world stocks, so it is tested with their real years.
+ * `null` for a savings account or growth with no ups and downs.
  */
-export function historySource(investment: Pick<ResolvedInvestment, "investment" | "model" | "custom">): HistorySource | null {
+export function historySource(investment: Pick<ResolvedInvestment, "investment" | "model" | "custom" | "volatility">): HistorySource | null {
   const chosen = investment.investment;
-  if (chosen.kind === "custom") return null;
+  if (investment.volatility <= 0) return null;
+  if (chosen.kind === "custom") return { parts: [{ asset: CUSTOM_BASE, weight: 1 }], rebalance: true, savingsReturn: 0 };
   if (chosen.kind === "asset") return isSeriesAsset(chosen.asset) ? { parts: [{ asset: chosen.asset, weight: 1 }], rebalance: true, savingsReturn: 0 } : null;
   const model = investment.model;
   if (!model || !model.parts.some((part) => isSeriesAsset(part.asset))) return null;
@@ -210,4 +212,21 @@ export function everyStartYear(source: HistorySource | null, amounts: Amounts, y
 /** The plan's own projection over the same years, with its average growth: what the history is compared with. */
 export function averageResult(scenario: Scenario, years: number): number {
   return valueAt(scenario, years * 12);
+}
+
+/** What the fall took, in euros of the money there was at the top; 0 without a fall. */
+export function fallAmount(result: Pick<CrisisResult, "fall">): number {
+  return result.fall ? result.fall.from - result.fall.to : 0;
+}
+
+/**
+ * How many years a crisis card's small line shows: from the start to the
+ * money back at its top, or, when it never was (or did not fall), a few
+ * years past the crisis; never past the data.
+ */
+export function cardYears(result: Pick<CrisisResult, "id" | "year" | "startYear" | "fall" | "yearsToRecover" | "path">): number {
+  const crisis = CRISES.find((entry) => entry.id === result.id);
+  const after = result.year - result.startYear + (crisis?.years ?? 1) + 3;
+  const end = result.fall && result.yearsToRecover !== null ? result.fall.peak + result.yearsToRecover : after;
+  return Math.max(1, Math.min(result.path.length - 1, Math.max(end, 2)));
 }

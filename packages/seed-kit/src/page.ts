@@ -1,12 +1,13 @@
 /**
  * The document around a page of a static seed-lab tool (the ones Forja
  * makes): the head (language, title, description, addresses in every
- * language, the share tags, the icon, the styles inline, the language
- * script on English pages) and the body (the kit's header, the page, the
+ * language, the share tags, the icon, the styles inline, the theme script,
+ * the language script on English pages) and the body (the kit's header, the page, the
  * kit's footer, the page's scripts). Nothing comes from another site.
  */
 
 import { languageScript } from "./detect.ts";
+import { themeScript } from "./theme.ts";
 import { html, raw, type Html } from "./html.ts";
 import { DEFAULT_LOCALE, LOCALE_SETTINGS, LOCALES, localePath, type Locale } from "./locales.ts";
 
@@ -36,6 +37,9 @@ export function pagePath(path: string, locale: Locale, basePath = ""): string {
   return basePath + localePath(path, locale);
 }
 
+/** The tab's light or dark mode before anything is painted, and the header's menus (theme.ts). */
+const THEME_SCRIPT = themeScript({ menu: true });
+
 /** The whole HTML document. */
 export function documentHtml(page: DocumentInput): string {
   const { locale, siteUrl, path } = page;
@@ -47,6 +51,7 @@ export function documentHtml(page: DocumentInput): string {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>${raw(THEME_SCRIPT)}</script>
 ${indexed && locale === DEFAULT_LOCALE ? html`<script>${raw(languageScript({ basePath: base, folders: true }))}</script>\n` : ""}<title>${page.title}</title>
 <meta name="description" content="${page.description}">
 ${

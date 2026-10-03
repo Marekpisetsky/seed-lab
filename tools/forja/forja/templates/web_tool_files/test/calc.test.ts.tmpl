@@ -28,9 +28,9 @@ describe("the change between two numbers", () => {
 });
 
 describe("the result", () => {
-  it("says it in each language's way of writing numbers", () => {
-    assert.match(resultHtml(80, 100, "en").value, /<p class="sk-big">\+25\.0%<\/p>[\s\S]*It went up 25\.0%\.[\s\S]*Difference: \+20\./);
-    assert.match(resultHtml(1000, 750, "es").value, /<p class="sk-big">-25,0\u00a0%<\/p>[\s\S]*Bajó un 25,0\u00a0%\.[\s\S]*Diferencia: -250\./);
+  it("says it in each language's way of writing numbers, with ▲ or ▼ and the true minus sign (−)", () => {
+    assert.match(resultHtml(80, 100, "en").value, /<p class="sk-big"><svg [^>]+><path d="M5 1L[^"]+"\/><\/svg>\+25\.0%<\/p>[\s\S]*It went up 25\.0%\.[\s\S]*Difference: \+20\./);
+    assert.match(resultHtml(1000, 750, "es").value, /<p class="sk-big"><svg [^>]+><path d="M5 9L[^"]+"\/><\/svg>\u221225,0\u00a0%<\/p>[\s\S]*Bajó un 25,0\u00a0%\.[\s\S]*Diferencia: \u2212250\./);
   });
 
   it("explains a start at zero, and asks for numbers when there are none", () => {

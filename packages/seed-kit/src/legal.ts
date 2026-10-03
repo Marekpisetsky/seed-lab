@@ -30,10 +30,10 @@ export const HOSTING = {
 const PAGES: Readonly<Record<Locale, (name: string) => LegalPage>> = {
   en: (name) => ({
     title: "Privacy and terms",
-    description: `${name} saves nothing and sends nothing. No cookies. What the hosting sees, and the terms.`,
-    updated: "Updated on 2 October 2026.",
+    description: `${name} keeps nothing you type and sends nothing. No cookies. What the hosting sees, and the terms.`,
+    updated: "Updated on 3 October 2026.",
     sections: [
-      { heading: "In short", body: ["**Nothing is saved or sent.** No cookies. No tracking."] },
+      { heading: "In short", body: ["**Nothing you type is saved or sent.** No cookies. No tracking."] },
       {
         heading: "Your numbers",
         body: [
@@ -42,9 +42,12 @@ const PAGES: Readonly<Record<Locale, (name: string) => LegalPage>> = {
         ],
       },
       {
-        heading: "Cookies",
+        heading: "Cookies and storage",
         body: [
-          `${name} uses no cookies and no browser storage. That is why there is no cookie banner.`,
+          `${name} uses no cookies. That is why there is no cookie banner.`,
+          "It keeps one thing, only if you pick it: light or dark.",
+          "That choice stays in this tab's session storage. Closing the tab deletes it.",
+          "It is never sent. Choosing “Automatic” deletes it at once.",
           "The first time, the language comes from your browser's settings. Nothing is stored to remember it.",
         ],
       },
@@ -77,10 +80,10 @@ const PAGES: Readonly<Record<Locale, (name: string) => LegalPage>> = {
   }),
   es: (name) => ({
     title: "Privacidad y condiciones",
-    description: `${name} no guarda ni envía nada. Sin cookies. Qué ve el alojamiento, y las condiciones.`,
-    updated: "Actualizado el 2 de octubre de 2026.",
+    description: `${name} no guarda nada de lo que escribes ni envía nada. Sin cookies. Qué ve el alojamiento, y las condiciones.`,
+    updated: "Actualizado el 3 de octubre de 2026.",
     sections: [
-      { heading: "En resumen", body: ["**No se guarda ni se envía nada.** Sin cookies. Sin seguimiento."] },
+      { heading: "En resumen", body: ["**No se guarda ni se envía nada de lo que escribes.** Sin cookies. Sin seguimiento."] },
       {
         heading: "Tus números",
         body: [
@@ -89,9 +92,12 @@ const PAGES: Readonly<Record<Locale, (name: string) => LegalPage>> = {
         ],
       },
       {
-        heading: "Cookies",
+        heading: "Cookies y almacenamiento",
         body: [
-          `${name} no usa cookies ni el almacenamiento del navegador. Por eso no hay aviso de cookies.`,
+          `${name} no usa cookies. Por eso no hay aviso de cookies.`,
+          "Guarda una sola cosa, y solo si la eliges: claro u oscuro.",
+          "Esa elección queda en el almacenamiento de sesión de esta pestaña. Al cerrar la pestaña, se borra.",
+          "Nunca se envía. Elegir «Automático» la borra al momento.",
           "La primera vez, el idioma sale de la configuración de tu navegador. No se guarda nada para recordarlo.",
         ],
       },

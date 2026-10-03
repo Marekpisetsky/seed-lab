@@ -95,6 +95,7 @@ ${platform.map((name) => html`<li>${name}</li>`)}
 </ul>
 <p class="diagram-mould"><span aria-hidden="true">↑</span> ${t.diagram.mould}</p>
 <div class="diagram-base"><p>${t.diagram.base}</p><ul>${t.diagram.parts.map((part) => html`<li>${part}</li>`)}</ul></div>
+<p class="diagram-research"><strong>Research</strong> ${t.diagram.research}</p>
 </figure>
 </div>
 <p class="closing">${t.buildClosing}</p>`,

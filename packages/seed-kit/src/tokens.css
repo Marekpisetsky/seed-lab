@@ -14,8 +14,11 @@
  * secondary blue for what you put in) pass the colour-blind and contrast
  * checks as a pair, in both modes.
  *
- * :root follows the device. .theme-light and .theme-dark fix one mode for
- * a part of a page (the hub's alternating bands).
+ * :root follows the device, unless the header's menu fixes a mode for the
+ * tab (theme.ts): <html data-theme="light"> or "dark". .theme-light and
+ * .theme-dark fix one mode for a part of a page (the hub's alternating
+ * bands) while the page follows the device; a mode chosen in the menu wins
+ * over them too, so the whole page is in the mode someone asked for.
  */
 :root {
   color-scheme: light dark;
@@ -23,7 +26,8 @@
 }
 
 :root,
-.theme-light {
+.theme-light,
+:root[data-theme="light"] .theme-dark {
   --background: #ffffff;
   --foreground: #0a0a0a;
   --card: #ffffff;
@@ -35,7 +39,7 @@
   --accent: #00774c;
   --accent-foreground: #ffffff;
   --accent-soft: #ebf4f1;
-  --positive: #007a37;
+  --positive: #00796b;
   --negative: #c8001e;
   --warning-bg: #f5f5f5;
   --warning-border: #f59e0b;
@@ -44,12 +48,14 @@
   --chart-growth: #00a36c;
 }
 
-.theme-light {
+:root[data-theme="light"],
+.theme-light,
+:root[data-theme="light"] .theme-dark {
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --background: #0a0a0a;
     --foreground: #fafafa;
     --card: #141414;
@@ -61,7 +67,7 @@
     --accent: #3ddc97;
     --accent-foreground: #0a0a0a;
     --accent-soft: #11271e;
-    --positive: #34d17e;
+    --positive: #5ce6b8;
     --negative: #ff6b6b;
     --warning-bg: #1f1f1f;
     --warning-border: #f5a524;
@@ -71,7 +77,9 @@
   }
 }
 
-.theme-dark {
+:root[data-theme="dark"],
+.theme-dark,
+:root[data-theme="dark"] .theme-light {
   color-scheme: dark;
   --background: #0a0a0a;
   --foreground: #fafafa;
@@ -84,7 +92,7 @@
   --accent: #3ddc97;
   --accent-foreground: #0a0a0a;
   --accent-soft: #11271e;
-  --positive: #34d17e;
+  --positive: #5ce6b8;
   --negative: #ff6b6b;
   --warning-bg: #1f1f1f;
   --warning-border: #f5a524;

@@ -8,7 +8,7 @@ export function TestPage({ locale }: { locale: Locale }) {
   const { m } = getI18n(locale);
   return (
     <Site>
-      <PageHeader title={m.test.title} question={m.test.question} />
+      <PageHeader title={m.test.headline} question={m.test.realHistory} sentence />
       <TestModule />
     </Site>
   );

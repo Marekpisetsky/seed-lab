@@ -10,11 +10,10 @@ import { describe, expect, it } from "vitest";
 
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
 const TOKENS = read("../../../../packages/seed-kit/src/tokens.css");
-/** The values of one block of tokens.css, by its selector. */
+/** The values of the block of tokens.css one selector belongs to (a block can have several: ".theme-light", ':root[data-theme="light"] .theme-dark'…). */
 function block(selector: string): Record<string, string> {
-  const start = TOKENS.indexOf(`${selector} {`);
-  const body = TOKENS.slice(start, TOKENS.indexOf("}", start));
-  return Object.fromEntries([...body.matchAll(/--([\w-]+):\s*(#[0-9a-f]{6});/g)].map(([, name, hex]) => [name, hex]));
+  const found = [...TOKENS.matchAll(/([^{}]+)\{([^{}]*--background[^{}]*)\}/g)].find(([, selectors]) => selectors.split(/,\s*/).map((part) => part.trim()).includes(selector));
+  return Object.fromEntries([...(found?.[2] ?? "").matchAll(/--([\w-]+):\s*(#[0-9a-f]{6});/g)].map(([, name, hex]) => [name, hex]));
 }
 const LIGHT = block(".theme-light");
 const DARK = block(".theme-dark");

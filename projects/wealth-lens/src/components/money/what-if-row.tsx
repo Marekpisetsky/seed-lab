@@ -1,5 +1,6 @@
 "use client";
 
+import { Trend } from "@seed-kit/react/trend.tsx";
 import { X } from "lucide-react";
 import { useId } from "react";
 import { useI18n } from "@/components/i18n";
@@ -8,6 +9,8 @@ import { whatIfsFor } from "@/hooks/calculation-details";
 import type { CalculationBundle } from "@/hooks/use-calculation";
 import type { I18n } from "@/i18n";
 import { clearWhatIf, toggleWhatIf } from "@/lib/app-store";
+import { decadeYears } from "@/lib/decade";
+import type { ResolvedInvestment } from "@/lib/investment";
 import type { WhatIfEffect, WhatIfId } from "@/lib/what-if";
 
 /** "+€23,000", or why it cannot apply. */
@@ -16,19 +19,34 @@ function effectText({ id, change, available }: WhatIfEffect, { m, f }: I18n): st
   return f.eurRounded(change, { signed: true });
 }
 
-/** "What if: grows 1% more ×": the scenario applied to the whole screen, and the way back. */
-export function WhatIfIndicator({ applied }: { applied: WhatIfId | null }) {
-  const { m } = useI18n();
+/** A scenario's name in a chip: "Grows 1% more", "First 10 years like 2000–2009". */
+export function whatIfChip(id: WhatIfId, investment: ResolvedInvestment, years: number, { m }: I18n): string {
+  const decade = id === "bad-decade" ? decadeYears(investment, years) : null;
+  return decade ? m.whatIf.decade(decade[1] - decade[0] + 1, `${decade[0]}–${decade[1]}`) : m.whatIf.chips[id];
+}
+
+/** The same, once applied: "grows 1% more", "first 10 years like 2000–2009". */
+export function whatIfApplied(id: WhatIfId, investment: ResolvedInvestment, years: number, { m }: I18n): string {
+  const decade = id === "bad-decade" ? decadeYears(investment, years) : null;
+  return decade ? m.whatIf.decadeApplied(decade[1] - decade[0] + 1, `${decade[0]}–${decade[1]}`) : m.whatIf.applied[id];
+}
+
+/** "What if: grows 1% more (+€23,000) ×": the scenario applied to the whole screen, what it changes, and the way back. */
+export function WhatIfIndicator({ bundle }: { bundle: CalculationBundle }) {
+  const i18n = useI18n();
+  const { m, f } = i18n;
+  const applied = bundle.calc.whatIf;
   if (!applied) return null;
-  const label = m.whatIf.applied[applied];
+  const label = whatIfApplied(applied, bundle.base.investment, bundle.base.result.years, i18n);
+  const change = f.eurRounded(bundle.calc.result.total - bundle.base.result.total, { signed: true });
   return (
     <button
       type="button"
       onClick={clearWhatIf}
-      aria-label={m.whatIf.stop(label)}
+      aria-label={m.whatIf.stop(`${label} (${change})`)}
       className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full bg-accent/10 px-3 py-1 text-sm font-medium text-accent hover:bg-accent/20"
     >
-      {m.whatIf.indicator(label)}
+      {m.whatIf.indicator(label, change)}
       <X aria-hidden="true" className="size-4" />
     </button>
   );
@@ -54,7 +72,9 @@ export function WhatIfRow({ bundle, layout = "grid" }: { bundle: CalculationBund
       <div role="group" aria-label={m.whatIf.title} className={list ? "flex flex-col gap-2" : "grid grid-cols-2 gap-2 sm:grid-cols-3"}>
         {effects.map((effect) => {
           const pressed = applied === effect.id;
-          const tone = !effect.available ? "text-muted" : effect.change >= 0 ? "text-positive" : "text-negative";
+          // As shown: rounded to the euro or more, so €0 has no colour and no mark.
+          const shown = effect.available ? Math.round(effect.change) : 0;
+          const tone = shown > 0 ? "text-positive" : shown < 0 ? "text-negative" : "text-muted";
           return (
             <button
               key={effect.id}
@@ -66,9 +86,15 @@ export function WhatIfRow({ bundle, layout = "grid" }: { bundle: CalculationBund
                 pressed ? "border-accent bg-accent/10 ring-1 ring-accent" : "border-border bg-card hover:bg-border/30"
               } disabled:opacity-60`}
             >
-              <span className="text-base font-medium">{m.whatIf.chips[effect.id]}</span>
+              <span className="text-base font-medium">{whatIfChip(effect.id, bundle.base.investment, bundle.base.result.years, i18n)}</span>
               <span className={`shrink-0 text-sm font-semibold tabular-nums ${tone}`}>
-                <Changed value={effectText(effect, i18n)} />
+                {effect.available ? (
+                  <Trend change={shown}>
+                    <Changed value={effectText(effect, i18n)} />
+                  </Trend>
+                ) : (
+                  <Changed value={effectText(effect, i18n)} />
+                )}
               </span>
             </button>
           );

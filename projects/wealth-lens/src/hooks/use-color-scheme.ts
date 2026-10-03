@@ -1,5 +1,6 @@
 "use client";
 
+import { currentTheme, subscribeTheme } from "@seed-kit/theme.ts";
 import { useSyncExternalStore } from "react";
 
 const QUERY = "(prefers-color-scheme: dark)";
@@ -7,14 +8,21 @@ const QUERY = "(prefers-color-scheme: dark)";
 function subscribe(onChange: () => void) {
   const media = window.matchMedia(QUERY);
   media.addEventListener("change", onChange);
-  return () => media.removeEventListener("change", onChange);
+  const stop = subscribeTheme(onChange);
+  return () => {
+    media.removeEventListener("change", onChange);
+    stop();
+  };
 }
 
-/** "dark" or "light", following the operating system setting. */
+/** "dark" or "light": the mode picked in the header for this tab, or else the device's (seed-kit's theme.ts). */
 export function useColorScheme(): "dark" | "light" {
   return useSyncExternalStore(
     subscribe,
-    () => (window.matchMedia(QUERY).matches ? "dark" : "light"),
+    () => {
+      const theme = currentTheme();
+      return theme === "auto" ? (window.matchMedia(QUERY).matches ? "dark" : "light") : theme;
+    },
     () => "light",
   );
 }

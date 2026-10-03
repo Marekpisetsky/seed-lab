@@ -18,7 +18,7 @@ import { EXAMPLE_PLAN } from "@/lib/validation";
 import { CalculatorCard, MoreOptionsLink } from "./calculator-card";
 import { firstResult, TOTAL_ID } from "./first-result";
 import { GoalsSection } from "./goals-section";
-import { PERIODS, shownYears } from "./growth-chart";
+import { PERIODS, periodsFor, shownYears } from "./growth-chart";
 import { MoneyModule } from "./money-module";
 import { Results } from "./results";
 import { WhereDetails } from "./where-details";
@@ -252,23 +252,21 @@ describe.each(["en", "es"] as const)("the result in levels (%s)", (locale) => {
     expect(text(html)).not.toContain(m.help.income);
   });
 
-  it("puts tabs over the chart, as on a stock chart: 5, 10, 20, 30 years and all, starting with all", () => {
+  it("puts tabs over the chart, “Show: 5 years · 10 years · All”, starting with all: none as long as the 20-year plan", () => {
     const tabs = decode(html).match(new RegExp(`<div role="radiogroup" aria-label="${m.chart.periods}"[^>]*>(.*?)</div>`))?.[1] ?? "";
     const options = [...tabs.matchAll(/<button([^>]*)>(.*?)<\/button>/g)];
-    expect(options.map((option) => text(option[2]).trim())).toEqual([
-      ...[5, 10, 20, 30].map((years) => `${years} ${m.units.years(years)}`),
-      m.chart.all,
-    ]);
-    expect(options.map((option) => option[1].includes('aria-checked="true"'))).toEqual([false, false, false, false, true]);
-    // A 20-year plan: 30 years is there, but cannot be picked.
-    expect(options.map((option) => /\sdisabled=/.test(option[1]))).toEqual([false, false, false, true, false]);
+    expect(options.map((option) => text(option[2]).trim())).toEqual([m.units.years(5), m.units.years(10), m.chart.all]);
+    expect(options.map((option) => option[1].includes('aria-checked="true"'))).toEqual([false, false, true]);
+    expect(options.some((option) => /\sdisabled=/.test(option[1]))).toBe(false);
+    // "Show:" in sight before them.
+    expect(text(html)).toContain(`${m.chart.periods} ${m.units.years(5)}`);
     expect(html.indexOf(`aria-label="${m.chart.periods}"`)).toBeLessThan(html.indexOf('role="img"'));
   });
 
-  it("follows with four sections, their titles always in sight, in order: What if…?, where it reaches, my goals, what you should know", () => {
+  it("follows with four sections, their titles always in sight, in order: What if…?, my goals, where it reaches, good to know", () => {
     expect(html).not.toContain(FOLDED);
     const titles = [...decode(html).matchAll(/<h2 id="[^"]+" class="text-lg font-bold">([^<]*)<\/h2>/g)].map((match) => match[1]);
-    expect(titles).toEqual([m.whatIf.title, m.cards.where, m.goals.title, m.findings.title]);
+    expect(titles).toEqual([m.whatIf.title, m.goals.title, m.cards.where, m.findings.title]);
     expect(html.indexOf('role="img"')).toBeLessThan(html.indexOf(m.whatIf.title));
   });
 
@@ -280,7 +278,7 @@ describe.each(["en", "es"] as const)("the result in levels (%s)", (locale) => {
     expect(text(html)).toContain(m.help.whatIf);
   });
 
-  it("leaves only the long detail of what you should know behind “See more”", () => {
+  it("leaves only the long detail of good to know behind “See more”", () => {
     const know = decode(html).slice(decode(html).indexOf(m.findings.title));
     expect(text(know)).toContain(m.cards.knowSummary);
     expect(know).toMatch(new RegExp(`<button type="button" aria-expanded="false"[^>]*>${m.cards.more}<span class="sr-only">: ${m.findings.title}</span>`));
@@ -314,6 +312,29 @@ describe.each(["en", "es"] as const)("where it reaches and my goals (%s)", (loca
   it("keeps the things to buy behind “See more”", () => {
     expect(decode(where)).toContain(`${m.cards.more}<span class="sr-only">: ${m.things.title}</span>`);
     expect(where).not.toContain("things-title");
+  });
+
+  it("never shows a ✓ without its date: “✓ from 2031, in 5 years”, “in 25 years (2051)” or “not at this pace”", () => {
+    // A plan that pays some countries well before its 20 years end, and goals near, far and out of reach.
+    const state: AppState = {
+      ...filled,
+      plan: { ...EXAMPLE_PLAN, invested: 200_000, monthlyContribution: 400, goals: [
+        { id: "a", kind: "amount", amount: 150_000 },
+        { id: "b", kind: "amount", amount: 900_000 },
+        { id: "c", kind: "amount", amount: 50_000_000 },
+        { id: "d", kind: "live", country: "PE", housing: false },
+      ] },
+    };
+    const calc = calculationFor(state, today).calc;
+    const html = decode(render(locale, state, createElement(WhereDetails, { bundle: calculationFor(state, today) })) + render(locale, state, createElement(GoalsSection, { calc, today, inCard: true })));
+    const since = locale === "en" ? /^(from \d{4}|from today)/ : /^(desde \d{4}|desde hoy)/;
+    const checks = html.split('class="lucide lucide-check').slice(1);
+    expect(checks.length).toBeGreaterThan(3);
+    for (const after of checks) expect(text(after.slice(after.indexOf("</svg>") + 6)).replace(/^\s*(covered|reached|cubierto|conseguido)\s*/, "").trim()).toMatch(since);
+    // Reached within the plan's years, though well before their end: the year it is reached, and in how long.
+    expect(text(html)).toMatch(locale === "en" ? /from 20\d\d,? in \d+ years?/ : /desde 20\d\d,? en \d+ años?/);
+    expect(text(html)).toContain(m.goals.notAtThisPace(f.eur(calc.goals[2].needed ?? 0), 30));
+    expect(text(html)).toMatch(locale === "en" ? /in \d+ years \(20\d\d\)/ : /en \d+ años \(20\d\d\)/);
   });
 
   it("asks for a first goal, with what goals are for, without naming the place again", () => {
@@ -395,10 +416,11 @@ describe.each(["en", "es"] as const)("the page after the first result, by its wi
     expect(root).toContain("lg:grid-cols-[minmax(0,1fr)_20rem]");
     expect(root).toContain("wide:grid-cols-[15rem_minmax(40rem,1fr)_20rem]");
     // The left column, What if…?, only from 1440 px, in sight while the page scrolls.
-    expect(html).toMatch(/<aside class="hidden wide:sticky wide:top-4 wide:block/);
+    // Under seed-lab's header, which stays in sight too (seed-kit's chrome.css, --sk-header-space).
+    expect(html).toMatch(/<aside class="hidden wide:sticky wide:top-\[calc\(var\(--sk-header-space\)\+1rem\)\] wide:block/);
     // The steps on the right from 1024 px, in sight, compact (the field under each question).
-    const steps = html.match(/<div id="[^"]+" style="view-transition-name:steps" class="([^"]+)"/)?.[1] ?? "";
-    expect(steps).toContain("lg:sticky");
+    const steps = html.match(/<div id="[^"]+" data-steps="true" class="([^"]+)"><section aria-label/)?.[1] ?? "";
+    expect(steps).toContain("lg:sticky lg:top-[calc(var(--sk-header-space)+1rem)]");
     expect(html).not.toContain("md:grid-cols-[1.75rem_16rem_22rem]");
     // Under the steps, What if…? from 1024 to 1439 px only.
     expect(html).toContain("hidden lg:block wide:hidden");
@@ -406,7 +428,7 @@ describe.each(["en", "es"] as const)("the page after the first result, by its wi
 
   it("on a phone, hides the steps behind a bar at the foot of the screen: the plan in one line and Edit", () => {
     const html = decode(page());
-    const steps = html.match(/<div id="([^"]+)" style="view-transition-name:steps" class="([^"]+)"/);
+    const steps = html.match(/<div id="([^"]+)" data-steps="true" class="([^"]+)"><section aria-label/);
     expect(steps?.[2]).toContain("max-lg:hidden");
     const bar = html.slice(html.lastIndexOf('<div class="fixed inset-x-0 bottom-0'));
     expect(bar).toContain("lg:hidden");
@@ -431,10 +453,16 @@ describe.each(["en", "es"] as const)("the page after the first result, by its wi
     expect(html.indexOf('role="img"')).toBeLessThan(html.indexOf(m.whatIf.title));
   });
 
-  it("glides from the steps to the result with a view transition, never for those who ask for less motion", () => {
+  it("glides and shrinks the card into its place beside the result (FLIP), never for those who ask for less motion", () => {
     const source = readFileSync(new URL("./money-module.tsx", import.meta.url), "utf8");
-    expect(source).toContain("startViewTransition");
-    expect(source).toContain('matchMedia("(prefers-reduced-motion: reduce)")');
+    const flip = readFileSync(new URL("./flip.ts", import.meta.url), "utf8");
+    expect(source).toContain("before.current = measure([");
+    expect(source).toMatch(/useLayoutEffect\(\(\) => \{\s*if \(!asked \|\| !before\.current\) return;\s*play\(before\.current\)/);
+    expect(source).not.toContain("startViewTransition");
+    expect(flip).toContain('matchMedia("(prefers-reduced-motion: reduce)")');
+    // Transforms only, in 300-400 ms, ease-out.
+    expect(flip).toMatch(/FLIP_MS = 3\d\d;/);
+    expect(flip).not.toMatch(/\b(width|height|top|left|margin):/);
   });
 });
 
@@ -475,12 +503,23 @@ describe.each(["en", "es"] as const)("the same figures everywhere (%s)", (locale
 });
 
 describe("the chart's tabs", () => {
-  it("change only how many years it shows, never more than the plan has", () => {
-    expect(PERIODS).toEqual([5, 10, 20, 30, "all"]);
+  it("are “Show: 5 years · 10 years · 20 years · All” and change only how many years it shows", () => {
+    expect(PERIODS).toEqual([5, 10, 20, "all"]);
     expect(shownYears(5, 20)).toBe(5);
     expect(shownYears(20, 20)).toBe(20);
-    expect(shownYears(30, 20)).toBe(20);
     expect(shownYears("all", 37)).toBe(37);
+    expect(getI18n("en").m.chart.periods).toBe("Show:");
+    expect(getI18n("es").m.chart.periods).toBe("Ver:");
+  });
+
+  it("leave out every tab as long as the plan or longer, and All alone", () => {
+    expect(periodsFor(37)).toEqual([5, 10, 20, "all"]);
+    expect(periodsFor(20)).toEqual([5, 10, "all"]);
+    expect(periodsFor(12)).toEqual([5, 10, "all"]);
+    expect(periodsFor(10)).toEqual([5, "all"]);
+    expect(periodsFor(6)).toEqual([5, "all"]);
+    expect(periodsFor(5)).toEqual([]);
+    expect(periodsFor(1)).toEqual([]);
   });
 });
 
@@ -497,10 +536,10 @@ describe("what loads with the first screen", () => {
     expect(staticImports("./key-facts.tsx")).not.toContain("./pay-details");
     expect(source("./where-details.tsx")).toContain('import("./things-section")');
     expect(staticImports("./where-details.tsx")).not.toContain("./things-section");
-    for (const details of ["./where-details", "./goals-section", "./know-details"]) {
-      expect(staticImports("./results.tsx")).not.toContain(details);
-      expect(source("./results.tsx")).toContain(`import("${details}")`);
-    }
+    // The sections in sight come with the result (none arrives late and pushes the page); what a tap opens is fetched as the result shows.
+    for (const details of ["./where-details", "./goals-section"]) expect(staticImports("./results.tsx")).toContain(details);
+    expect(staticImports("./results.tsx")).not.toContain("./know-details");
+    for (const tapped of ["./know-details", "./pay-details", "./things-section", "./futures-view"]) expect(source("./results.tsx")).toContain(`import("${tapped}")`);
   });
 
   it("turns “See my result” on once both amounts are typed, and waits for it to be pressed", () => {
@@ -516,9 +555,11 @@ describe("what loads with the first screen", () => {
     expect(ready).toContain(m.money.trust.noAccount);
   });
 
-  it("brings the result in with a short fade and rise, only for those who allow motion, and glides to it", () => {
-    expect(source("./results.tsx")).toContain("motion-safe:animate-reveal");
-    expect(source("../../app/globals.css")).toMatch(/--animate-reveal: reveal [\d.]+s/);
+  it("brings the result in by parts, number, grid and chart, in 300-400 ms, only for those who allow motion, and goes to it", () => {
+    expect(source("./results.tsx")).toContain("motion-safe:animate-arrive");
+    expect(source("./results.tsx")).toMatch(/part\(0\)[\s\S]*ResultTotal[\s\S]*part\(60\)[\s\S]*KeyFacts[\s\S]*part\(120\)[\s\S]*GrowthChart/);
+    // 120 ms of delay and 0.22 s each: 340 ms in all.
+    expect(source("../../app/globals.css")).toMatch(/--animate-arrive: reveal 0\.22s ease-out both/);
     expect(source("./results.tsx")).toContain('matchMedia("(prefers-reduced-motion: reduce)")');
     expect(source("./results.tsx")).toContain("scrollIntoView");
   });

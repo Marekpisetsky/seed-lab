@@ -37,7 +37,8 @@ los usuarios, nunca de vender sus datos ni de contratos con gobiernos.
 
 Como NVIDIA, que levanta cada producto sobre su propia infraestructura en
 vez de empezar de cero, cada herramienta de seed-lab nace de una base
-común, interna, que tiene dos piezas:
+común, interna, con tres papeles: **Forja fabrica, seed-kit son las
+piezas y Research decide y valida los métodos**.
 
 - **seed-kit** ([`packages/seed-kit`](../packages/seed-kit/README.md)):
   los colores (`tokens.css`), la cabecera y el pie de seed-lab (con el
@@ -51,9 +52,16 @@ común, interna, que tiene dos piezas:
   `web-tool`: crea una herramienta nueva ya conectada a seed-kit, en
   inglés y en español, con un cálculo real de ejemplo, tests que pasan y
   un límite de 50 KB por página, y la añade a la lista como beta oculta.
+- **Research** ([`research/`](../research/README.md)): decide y valida
+  los métodos. Cada modelo y cada supuesto de una app tiene su ficha: la
+  pregunta que responde, la fórmula en palabras sencillas, los supuestos,
+  las fuentes con fecha, los tests que lo comprueban, sus límites y lo
+  discutible. También están ahí las fichas que valen para todas las apps,
+  como la legal "Informar, no aconsejar". **Ningún modelo ni supuesto de
+  una app cambia sin su ficha en `research/`.**
 
 Así, cada herramienta es privada, ligera y bilingüe desde el primer día,
-y hacer una nueva cuesta horas, no semanas. **Todo producto nuevo nace de
+sus cifras se pueden defender, y hacer una nueva cuesta horas, no semanas. **Todo producto nuevo nace de
 esta plataforma.** El hub y Wealth Lens ya están construidos sobre ella.
 
 La plataforma es infraestructura interna, no un producto: no se publica

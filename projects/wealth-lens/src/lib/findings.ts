@@ -1,5 +1,5 @@
 /**
- * "What you should know": short findings about the plan, each with one
+ * "Good to know": short findings about the plan, each with one
  * number and one sentence, and the calculation behind it.
  *
  * They are worked out over the years the user chose. When the user has
@@ -16,14 +16,14 @@
 
 import type { I18n } from "@/i18n";
 import { goalName } from "@/i18n/goal-text";
-import { dividendNote, growthSource, simulationsText } from "@/i18n/investment-text";
-import { valueAt, withinReach, type Calculation, type GoalStatus, type Scenario } from "./calculator";
+import { decadeSource, dividendNote, growthSource } from "@/i18n/investment-text";
+import { monthsTo, valueAt, withinReach, type Calculation, type GoalStatus, type Scenario } from "./calculator";
 import { addMonths } from "./dates";
+import { DECADE_YEARS, historicalDecade } from "./decade";
 import { holdingValue, monthsToGoal } from "./finance";
 import type { ResolvedInvestment } from "./investment";
 import { INDEX_TRACKERS, instrumentForHolding, MARKET, type PricesFile } from "./market-data";
 import { referenceFor } from "./portfolio";
-import { bandsFor } from "./projections";
 import { BASE_CURRENCY, type Holding } from "./types";
 
 export type FindingId = "lever" | "waiting" | "inflation" | "fees" | "concentration" | "currency" | "sequence" | "doubling";
@@ -84,10 +84,22 @@ function yearOf(today: Date, months: number): number {
   return addMonths(today, Math.ceil(months - 1e-9)).getUTCFullYear();
 }
 
+/** What growth adds in the plan's first year, in euros: the percent's equivalent on the user's money. */
+export function firstYearGrowth(scenario: Scenario, extra = 0): number {
+  const grown = { ...scenario, realReturn: scenario.realReturn + extra, head: undefined };
+  return valueAt(grown, 12) - valueAt({ ...grown, realReturn: 0 }, 12);
+}
+
 function growthAssumption(scenario: Scenario, investment: ResolvedInvestment, i18n: I18n): string {
   const dividends = dividendNote(investment, i18n);
   const source = growthSource(investment, i18n) + (dividends ? ` (${dividends})` : "");
-  return i18n.m.findings.growthAssumption(i18n.f.rate(scenario.realReturn), source, Boolean(investment.period));
+  const { f } = i18n;
+  return i18n.m.findings.growthAssumption(f.rate(scenario.realReturn), f.eur(firstYearGrowth(scenario), { signed: true }), source, Boolean(investment.period));
+}
+
+/** Euros with cents only when there are any: "€102", "€102.50", "€1.49". */
+function euros(amount: number, { f }: I18n): string {
+  return f.money(amount, "EUR", { decimals: Math.abs(amount - Math.round(amount)) < 0.005 ? 0 : 2 });
 }
 
 function monthlyAssumption(scenario: Scenario, { m, f }: I18n): string {
@@ -106,7 +118,11 @@ export function leverFinding(context: FindingContext): Finding | null {
   const { scenario, investment } = calc;
   const options = [
     { key: "monthly", label: t.monthlyLabel(f.eur(scenario.monthly + 100)), scenario: { ...scenario, monthly: scenario.monthly + 100 } },
-    { key: "return", label: t.returnLabel(f.rate(scenario.realReturn + 0.01)), scenario: { ...scenario, realReturn: scenario.realReturn + 0.01 } },
+    {
+      key: "return",
+      label: t.returnLabel(f.rate(scenario.realReturn + 0.01), f.eur(firstYearGrowth(scenario, 0.01) - firstYearGrowth(scenario), { signed: true })),
+      scenario: { ...scenario, realReturn: scenario.realReturn + 0.01 },
+    },
     { key: "earlier", label: t.earlierLabel, scenario: { ...scenario, capital: valueAt(scenario, 12) } },
   ] as const;
   const assumptions = [growthAssumption(scenario, investment, i18n), monthlyAssumption(scenario, i18n)];
@@ -119,11 +135,12 @@ export function leverFinding(context: FindingContext): Finding | null {
     const best = results.reduce((a, b) => (b.gain > a.gain ? b : a));
     if (best.gain < 6) return null;
     const when = f.span(best.gain);
-    const say = best.key === "monthly" ? t.goalMonthly : best.key === "return" ? t.goalReturn : t.goalEarlier;
+    const extra = f.eur(firstYearGrowth(scenario, 0.01) - firstYearGrowth(scenario), { signed: true });
+    const text = best.key === "monthly" ? t.goalMonthly(when) : best.key === "return" ? t.goalReturn(when, extra) : t.goalEarlier(when);
     return {
       id: "lever",
       value: when,
-      text: say(when),
+      text,
       tone: "info",
       calculation: [
         t.goalNeeded(goalName(focus, i18n), f.eur(focus.target), f.span(focus.months), yearOf(today, focus.months)),
@@ -194,8 +211,12 @@ export function inflationFinding(context: FindingContext): Finding | null {
     value: `~${f.eurRounded(nominal)}`,
     text: t.text(year, f.eurRounded(nominal), f.eurRounded(real)),
     tone: "info",
-    calculation: [t.factor(f.rate(inflation), Math.round(years), times), t.times(f.eur(real), times, f.eur(nominal), year), t.todays(year)],
-    assumptions: [t.assumption(f.rate(inflation)), t.afterPrices],
+    calculation: [
+      t.factor(f.rate(inflation), Math.round(years), times, euros(factor, i18n)),
+      t.times(f.eur(real), times, f.eur(nominal), year),
+      t.todays(year),
+    ],
+    assumptions: [t.assumption(f.rate(inflation), euros(100 * (1 + inflation), i18n)), t.afterPrices],
   };
 }
 
@@ -245,15 +266,21 @@ export function concentrationFinding({ holdings, market, i18n }: FindingContext)
   const instrument = instrumentForHolding(ticker, biggest.holding.currency);
   const prices = instrument ? market.prices[instrument.id] : undefined;
   const pct = f.percent(weight, { decimals: 0 });
+  const value = biggest.value;
   return {
     id: "concentration",
     value: pct,
-    text: t.text(pct, ticker),
+    text: t.text(pct, ticker, f.eur(value)),
     tone: "warning",
     calculation: [
-      t.share(ticker, f.eur(biggest.value), f.eur(total)),
-      ...(prices?.change1y != null ? [t.lastYear(f.percent(prices.change1y, { signed: true, decimals: 0 }))] : []),
-      ...(prices?.drawdown ? [t.worstFall(prices.drawdown.from.slice(0, 4), f.percent(-prices.drawdown.max, { decimals: 0 }))] : []),
+      t.share(ticker, f.eur(value), f.eur(total)),
+      // A year ago it was worth value ÷ (1 + change): the change, in euros of what is held.
+      ...(prices?.change1y != null
+        ? [t.lastYear(f.percent(prices.change1y, { signed: true, decimals: 0 }), f.eur(value - value / (1 + prices.change1y), { signed: true }))]
+        : []),
+      ...(prices?.drawdown
+        ? [t.worstFall(prices.drawdown.from.slice(0, 4), f.percent(-prices.drawdown.max, { decimals: 0 }), f.eur(-value * prices.drawdown.max, { signed: true }))]
+        : []),
       t.growsLike(m.assets.inSentence[referenceFor(biggest.holding).asset], Boolean(instrument)),
     ],
     assumptions: [t.assumption],
@@ -286,7 +313,11 @@ export function currencyFinding({ holdings, i18n }: FindingContext): Finding | n
   };
 }
 
-/** A bad first decade (the 10th percentile of history-based simulations): for the first goal, or for the result. */
+/**
+ * A bad first decade from history (lib/decade.ts: 2000–2009, or the
+ * investment's worst): for the first goal, or for the result. The same
+ * decade "What if…?" applies.
+ */
 export function sequenceFinding(context: FindingContext): Finding | null {
   const { calc, today, i18n } = context;
   const { m, f } = i18n;
@@ -297,56 +328,56 @@ export function sequenceFinding(context: FindingContext): Finding | null {
   const focus = first && first.months >= 60 ? first : null;
   const months = focus ? focus.months : horizonOf(context);
   if (months < 60) return null;
-  const decade = Math.min(10, Math.floor(months / 12));
-  const { p10, p50 } = bandsFor(investment, { start: scenario.capital, monthly: scenario.monthly, years: decade });
-  const bad = p10[decade];
-  const typical = p50[decade];
-  const period = decade === 10 ? t.decade : t.years(decade);
-  const calculation = [t.afterYears(decade, f.eur(typical), f.eur(bad)), t.thenAverage];
-  const assumptions = [t.simulated(simulationsText(investment, i18n)), monthlyAssumption(scenario, i18n)];
+  const span = Math.min(DECADE_YEARS, Math.floor(months / 12));
+  const decade = historicalDecade(investment, scenario.capital, scenario.monthly, span);
+  if (!decade) return null;
+  const bad: Scenario = { ...scenario, head: decade.head };
+  const years = `${decade.from}–${decade.to}`;
+  const typical = valueAt(scenario, span * 12);
+  const calculation = [t.afterYears(span, f.eur(typical), f.eur(decade.head[span]), years), t.thenAverage];
+  const assumptions = [t.realYears(decadeSource(investment, i18n), years), monthlyAssumption(scenario, i18n)];
 
   if (focus) {
-    const typicalMonths = decade * 12 + monthsToGoal(typical, scenario.monthly, scenario.realReturn, focus.target);
-    const badMonths = decade * 12 + monthsToGoal(bad, scenario.monthly, scenario.realReturn, focus.target);
-    const delay = badMonths - typicalMonths;
+    const badMonths = monthsTo(bad, focus.target);
+    const delay = badMonths - focus.months;
     // A bad start that pushes the goal past 60 years would quote a date that far out.
-    if (!withinReach(badMonths) || !withinReach(typicalMonths) || delay < 12) return null;
+    if (!withinReach(badMonths) || delay < 12) return null;
     return {
       id: "sequence",
       value: `+${f.span(delay)}`,
-      text: t.goalText(period, f.span(delay)),
+      text: t.goalText(span, years, f.span(delay)),
       tone: "warning",
-      calculation: [...calculation, t.goalLine(goalName(focus, i18n), f.span(typicalMonths), f.span(badMonths))],
+      calculation: [...calculation, t.goalLine(goalName(focus, i18n), f.span(focus.months), f.span(badMonths), years)],
       assumptions,
     };
   }
-  const rest = months - decade * 12;
-  const after = (start: number) => valueAt({ ...scenario, capital: start }, rest);
-  const shortfall = after(typical) - after(bad);
-  if (shortfall < Math.max(1000, after(typical) * 0.05)) return null;
+  const shortfall = valueAt(scenario, months) - valueAt(bad, months);
+  if (shortfall < Math.max(1000, valueAt(scenario, months) * 0.05)) return null;
   const year = yearOf(today, months);
   return {
     id: "sequence",
     value: f.eurRounded(-shortfall),
-    text: t.resultText(period, f.eurRounded(shortfall), year),
+    text: t.resultText(span, years, f.eurRounded(shortfall), year),
     tone: "warning",
-    calculation: [...calculation, t.resultLine(year, f.eur(after(typical)), f.eur(after(bad)))],
+    calculation: [...calculation, t.resultLine(year, f.eur(valueAt(scenario, months)), f.eur(valueAt(bad, months)), years)],
     assumptions,
   };
 }
 
-/** How long money takes to double at the plan's growth. */
+/** How long money takes to double at the plan's growth: on what the user has now, or a year of what they add. */
 export function doublingFinding({ calc, i18n }: FindingContext): Finding | null {
   const { m, f } = i18n;
   const rate = calc.scenario.realReturn;
   if (rate < 0.02) return null;
   const years = Math.log(2) / Math.log1p(rate);
+  const base = calc.scenario.capital > 0 ? calc.scenario.capital : calc.scenario.monthly * 12;
+  if (base <= 0) return null;
   return {
     id: "doubling",
     value: f.span(years * 12),
-    text: m.findings.doubling.text(f.rate(rate), f.span(years * 12)),
+    text: m.findings.doubling.text(f.rate(rate), f.eur(base), f.eur(base * 2), f.span(years * 12)),
     tone: "info",
-    calculation: [m.findings.doubling.line(f.rate(rate), f.fixed(years, 1))],
+    calculation: [m.findings.doubling.line(f.rate(rate), f.fixed(years, 1), f.eur(base), f.eur(base * 2))],
     assumptions: [growthAssumption(calc.scenario, calc.investment, i18n)],
   };
 }

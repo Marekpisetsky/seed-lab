@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { describe, it } from "node:test";
 import { build, DIST } from "../src/build.ts";
 import { externalRequests, inlineScripts, measure, storageUse } from "../../packages/seed-kit/src/checks.ts";
+import { themeScript } from "../../packages/seed-kit/src/theme.ts";
 import { escape } from "../../packages/seed-kit/src/html.ts";
 import { FAVICON } from "../../packages/seed-kit/src/icons.ts";
 import { plainLanguageProblems, textsOf } from "../../packages/seed-kit/src/plain-language.ts";
@@ -14,6 +15,8 @@ import { en } from "../src/i18n/en.ts";
 import { es } from "../src/i18n/es.ts";
 import { LOCALE_SETTINGS, LOCALES, PAGES, localePath } from "../src/i18n/index.ts";
 import type { Locale } from "../src/i18n/index.ts";
+
+const THEME_SCRIPT = themeScript({ menu: true });
 
 const { report, figures } = build();
 
@@ -66,7 +69,9 @@ describe("the build", () => {
         assert.match(img, /\salt="[^"]+"/, `${file}: images say what they show`);
       }
       assert.doesNotMatch(text, /@import|\burl\(/, file); // CSS; "new URL(" in the language script is fine
-      assert.doesNotMatch(text, /document\.cookie|localStorage|sessionStorage|indexedDB|sendBeacon|fetch\(|XMLHttpRequest/, file);
+      // The one thing kept, by seed-kit's theme script, word for word: light or dark, for the tab (theme.ts).
+      assert.equal(text.split(THEME_SCRIPT).length, 2, `${file}: the theme script, once`);
+      assert.doesNotMatch(text.split(THEME_SCRIPT).join(""), /document\.cookie|localStorage|sessionStorage|indexedDB|sendBeacon|fetch\(|XMLHttpRequest/, file);
       assert.doesNotMatch(text, /gtag|google-analytics|googletagmanager|plausible|umami|matomo|vercel\/analytics|insights/i, file);
       assert.deepEqual(externalRequests(text), [], file);
       assert.deepEqual(inlineScripts(text).flatMap(storageUse), [], file);
@@ -106,15 +111,17 @@ describe("the build", () => {
     }
   });
 
-  it("has only two tiny scripts: the language one on English pages, the email one where the address is", () => {
+  it("has only three tiny scripts: the theme one first, the language one on English pages, the email one where the address is", () => {
     for (const { file, text } of HTML) {
       const scripts = [...text.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(([, code]) => code);
       const english = text.includes('<html lang="en">') && file !== "404.html";
       const email = text.includes('class="email"');
-      assert.equal(scripts.length, Number(english) + Number(email), file);
+      assert.equal(scripts.length, 1 + Number(english) + Number(email), file);
+      assert.equal(scripts[0], THEME_SCRIPT, `${file}: the theme first, before anything is painted`);
       assert.equal(scripts.filter((code) => code.includes("navigator.language")).length, Number(english), file);
       assert.equal(scripts.filter((code) => code.includes('querySelectorAll(".email")')).length, Number(email), file);
-      for (const code of scripts) assert.doesNotMatch(code, /cookie|Storage|fetch|XMLHttpRequest/, file);
+      for (const code of scripts.slice(1)) assert.doesNotMatch(code, /cookie|Storage|fetch|XMLHttpRequest/, file);
+      assert.doesNotMatch(scripts[0], /cookie|localStorage|fetch|XMLHttpRequest/, file);
     }
   });
 });
@@ -291,12 +298,13 @@ describe("the front page", () => {
     }
   });
 
-  it("explains how every tool is built: three steps and the base they share", () => {
+  it("explains how every tool is built: the factory, the pieces and the research, and the base they share", () => {
     for (const locale of LOCALES) {
       const band = section(page(locale), "build");
       assert.equal((band.match(/<span class="step-number"/g) ?? []).length, 3, locale);
+      assert.deepEqual([...band.matchAll(/<p class="build-name">([^<]+)<\/p>/g)].map(([, name]) => name), ["Forja", "seed-kit", "Research"], locale);
       assert.match(band, /<div class="diagram-base"><p>seed-kit<\/p>/, locale);
-      assert.match(band, /Forja/, locale);
+      assert.match(band, /<p class="diagram-research"><strong>Research<\/strong>/, locale);
     }
   });
 

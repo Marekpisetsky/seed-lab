@@ -102,14 +102,22 @@ describe("+€50 a month and 5 more years", () => {
 describe("A bad first decade", () => {
   const base = calculate(plan(), [], today);
 
-  it("follows the lower line of the simulations (1 in 10 ended below it) for ten years, then grows at the average", () => {
+  it("takes the real years 2000–2009 of the S&P 500 for ten years, then grows at the average", () => {
     const bad = calculate(plan(), [], today, "bad-decade");
-    const lower = bandsFor(base.investment, { start: 10_000, monthly: 300, years: 10 }).p10;
-    expect(bad.scenario.head).toEqual(lower.slice(0, 11));
-    expect(bad.scenario.head?.[0]).toBe(10_000);
-    expect(valueAt(bad.scenario, 120)).toBeCloseTo(lower[10], 6);
-    expect(bad.result.total).toBeCloseTo(futureValueWithContributions(lower[10], 300, base.scenario.realReturn, 10), 6);
+    const years = new Map(SERIES.sp500.years.map((entry) => [entry.year, entry.realReturn]));
+    const expected = [10_000];
+    for (let year = 2000; year <= 2009; year++) expected.push(futureValueWithContributions(expected[expected.length - 1], 300, years.get(year) ?? NaN, 1));
+    expect(bad.scenario.head).toHaveLength(11);
+    bad.scenario.head?.forEach((value, index) => expect(value).toBeCloseTo(expected[index], 6));
+    expect(valueAt(bad.scenario, 120)).toBeCloseTo(expected[10], 6);
+    expect(bad.result.total).toBeCloseTo(futureValueWithContributions(expected[10], 300, base.scenario.realReturn, 10), 6);
     expect(effect(base, "bad-decade")?.change).toBeLessThan(0);
+  });
+
+  it("says which years in its chip and once applied, in both languages", () => {
+    expect(EN.m.whatIf.decade(10, "2000–2009")).toBe("First 10 years like 2000–2009");
+    expect(EN.m.whatIf.indicator(EN.m.whatIf.decadeApplied(10, "2000–2009"), "−€12,000")).toBe("What if: first 10 years like 2000–2009 (−€12,000)");
+    expect(ES.m.whatIf.indicator(ES.m.whatIf.decadeApplied(10, "2000–2009"), "−12.000 €")).toBe("¿Y si… los primeros 10 años fueran como 2000–2009? (−12.000 €)");
   });
 
   it("delays goals and the country table the same way", () => {

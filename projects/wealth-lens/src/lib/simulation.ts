@@ -111,6 +111,21 @@ export function wealthPercentiles({
   return result;
 }
 
+/**
+ * A few of the very paths the percentiles come from, whole, for the view
+ * of the possible futures: `count` of them, evenly spread over the
+ * simulations (which are in random order), each year 0 to `years`.
+ */
+export function wealthSamples({ start, monthly, returns, years, simulations = 1000, seed = 20260929, key, count }: WealthOptions & { count: number }): number[][] {
+  if (returns.length === 0) throw new RangeError("returns must not be empty");
+  const { growth, added } = paths(returns, years, simulations, seed, key);
+  const step = simulations / count;
+  return Array.from({ length: count }, (_, index) => {
+    const s = Math.floor(index * step);
+    return Array.from({ length: years + 1 }, (_, y) => start * growth[y][s] + monthly * added[y][s]);
+  });
+}
+
 const successCache = new Map<string, number>();
 const MAX_CACHED = 64;
 const cacheId = (key: string, rate: number) => `${key}|${rate.toFixed(4)}`;
@@ -118,8 +133,9 @@ const cacheId = (key: string, rate: number) => `${key}|${rate.toFixed(4)}`;
 /**
  * How often each withdrawal rate lasted 30 years with this history, cached
  * by the history's key (see ResolvedInvestment.key) and the rate. The
- * indexes' 3, 4 and 5 % come from lib/success-table.ts; missing rates are
- * simulated together, over the same sequences.
+ * slider's eleven rates (2 % to 7 %) for each index and the starting plan
+ * come from lib/success-table.ts; missing rates are simulated together,
+ * over the same sequences.
  */
 export function cachedSuccessRates(key: string, returns: readonly number[], rates: readonly number[]): number[] {
   const known = (rate: number) => PRECOMPUTED_SUCCESS[key]?.[rate.toFixed(4)];

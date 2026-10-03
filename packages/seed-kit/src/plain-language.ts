@@ -1,8 +1,9 @@
 /**
  * The plain-language check every seed-lab tool runs on its words (principle
  * 5, "clear enough for a child and their grandparent"): short sentences,
- * and no jargon outside the places that explain it. Pure functions, so any
- * test runner can use them; an app's test passes its own texts and limits.
+ * no jargon outside the places that explain it, and no advice anywhere
+ * (seed-lab informs, it does not advise). Pure functions, so any test
+ * runner can use them; an app's test passes its own texts and limits.
  */
 
 import type { Locale } from "./locales.ts";
@@ -19,8 +20,28 @@ export const JARGON: Readonly<Record<Locale, RegExp>> = {
   es: /\b(real(es)?|nominal(es)?|volatilidad|vol[aá]til(es)?|percentil(es)?|oscilaci[oó]n(es)?|IPC|IPCA|deflactor|PPA)\b/i,
 };
 
+/**
+ * Words that tell a person what to do with their money: an app informs, it
+ * does not advise (research/legal/informar-no-aconsejar.md). Never allowed,
+ * not even in the folded explanations: consequences and data instead.
+ */
+export const ADVICE: Readonly<Record<Locale, RegExp>> = {
+  en: /\b(you should|you must|we (?:recommend|suggest|advise)|recommended|best (?:choice |option )?for you)\b/i,
+  es: /\b(deber[ií]as|debes|tienes que|te (?:recomendamos|aconsejamos|sugerimos)|recomendad[oa]s?|lo mejor para ti|la mejor opci[oó]n para ti)\b/i,
+};
+
 /** Plain phrases that happen to use one of those words. */
-export const ALLOWED = [/\breal history\b/i, /\bhistoria real\b/i, /\breal people\b/i, /\bpersonas reales\b/i];
+export const ALLOWED = [
+  /\breal history\b/i,
+  /\bhistoria real\b/i,
+  /\breal people\b/i,
+  /\bpersonas reales\b/i,
+  // Years and crises that happened, not "real returns".
+  /\breal years\b/i,
+  /\baños reales\b/i,
+  /\breal crises\b/i,
+  /\bcrisis reales\b/i,
+];
 
 /**
  * How many words a reader meets: "**" marks and a number joined to its
@@ -57,11 +78,12 @@ export interface PlainRules {
   allowed?: readonly RegExp[];
 }
 
-/** Every problem in a language's texts: jargon and long sentences. Empty when they read plainly. */
+/** Every problem in a language's texts: advice, jargon and long sentences. Empty when they read plainly. */
 export function plainLanguageProblems(entries: readonly TextEntry[], locale: Locale, rules: PlainRules = {}): string[] {
   const { maxWords = 12, longForm, technical = () => false, skip = () => false, allowed = ALLOWED } = rules;
   return entries.flatMap((entry) => {
     const found: string[] = [];
+    if (ADVICE[locale].test(entry.text)) found.push(`${locale} ${entry.path}: advice in "${entry.text}"`);
     if (!technical(entry.path) && hasJargon(entry.text, locale, allowed)) found.push(`${locale} ${entry.path}: jargon in "${entry.text}"`);
     if (!skip(entry.path)) {
       const max = longForm?.paths(entry.path) ? longForm.maxWords : maxWords;
@@ -96,4 +118,35 @@ export function textsOf(dictionary: unknown, path: string[] = []): TextEntry[] {
   if (Array.isArray(dictionary)) return dictionary.flatMap((item, index) => textsOf(item, [...path, String(index)]));
   if (dictionary && typeof dictionary === "object") return Object.entries(dictionary).flatMap(([key, value]) => textsOf(value, [...path, key]));
   return [];
+}
+
+/*
+ * "No percentage without what it is in euros of the user's money": a
+ * fall, a share or a growth said as a percent comes with its amount ("A
+ * fall like 2008's (−37%) = −€407 of your €1,100"). The check runs on what
+ * a page shows: each block of text (a paragraph, a list item, a cell, a
+ * button) and each label a screen reader says. A frequency is said as a
+ * count ("in 8 of 10 possible futures"), never as a percent.
+ */
+
+const BLOCK = /<\/?(p|div|li|ul|ol|dl|dt|dd|td|th|tr|table|thead|tbody|button|label|h[1-6]|section|figure|figcaption|summary|details|dialog|header|footer|nav|main|aside|article|option|select)\b[^>]*>/gi;
+
+const ENTITIES: Readonly<Record<string, string>> = { amp: "&", lt: "<", gt: ">", quot: '"', "#x27": "'", "#39": "'", nbsp: "\u00a0" };
+const decode = (text: string) => text.replace(/&(amp|lt|gt|quot|#x27|#39|nbsp);/g, (_, name: string) => ENTITIES[name] ?? "");
+
+/** The blocks of text in some markup, as a reader meets them, and the labels a screen reader says (aria-label, aria-valuetext). */
+export function textBlocks(html: string): string[] {
+  const labels = [...html.matchAll(/\saria-(?:label|valuetext)="([^"]*)"/g)].map((match) => decode(match[1]));
+  const blocks = html
+    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, "")
+    .replace(BLOCK, "\n")
+    .replace(/<[^>]+>/g, "")
+    .split("\n")
+    .map((block) => decode(block).replace(/[ \t\r\n]+/g, " ").trim());
+  return [...blocks, ...labels].filter((block) => block !== "");
+}
+
+/** The blocks that show a percent and no amount in that currency. Empty when every percent has its euros. */
+export function percentWithoutMoney(blocks: readonly string[], currency = "€"): string[] {
+  return blocks.filter((block) => /\d[\s\u00a0]?%/.test(block) && !block.includes(currency));
 }

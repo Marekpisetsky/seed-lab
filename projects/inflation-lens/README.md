@@ -26,8 +26,10 @@ lanzadores.
   desde entonces y la frase para 100 €: "100 € de 2010 compran hoy lo que
   ≈ 74 € entonces".
 - Una línea de tiempo sencilla: una barra por año con cuánto subieron los
-  precios, los años desde el elegido en verde, y la tabla año a año
-  plegada debajo.
+  precios, los años desde el elegido en verde tras una línea discontinua
+  (no solo por color: también la línea, en la leyenda y en el gráfico) y
+  los anteriores en gris, ambos a 3:1 o más sobre la tarjeta; y la tabla
+  año a año plegada debajo. Los descensos llevan el signo menos (−).
 - "Hoy" es el último año completo de los datos.
 
 ## Datos
@@ -66,7 +68,7 @@ provisional, y `npm test` lo vuelve a comprobar. Después se puede pasar a
 | Tus datos no salen de tu dispositivo | Cumple | Se calcula en tu navegador. No se guarda ni se envía nada. |
 | Transparente | En parte | Gratis, con Eurostat como fuente y su licencia en la página. Por ahora sus cifras son provisionales. |
 | Europeo de verdad | Pendiente | En inglés y español, pero alojado en EE. UU. Aún sin auditoría por personas. |
-| Ligero | Cumple | Unos 15 KB por página, comprimida (límite del molde: 50 KB). |
+| Ligero | Cumple | Unos 16 KB por página, comprimida (límite del molde: 50 KB). |
 | Para todos | En parte | Palabras sencillas, teclado y objetivos de 44 px. Aún sin probar con personas reales. |
 
 ## Cómo está hecha

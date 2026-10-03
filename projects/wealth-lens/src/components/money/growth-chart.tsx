@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n";
 import { RadioGroup } from "@/components/ui/radio-group";
@@ -7,12 +8,19 @@ import type { CalculationBundle } from "@/hooks/use-calculation";
 import { useWidth } from "@/hooks/use-width";
 import { assumptionsNote } from "@/lib/assumptions";
 import { yearlyPath, type YearPoint } from "@/lib/calculator";
-import { endLabel, moneyLine, yearTooltip } from "@/lib/growth";
+import { formatMultiple, multipleOf, timesPutInText, yearTooltip } from "@/lib/growth";
+import { bandsFor } from "@/lib/projections";
 import { ticks } from "@/lib/ticks";
 
-const HEIGHT = 150;
-const PAD = { left: 2, right: 58, top: 10, bottom: 22 };
-const FONT = 11;
+/** "Where do these futures come from?": its code loads when it is opened. */
+const FuturesView = dynamic(() => import("./futures-view").then((module) => module.FuturesView));
+
+/** The chart is the result's main picture: 260 px tall on a computer (1.7 times what it was), 210 on a phone. */
+export const CHART_HEIGHT = { narrow: 210, wide: 260 } as const;
+/** From this chart width (a tablet, the result's column on a computer) the taller chart and the longer labels. */
+const WIDE_FROM = 420;
+const PAD = { left: 2, right: 58, top: 12, bottom: 24 };
+const FONT = 12;
 
 function Swatch({ color }: { color: string }) {
   return <span aria-hidden="true" className="inline-block size-2.5 rounded-sm" style={{ background: color }} />;
@@ -23,6 +31,7 @@ function Plot({ points, startYear }: { points: YearPoint[]; startYear: number })
   const { m, f } = i18n;
   const [hover, setHover] = useState<number | null>(null);
   const [frame, width] = useWidth<HTMLDivElement>(320);
+  const height = width >= WIDE_FROM ? CHART_HEIGHT.wide : CHART_HEIGHT.narrow;
   const years = points.length - 1;
   const end = points[years];
   const projected = Math.max(...points.map((point) => point.total), ...points.map((point) => point.putIn));
@@ -32,7 +41,7 @@ function Plot({ points, startYear }: { points: YearPoint[]; startYear: number })
   const padRight = Math.max(PAD.right, Math.ceil(Math.max(m.chart.putIn.length, m.chart.growth.length) * FONT * 0.6) + 10);
   const plotRight = Math.max(PAD.left + 40, width - padRight);
   const x = (year: number) => PAD.left + (years === 0 ? 0 : (year / years) * (plotRight - PAD.left));
-  const y = (value: number) => PAD.top + (1 - Math.max(0, value) / top) * (HEIGHT - PAD.top - PAD.bottom);
+  const y = (value: number) => PAD.top + (1 - Math.max(0, value) / top) * (height - PAD.top - PAD.bottom);
   const line = (values: readonly number[]) => values.map((value, year) => `${year === 0 ? "M" : "L"}${x(year).toFixed(1)},${y(value).toFixed(1)}`).join("");
   // When the money shrinks, what is left is all "put in" and growth has no height.
   const putInTop = points.map((point) => Math.min(point.putIn, point.total));
@@ -69,16 +78,17 @@ function Plot({ points, startYear }: { points: YearPoint[]; startYear: number })
   const putInLabelY = (y(0) + y(putInTop[years])) / 2;
   const growthLabelY = (y(putInTop[years]) + y(end.total)) / 2;
   const labelsFit = Math.abs(putInLabelY - growthLabelY) >= FONT + 2;
-  // What growth added in all, at the end of the curve: just above it, inside the plot.
-  const gained = endLabel(end, i18n);
+  // What the money became, at the end of the curve: "×2.3 what you put in", just above it, inside the plot.
+  const multiple = multipleOf(end);
+  const gained = multiple === null ? null : width >= WIDE_FROM ? timesPutInText(end, i18n) : formatMultiple(multiple, i18n);
   const gainedY = Math.max(PAD.top + FONT, y(end.total) - 7);
 
   return (
     <div ref={frame} className="relative">
       <svg
         width={width}
-        height={HEIGHT}
-        viewBox={`0 0 ${width} ${HEIGHT}`}
+        height={height}
+        viewBox={`0 0 ${width} ${height}`}
         className="block touch-pan-y select-none"
         role="img"
         aria-label={m.chart.aria(startYear + years, f.eur(end.putIn), f.eur(growthEnd))}
@@ -120,13 +130,13 @@ function Plot({ points, startYear }: { points: YearPoint[]; startYear: number })
           </>
         )}
         {labelYears.map((year) => (
-          <text key={year} x={x(year)} y={HEIGHT - 6} fontSize={FONT} fill="var(--muted)" textAnchor={year === 0 ? "start" : year === years ? "end" : "middle"}>
+          <text key={year} x={x(year)} y={height - 6} fontSize={FONT} fill="var(--muted)" textAnchor={year === 0 ? "start" : year === years ? "end" : "middle"}>
             {startYear + year}
           </text>
         ))}
         {shown && (
           <g>
-            <line x1={x(shown.year)} x2={x(shown.year)} y1={PAD.top} y2={HEIGHT - PAD.bottom} stroke="var(--muted)" strokeWidth={1} />
+            <line x1={x(shown.year)} x2={x(shown.year)} y1={PAD.top} y2={height - PAD.bottom} stroke="var(--muted)" strokeWidth={1} />
             <circle cx={x(shown.year)} cy={y(shown.total)} r={4} fill="var(--foreground)" stroke="var(--card)" strokeWidth={2} />
           </g>
         )}
@@ -192,58 +202,49 @@ function YearTable({ points, startYear }: { points: YearPoint[]; startYear: numb
   );
 }
 
-/** The chart's tabs: the first 5, 10, 20 or 30 years, or all of them. */
-export const PERIODS = [5, 10, 20, 30, "all"] as const;
+/** The chart's tabs: "Show: 5 years · 10 years · 20 years · All". */
+export const PERIODS = [5, 10, 20, "all"] as const;
 export type Period = (typeof PERIODS)[number];
 
-/** How many years a tab shows: never more than the plan has; a tab longer than the plan is shown but cannot be picked. */
+/** How many years a tab shows: never more than the plan has. */
 export function shownYears(period: Period, years: number): number {
   return period === "all" ? years : Math.min(period, years);
 }
 
+/** The tabs a plan of `years` gets: those shorter than it, and All; none when All would be alone. */
+export function periodsFor(years: number): Period[] {
+  const shorter = PERIODS.filter((period): period is Exclude<Period, "all"> => period !== "all" && period < years);
+  return shorter.length > 0 ? [...shorter, "all"] : [];
+}
+
 /**
- * Level 2: the years to the result, small and plain: what was put in and
- * what growth added, stacked, with the % gained at the end of the curve.
- * Tabs above it, as on a stock chart, show the first 5, 10, 20 or 30
- * years or all of them: they change only what the chart shows, never the
- * figures. Where 8 in 10 simulations ended is in "What you should know".
+ * Level 2, the result's main picture: the years to the result, what was
+ * put in and what growth added, stacked, with "×2.3 what you put in" at
+ * the end of the curve. Tabs above it ("Show: 5 years · 10 years · 20
+ * years · All") change only what the chart shows, never the figures; a tab
+ * as long as the plan or longer is not offered. Under it, together and
+ * small: where 1 in 10 possible futures end, the way to see where they come
+ * from, what the figures assume and the years as a table.
  */
 export function GrowthChart({ bundle }: { bundle: CalculationBundle }) {
   const i18n = useI18n();
-  const { m } = i18n;
+  const { m, f } = i18n;
   const { calc, today } = bundle;
   const { scenario, investment, result } = calc;
   const points = useMemo(() => yearlyPath(scenario, result.years), [scenario, result.years]);
   const [period, setPeriod] = useState<Period>("all");
+  const [futures, setFutures] = useState(false);
+  const tabs = periodsFor(result.years);
   // A tab the plan has become too short for falls back to all of it.
-  const picked = period !== "all" && period > result.years ? "all" : period;
+  const picked = tabs.includes(period) ? period : "all";
   const view = useMemo(() => points.slice(0, shownYears(picked, result.years) + 1), [points, picked, result.years]);
   const startYear = today.getUTCFullYear();
-  const money = moneyLine(result, investment.volatility > 0, i18n);
+  const amounts = { start: scenario.capital, monthly: scenario.monthly, years: result.years };
+  const bands = investment.volatility > 0 ? bandsFor(investment, amounts) : null;
   return (
-    <div className="space-y-2">
-      <RadioGroup
-        label={m.chart.periods}
-        options={PERIODS.map((value) => ({
-          value,
-          label:
-            value === "all" ? (
-              m.chart.all
-            ) : (
-              <>
-                <span aria-hidden="true">{value}</span>
-                <span className="sr-only">{m.units.years(value)}</span>
-              </>
-            ),
-          disabled: value !== "all" && value > result.years,
-        }))}
-        value={picked}
-        onChange={setPeriod}
-        className="inline-flex rounded-md border border-border p-0.5 text-base"
-        optionClassName={(checked) => `min-h-11 min-w-11 rounded px-2.5 py-1 font-medium tabular-nums ${checked ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
-      />
-      <figure className="space-y-2">
-        <figcaption className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted">
+    <figure className="space-y-4 rounded-xl border border-border bg-card p-4 sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <figcaption className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
           <span>
             <Swatch color="var(--chart-put-in)" /> {m.chart.putIn}
           </span>
@@ -251,13 +252,38 @@ export function GrowthChart({ bundle }: { bundle: CalculationBundle }) {
             <Swatch color="var(--chart-growth)" /> {m.chart.growth}
           </span>
         </figcaption>
-        <Plot points={view} startYear={startYear} />
-        <div className="space-y-0.5 text-sm text-muted">
-          {money && <p className="tabular-nums">{`${money} · ${m.result.putIn(i18n.f.eur(result.putIn))}`}</p>}
-          <p>{assumptionsNote(investment, i18n)}</p>
-        </div>
+        {tabs.length > 0 && (
+          <div className="flex items-center gap-2">
+            <span aria-hidden="true" className="text-sm font-medium text-muted">
+              {m.chart.periods}
+            </span>
+            <RadioGroup
+              label={m.chart.periods}
+              options={tabs.map((value) => ({ value, label: value === "all" ? m.chart.all : m.units.years(value) }))}
+              value={picked}
+              onChange={setPeriod}
+              className="inline-flex flex-wrap rounded-md border border-border p-0.5 text-sm"
+              optionClassName={(checked) => `min-h-11 rounded px-2.5 py-1 font-medium tabular-nums ${checked ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
+            />
+          </div>
+        )}
+      </div>
+      <Plot points={view} startYear={startYear} />
+      <div className="space-y-1 border-t border-border pt-3 text-sm text-muted">
+        {bands && (
+          <p className="tabular-nums">
+            {m.facts.badFrom(f.eur(bands.p10[result.years]))} {m.facts.aboveToo(f.eur(bands.p90[result.years]))}
+          </p>
+        )}
+        {bands && (
+          <button type="button" onClick={() => setFutures(true)} className="-ml-2 inline-flex min-h-11 items-center rounded-md px-2 font-medium text-accent hover:bg-accent/10">
+            {m.futures.link}
+          </button>
+        )}
+        <p>{assumptionsNote(investment, i18n)}</p>
         <YearTable points={points} startYear={startYear} />
-      </figure>
-    </div>
+      </div>
+      {futures && bands && <FuturesView bundle={bundle} onClose={() => setFutures(false)} />}
+    </figure>
   );
 }

@@ -130,7 +130,8 @@ export function findColumn(header: readonly string[], ...candidates: (string | R
  */
 export function parseLooseNumber(raw: string | undefined, decimalComma = false): number | null {
   if (raw === undefined) return null;
-  let text = raw.trim().replace(/[\s  ']/g, "");
+  // The true minus sign (−) too: the app writes negatives with it (seed-kit's format.ts).
+  let text = raw.trim().replace(/[\s  ']/g, "").replace(/\u2212/g, "-");
   text = text.replace(/^[^\d.,+-]+|[^\d.,]+$/g, ""); // currency symbols, %, codes
   if (text === "" || !/^[+-]?[\d.,]+$/.test(text)) return null;
 

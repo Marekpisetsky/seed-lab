@@ -6,10 +6,13 @@
  * - no request to another site: no script, style, image, font or frame
  *   from elsewhere (a link someone can follow is not a request);
  * - nothing stored in the browser: no cookies, no local or session
- *   storage, no IndexedDB, no cache storage.
+ *   storage, no IndexedDB, no cache storage. One exception, by design:
+ *   the light or dark mode someone picks, in sessionStorage under the
+ *   theme's key, for the tab only (theme.ts).
  */
 
 import { gzipSync } from "node:zlib";
+import { THEME_KEY } from "./theme.ts";
 
 /** What a browser downloads, raw and compressed, in bytes. */
 export interface Weight {
@@ -82,9 +85,12 @@ export function externalRequests(html: string): string[] {
   return found;
 }
 
-/** Browser storage a page's code touches; empty when it stores nothing. */
+/** The theme's own use of sessionStorage, by its key written out: allowed, and nothing else is. */
+const THEME_STORAGE = new RegExp(`\\bsessionStorage\\.(?:get|set|remove)Item\\(\\s*["'\`]${THEME_KEY}["'\`]`, "g");
+
+/** Browser storage a page's code touches; empty when it stores nothing but the tab's theme (theme.ts). */
 export function storageUse(code: string): string[] {
-  return [...code.matchAll(/\b(localStorage|sessionStorage|indexedDB|document\.cookie|cookieStore|caches\.open)\b/g)].map(([use]) => use);
+  return [...code.replace(THEME_STORAGE, "").matchAll(/\b(localStorage|sessionStorage|indexedDB|document\.cookie|cookieStore|caches\.open)\b/g)].map(([use]) => use);
 }
 
 /** The code of a page's inline scripts, for storageUse(). */

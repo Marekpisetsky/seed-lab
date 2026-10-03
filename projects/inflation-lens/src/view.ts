@@ -73,12 +73,15 @@ export function timelineHtml(choice: Choice, all: readonly Series[], locale: Loc
     .join("");
   const first = years[0].year;
   const last = years[years.length - 1].year;
+  // Where "since" starts, as a dashed line too: the years since the chosen one are not told by colour alone.
+  const since = years.findIndex(({ year }) => year > choice.year);
+  const edge = since > 0 ? `<line class="since" x1="${(since * step).toFixed(1)}" x2="${(since * step).toFixed(1)}" y1="0" y2="${HEIGHT}" vector-effect="non-scaling-stroke"/>` : "";
   // The bars stretch to the card; the years under them are text, so they keep their size.
-  const svg = `<svg class="timeline" viewBox="0 0 ${WIDTH} ${HEIGHT}" preserveAspectRatio="none" role="img" aria-label="${escape(words.timelineLabel(series.sentence, String(first), String(last)))}"><line x1="0" x2="${WIDTH}" y1="${zero.toFixed(1)}" y2="${zero.toFixed(1)}" vector-effect="non-scaling-stroke"/>${bars}</svg>`;
+  const svg = `<svg class="timeline" viewBox="0 0 ${WIDTH} ${HEIGHT}" preserveAspectRatio="none" role="img" aria-label="${escape(words.timelineLabel(series.sentence, String(first), String(last)))}"><line x1="0" x2="${WIDTH}" y1="${zero.toFixed(1)}" y2="${zero.toFixed(1)}" vector-effect="non-scaling-stroke"/>${bars}${edge}</svg>`;
   const at = (year: number) => `${(((year - first + 0.5) / years.length) * 100).toFixed(1)}%`;
   const middle = choice.year > first && choice.year < last - 1 ? html`<span class="mid" style="left:${at(choice.year + 0.5)}">${choice.year}</span>` : "";
   return html`<h2 id="timeline-title">${words.timeline}</h2>
-<p class="sk-muted legend"><span class="swatch" aria-hidden="true"></span> ${words.since(String(choice.year))}</p>
+<p class="sk-muted legend"><span class="edge" aria-hidden="true"></span><span class="swatch" aria-hidden="true"></span> ${words.since(String(choice.year))}</p>
 ${raw(svg)}
 <p class="axis" aria-hidden="true"><span>${first}</span>${middle}<span>${last}</span></p>
 <details>
