@@ -2,11 +2,12 @@
 
 import { type AppState } from "@/lib/app-store";
 import { priceHoldings } from "@/lib/auto-price";
-import { calculate, WITHDRAWAL_CHOICES, type Calculation } from "@/lib/calculator";
+import { calculate, type Calculation } from "@/lib/calculator";
 import { toIsoDate } from "@/lib/dates";
 import { planReady } from "@/lib/plan";
 import { successRatesFor } from "@/lib/projections";
 import type { Holding } from "@/lib/types";
+import { WITHDRAWAL_STEPS } from "@/lib/withdrawal";
 import { useAppState } from "./use-app";
 import { useToday } from "./use-plan";
 
@@ -20,15 +21,15 @@ export interface CalculationBundle {
   calc: Calculation;
   /** The plan as it is, without a "What if…?": the findings and the scenarios' effects are about it. */
   base: Calculation;
-  /** The withdrawal rates offered, lowest first; how often the plan's lasted is in `calc.result.lasted`. */
+  /** The withdrawal rates the slider offers, lowest first; how often the plan's lasted is in `calc.result.lasted`. */
   rates: number[];
 }
 
 let last: { state: AppState; day: string; bundle: CalculationBundle } | null = null;
 
-/** The rates offered: 3, 4 and 5 %, plus the plan's own if a file set another. */
+/** The rates the slider offers, 2 % to 7 % (the plan's own is always one of them: lib/validation.ts). */
 export function offeredRates(withdrawalRate: number): number[] {
-  return [...new Set([...WITHDRAWAL_CHOICES, withdrawalRate])].sort((a, b) => a - b);
+  return [...new Set([...WITHDRAWAL_STEPS, withdrawalRate])].sort((a, b) => a - b);
 }
 
 /**

@@ -10,17 +10,15 @@
  *   year grows 1% more or less after rising prices.
  * - +€50 a month: the monthly amount plus €50.
  * - 5 more years: the same plan for five more years (60 at most).
- * - A bad first decade: for the first ten years (or the plan's years, if
- *   fewer), the money follows the line 1 in 10 simulated histories ended
- *   below (the lower dashed line of the chart); from then on it grows at the
- *   average again. The simulations are the investment's own: its history,
- *   or a normal distribution with the growth and ups and downs typed. With
- *   no ups and downs there is no bad decade.
+ * - A decade like 2000–2009: for the first ten years (or the plan's years,
+ *   if fewer), the money takes the real yearly growth of a bad decade from
+ *   history, 2000–2009 or the investment's worst (lib/decade.ts); from then
+ *   on it grows at the average again. With no ups and downs there is none.
  */
 
 import type { Scenario } from "./calculator";
+import { DECADE_YEARS, historicalDecade } from "./decade";
 import type { ResolvedInvestment } from "./investment";
-import { bandsFor } from "./projections";
 
 export const WHAT_IF_IDS = ["grow-more", "grow-less", "monthly-50", "years-5", "bad-decade"] as const;
 export type WhatIfId = (typeof WHAT_IF_IDS)[number];
@@ -34,7 +32,7 @@ export const GROWTH_STEP = 0.01;
 export const MONTHLY_STEP = 50;
 export const MORE_YEARS = 5;
 /** Years the bad start lasts, at most. */
-export const BAD_YEARS = 10;
+export const BAD_YEARS = DECADE_YEARS;
 /** The most years a plan looks ahead. */
 const MAX_YEARS = 60;
 
@@ -44,7 +42,7 @@ export interface WhatIfInputs {
   years: number;
   /** Added to the growth a year after rising prices. */
   growth: number;
-  /** A bad start: the lower line of the simulations for its first years. */
+  /** A bad start: a real bad decade for its first years. */
   badStart: boolean;
 }
 
@@ -67,13 +65,11 @@ export function whatIfAvailable(id: WhatIfId, years: number, investment: Pick<Re
 
 /**
  * The first years of a bad start: after 0, 1… up to BAD_YEARS years (or
- * the plan's years, if fewer), the 10th percentile of the simulated
- * balances. `null` when the investment has no ups and downs.
+ * the plan's years, if fewer), what the money is worth through a real bad
+ * decade. `null` when the investment has no ups and downs.
  */
 export function badStartHead(investment: ResolvedInvestment, start: number, monthly: number, years: number): number[] | null {
-  if (investment.volatility <= 0) return null;
-  const span = Math.max(1, Math.min(BAD_YEARS, years));
-  return bandsFor(investment, { start, monthly, years: span }).p10.slice(0, span + 1);
+  return historicalDecade(investment, start, monthly, years)?.head ?? null;
 }
 
 /** A scenario with a bad start, when there is one. */

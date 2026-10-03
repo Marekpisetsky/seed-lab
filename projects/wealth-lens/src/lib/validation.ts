@@ -13,6 +13,7 @@ import { instrumentById, instrumentForHolding } from "./market-data";
 import { MAX_PARTS, mixPartKey, mixStock } from "./mix";
 import { problem, type Problem } from "./problems";
 import type { PricePoint } from "./prices";
+import { snapWithdrawal } from "./withdrawal";
 import { STANDARD_ASSUMPTIONS, type AssumptionOverrides, type Goal, type Holding, type Investment, type LegacyGoal, type MixPart, type NewGoal, type Plan } from "./types";
 
 /** The euro goal of version 1 files, which becomes the goal "reach an amount". */
@@ -420,7 +421,8 @@ export function parsePlan(value: unknown, holdings: readonly Holding[] = [], not
     investment: chosen.investment,
     // Versions 2 and 3 called it horizonYears.
     years: [value.years, value.horizonYears].find(isYears) ?? DEFAULT_PLAN.years,
-    withdrawalRate: pick("withdrawalRate", (v) => (isRate(v) && v > 0 ? v : null)),
+    // On the slider's steps: 2–7 %, every 0.5 % (earlier versions offered 3, 4 and 5 %).
+    withdrawalRate: pick("withdrawalRate", (v) => (isRate(v) && v > 0 ? snapWithdrawal(v) : null)),
     pricesOf,
     assumptions: chosen.assumptions,
     goals: "goals" in value ? parseGoals(value.goals) : goalsFromEarlierVersions(value),

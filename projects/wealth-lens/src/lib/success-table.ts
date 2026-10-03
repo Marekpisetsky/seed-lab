@@ -1,14 +1,16 @@
 /**
- * How often 3, 4 and 5 % a year lasted 30 years, for each asset with a
- * history, worked out ahead so the first screen simulates nothing. The
- * simulation is seeded, so these are exactly what lib/monte-carlo.ts gives
- * for the same history; success-table.test.ts recomputes them and fails if
- * the data change.
+ * How often each rate of the slider (2 % to 7 %, every 0.5 %) lasted 30
+ * years, for each asset with a history and for the starting plan (Custom
+ * growth at 5 %, with world stocks' ups and downs), worked out ahead so a
+ * first result and the slider simulate nothing. The simulation is seeded,
+ * so these are exactly what lib/monte-carlo.ts gives for the same history;
+ * success-table.test.ts recomputes them and fails if the data change.
  */
 export const PRECOMPUTED_SUCCESS: Readonly<Record<string, Readonly<Record<string, number>>>> = {
-  "asset:sp500": { "0.0300": 0.977, "0.0400": 0.9288, "0.0500": 0.8556 },
-  "asset:world": { "0.0300": 0.885, "0.0400": 0.7662, "0.0500": 0.619 },
-  "asset:nasdaq100": { "0.0300": 0.916, "0.0400": 0.8576, "0.0500": 0.784 },
-  "asset:bonds": { "0.0300": 0.9532, "0.0400": 0.745, "0.0500": 0.382 },
-  "asset:gold": { "0.0300": 0.6966, "0.0400": 0.4462, "0.0500": 0.245 },
+  "asset:sp500": { "0.0200": 0.9956, "0.0250": 0.9904, "0.0300": 0.977, "0.0350": 0.9574, "0.0400": 0.9288, "0.0450": 0.895, "0.0500": 0.8556, "0.0550": 0.8066, "0.0600": 0.7524, "0.0650": 0.6844, "0.0700": 0.6214 },
+  "asset:world": { "0.0200": 0.9614, "0.0250": 0.929, "0.0300": 0.885, "0.0350": 0.828, "0.0400": 0.7662, "0.0450": 0.7, "0.0500": 0.619, "0.0550": 0.5478, "0.0600": 0.47, "0.0650": 0.3968, "0.0700": 0.3344 },
+  "asset:nasdaq100": { "0.0200": 0.963, "0.0250": 0.9396, "0.0300": 0.916, "0.0350": 0.8866, "0.0400": 0.8576, "0.0450": 0.8228, "0.0500": 0.784, "0.0550": 0.7516, "0.0600": 0.7134, "0.0650": 0.6746, "0.0700": 0.6356 },
+  "asset:bonds": { "0.0200": 0.997, "0.0250": 0.987, "0.0300": 0.9532, "0.0350": 0.8666, "0.0400": 0.745, "0.0450": 0.5726, "0.0500": 0.382, "0.0550": 0.2172, "0.0600": 0.1054, "0.0650": 0.0448, "0.0700": 0.0134 },
+  "asset:gold": { "0.0200": 0.9156, "0.0250": 0.8166, "0.0300": 0.6966, "0.0350": 0.571, "0.0400": 0.4462, "0.0450": 0.333, "0.0500": 0.245, "0.0550": 0.173, "0.0600": 0.1176, "0.0650": 0.0808, "0.0700": 0.0488 },
+  "normal:0.050000:0.178217": { "0.0200": 0.978, "0.0250": 0.952, "0.0300": 0.911, "0.0350": 0.859, "0.0400": 0.7948, "0.0450": 0.7262, "0.0500": 0.6494, "0.0550": 0.5762, "0.0600": 0.501, "0.0650": 0.4314, "0.0700": 0.3688 },
 };
