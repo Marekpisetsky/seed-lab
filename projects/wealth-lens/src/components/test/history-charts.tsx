@@ -10,8 +10,23 @@ const HEIGHT = 180;
 const PAD = { left: 2, right: 10, top: 12, bottom: 22 };
 const FONT = 11;
 
-function Swatch({ color, dashed = false, dot = false }: { color: string; dashed?: boolean; dot?: boolean }) {
-  if (dot) return <span aria-hidden="true" className="inline-block size-2.5 rounded-full" style={{ background: color }} />;
+/** The shape over a marked start year: ▼ the worst, ◆ the middle, ▲ the best. Each has its own, so none is told by colour alone. */
+type Shape = "down" | "diamond" | "up";
+const shapePath = (shape: Shape, cx: number, cy: number, r: number) =>
+  shape === "down"
+    ? `M${cx - r},${cy - r * 0.8}H${cx + r}L${cx},${cy + r * 0.9}Z`
+    : shape === "up"
+      ? `M${cx - r},${cy + r * 0.8}H${cx + r}L${cx},${cy - r * 0.9}Z`
+      : `M${cx},${cy - r}L${cx + r},${cy}L${cx},${cy + r}L${cx - r},${cy}Z`;
+
+function Swatch({ color, dashed = false, shape }: { color: string; dashed?: boolean; shape?: Shape }) {
+  if (shape) {
+    return (
+      <svg aria-hidden="true" width="12" height="12" className="inline-block shrink-0">
+        <path d={shapePath(shape, 6, 6, 5)} fill={color} />
+      </svg>
+    );
+  }
   return (
     <svg aria-hidden="true" width="16" height="8" className="inline-block">
       <line x1="0" x2="16" y1="4" y2="4" stroke={color} strokeWidth={dashed ? 1.5 : 2} strokeDasharray={dashed ? "4 3" : undefined} />
@@ -173,10 +188,10 @@ export function StartYearsChart({ every, average, label }: { every: StartYears; 
   const slot = (right - PAD.left) / starts.length;
   const gap = slot > 6 ? 2 : slot > 3 ? 1 : 0;
   const y = (value: number) => PAD.top + (1 - Math.max(0, value) / top) * (HEIGHT - PAD.top - PAD.bottom);
-  const marked = new Map([
-    [every.worst.year, { color: "var(--negative)", name: t.worst }],
-    [every.median.year, { color: "var(--foreground)", name: t.middle }],
-    [every.best.year, { color: "var(--positive)", name: t.best }],
+  const marked = new Map<number, { color: string; name: string; shape: Shape }>([
+    [every.worst.year, { color: "var(--negative)", name: t.worst, shape: "down" }],
+    [every.median.year, { color: "var(--foreground)", name: t.middle, shape: "diamond" }],
+    [every.best.year, { color: "var(--positive)", name: t.best, shape: "up" }],
   ]);
   const shown = hover === null ? null : starts[hover];
   const move = (event: React.PointerEvent<SVGSVGElement>) => {
@@ -215,6 +230,10 @@ export function StartYearsChart({ every, average, label }: { every: StartYears; 
             );
           })}
           <line x1={PAD.left} x2={right} y1={y(average)} y2={y(average)} stroke="var(--muted)" strokeWidth={1.5} strokeDasharray="4 3" />
+          {starts.map((start, index) => {
+            const mark = marked.get(start.year);
+            return mark ? <path key={start.year} d={shapePath(mark.shape, PAD.left + (index + 0.5) * slot, Math.max(PAD.top - 2, y(start.final) - 8), 5)} fill={mark.color} stroke="var(--card)" strokeWidth={1.5} /> : null;
+          })}
           <GridLabels max={top} y={y} />
           {[0, starts.length - 1].map((index) => (
             <text key={index} x={PAD.left + (index + (index === 0 ? 0 : 1)) * slot} y={HEIGHT - 6} fontSize={FONT} fill="var(--muted)" textAnchor={index === 0 ? "start" : "end"}>
@@ -231,7 +250,7 @@ export function StartYearsChart({ every, average, label }: { every: StartYears; 
           const start = starts.find((entry) => entry.year === year);
           return (
             <span key={mark.name} className="flex items-center gap-1.5">
-              <Swatch color={mark.color} dot />
+              <Swatch color={mark.color} shape={mark.shape} />
               <span className="font-medium">{mark.name}</span>
               <span>{start && t.mark(start.year, f.eur(start.final))}</span>
             </span>

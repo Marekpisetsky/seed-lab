@@ -6,6 +6,7 @@ import { pathToFileURL } from "node:url";
 import { describe, it } from "node:test";
 import { browserModules } from "../src/browser.ts";
 import { externalRequests, inlineScripts, storageUse } from "../src/checks.ts";
+import { themeScript } from "../src/theme.ts";
 import { kitCss, minifyCss } from "../src/css.ts";
 import { html } from "../src/html.ts";
 import { legalLink, legalPage } from "../src/legal.ts";
@@ -45,10 +46,19 @@ describe("the page around a static tool", () => {
 
   it("puts the language script on English pages only, and keeps the 404 out of search", () => {
     assert.equal(inlineScripts(page()).filter((code) => code.includes("navigator.languages")).length, 1);
-    assert.equal(inlineScripts(page({ locale: "es" })).length, 0);
+    assert.equal(inlineScripts(page({ locale: "es" })).filter((code) => code.includes("navigator.languages")).length, 0);
     const missing = page({ path: null });
     assert.match(missing, /<meta name="robots" content="noindex">/);
     assert.doesNotMatch(missing, /canonical|navigator/);
+  });
+
+  it("sets the tab's light or dark mode first in the head, on every page, and runs the header's menus", () => {
+    for (const html of [page(), page({ locale: "es" }), page({ path: null })]) {
+      const head = html.slice(0, html.indexOf("</head>"));
+      const [first] = inlineScripts(head);
+      assert.equal(first, themeScript({ menu: true }));
+      assert.ok(head.indexOf(first) < head.indexOf("<style>"), "before the styles, so nothing paints in the other mode");
+    }
   });
 
   it("can live in a folder of a bigger site", () => {

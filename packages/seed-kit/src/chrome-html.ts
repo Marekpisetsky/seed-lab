@@ -2,14 +2,30 @@
  * The header and footer as static HTML, for apps without a framework (the
  * hub, the tools Forja makes). The same markup and classes as
  * react/chrome.tsx, styled by chrome.css. The launcher is a <details>
- * element: it opens and closes with no script.
+ * element: it opens and closes with no script. The theme menu needs the
+ * kit's theme script (theme.ts, with `menu`), which also closes either
+ * menu on Escape or a press outside; without scripts it is not shown.
+ * On a narrow phone the theme's choices move into the launcher's panel.
  */
 
-import type { FooterModel, HeaderModel } from "./chrome.ts";
+import type { ChromeWords, FooterModel, HeaderModel } from "./chrome.ts";
 import { html, raw, type Html } from "./html.ts";
-import { CHECK_ICON, GRID_ICON, seedSvg } from "./icons.ts";
+import { CHECK_ICON, GRID_ICON, seedSvg, THEME_ICONS } from "./icons.ts";
+import { THEMES } from "./theme.ts";
 
 const current = (on: boolean | undefined, value = "page") => (on ? raw(` aria-current="${value}"`) : "");
+
+/** The three modes as radio buttons, "Automatic" checked until the head script says otherwise (theme.ts). */
+function themeChoices(words: ChromeWords, name: string): Html {
+  return html`<fieldset class="sk-themes"><legend class="sk-panel-title">${words.theme}</legend>
+${THEMES.map(
+  (theme) =>
+    html`<label><input type="radio" name="${name}" value="${theme}" data-sk-theme${theme === "auto" ? raw(" checked") : ""}><span class="sk-icon" aria-hidden="true">${raw(THEME_ICONS[theme])}</span><span class="sk-mode">${words.themes[theme]}${
+      theme === "auto" ? html`<small>${words.themeAuto}</small>` : ""
+    }</span></label>\n`,
+)}</fieldset>
+<p class="sk-theme-note">${words.themeNote}</p>`;
+}
 
 /** The skip link, the header and its launcher. `id` names the launcher's panel. */
 export function headerHtml(model: HeaderModel, id = "sk-launcher"): Html {
@@ -28,6 +44,13 @@ ${
     (link) =>
       html`<li><a href="${link.href}" hreflang="${link.locale}" lang="${link.locale}" title="${link.name}" aria-label="${link.name}"${current(link.current, "true")}>${link.label}</a></li>`,
   )}</ul></nav>
+<details class="sk-theme"><summary aria-label="${words.theme}" title="${words.theme}" aria-controls="${id}-theme">${THEMES.map(
+    (theme) => html`<span class="sk-icon sk-mode-${theme}" aria-hidden="true">${raw(THEME_ICONS[theme])}</span>`,
+  )}</summary>
+<div class="sk-panel" id="${id}-theme">
+${themeChoices(words, `${id}-theme`)}
+</div>
+</details>
 <details class="sk-launcher"><summary aria-label="${words.launcher}" title="${words.launcher}" aria-controls="${id}"><span class="sk-icon" aria-hidden="true">${raw(GRID_ICON)}</span></summary>
 <div class="sk-panel" id="${id}">
 <a class="sk-hub" href="${model.hubHref}"><strong>${words.hub}</strong><span>${words.hubNote}</span></a>
@@ -38,6 +61,9 @@ ${
         tool.current ? html`<span class="sk-here"><span class="sk-icon" aria-hidden="true">${raw(CHECK_ICON)}</span>${words.here}</span>` : ""
       }</a></li>`,
   )}</ul>
+<div class="sk-panel-theme">
+${themeChoices(words, `${id}-panel-theme`)}
+</div>
 </div>
 </details>
 </div>

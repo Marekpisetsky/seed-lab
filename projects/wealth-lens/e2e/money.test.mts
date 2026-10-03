@@ -8,15 +8,14 @@
  */
 
 import assert from "node:assert/strict";
-import { createServer, type Server } from "node:http";
-import { existsSync, readFileSync, statSync } from "node:fs";
-import { extname, join } from "node:path";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { chromium, type Browser, type Page } from "playwright";
+import { serve } from "../../../packages/seed-kit/src/serve.ts";
 
 const OUT = fileURLToPath(new URL("../out/", import.meta.url));
-const TYPES: Record<string, string> = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".json": "application/json", ".txt": "text/plain", ".ico": "image/x-icon" };
 
 const WORDS = {
   en: { path: "/", have: "How much do you have now?", monthly: "How much do you add each month?", growth: "How much does it grow each year?", years: "For how many years?", see: "See my result", edit: "Edit", done: "Done", more: "€50 more a month", sp500: /^S&P 500,/, world: /^World,/, result: "Result" },
@@ -24,28 +23,19 @@ const WORDS = {
 } as const;
 type Lang = keyof typeof WORDS;
 
-let server: Server;
+let close = () => {};
 let base = "";
 let browser: Browser;
 
 before(async () => {
   assert.ok(existsSync(join(OUT, "index.html")), "build first: npm run build");
-  server = createServer((request, response) => {
-    let file = join(OUT, decodeURIComponent(new URL(request.url ?? "/", "http://x").pathname));
-    if (existsSync(`${file.replace(/\/$/, "")}.html`)) file = `${file.replace(/\/$/, "")}.html`;
-    else if (existsSync(file) && statSync(file).isDirectory()) file = join(file, "index.html");
-    if (!existsSync(file)) return void response.writeHead(404).end();
-    response.writeHead(200, { "content-type": TYPES[extname(file)] ?? "application/octet-stream" }).end(readFileSync(file));
-  });
-  await new Promise<void>((resolve) => server.listen(0, resolve));
-  const address = server.address();
-  base = `http://localhost:${typeof address === "object" && address ? address.port : 0}`;
+  ({ base, close } = await serve(OUT));
   browser = await chromium.launch();
 });
 
 after(async () => {
   await browser?.close();
-  server?.close();
+  close();
 });
 
 async function open(lang: Lang, width: number, height = 800): Promise<Page> {
@@ -298,7 +288,9 @@ describe("for a finger", () => {
       page.evaluate(() =>
         [...document.querySelectorAll('a[href], button, input, select, summary, [role="radio"]')]
           .filter((element) => {
-            const box = element.getBoundingClientRect();
+            // Shown: not in a closed menu. A radio button's target is its whole label.
+            if (!element.checkVisibility()) return false;
+            const box = (element.matches("input[type=radio]") ? (element.closest("label") ?? element) : element).getBoundingClientRect();
             // A file input is hidden behind its own button.
             return box.width > 1 && box.height > 1 && (box.width < 44 || box.height < 44);
           })

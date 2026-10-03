@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendingDown } from "lucide-react";
+import { TrendIcon } from "@seed-kit/react/trend.tsx";
 import { useMemo, useRef, useState } from "react";
 import { SeeMore } from "@/components/money/result-section";
 import { useI18n } from "@/components/i18n";
@@ -93,8 +93,10 @@ export function CrisisPanel({
       </h2>
       <p className="text-base">{t.happened[result.id]}</p>
       <p aria-live="polite" className="flex flex-wrap items-center gap-x-2 text-lg font-semibold tabular-nums">
-        {fall && <TrendingDown aria-hidden="true" className="size-5 text-negative" />}
-        {cardFigure(result, i18n)}
+        <span>
+          <TrendIcon change={fall ? -1 : null} />
+          {cardFigure(result, i18n)}
+        </span>
         {fall && <Help what={t.crash} text={m.help.fall} />}
       </p>
       <PathChart
@@ -259,7 +261,10 @@ export function TestModule() {
                   {result ? (
                     <>
                       <MiniPath path={source ? historyPath(source, { start: 1, monthly: 0 }, result.startYear, cardYears(result)) : []} falling={result.fall !== null} active={active} />
-                      <span className="text-base font-semibold tabular-nums">{cardFigure(result, i18n)}</span>
+                      <span className="text-base font-semibold tabular-nums">
+                        <TrendIcon change={result.fall ? -1 : null} />
+                        {cardFigure(result, i18n)}
+                      </span>
                     </>
                   ) : (
                     <span className="text-sm">{t.noData}</span>

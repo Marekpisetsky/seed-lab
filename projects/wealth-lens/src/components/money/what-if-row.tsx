@@ -1,5 +1,6 @@
 "use client";
 
+import { Trend } from "@seed-kit/react/trend.tsx";
 import { X } from "lucide-react";
 import { useId } from "react";
 import { useI18n } from "@/components/i18n";
@@ -71,7 +72,9 @@ export function WhatIfRow({ bundle, layout = "grid" }: { bundle: CalculationBund
       <div role="group" aria-label={m.whatIf.title} className={list ? "flex flex-col gap-2" : "grid grid-cols-2 gap-2 sm:grid-cols-3"}>
         {effects.map((effect) => {
           const pressed = applied === effect.id;
-          const tone = !effect.available ? "text-muted" : effect.change >= 0 ? "text-positive" : "text-negative";
+          // As shown: rounded to the euro or more, so €0 has no colour and no mark.
+          const shown = effect.available ? Math.round(effect.change) : 0;
+          const tone = shown > 0 ? "text-positive" : shown < 0 ? "text-negative" : "text-muted";
           return (
             <button
               key={effect.id}
@@ -85,7 +88,13 @@ export function WhatIfRow({ bundle, layout = "grid" }: { bundle: CalculationBund
             >
               <span className="text-base font-medium">{whatIfChip(effect.id, bundle.base.investment, bundle.base.result.years, i18n)}</span>
               <span className={`shrink-0 text-sm font-semibold tabular-nums ${tone}`}>
-                <Changed value={effectText(effect, i18n)} />
+                {effect.available ? (
+                  <Trend change={shown}>
+                    <Changed value={effectText(effect, i18n)} />
+                  </Trend>
+                ) : (
+                  <Changed value={effectText(effect, i18n)} />
+                )}
               </span>
             </button>
           );

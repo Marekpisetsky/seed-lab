@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { parseNumber } from "@seed-kit/format.ts";
 import { EN, getI18n } from "@/i18n";
+import { parseLooseNumber } from "./csv";
 
 const ES = getI18n("es");
 const {
@@ -32,8 +34,19 @@ describe("formatMoney", () => {
 
   it("signs gains and losses when asked", () => {
     expect(formatMoney(250, "EUR", { signed: true })).toBe("+€250.00");
-    expect(formatMoney(-250, "USD", { signed: true })).toBe("-$250.00");
+    expect(formatMoney(-250, "USD", { signed: true })).toBe("−$250.00");
     expect(formatMoney(0, "EUR", { signed: true })).toBe("€0.00");
+  });
+
+  it("writes a loss with the true minus sign (−), which every reader of typed numbers reads back", () => {
+    for (const text of [formatMoney(-250, "EUR", { signed: true }), formatEur(-1234), formatPercent(-0.05), formatNumber(-2.5), ES.f.eur(-1234)]) {
+      expect(text).toMatch(/^\u2212|\u2212\d/);
+      expect(text).not.toContain("-");
+    }
+    expect(parseLooseNumber("\u22122,5", true)).toBe(-2.5);
+    expect(parseLooseNumber("\u22121,234")).toBe(-1234);
+    expect(parseNumber("\u22122,5", ",")).toBe(-2.5);
+    expect(parseNumber("-2.5", ".")).toBe(-2.5);
   });
 
   it("falls back to the code for currencies without a symbol", () => {
@@ -46,7 +59,7 @@ describe("formatPercent / formatNumber", () => {
   it("formats fractions as percentages", () => {
     expect(formatPercent(0.0914)).toBe("9.1%");
     expect(formatPercent(0.07, { decimals: 0 })).toBe("7%");
-    expect(formatPercent(-0.2, { signed: true })).toBe("-20.0%");
+    expect(formatPercent(-0.2, { signed: true })).toBe("−20.0%");
     expect(formatPercent(0.25, { signed: true })).toBe("+25.0%");
   });
 
@@ -95,7 +108,7 @@ describe("formatDayMonth", () => {
 describe("formatEur / formatYears", () => {
   it("formats whole euros, optionally signed", () => {
     expect(formatEur(1234.5)).toBe("€1,235");
-    expect(formatEur(-50)).toBe("-€50");
+    expect(formatEur(-50)).toBe("−€50");
     expect(formatEur(5400, { signed: true })).toBe("+€5,400");
   });
 
@@ -118,7 +131,7 @@ describe("formatEurRounded", () => {
     expect(formatEurRounded(8429)).toBe("€8,400");
     expect(formatEurRounded(456)).toBe("€460");
     expect(formatEurRounded(42)).toBe("€42");
-    expect(formatEurRounded(-5230, { signed: true })).toBe("-€5,200");
+    expect(formatEurRounded(-5230, { signed: true })).toBe("−€5,200");
   });
 });
 
