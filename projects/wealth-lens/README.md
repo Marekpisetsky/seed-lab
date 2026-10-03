@@ -26,7 +26,7 @@ tabla de *Principles* del hub, `packages/seed-kit/src/tools.json`):
 | Your data never leaves your device | Cumple | Todo se calcula en el navegador; nada se guarda ni se envía. |
 | Transparent | En parte | Gratis, con método y fuentes públicos; los cambios del método aún no se publican. |
 | Truly European | Pendiente | EN y ES, pero alojada en Vercel (EE. UU.) y sin auditoría de accesibilidad hecha por personas. |
-| Light | Cumple | De 210 a 231 KB por página en la primera visita, por debajo del límite de 350 KB. |
+| Light | Cumple | De 212 a 233 KB por página en la primera visita, por debajo del límite de 350 KB. |
 | For everyone | En parte | Palabras sencillas, teclado y objetivos de 44 px; aún sin pruebas con personas reales. |
 
 **Estado actual (2026-10-03):** dos pantallas (Next.js 16 + TypeScript +
@@ -226,7 +226,10 @@ mano desde las cifras publicadas (ver "Retornos").
 - **Sin backend, sin base de datos, sin almacenamiento.** El estado (el
   plan, los holdings y los CSV de precios subidos) vive en memoria
   (`src/lib/app-store.ts`): nada va a `localStorage`, cookies ni a un
-  servidor, y recargar vuelve a la calculadora vacía. "Download my data"
+  servidor, y recargar vuelve a la calculadora vacía. Lo único que se
+  guarda es el tema elegido en la cabecera (claro u oscuro), solo para la
+  pestaña: una clave en `sessionStorage` que el navegador borra al
+  cerrarla (seed-kit, `theme.ts`; lo explica la página de privacidad). "Download my data"
   genera un JSON local y "Load my data" lo lee en el navegador, sin
   subirlo. Si una versión anterior dejó datos en `localStorage`, la app
   ofrece una vez cargarlos o borrarlos, y los borra en ambos casos.
@@ -442,6 +445,16 @@ mano desde las cifras publicadas (ver "Retornos").
   (cifras, deslizador de retiro, década real, pestañas, ejemplos, *What
   if…?*), 132 medidas en EN y ES: mediana 0,4 ms, p95 1,3 ms, máximo
   8,9 ms. Sin cookies, sin almacenamiento y sin peticiones a otros sitios.
+  **Tema y daltonismo, fase 3 (2026-10).** Primera visita de 212 a 233 KB
+  por página (el menú de tema, sus iconos y el script de la cabecera).
+  `e2e/colours.test.mts`: el menú (elegir, recargar, otra pestaña,
+  Automático, el móvil), el contraste AA de todo texto en claro y oscuro
+  (primera pantalla, resultado, *Could pay you*, *Test my plan*, *My
+  stocks*, *Privacy*) y, con deuteranopía, protanopía y tritanopía
+  emuladas, las dos partes del gráfico, las tres zonas del retiro,
+  ganancia y pérdida, y los años marcados de *Every start year*, a ΔE
+  2000 de 10 o más entre sí; las partes del gráfico, a 3:1 o más sobre la
+  tarjeta.
   **Comodidad (2026-10).** Primera visita de 207 a 227 KB por página; la
   lista de *What if…?* al lado del resultado viaja con el código del
   resultado. Recálculo (72 recálculos, EN y ES a 1366 px tras el primer
@@ -580,6 +593,22 @@ el de texto, enlaces y botones de la app, para mantener AA. En el gráfico,
 (#4A6CF7; #5B7CFA sobre oscuro); la pareja pasa las comprobaciones de
 daltonismo y contraste. Todo texto mantiene al menos 4,5:1 sobre el
 fondo, la tarjeta, el relleno sutil y su propio tinte.
+
+**Claro, oscuro y daltonismo (fase 3).** El menú de tema de la cabecera
+(claro / oscuro / automático, el del dispositivo por defecto) es el de
+seed-kit: la elección dura lo que la pestaña (`sessionStorage`), el
+script de `src/i18n/detect.ts` la aplica antes de pintar y
+`src/hooks/use-color-scheme.ts` la sigue (el gráfico de precios se
+redibuja en el modo elegido). Nada se dice solo con color: cada ganancia
+lleva "+" y ▲ y cada pérdida "−" (el signo menos de verdad, que los
+lectores de pantalla leen "menos") y ▼ (`Trend` de seed-kit en `Gain`,
+los *What if…?*, las filas y líneas de *My stocks* y las tarjetas de
+*Test my plan*); las zonas del retiro llevan su icono y su palabra; los
+años marcados de *Every start year* llevan una forma propia (▼ el peor,
+◆ el del medio, ▲ el mejor). El verde de ganancia pasó a #00796B (#5CE6B8
+sobre oscuro): con el anterior, ganancia y pérdida casi se confundían con
+deuteranopía (ΔE 9,8 en claro y 5,3 en oscuro; ahora 27,3 y 16,8).
+`e2e/colours.test.mts` lo comprueba con la emulación del navegador.
 `globals.css` solo los importa y los nombra para Tailwind. Tipografía del
 sistema (sin fuentes descargadas), títulos en extra-negrita.
 `src/app/tokens.test.ts` comprueba que el icono y la imagen para compartir
@@ -591,6 +620,8 @@ La cabecera y el pie son los de seed-kit (`packages/seed-kit`), los mismos
 que llevan el hub y cada herramienta: la semilla con "Wealth Lens", las
 páginas, EN/ES y el lanzador de seed-lab; en el pie, los controles de
 datos, los enlaces, "Parte de seed-lab", la nota y el copyright.
+Junto a EN/ES está el menú de tema de seed-kit (en un móvil de hasta 424
+px, al pie del panel del lanzador).
 `src/components/site/site-shell.tsx` solo dice lo propio de Wealth Lens
 (su nombre, páginas, enlaces y nota) y pasa `IntentLink`, para que
 cambiar de página o de idioma no pierda lo escrito.
@@ -851,7 +882,7 @@ y abrir `http://<IP-de-la-máquina>:3000` desde la misma red.
 
 ```bash
 npm test          # tests unitarios (Vitest), una sola pasada
-npm run test:browser  # tras npm run build: la página en un navegador real (Playwright)
+npm run test:browser  # tras npm run build: la página en un navegador real (Playwright): e2e/money y e2e/colours
 npm run test:watch
 npm run lint      # ESLint (config de Next.js)
 npm run typecheck # tipos de TypeScript, también los de seed-kit

@@ -51,7 +51,7 @@ lleva dentro, en JSON: el navegador no pide nada a nadie.
 | Tus datos no salen de tu dispositivo | Cumple | Se calcula en tu navegador. No se guarda ni se envía nada. |
 | Transparente | En parte | Gratis, con sus fuentes y fechas en la página. Los cambios de método aún no se listan. |
 | Europeo de verdad | Pendiente | En inglés y español, pero alojado en EE. UU. Aún sin auditoría por personas. |
-| Ligero | Cumple | Unos 16 KB por página, comprimida (límite del molde: 50 KB). |
+| Ligero | Cumple | Unos 17 KB por página, comprimida (límite del molde: 50 KB). |
 | Para todos | En parte | Palabras sencillas, teclado y objetivos de 44 px. Aún sin probar con personas reales. |
 
 ## Cómo está hecha

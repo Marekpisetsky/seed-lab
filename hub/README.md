@@ -46,12 +46,16 @@ pie de seed-lab (con el lanzador de herramientas y EN/ES), la lista de
 herramientas (`tools.json`), el script de idioma, los iconos, la medida
 del peso y las comprobaciones de privacidad y de lenguaje sencillo.
 
-- Sin cookies, sin almacenamiento del navegador, sin analítica, sin
-  fuentes ni scripts externos.
-- Dos scripts mínimos, en línea, que no guardan nada:
+- Sin cookies, sin analítica, sin fuentes ni scripts externos. Del
+  almacenamiento del navegador, solo el tema elegido, para la pestaña.
+- Tres scripts mínimos, en línea:
+  - en todas las páginas, el primero del `<head>`, el del tema (el de
+    seed-kit, `theme.ts`): claro, oscuro o automático, elegido en la
+    cabecera y guardado solo en la pestaña (`sessionStorage`, que el
+    navegador borra al cerrarla); también abre y cierra los menús;
   - solo en las páginas en inglés, el del idioma (el de seed-kit): la primera visita que
     llega desde fuera con un navegador en español va a la página en
-    español; el selector EN/ES siempre gana;
+    español; el selector EN/ES siempre gana; no guarda nada;
   - solo donde aparece el correo (About), el del contacto (`src/email.ts`).
 - **Contacto:** seedlab.eu (arroba) proton.me. En las páginas va en dos
   partes (`data-user` y `data-domain`, en `src/site.ts`): el CSS las
@@ -62,14 +66,17 @@ del peso y las comprobaciones de privacidad y de lenguaje sencillo.
   (`band()` en `src/layout.ts`, con `.theme-dark` y `.theme-light` de
   `tokens.css`): cabecera e introducción oscuras, contenido claro,
   producto oscuro, pie claro. Son iguales con el dispositivo en modo claro
-  u oscuro, así que la página nunca es un bloque oscuro continuo. Títulos
+  u oscuro, así que la página nunca es un bloque oscuro continuo. Si se
+  elige claro u oscuro en el menú de tema, todas las franjas toman ese
+  modo, con una línea entre ellas. Títulos
   grandes, mucho aire y un solo botón destacado por franja (un test lo
   comprueba).
 - **Cabecera y pie:** los de seed-kit (`headerHtml` y `footerHtml`),
   los mismos que lleva cada herramienta: la semilla y el nombre, las
-  páginas, EN/ES y el lanzador (un `<details>`, sin script) con las
-  herramientas visibles. Aquí la cabecera es siempre oscura y el pie
-  siempre claro, y el pie no dice "Parte de seed-lab" (es seed-lab).
+  páginas, EN/ES, el menú de tema y el lanzador (un `<details>`) con las
+  herramientas visibles. Aquí la cabecera es oscura y el pie claro
+  (salvo con un modo elegido), y el pie no dice "Parte de seed-lab" (es
+  seed-lab).
 - **Colores:** el `tokens.css` de seed-kit, el único archivo de colores
   de todas las apps: blanco o #0A0A0A, grises
   neutros y un solo verde de marca, el de la semilla: `--brand` #00A36C
@@ -130,6 +137,8 @@ npm run typecheck
 npm test            # construye y comprueba el resultado
 npm run check       # los tres
 npm run shots       # vuelve a tomar las capturas (antes: npm run build en cada herramienta)
+npm run test:browser  # tras compilar el hub, Cost Lens e Inflation Lens: el menú de tema,
+                      # el contraste AA en claro y oscuro y el daltonismo emulado (e2e/)
 ```
 
 Para verlo en local: `npx serve dist`.
