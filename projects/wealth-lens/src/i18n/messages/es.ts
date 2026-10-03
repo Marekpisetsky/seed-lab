@@ -1010,7 +1010,7 @@ export const es: Messages = {
     } as Record<string, { name: string; source: string }>,
   },
   findings: {
-    title: "Lo que conviene saber",
+    title: "Para tener en cuenta",
     nothing: "Nada destaca con estos números.",
     risk: "Riesgo",
     lever: {

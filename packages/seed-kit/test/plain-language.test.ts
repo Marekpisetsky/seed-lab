@@ -31,6 +31,29 @@ describe("the plain-language check", () => {
     assert.ok(!hasJargon("Source: https://www.bls.gov/cpi/", "en"));
   });
 
+  it("never lets an app tell a person what to do with their money, not even in an explanation", () => {
+    const advice = [
+      { path: "explain.a", text: "You should put more in stocks." },
+      { path: "home.b", text: "We recommend the 60/40 mix." },
+      { path: "home.c", text: "This is the best option for you." },
+    ];
+    assert.equal(plainLanguageProblems(advice, "en", { technical: () => true }).filter((problem) => problem.includes("advice")).length, 3);
+    const consejos = [
+      { path: "a", text: "Deberías vender." },
+      { path: "b", text: "Te recomendamos esta mezcla." },
+      { path: "c", text: "Es lo mejor para ti." },
+    ];
+    assert.equal(plainLanguageProblems(consejos, "es").filter((problem) => problem.includes("advice")).length, 3);
+    // Consequences, data and the disclaimers that say it does not advise are fine.
+    const fine = [
+      { path: "a", text: "At 4% a year, it lasted in 79 of 100 futures." },
+      { path: "b", text: "It never tells you what to buy or sell." },
+      { path: "c", text: "No te dice qué comprar ni qué vender." },
+    ];
+    assert.deepEqual(plainLanguageProblems(fine.slice(0, 2), "en"), []);
+    assert.deepEqual(plainLanguageProblems(fine.slice(2), "es"), []);
+  });
+
   it("reports long sentences and jargon, with their place", () => {
     const entries = [
       { path: "home.title", text: "One two three four five six seven eight nine ten eleven twelve thirteen." },

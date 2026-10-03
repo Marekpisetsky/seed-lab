@@ -1,5 +1,5 @@
 /**
- * "What you should know": short findings about the plan, each with one
+ * "Good to know": short findings about the plan, each with one
  * number and one sentence, and the calculation behind it.
  *
  * They are worked out over the years the user chose. When the user has

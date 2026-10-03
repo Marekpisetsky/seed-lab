@@ -1,8 +1,9 @@
 /**
  * The plain-language check every seed-lab tool runs on its words (principle
  * 5, "clear enough for a child and their grandparent"): short sentences,
- * and no jargon outside the places that explain it. Pure functions, so any
- * test runner can use them; an app's test passes its own texts and limits.
+ * no jargon outside the places that explain it, and no advice anywhere
+ * (seed-lab informs, it does not advise). Pure functions, so any test
+ * runner can use them; an app's test passes its own texts and limits.
  */
 
 import type { Locale } from "./locales.ts";
@@ -17,6 +18,16 @@ export interface TextEntry {
 export const JARGON: Readonly<Record<Locale, RegExp>> = {
   en: /\b(real|nominal|volatility|volatile|swings?|swung|percentiles?|CPI|HICP|deflator|PPP)\b/i,
   es: /\b(real(es)?|nominal(es)?|volatilidad|vol[aá]til(es)?|percentil(es)?|oscilaci[oó]n(es)?|IPC|IPCA|deflactor|PPA)\b/i,
+};
+
+/**
+ * Words that tell a person what to do with their money: an app informs, it
+ * does not advise (research/legal/informar-no-aconsejar.md). Never allowed,
+ * not even in the folded explanations: consequences and data instead.
+ */
+export const ADVICE: Readonly<Record<Locale, RegExp>> = {
+  en: /\b(you should|you must|we (?:recommend|suggest|advise)|recommended|best (?:choice |option )?for you)\b/i,
+  es: /\b(deber[ií]as|debes|tienes que|te (?:recomendamos|aconsejamos|sugerimos)|recomendad[oa]s?|lo mejor para ti|la mejor opci[oó]n para ti)\b/i,
 };
 
 /** Plain phrases that happen to use one of those words. */
@@ -67,11 +78,12 @@ export interface PlainRules {
   allowed?: readonly RegExp[];
 }
 
-/** Every problem in a language's texts: jargon and long sentences. Empty when they read plainly. */
+/** Every problem in a language's texts: advice, jargon and long sentences. Empty when they read plainly. */
 export function plainLanguageProblems(entries: readonly TextEntry[], locale: Locale, rules: PlainRules = {}): string[] {
   const { maxWords = 12, longForm, technical = () => false, skip = () => false, allowed = ALLOWED } = rules;
   return entries.flatMap((entry) => {
     const found: string[] = [];
+    if (ADVICE[locale].test(entry.text)) found.push(`${locale} ${entry.path}: advice in "${entry.text}"`);
     if (!technical(entry.path) && hasJargon(entry.text, locale, allowed)) found.push(`${locale} ${entry.path}: jargon in "${entry.text}"`);
     if (!skip(entry.path)) {
       const max = longForm?.paths(entry.path) ? longForm.maxWords : maxWords;
