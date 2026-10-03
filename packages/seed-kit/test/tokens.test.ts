@@ -10,10 +10,16 @@ import { BRAND, FAVICON, TOUCH_ICON } from "../src/icons.ts";
 
 const TOKENS = readFileSync(new URL("../src/tokens.css", import.meta.url), "utf8");
 const read = (css: string) => Object.fromEntries([...css.matchAll(/--([\w-]+):\s*(#[0-9a-f]{6});/g)].map(([, name, hex]) => [name, hex]));
-/** The values of one block of tokens.css, by its selector. */
+/** The blocks of tokens.css that set the colours, with their selectors. */
+const blocks = [...TOKENS.matchAll(/([^{}]+)\{([^{}]*--background[^{}]*)\}/g)].map(([, selector, body]) => ({
+  selectors: selector.trim().split(/,\s*/),
+  values: read(body),
+}));
+/** The values of the block one selector belongs to. */
 const block = (selector: string) => {
-  const start = TOKENS.indexOf(`${selector} {`);
-  return read(TOKENS.slice(start, TOKENS.indexOf("}", start)));
+  const found = blocks.find((entry) => entry.selectors.includes(selector));
+  assert.ok(found, `no block for ${selector}`);
+  return found.values;
 };
 const modes = { light: block(".theme-light"), dark: block(".theme-dark") };
 const luminance = (hex: string) => {
@@ -52,9 +58,25 @@ describe("the tokens", () => {
     assert.equal(modes.dark.background, "#0a0a0a");
   });
 
-  it("give the device's dark mode the same values as .theme-dark", () => {
+  it("give the device's dark mode the same values as .theme-dark, unless the tab chose light", () => {
     const start = TOKENS.indexOf("@media (prefers-color-scheme: dark)");
-    assert.deepEqual(read(TOKENS.slice(start, TOKENS.indexOf(".theme-dark {"))), modes.dark);
+    assert.ok(start > 0);
+    assert.deepEqual(block(':root:not([data-theme="light"])'), modes.dark);
+    assert.equal(blocks.length, 3, "light, the device's dark, dark");
+  });
+
+  it("follow a mode chosen in the menu on the whole page, the hub's fixed bands included", () => {
+    assert.deepEqual(block(':root[data-theme="light"] .theme-dark'), modes.light);
+    assert.deepEqual(block(':root[data-theme="dark"]'), modes.dark);
+    assert.deepEqual(block(':root[data-theme="dark"] .theme-light'), modes.dark);
+    // The browser's own parts (scrollbars, fields) in the same mode.
+    for (const [selector, scheme] of [
+      [':root[data-theme="light"]', "light"],
+      [':root[data-theme="dark"]', "dark"],
+    ]) {
+      const rule = [...TOKENS.matchAll(/([^{}]+)\{([^{}]*color-scheme:\s*(\w+)[^{}]*)\}/g)].find(([, selectors]) => selectors.split(/,\s*/).map((part) => part.trim()).includes(selector));
+      assert.equal(rule?.[3], scheme, selector);
+    }
   });
 
   it("are a seed green of their own, far from NVIDIA's yellow-green", () => {

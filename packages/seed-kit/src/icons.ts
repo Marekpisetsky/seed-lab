@@ -1,7 +1,8 @@
 /**
  * seed-lab's icons as SVG text, for any app: the seed mark, the launcher's
- * grid, a check, and one plain line icon per principle. They only
- * decorate (aria-hidden): the words next to them say the same.
+ * grid, a check, the theme menu's modes, up and down for gains and losses,
+ * and one plain line icon per principle. They only decorate (aria-hidden):
+ * the words next to them say the same.
  */
 
 /**
@@ -36,6 +37,30 @@ export const GRID_ICON = line('<rect x="4" y="4" width="6.5" height="6.5" rx="1.
 
 /** A tick: "you are here". */
 export const CHECK_ICON = line('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 14);
+
+/** The three modes of the theme menu (theme.ts): the device's own, light, dark. */
+export const THEME_ICONS = {
+  auto: line('<rect x="3" y="4" width="18" height="12.5" rx="2"/><path d="M8.5 20h7M12 16.5V20"/>', 20),
+  light: line('<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6L6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"/>', 20),
+  dark: line('<path d="M20 14.6A8.5 8.5 0 019.4 4 8.5 8.5 0 1020 14.6z"/>', 20),
+} as const;
+
+/**
+ * Up and down, filled, for a gain and a loss: next to the sign (+/−), so a
+ * change never reads by its colour alone. They take the text's size.
+ */
+const trend = (path: string) =>
+  `<svg width=".7em" height=".7em" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:baseline;margin-inline-end:.2em">${path}</svg>`;
+export const TREND_ICONS = {
+  up: trend('<path d="M5 1L9.8 9H.2z"/>'),
+  down: trend('<path d="M5 9L.2 1h9.6z"/>'),
+} as const;
+
+/** "up" for a gain, "down" for a loss, null for no change (or no figure). */
+export function trendOf(change: number | null | undefined): keyof typeof TREND_ICONS | null {
+  if (change === null || change === undefined || !Number.isFinite(change) || change === 0) return null;
+  return change > 0 ? "up" : "down";
+}
 
 /**
  * Five plain line icons, one per principle, drawn on a 24 px grid in the

@@ -26,10 +26,10 @@ tabla de *Principles* del hub, `packages/seed-kit/src/tools.json`):
 | Your data never leaves your device | Cumple | Todo se calcula en el navegador; nada se guarda ni se envía. |
 | Transparent | En parte | Gratis, con método y fuentes públicos; los cambios del método aún no se publican. |
 | Truly European | Pendiente | EN y ES, pero alojada en Vercel (EE. UU.) y sin auditoría de accesibilidad hecha por personas. |
-| Light | Cumple | De 207 a 227 KB por página en la primera visita, por debajo del límite de 350 KB. |
+| Light | Cumple | De 212 a 233 KB por página en la primera visita, por debajo del límite de 350 KB. |
 | For everyone | En parte | Palabras sencillas, teclado y objetivos de 44 px; aún sin pruebas con personas reales. |
 
-**Estado actual (2026-10-02):** dos pantallas (Next.js 16 + TypeScript +
+**Estado actual (2026-10-03):** dos pantallas (Next.js 16 + TypeScript +
 Tailwind 4), exportadas como sitio estático. La principal empieza con
 **cuatro pasos numerados**, con los importes vacíos y el crecimiento en
 5 %; el resultado llega al pulsar *See my result* (solo la primera vez),
@@ -45,7 +45,10 @@ historia larga y un rango conocido; nada se presenta como predecible, y
 todo supuesto viene relleno con un valor estándar documentado y se puede
 cambiar. Todo lo visible está en palabras simples: "real", "nominal",
 "volatility", "swings" y "percentile" solo aparecen en los "i" plegados
-(un test lo comprueba).
+(un test lo comprueba). Y ningún porcentaje del resultado va sin su
+equivalente en euros del dinero del usuario ("−37 % (2008) = −407 € de
+tus 1.100 €"): el mismo test lo comprueba sobre lo que se ve, en los dos
+idiomas y con planes de todo tipo (`percentWithoutMoney` de seed-kit).
 
 - **My money — `/`**, para cualquiera, de quien tiene prisa a quien no se
   maneja con la tecnología: poco texto suelto, cada cosa se explica por su
@@ -90,54 +93,81 @@ cambiar. Todo lo visible está en palabras simples: "real", "nominal",
      can go up or down in a normal year*, *Rising prices in* y *Prices rise
      per year*, con *Reset to standard* (que deja el número del paso 3).
      Un cambio ahí marca *More options* como **Custom**.
-  3. **El resultado, por niveles**, al pulsar *See my result*:
+  3. **El resultado, por niveles**, al pulsar *See my result*: la tarjeta
+     se desplaza y se encoge hasta ser la columna de la derecha (FLIP:
+     solo transformaciones, 350 ms, con el texto nítido), el titular y la
+     cabecera la acompañan, y el resultado entra por partes (número,
+     cuadrícula, gráfico, 60 ms entre cada una: 340 ms en total). Sin
+     animación con *prefers-reduced-motion*; CLS 0 (lo comprueba
+     `npm run test:browser` a 360, 1366 y 1920 px):
      - Primero, lo que dijo el usuario: "With €1,100 today and €100 monthly
        in the S&P 500, in 20 years you could have…", y el total en grande,
        con su "?".
-     - Justo debajo, siempre, **seis datos clave** (dos columnas en el
-       móvil, tres en pantalla ancha): *What you put in*, *What it grows*
-       (con su % sobre lo puesto), *Could pay you monthly*, *Bad case (1 in
-       10)* y *Good case (1 in 10)* (los percentiles 10 y 90 de las
-       simulaciones, o el total sin altibajos) y *Enough to live in* (el
-       país más caro que paga sin vivienda, o "none yet"). Cada uno es un
-       botón: al tocarlo, una línea bajo la cuadrícula dice de dónde sale;
-       *Could pay you* abre el selector de retiro (3/4/5 %) y cuántas
-       historias aguantó 30 años ("93% of S&P 500 histories").
-     - El gráfico anual, con pestañas **5 · 10 · 20 · 30 · All** encima,
-       como en un gráfico de bolsa: solo cambian cuántos años se ven (una
-       pestaña más larga que el plan está, pero no se puede elegir). Lo
-       aportado y el crecimiento como áreas apiladas, con el % ganado al
-       final de la curva; al pasar el ratón o tocar un año, "Year 2036:
-       €48,200 · +37% so far"; debajo, "Your money: ×2.3 · growth added
-       +€63,288 (+129%) · put in €49,000" y la tabla año a año, plegada.
-     - Cuatro secciones con su título siempre a la vista, en este orden;
-       solo su detalle largo espera tras *See more*:
+     - Justo debajo, siempre, **seis datos clave** en euros (dos columnas
+       en el móvil, tres en pantalla ancha): *What you put in*, *Growth*
+       ("×2.3 what you put in", nunca un % que crece sin límite), *Could
+       pay you each month*, *If it goes badly* y *If it goes well* (donde
+       termina 1 de cada 10 futuros posibles por debajo y por encima: los
+       percentiles 10 y 90 de las simulaciones, o el total sin altibajos)
+       y *Enough to live in* (el país más caro que paga sin vivienda, o
+       "none yet"). Cada uno es un botón: al tocarlo, una línea bajo la
+       cuadrícula dice de dónde sale ("In 1 of 10 possible futures, you
+       end up below €110,188."). *Could pay you* abre un **deslizador de
+       retiro del 2 % al 7 %** (pasos de 0,5): en vivo, lo que paga al mes,
+       en cuántos de cada 100 futuros posibles duró 30 años y su zona en
+       palabras y con icono (*Prudent* desde 90 de 100, *Risky* desde 75,
+       *Very risky* por debajo). Las once tasas están precalculadas para
+       cada activo y para el plan inicial (`src/lib/success-table.ts`).
+     - **El gráfico, protagonista**: en su tarjeta con aire, 260 px de alto
+       en ordenador (1,7 veces el de antes) y 210 en el móvil, con **Show:
+       5 years · 10 years · 20 years · All** encima; las pestañas tan
+       largas como el plan o más no aparecen. Lo aportado y el crecimiento
+       como áreas apiladas, con "×2.3 what you put in" al final de la
+       curva; al tocar un año, "2036: €48,200" con lo puesto y lo crecido.
+       Debajo, juntos y en pequeño: "In 1 of 10 possible futures, you end
+       up below €X. And in 1 of 10, above €Y.", **Where do these futures
+       come from?** (una vista con 50 de los 1000 futuros en líneas finas,
+       la franja de 8 de cada 10 sombreada, el resultado en grueso y tres
+       frases: de qué sale cada futuro, cuántos hay y qué quiere decir "1
+       de cada 10", con un enlace a Test my plan), los supuestos y la tabla
+       año a año, plegada.
+     - Secciones con su título siempre a la vista, en este orden; solo su
+       detalle largo espera tras *See more*:
        - **What if…?** (en el móvil, bajo el gráfico; en pantalla ancha, al
-         lado, ver abajo): los cinco escenarios (*Grows 1% more / less*,
-         *+€50 a month*, *5 more years* y *A bad first decade*, con los
-         diez primeros años en el percentil 10 del Monte Carlo), cada uno
-         con lo que cambia; tocar uno lo aplica a toda la pantalla, con
-         "What if: 5 more years ×" junto al total para quitarlo. No se
-         guarda en el archivo.
-       - **Where it reaches**: la tabla de países con dos columnas (sin /
-         con vivienda, una persona, al mes), 7 filas: primero los países ya
-         cubiertos (✓), incluido el que nombra *Enough to live in*, luego
-         los más cercanos a cubrirse, y Perú y Países Bajos para comparar;
-         buscador, "Show all 172" y un "+" para añadir a My goals; tras *See more*, *Things you
-         could buy* (las 19 compras con "✓ now" o "in N years" y su fuente
-         al tocarlas).
+         lado, ver abajo): *Grows 1% more / less*, *+€50 a month*, *5 more
+         years* y **First 10 years like 2000–2009**: los diez primeros años
+         con el crecimiento real, año a año, de 2000–2009 del activo
+         elegido (o de su peor década en los datos, con sus años: bonos
+         2013–2022, oro 1988–1997), luego la media (`src/lib/decade.ts`).
+         Cada uno con lo que cambia en euros; tocar uno lo aplica a toda la
+         pantalla, con "What if: 5 more years (+€87,000) ×" junto al total
+         para quitarlo. No se guarda en el archivo.
+       - **My stocks today**, solo si hay acciones: lo que valen hoy, el
+         cambio de los últimos 12 meses en euros y % (con signo y flecha),
+         su línea pequeña y el enlace a My stocks.
        - **My goals**: cuatro tipos combinables (*Live somewhere*, *Buy
          something*, *Reach an amount* y *A monthly amount*), cada uno
-         calculado por separado sobre el mismo plan: "✓ now", "in 12 years
-         (2038)" o, a más de 60 años, "not at this pace — needs €327/month
-         for 30 years".
+         calculado por separado sobre el mismo plan, siempre con su fecha:
+         "✓ from 2031, in 5 years" si llega dentro de los años del plan,
+         "in 25 years (2051)" si después, o, a más de 60 años, "not at
+         this pace — needs €327/month for 30 years".
+       - **Where it reaches**: la tabla de países con dos columnas (sin /
+         con vivienda, una persona, al mes), 7 filas: primero los países ya
+         cubiertos, incluido el que nombra *Enough to live in*, luego
+         los más cercanos a cubrirse, y Perú y Países Bajos para comparar.
+         Cada celda dice cuándo, en dos líneas cortas: "✓ from 2041 / in 15
+         years", "in 21 years / (2046)" o "not at this pace"; nunca un ✓
+         sin fecha. Buscador, "Show all 172" y un "+" para añadir a My
+         goals; tras *See more*, *Things you could buy* (las 19 compras con
+         "now" o "in 2 years (2028)" y su fuente al tocarlas).
        - **What you should know**: una línea ("What could go wrong, and
-         what helps most", o en tono de aviso si una acción pesa más del 20
-         % de una mezcla); tras *See more*, la línea de supuestos ("Grows
-         7.5% a year after rising prices · can move ±16% in a year · data
-         1988–2022"), dónde terminaron 8 de cada 10 simulaciones (en una
-         mezcla, su rango y su peor año junto al S&P 500 solo) y hasta 3
-         hallazgos.
+         what helps most", o en tono de aviso, con sus euros, si una acción
+         pesa más del 20 % de una mezcla); tras *See more*, la línea de
+         supuestos con sus euros ("Grows 5% a year after rising prices:
+         +€1,109 the first year · can move ±18% in a year: ±€3,564 on
+         €20,000"), dónde terminan 8 de cada 10 futuros posibles (en una
+         mezcla, su rango y su peor año en euros, "−37 % (2008) = −407 € de
+         tus 1.100 €", junto al S&P 500 solo) y hasta 3 hallazgos.
 
      Los "?" quedan junto al total y a cuántas historias aguantó el
      retiro; el resto de ayudas son una frase dentro de su sección.
@@ -155,7 +185,11 @@ cambiar. Todo lo visible está en palabras simples: "real", "nominal",
        mitad de la pantalla y mueve la página para que el número grande
        quede encima, cambiando en vivo mientras se edita.
      - Los pasos son siempre el mismo elemento y se deslizan a su sitio
-       con una view transition; sin animación con *prefers-reduced-motion*.
+       (FLIP, ver arriba); sin animación con *prefers-reduced-motion*.
+     - La cabecera de seed-lab (seed-kit) queda fija arriba en todas las
+       páginas y se compacta al desplazar, solo con CSS: sube lo que mide
+       su margen (en el móvil, su primera fila, y queda la de las
+       páginas); las columnas fijas del resultado van justo debajo.
      - Todo control mide al menos 44 × 44 px, ningún texto del resultado
        baja de 14 px, y nada importante aparece solo al pasar el ratón.
 - **My stocks — `/stocks`**: ganancia, holdings (añadir,
@@ -192,7 +226,10 @@ mano desde las cifras publicadas (ver "Retornos").
 - **Sin backend, sin base de datos, sin almacenamiento.** El estado (el
   plan, los holdings y los CSV de precios subidos) vive en memoria
   (`src/lib/app-store.ts`): nada va a `localStorage`, cookies ni a un
-  servidor, y recargar vuelve a la calculadora vacía. "Download my data"
+  servidor, y recargar vuelve a la calculadora vacía. Lo único que se
+  guarda es el tema elegido en la cabecera (claro u oscuro), solo para la
+  pestaña: una clave en `sessionStorage` que el navegador borra al
+  cerrarla (seed-kit, `theme.ts`; lo explica la página de privacidad). "Download my data"
   genera un JSON local y "Load my data" lo lee en el navegador, sin
   subirlo. Si una versión anterior dejó datos en `localStorage`, la app
   ofrece una vez cargarlos o borrarlos, y los borra en ambos casos.
@@ -336,7 +373,8 @@ mano desde las cifras publicadas (ver "Retornos").
   aguantaría.
 - Velocidad: las dos pantallas se prerenderizan con sus valores de
   llegada, así que se ven antes de que corra el JavaScript. Las tasas de
-  éxito de 3/4/5 % de los cinco activos con historia están precalculadas
+  éxito de los once pasos del deslizador (2–7 %) de los cinco activos con
+  historia y del plan inicial están precalculadas
   (`src/lib/success-table.ts`, un test las recalcula exactas). Los
   retornos simulados de una mezcla se guardan por parte (cambiar un peso o
   a qué crece un holding reutiliza el resto), la simulación de éxito
@@ -367,8 +405,7 @@ mano desde las cifras publicadas (ver "Retornos").
   mediana 4,0 ms, p90 7,8 ms, máximo 13,9 ms (la primera carga de una
   cartera nueva, que simula sus posiciones).
   Con los cinco *What if…?* (sus efectos se calculan en cada cambio, con
-  fórmulas cerradas salvo *A bad first decade*, que lee las bandas ya
-  calculadas) el recálculo medido en el navegador al tocar cada uno, con
+  fórmulas cerradas, y la década real, que recorre diez años de datos) el recálculo medido en el navegador al tocar cada uno, con
   un activo y con una mezcla 60/40, se quedó por debajo de 15 ms; el más lento es la primera vez que se aplica
   *Grows 1% more / less*, porque sus simulaciones son nuevas.
   Los hallazgos y las compras se calculan al abrirlos; los parsers de CSV,
@@ -403,6 +440,21 @@ mano desde las cifras publicadas (ver "Retornos").
   mediana 0,4 ms, máximo 1,5 ms. Lighthouse móvil: `/` 99, `/es` 98,
   `/stocks` 99 de rendimiento, 100 en lo demás; axe sin fallos en el
   resultado completo, claro y oscuro.
+  **Mi dinero, fase 1 (2026-10).** Primera visita de 210 a 231 KB por
+  página; Lighthouse móvil 99 / 100 / 100 / 100 en `/` y `/es`. Recalcular
+  (cifras, deslizador de retiro, década real, pestañas, ejemplos, *What
+  if…?*), 132 medidas en EN y ES: mediana 0,4 ms, p95 1,3 ms, máximo
+  8,9 ms. Sin cookies, sin almacenamiento y sin peticiones a otros sitios.
+  **Tema y daltonismo, fase 3 (2026-10).** Primera visita de 212 a 233 KB
+  por página (el menú de tema, sus iconos y el script de la cabecera).
+  `e2e/colours.test.mts`: el menú (elegir, recargar, otra pestaña,
+  Automático, el móvil), el contraste AA de todo texto en claro y oscuro
+  (primera pantalla, resultado, *Could pay you*, *Test my plan*, *My
+  stocks*, *Privacy*) y, con deuteranopía, protanopía y tritanopía
+  emuladas, las dos partes del gráfico, las tres zonas del retiro,
+  ganancia y pérdida, y los años marcados de *Every start year*, a ΔE
+  2000 de 10 o más entre sí; las partes del gráfico, a 3:1 o más sobre la
+  tarjeta.
   **Comodidad (2026-10).** Primera visita de 207 a 227 KB por página; la
   lista de *What if…?* al lado del resultado viaja con el código del
   resultado. Recálculo (72 recálculos, EN y ES a 1366 px tras el primer
@@ -480,7 +532,7 @@ años elegidos; los de "llegar" hablan de la primera meta cuando está a
 | Concentración | una acción individual > 40 % de la cartera en EUR | su peso, su caída máxima y su cambio a 1 año |
 | Moneda | hay holdings en otra moneda (no se convierten) | el importe que queda fuera del cálculo, o cuántas monedas |
 | Palanca más fuerte | +€100/mes vs +1 % de crecimiento vs haber empezado un año antes: gana 6+ meses en la primera meta, o ≥ €1.000 y ≥ 5 % al final | años antes, o € de más |
-| Riesgo de secuencia | una mala primera década (percentil 10 del Monte Carlo) retrasa la primera meta 1+ año, o deja ≥ €1.000 y ≥ 5 % menos al final | años de retraso o € de menos |
+| Riesgo de secuencia | los primeros 10 años como 2000–2009 (o la peor década del activo en los datos) retrasan la primera meta 1+ año, o dejan ≥ €1.000 y ≥ 5 % menos al final | años de retraso o € de menos |
 | Inflación | 5+ años y un resultado de €1.000 o más | lo que mostrará la cuenta en euros de ese año (la app cuenta en euros de hoy) |
 | Coste de esperar | 2+ años y empezar un año más tarde cuesta ≥ €500 y ≥ 2 % | € de menos al final |
 | Comisiones | 5+ años y la diferencia ≥ €1.000 | fondo al 1 % vs al 0,2 % |
@@ -541,6 +593,22 @@ el de texto, enlaces y botones de la app, para mantener AA. En el gráfico,
 (#4A6CF7; #5B7CFA sobre oscuro); la pareja pasa las comprobaciones de
 daltonismo y contraste. Todo texto mantiene al menos 4,5:1 sobre el
 fondo, la tarjeta, el relleno sutil y su propio tinte.
+
+**Claro, oscuro y daltonismo (fase 3).** El menú de tema de la cabecera
+(claro / oscuro / automático, el del dispositivo por defecto) es el de
+seed-kit: la elección dura lo que la pestaña (`sessionStorage`), el
+script de `src/i18n/detect.ts` la aplica antes de pintar y
+`src/hooks/use-color-scheme.ts` la sigue (el gráfico de precios se
+redibuja en el modo elegido). Nada se dice solo con color: cada ganancia
+lleva "+" y ▲ y cada pérdida "−" (el signo menos de verdad, que los
+lectores de pantalla leen "menos") y ▼ (`Trend` de seed-kit en `Gain`,
+los *What if…?*, las filas y líneas de *My stocks* y las tarjetas de
+*Test my plan*); las zonas del retiro llevan su icono y su palabra; los
+años marcados de *Every start year* llevan una forma propia (▼ el peor,
+◆ el del medio, ▲ el mejor). El verde de ganancia pasó a #00796B (#5CE6B8
+sobre oscuro): con el anterior, ganancia y pérdida casi se confundían con
+deuteranopía (ΔE 9,8 en claro y 5,3 en oscuro; ahora 27,3 y 16,8).
+`e2e/colours.test.mts` lo comprueba con la emulación del navegador.
 `globals.css` solo los importa y los nombra para Tailwind. Tipografía del
 sistema (sin fuentes descargadas), títulos en extra-negrita.
 `src/app/tokens.test.ts` comprueba que el icono y la imagen para compartir
@@ -552,6 +620,8 @@ La cabecera y el pie son los de seed-kit (`packages/seed-kit`), los mismos
 que llevan el hub y cada herramienta: la semilla con "Wealth Lens", las
 páginas, EN/ES y el lanzador de seed-lab; en el pie, los controles de
 datos, los enlaces, "Parte de seed-lab", la nota y el copyright.
+Junto a EN/ES está el menú de tema de seed-kit (en un móvil de hasta 424
+px, al pie del panel del lanzador).
 `src/components/site/site-shell.tsx` solo dice lo propio de Wealth Lens
 (su nombre, páginas, enlaces y nota) y pasa `IntentLink`, para que
 cambiar de página o de idioma no pierda lo escrito.
@@ -604,7 +674,18 @@ lenguaje llano.
 
 El plan tal cual está en My money (mismo activo o mezcla, mismos importes,
 sin *What if…?*) pasado por la historia real de los datos, año a año, sin
-simulación (`src/lib/history-test.ts`, tests en `history-test.test.ts`):
+simulación (`src/lib/history-test.ts`, tests en `history-test.test.ts`).
+Se lee como My money: un titular de una línea, "What would the real crises
+have done to your plan?" (en una línea desde 1024 px; lo comprueba
+`npm run test:browser`), **tarjetas grandes por crisis** (una por fila en
+el móvil, dos en tableta, tres en ordenador) con su año, una línea pequeña
+de lo que hizo 1 € durante la crisis y **una sola cifra en euros del
+usuario**: "−€971 and 6 years to get it back", "−€586, not back by 2024" o
+"No fall at year ends". Al tocar una, su detalle: lo que pasó en el mundo
+en una frase, la cifra, el gráfico grande y, tras *See more*, todo lo
+demás (la caída en detalle, el final del plan, el crecimiento medio y la
+comparación con el S&P 500). Ningún porcentaje sin sus euros (lo comprueba
+`src/components/test/test-module.test.ts`).
 
 - **Seis crisis** (`CRISES`): Great Depression (1929, 1929–1931), Oil
   crisis (1973, 1973–1974), Dot-com crash (2000, 2000–2002), Financial
@@ -612,8 +693,10 @@ simulación (`src/lib/history-test.ts`, tests en `history-test.test.ts`):
   año anterior ("If you had started in 2007"). Solo se activan las que el
   activo o todas las partes de la mezcla tienen en sus datos: el S&P 500
   llega a 1928, el resto a 1986/1988, así que 1929 y 1973 son solo del
-  S&P 500; las demás tarjetas dicen "no data for this". Una cuenta de
-  ahorro o un crecimiento propio no tienen historia que probar.
+  S&P 500; las demás tarjetas dicen "no data for this". El crecimiento
+  propio (el 5 % del paso 3, entre otros) se mueve como las acciones del
+  mundo, así que se prueba con sus años reales (y lo dice). Una cuenta de
+  ahorro, o un crecimiento sin altibajos, no tiene historia que probar.
 - **La caída** se mide sobre el dinero que había en lo más alto, sin los
   aportes que llegan después (que la esconderían): "de 1.000 € a 608 €
   (−39 %)", y "tardó N años en volver" es lo que tardó ese dinero en
@@ -627,7 +710,8 @@ simulación (`src/lib/history-test.ts`, tests en `history-test.test.ts`):
 - **Mezclas y cartera**: cada parte sigue su propia historia
   (reequilibrada cada año si la mezcla se reequilibra; las acciones de la
   cartera siguen a su índice), y se muestra al lado lo que hizo el S&P 500
-  solo: su caída en cada crisis y su peor año de inicio. Sin sugerir pesos.
+  solo: su caída en cada crisis, sobre el mismo dinero en lo más alto, y
+  su peor año de inicio. Sin sugerir pesos.
 - Aportes como en las simulaciones: la mitad de los del año al empezarlo y
   la mitad al acabarlo. Cifras a final de año, en euros de hoy.
 
@@ -798,7 +882,7 @@ y abrir `http://<IP-de-la-máquina>:3000` desde la misma red.
 
 ```bash
 npm test          # tests unitarios (Vitest), una sola pasada
-npm run test:browser  # tras npm run build: la página en un navegador real (Playwright)
+npm run test:browser  # tras npm run build: la página en un navegador real (Playwright): e2e/money y e2e/colours
 npm run test:watch
 npm run lint      # ESLint (config de Next.js)
 npm run typecheck # tipos de TypeScript, también los de seed-kit
@@ -904,7 +988,9 @@ src/
     findings.ts         "What you should know": una regla por hallazgo
     connections.ts      la lista de compras, con fuentes
     simulation.ts       bandas de Monte Carlo y cachés de simulación
-    success-table.ts    tasas de éxito de 3/4/5 % precalculadas por activo
+    success-table.ts    tasas de éxito del 2 al 7 % precalculadas por activo
+    withdrawal.ts       los pasos del deslizador de retiro y sus zonas
+    decade.ts           la mala década real: 2000–2009 o la peor de los datos
     assets.ts           lo que se puede proyectar: índices, bonos, oro, ahorro
     investment.ts       supuestos estándar y cambiados: crecimiento, oscilación, simulación
     assumptions.ts      la línea del crecimiento, la de supuestos y las pistas de More options

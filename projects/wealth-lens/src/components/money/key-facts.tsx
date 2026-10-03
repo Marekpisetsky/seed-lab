@@ -7,9 +7,8 @@ import { Changed } from "@/components/ui/changed";
 import type { CalculationBundle } from "@/hooks/use-calculation";
 import type { I18n } from "@/i18n";
 import { countryName } from "@/i18n/countries";
-import { simulationsText } from "@/i18n/investment-text";
 import { dearestCovered, type CountryRow } from "@/lib/calculator";
-import { formatShare, gainedShareOf, growsText } from "@/lib/growth";
+import { timesPutInText } from "@/lib/growth";
 import { bandsFor } from "@/lib/projections";
 
 /** How much it could pay, and how often that lasted: its code loads when its figure is tapped. */
@@ -32,32 +31,31 @@ function cheapest(rows: readonly CountryRow[]): CountryRow | null {
   return rows[0] ?? null;
 }
 
-/** Every figure of the grid, from what the calculation already holds; the bad and good cases are the simulations' 10th and 90th. */
+/**
+ * Every figure of the grid, in euros, from what the calculation already
+ * holds; "If it goes badly / well" are where 1 in 10 possible futures end
+ * below and above (the simulations' 10th and 90th percentiles).
+ */
 function factsOf(bundle: CalculationBundle, i18n: I18n): Fact[] {
   const { m, f } = i18n;
   const t = m.facts;
   const { calc } = bundle;
   const { scenario, investment, result } = calc;
   const years = result.years;
-  const share = gainedShareOf(result);
   const steady = investment.volatility <= 0;
   const bands = steady ? null : bandsFor(investment, { start: scenario.capital, monthly: scenario.monthly, years });
-  const of = simulationsText(investment, i18n);
+  const bad = bands ? bands.p10[years] : result.total;
+  const good = bands ? bands.p90[years] : result.total;
   // The same country the table of "Where it reaches" shows among its first rows (lib/calculator.ts).
   const dearest = dearestCovered(calc.countries);
   const paid = m.result.perMonth(f.smallEur(result.income));
   const lives = dearest ?? cheapest(calc.countries);
   return [
     { id: "putIn", value: f.eur(result.putIn), from: t.putInFrom(f.eur(scenario.capital), f.eur(scenario.monthly), m.units.years(years)) },
-    {
-      id: "grows",
-      value: f.eur(result.growth),
-      note: share === null ? undefined : formatShare(share, i18n),
-      from: `${t.growsFrom} ${share === null ? growsText(result.growthRate, i18n) : m.result.growthLine(growsText(result.growthRate, i18n), formatShare(share, i18n))}.`,
-    },
+    { id: "grows", value: f.eur(result.growth), note: timesPutInText(result, i18n) ?? undefined, from: t.growsFrom },
     { id: "pays", value: f.smallEur(result.income), from: <PayDetails bundle={bundle} /> },
-    { id: "bad", value: f.eur(bands ? bands.p10[years] : result.total), from: bands ? t.badFrom(of) : m.chart.noUps },
-    { id: "good", value: f.eur(bands ? bands.p90[years] : result.total), from: bands ? t.goodFrom(of) : m.chart.noUps },
+    { id: "bad", value: f.eur(bad), from: bands ? t.badFrom(f.eur(bad)) : m.chart.noUps },
+    { id: "good", value: f.eur(good), from: bands ? t.goodFrom(f.eur(good)) : m.chart.noUps },
     {
       id: "lives",
       value: dearest ? countryName(dearest.code, i18n) : t.none,

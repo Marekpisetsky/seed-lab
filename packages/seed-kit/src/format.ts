@@ -8,6 +8,10 @@
  * and their ICU data may use different spaces (a no-break space or a narrow
  * one before "€" and "%"): every result uses the no-break space, so the page
  * never changes between the two.
+ *
+ * A negative number takes the true minus sign (−, U+2212), not the hyphen
+ * Intl writes: as wide as "+", so a loss and a gain line up, and screen
+ * readers say "minus". parseNumber() reads both.
  */
 
 import { LOCALE_SETTINGS, type Locale } from "./locales.ts";
@@ -65,6 +69,8 @@ function shown(value: number, decimals: number): number {
 }
 
 const spaces = (text: string) => text.replace(/[\u202f\u00a0]/g, "\u00a0");
+/** A formatted number: no-break spaces and the true minus sign (numbers never hold a hyphen otherwise). */
+const typeset = (text: string) => spaces(text).replace(/-/g, "\u2212");
 
 function createFormats(intl: string): NumberFormats {
   const cache = new Map<string, Intl.NumberFormat>();
@@ -77,7 +83,7 @@ function createFormats(intl: string): NumberFormats {
     return formatter;
   };
   const money: NumberFormats["money"] = (amount, currency, { decimals = 2, signed = false } = {}) =>
-    spaces(
+    typeset(
       numberFormat(`money|${currency}|${decimals}|${signed}`, {
         style: "currency",
         currency,
@@ -87,7 +93,7 @@ function createFormats(intl: string): NumberFormats {
       }).format(Number.isFinite(amount) ? shown(amount, decimals) : amount),
     );
   const percent: NumberFormats["percent"] = (fraction, { decimals = 1, signed = false } = {}) =>
-    spaces(
+    typeset(
       numberFormat(`percent|${decimals}|${signed}`, {
         style: "percent",
         minimumFractionDigits: decimals,
@@ -109,7 +115,7 @@ function createFormats(intl: string): NumberFormats {
     },
     eurCompact(amount) {
       const digits = amount >= 1e6 && amount < 1e7 ? 1 : 0;
-      return spaces(numberFormat(`compact|${digits}`, { style: "currency", currency: "EUR", notation: "compact", maximumFractionDigits: digits }).format(amount));
+      return typeset(numberFormat(`compact|${digits}`, { style: "currency", currency: "EUR", notation: "compact", maximumFractionDigits: digits }).format(amount));
     },
     percent,
     rate(rate) {
@@ -117,17 +123,17 @@ function createFormats(intl: string): NumberFormats {
       return percent(rate, { decimals: tenths % 10 === 0 ? 0 : 1 });
     },
     number(value, maxDecimals = 4) {
-      return spaces(numberFormat(`number|${maxDecimals}`, { maximumFractionDigits: maxDecimals }).format(value));
+      return typeset(numberFormat(`number|${maxDecimals}`, { maximumFractionDigits: maxDecimals }).format(value));
     },
     grouped(value) {
-      return spaces(numberFormat("grouped", { maximumFractionDigits: 0, useGrouping: "always" }).format(value));
+      return typeset(numberFormat("grouped", { maximumFractionDigits: 0, useGrouping: "always" }).format(value));
     },
     fixed(value, decimals) {
-      return spaces(numberFormat(`fixed|${decimals}`, { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(shown(value, decimals)));
+      return typeset(numberFormat(`fixed|${decimals}`, { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(shown(value, decimals)));
     },
     price(value) {
       const maxDecimals = Math.abs(value) < 1 ? 4 : 2;
-      return spaces(numberFormat(`price|${maxDecimals}`, { minimumFractionDigits: 2, maximumFractionDigits: maxDecimals }).format(value));
+      return typeset(numberFormat(`price|${maxDecimals}`, { minimumFractionDigits: 2, maximumFractionDigits: maxDecimals }).format(value));
     },
     monthYear(date) {
       return spaces(monthYear.format(date));
@@ -163,10 +169,11 @@ export function formatsFor(locale: Locale): NumberFormats {
  * A number as someone types it in their language: "2.500,5" or "2500,5"
  * in Spanish, "2,500.5" in English; spaces, "€" and "%" are ignored, and a
  * decimal mark typed the other language's way is still read ("2.5" in
- * Spanish is 2.5, "1.000" is 1000). NaN when it is not a number.
+ * Spanish is 2.5, "1.000" is 1000); a minus is "-" or "−". NaN when it
+ * is not a number.
  */
 export function parseNumber(text: string, decimalSeparator: string): number {
-  const typed = text.replace(/[\s\u00a0\u202f€%]/g, "").replace(/^\+/, "");
+  const typed = text.replace(/[\s\u00a0\u202f€%]/g, "").replace(/^\+/, "").replace(/^\u2212/, "-");
   const group = decimalSeparator === "," ? "." : ",";
   let plain: string;
   if (typed.includes(decimalSeparator)) plain = typed.split(group).join("").replace(decimalSeparator, ".");

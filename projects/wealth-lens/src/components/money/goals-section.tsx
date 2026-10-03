@@ -21,7 +21,9 @@ function GoalRow({ status, calc, today }: { status: GoalStatus; calc: Calculatio
   const { m, f } = i18n;
   const [open, setOpen] = useState(false);
   const panel = useId();
-  const reached = status.months <= 1e-9;
+  // Always with a date: ✓ "from 2031, in 5 years" within the plan's years, "in 25 years (2051)" after them.
+  const reach = f.reach(status.months, calc.result.years * 12, today);
+  const reached = status.reachable && reach.reached;
   const name = goalName(status, i18n);
   const detail = goalDetail(status, i18n);
   const amountLine = !status.known ? "" : status.kind === "once" ? f.eur(status.amount) : m.goals.perMonthNeeded(f.eur(status.amount), f.eur(status.target));
@@ -43,7 +45,8 @@ function GoalRow({ status, calc, today }: { status: GoalStatus; calc: Calculatio
             {status.known && (
               <span className={reached ? "whitespace-nowrap font-medium text-positive" : status.reachable ? "whitespace-nowrap font-medium" : "text-muted"}>
                 {reached && <Check aria-hidden="true" className="mr-0.5 inline size-4 align-[-3px]" />}
-                <Changed value={status.reachable ? f.when(status.months, today) : m.goals.notAtThisPace(f.eur(status.needed ?? 0), NEEDED_WITHIN_YEARS)} />
+                {reached && <span className="sr-only">{m.goals.reached} </span>}
+                <Changed value={status.reachable ? reach.text : m.goals.notAtThisPace(f.eur(status.needed ?? 0), NEEDED_WITHIN_YEARS)} />
               </span>
             )}
             <span className="text-sm text-muted">

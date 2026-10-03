@@ -172,8 +172,10 @@ describe("fees", () => {
 describe("concentration", () => {
   it("flags one stock over 40% of the portfolio, with its worst fall", () => {
     const finding = concentrationFinding(concentrated);
-    expect(finding).toMatchObject({ value: "70%", text: "70% of your portfolio is ASML alone.", tone: "warning" });
-    expect(finding?.calculation.join(" ")).toMatch(/Worst fall from a peak since 2016: -48%/);
+    expect(finding).toMatchObject({ value: "70%", tone: "warning" });
+    expect(finding?.text).toMatch(/^ASML alone is 70% of your portfolio: €[\d,]+\.$/);
+    // Every percent with its euros, on what is held.
+    expect(finding?.calculation.join(" ")).toMatch(/Worst fall from a peak since 2016: −48%, −€[\d,]+ on what you hold\./);
   });
 
   it("does not count index funds, and needs more than 40%", () => {
@@ -196,16 +198,19 @@ describe("currency", () => {
 });
 
 describe("a bad first decade", () => {
-  it("shows how much less there is by the end after a 1-in-10 start", () => {
+  it("shows how much less there is by the end after a real bad decade, the one “What if…?” applies", () => {
     const finding = sequenceFinding(byDefault);
-    expect(finding?.value).toMatch(/^-€[\d,]+$/);
-    expect(finding?.text).toMatch(/^A bad first decade \(1 in 10\) leaves €[\d,]+ less by 2046\.$/);
+    expect(finding?.value).toMatch(/^−€[\d,]+$/);
+    expect(finding?.text).toMatch(/^First 10 years like 2000–2009: €[\d,]+ less by 2046\.$/);
+    const base = byDefault.calc;
+    const decade = calculate(plan(), [], today, "bad-decade");
+    expect(finding?.value).toBe(formatEurRounded(decade.result.total - base.result.total));
   });
 
   it("shows how much later the first goal comes", () => {
     const finding = sequenceFinding(small);
     expect(finding?.value).toMatch(/^\+\d+ years?$/);
-    expect(finding?.text).toMatch(/^A bad first decade \(1 in 10\) delays your first goal \d+ years?\.$/);
+    expect(finding?.text).toMatch(/^First 10 years like 2000–2009: your first goal comes \d+ years? later\.$/);
   });
 
   it("is not shown for less than 5 years", () => {
@@ -230,13 +235,16 @@ describe("where the growth comes from, in the assumptions", () => {
     expect(doublingFinding(small)?.assumptions[0]).toMatch(/: S&P 500, 1988–2022 average\. Past, not a promise\.$/);
     const bonds = doublingFinding(context({ investment: { kind: "asset", asset: "bonds" } }));
     expect(bonds?.assumptions[0]).toMatch(/: Euro government bonds, 1988–2022 average\./);
-    const own = doublingFinding(context({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.05 } }));
-    expect(own?.assumptions[0]).toBe("Growth 5% a year after rising prices: your own number. Not a promise.");
+    const own = doublingFinding(context({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.06 } }));
+    expect(own?.assumptions[0]).toBe("Growth 6% a year after rising prices, +€125 the first year: your own number. Not a promise.");
+    // Step 3's starting 5 % is not the user's own: it is the world's long-run average.
+    const starting = doublingFinding(context({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.05 } }));
+    expect(starting?.assumptions[0]).toBe("Growth 5% a year after rising prices, +€105 the first year: the world's long-run average (UBS). Not a promise.");
   });
 
   it("quotes the inflation of the country whose prices the user chose", () => {
     const finding = inflationFinding({ ...context({ pricesOf: "BR" }), inflation: 0.03 });
-    expect(finding?.assumptions[0]).toBe("Prices rise 3% a year.");
+    expect(finding?.assumptions[0]).toBe("Prices rise 3% a year: €100 today costs €103 next year.");
   });
 });
 

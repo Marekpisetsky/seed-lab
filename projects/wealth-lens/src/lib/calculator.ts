@@ -45,9 +45,6 @@ export const NEEDED_WITHIN_YEARS = 30;
 export const MAX_YEARS = 60;
 export const MAX_MONTHS = MAX_YEARS * 12;
 
-/** The withdrawal rates the result offers, with how often each lasted. */
-export const WITHDRAWAL_CHOICES = [0.03, 0.04, 0.05] as const;
-
 /** Reached within MAX_YEARS (0 = now). `Infinity` (never) is not. */
 export function withinReach(months: number): boolean {
   return months <= MAX_MONTHS;

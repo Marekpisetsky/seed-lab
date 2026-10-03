@@ -6,11 +6,11 @@
 
 import type { I18n } from ".";
 import type { AssetId } from "@/lib/assets";
-import type { SeriesId } from "@/lib/index-ids";
 import { periodText, type ResolvedInvestment } from "@/lib/investment";
 import { SAVINGS_RATE } from "@/lib/assets";
 import { MARKET, type Instrument } from "@/lib/market-data";
 import { mixStock, templateOf, type MixPart } from "@/lib/mix";
+import { STARTING_GROWTH } from "@/lib/validation";
 import { stockVolatility } from "@/lib/volatility";
 
 export function assetLabel(asset: AssetId, { m }: I18n): string {
@@ -85,26 +85,40 @@ export function selectorName(investment: Pick<ResolvedInvestment, "investment" |
   return basedOn ? `${name} ${basedOn}` : name;
 }
 
-type Described = Pick<ResolvedInvestment, "investment" | "custom" | "volatility" | "simulation" | "allocation" | "shift">;
+/**
+ * Step 3's starting value as it is: Custom growth at 5 %, with world
+ * stocks' ups and downs. Not the user's own number: the world's long-run
+ * average, and said so.
+ */
+export function isStartingGrowth(investment: Pick<ResolvedInvestment, "investment" | "realReturn" | "volatility" | "standard" | "shift">): boolean {
+  return (
+    investment.investment.kind === "custom" &&
+    investment.shift === 0 &&
+    Math.abs(investment.realReturn - STARTING_GROWTH) < 1e-9 &&
+    Math.abs(investment.volatility - investment.standard.volatility) < 1e-9
+  );
+}
 
-/** What the simulations are, to end "lasted 30 years in 93% of …": "S&P 500 histories", "simulations of this mix". */
-export function simulationsText(investment: Described, i18n: I18n): string {
-  const { m, f } = i18n;
-  const text = (() => {
-    if (investment.custom) return investment.volatility <= 0 ? m.invest.simulations.customFixed : m.invest.simulations.custom;
-    if (investment.simulation === "joint") return investment.allocation ? m.invest.simulations.portfolio : m.invest.simulations.mix;
-    const chosen = investment.investment;
-    if (chosen.kind === "asset" && chosen.asset !== "savings") return m.assets.histories[chosen.asset as SeriesId];
-    return m.invest.simulations.savings;
-  })();
-  if (investment.shift === 0) return text;
-  const change = `${investment.shift > 0 ? "+" : "−"}${f.rate(Math.abs(investment.shift))}`;
-  return m.invest.shifted(text, change);
+/**
+ * Whose real years a bad decade takes (lib/decade.ts): "the S&P 500",
+ * "your mix's parts", "world stocks, moved to this plan's growth"; with figures
+ * the user typed, "the S&P 500, moved to your numbers".
+ */
+export function decadeSource(investment: Pick<ResolvedInvestment, "investment" | "custom">, { m }: I18n): string {
+  const t = m.invest.decade;
+  const chosen = investment.investment;
+  if (chosen.kind === "custom") return t.custom;
+  const what = chosen.kind === "asset" ? m.assets.inSentence[chosen.asset] : chosen.kind === "mix" ? t.mix : t.portfolio;
+  return investment.custom ? t.typed(what) : what;
 }
 
 /** Where the growth figure comes from: "S&P 500, 1988–2022 average", "1.5% interest minus 2% rising prices". */
-export function growthSource(investment: Pick<ResolvedInvestment, "investment" | "custom" | "allocation" | "inflation" | "period">, i18n: I18n): string {
+export function growthSource(
+  investment: Pick<ResolvedInvestment, "investment" | "custom" | "allocation" | "inflation" | "period" | "realReturn" | "volatility" | "standard" | "shift">,
+  i18n: I18n,
+): string {
   const { m, f } = i18n;
+  if (isStartingGrowth(investment)) return m.invest.source.world;
   if (investment.custom) return m.invest.source.custom;
   const period = periodText(investment);
   const chosen = investment.investment;

@@ -1,8 +1,10 @@
 "use client";
 
+import { Trend } from "@seed-kit/react/trend.tsx";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n";
 import { RadioGroup } from "@/components/ui/radio-group";
+import { shownPercent, tone } from "./chart-row";
 import { useWidth } from "@/hooks/use-width";
 import { availablePeriods, changeTicks, defaultPeriod, LINE_PERIODS, lineChange, loadLines, pointDates, type LinePeriod, type LinePeriodId, type LinesFile } from "@/lib/lines";
 import { instrumentById, MARKET, type Instrument } from "@/lib/market-data";
@@ -118,11 +120,11 @@ function Plot({ id, period, label, fundLabel }: { id: LinePeriodId; period: Line
         <div ref={tip} className="pointer-events-none absolute top-0 left-0 z-10 whitespace-nowrap rounded-md border border-border bg-card px-2 py-1 text-xs shadow-sm tabular-nums">
           <p className="font-medium">{shown === last ? f.date(dates[shown]) : t.weekOf(f.date(dates[shown]))}</p>
           <p>
-            <Swatch color="var(--accent)" /> {label} {f.percent(own[shown], { signed: true })}
+            <Swatch color="var(--accent)" /> {label} <Trend change={shownPercent(own[shown])}>{f.percent(own[shown], { signed: true })}</Trend>
           </p>
           {fund && fundLabel && (
             <p className="text-muted">
-              <Swatch color="var(--muted)" thin /> {fundLabel} {f.percent(fund[shown], { signed: true })}
+              <Swatch color="var(--muted)" thin /> {fundLabel} <Trend change={shownPercent(fund[shown])}>{f.percent(fund[shown], { signed: true })}</Trend>
             </p>
           )}
         </div>
@@ -187,7 +189,9 @@ export function PriceLines({ instrument }: { instrument: Instrument }) {
           optionClassName={(checked) => `min-h-11 min-w-11 rounded px-2 py-1 font-medium ${checked ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
         />
         <p className="text-right tabular-nums" aria-live="polite">
-          <span className={`block text-lg font-semibold leading-tight ${change >= 0 ? "text-positive" : "text-negative"}`}>{f.percent(change, { signed: true })}</span>
+          <span className={`block text-lg font-semibold leading-tight ${tone(change)}`}>
+            <Trend change={shownPercent(change)}>{f.percent(change, { signed: true })}</Trend>
+          </span>
           <span className="block text-xs text-muted">{t.since(f.monthYear(new Date(`${period.from}T00:00:00Z`)))}</span>
         </p>
       </div>
@@ -195,11 +199,11 @@ export function PriceLines({ instrument }: { instrument: Instrument }) {
       <figcaption className="space-y-1 text-xs text-muted">
         <span className="flex flex-wrap gap-x-3 gap-y-1">
           <span>
-            <Swatch color="var(--accent)" /> {instrument.name} {f.percent(change, { signed: true })}
+            <Swatch color="var(--accent)" /> {instrument.name} <Trend change={shownPercent(change)}>{f.percent(change, { signed: true })}</Trend>
           </span>
           {period.index && fundLabel && (
             <span>
-              <Swatch color="var(--muted)" thin /> {fundLabel} {f.percent(lineChange(period.index), { signed: true })}
+              <Swatch color="var(--muted)" thin /> {fundLabel} <Trend change={shownPercent(lineChange(period.index))}>{f.percent(lineChange(period.index), { signed: true })}</Trend>
             </span>
           )}
         </span>

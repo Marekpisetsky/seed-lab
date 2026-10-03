@@ -1,13 +1,13 @@
 /**
  * How much the money grows, in words anyone reads at a glance, in the
- * page's language: next to the result ("Grows about 7.5% a year", "Your
- * money: ×2.3 · growth added +€63,288 (+129%)") and on the chart (the %
- * gained at the end of the curve, and "Year 2036: €48,200 · +37% so far"
- * for any year).
+ * page's language: next to the result ("Grows about 7.5% a year") and on
+ * the chart, without percents that grow huge over the years ("+5,411%"):
+ * "×2.3 what you put in" at the end of the curve, and "2036: €48,200" for
+ * any year.
  */
 
 import type { I18n } from "@/i18n";
-import type { Result, YearPoint } from "./calculator";
+import type { YearPoint } from "./calculator";
 
 /** "Grows about 7.5% a year"; "Shrinks about 0.5% a year" when it loses to rising prices. */
 export function growsText(rate: number, { m, f }: I18n): string {
@@ -36,34 +36,13 @@ export function formatShare(share: number, { f }: I18n): string {
   return f.percent(share, { signed: true, decimals: Math.abs(share) < 0.01 ? 1 : 0 });
 }
 
-/**
- * "Your money: ×2.3 · growth added +€63,288 (+129%)"; when it shrank,
- * "… the market took €2,368 (−5%)" (with no ups and downs: "rising prices
- * took"). `null` with nothing put in.
- */
-export function moneyLine(result: Pick<Result, "total" | "putIn">, upsAndDowns: boolean, i18n: I18n): string | null {
-  const { m, f } = i18n;
-  const multiple = multipleOf(result);
-  const share = gainedShareOf(result);
-  if (multiple === null || share === null) return null;
-  const gained = result.total - result.putIn;
-  const shareText = formatShare(share, i18n);
-  const change =
-    gained >= 0
-      ? m.result.growthAdded(f.eur(gained, { signed: true }), shareText)
-      : (upsAndDowns ? m.result.marketTook : m.result.pricesTook)(f.eur(-gained), shareText);
-  return m.result.moneyLine(formatMultiple(multiple, i18n), change);
+/** "×2.3 what you put in": what the money became, without a percent; `null` with nothing put in. */
+export function timesPutInText(point: Pick<YearPoint, "total" | "putIn">, i18n: I18n): string | null {
+  const multiple = multipleOf(point);
+  return multiple === null ? null : i18n.m.result.timesPutIn(formatMultiple(multiple, i18n));
 }
 
-/** The chart's label at the end of the curve: "+129%" gained in all; `null` with nothing put in. */
-export function endLabel(point: Pick<YearPoint, "total" | "putIn">, i18n: I18n): string | null {
-  const share = gainedShareOf(point);
-  return share === null ? null : formatShare(share, i18n);
-}
-
-/** A year of the chart under the finger or the mouse: "Year 2036: €48,200 · +37% so far". */
-export function yearTooltip(point: YearPoint, startYear: number, i18n: I18n): string {
-  const { m, f } = i18n;
-  const share = gainedShareOf(point);
-  return m.chart.tooltip(startYear + point.year, f.eur(point.total)) + (share === null ? "" : m.chart.soFar(formatShare(share, i18n)));
+/** A year of the chart under the finger or the mouse: "2036: €48,200". */
+export function yearTooltip(point: YearPoint, startYear: number, { m, f }: I18n): string {
+  return m.chart.tooltip(startYear + point.year, f.eur(point.total));
 }

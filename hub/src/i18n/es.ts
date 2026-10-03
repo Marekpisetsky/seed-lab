@@ -222,7 +222,8 @@ export const es: Messages = {
       {
         heading: "Esta web",
         body: [
-          "Sin cookies, sin analítica, sin rastreo. Es HTML y CSS, más dos scripts mínimos: uno elige tu idioma y otro convierte el correo en un enlace.",
+          "Sin cookies, sin analítica, sin rastreo. Es HTML y CSS, más tres scripts mínimos.",
+          "Uno elige tu idioma. Otro recuerda claro u oscuro solo en esta pestaña, hasta que la cierras. Otro convierte el correo en un enlace.",
           "Por ahora está alojada en Vercel, en EE. UU., igual que Wealth Lens. Queremos llevar las dos a un alojamiento europeo.",
         ],
       },

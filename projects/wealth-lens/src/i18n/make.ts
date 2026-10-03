@@ -16,8 +16,21 @@ export interface Formats extends NumberFormats {
   span(months: number): string;
   /** When the plan gets somewhere: "now", "in 12 years (2038)", "not at this pace". */
   when(months: number, today?: Date): string;
+  /**
+   * When the plan gets somewhere, against its own years, always with a date:
+   * by then it is reached (✓ "from 2031, in 5 years", "from today"); later,
+   * "in 25 years (2051)"; past 60 years, "not at this pace".
+   */
+  reach(months: number, horizonMonths: number, today: Date): Reach;
   /** Whole euros, but "under €1" for a few cents: €1 invested pays €0.003 a month, not €0. */
   smallEur(amount: number): string;
+}
+
+/** When the plan gets somewhere, in one line (`text`) and in two short ones for a narrow cell (`lines`). */
+export interface Reach {
+  reached: boolean;
+  text: string;
+  lines: readonly [string, string];
 }
 
 export interface I18n {
@@ -56,6 +69,16 @@ export function createI18n(locale: Locale, m: Messages): I18n {
       const whole = Math.ceil(months - 1e-9);
       const span = whole < 12 ? monthsText(whole) : yearsText(Math.ceil(whole / 12));
       return m.when.inSpan(span, today ? addMonths(today, whole).getUTCFullYear() : null);
+    },
+    reach(months, horizonMonths, today) {
+      if (months <= 1e-9) return { reached: true, text: m.when.fromToday, lines: [m.when.fromToday, ""] };
+      if (!(months <= MAX_MONTHS)) return { reached: false, text: m.when.notAtThisPace, lines: [m.when.notAtThisPace, ""] };
+      const whole = Math.ceil(months - 1e-9);
+      const span = whole < 12 ? monthsText(whole) : yearsText(Math.ceil(whole / 12));
+      const year = addMonths(today, whole).getUTCFullYear();
+      return months <= horizonMonths + 1e-9
+        ? { reached: true, text: m.when.from(year, span), lines: [m.when.since(year), m.when.inSpan(span, null)] }
+        : { reached: false, text: m.when.inSpan(span, year), lines: [m.when.inSpan(span, null), `(${year})`] };
     },
     smallEur(amount) {
       return amount > 0 && amount < 0.5 ? m.result.underOne : numbers.eur(amount);
