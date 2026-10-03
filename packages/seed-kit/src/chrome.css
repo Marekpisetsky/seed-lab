@@ -9,9 +9,43 @@
 
 .sk-wrap { width: 100%; max-width: var(--sk-width, 72rem); margin: 0 auto; padding: 0 var(--sk-gutter, 1.25rem); }
 
-.sk-header { position: relative; z-index: 20; background: var(--card); color: var(--foreground); border-bottom: 1px solid var(--border); }
+/*
+ * The header stays in sight on every page (sticky) and gets compact as the
+ * page scrolls, with CSS alone: it rises by its top padding (on a phone, by
+ * its first row, leaving the row of pages) and its content settles in the
+ * middle of what is left, with a shadow. Only its offset and transforms
+ * change, never its size, so nothing below it moves. Where the browser has
+ * no scroll-driven animations, it stays whole. --sk-header-space is how
+ * much of the screen it takes once scrolled: for scroll-padding and for
+ * an app's own sticky parts.
+ */
+:root { --sk-header-space: 4.3125rem; }
+html { scroll-padding-top: calc(var(--sk-header-space) + .5rem); }
+.sk-header { position: sticky; top: 0; z-index: 20; background: var(--card); color: var(--foreground); border-bottom: 1px solid var(--border); }
 .sk-header.theme-dark { background: var(--background); }
-.sk-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; padding-top: .5rem; padding-bottom: .5rem; }
+.sk-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; padding-top: .75rem; padding-bottom: .75rem; }
+
+@media (max-width: 47.999rem) {
+  /* Two rows on a phone: the seed, EN/ES and the launcher, then the pages. */
+  :root:has(.sk-header .sk-nav) { --sk-header-space: 7.5625rem; }
+}
+
+@supports (animation-timeline: scroll()) {
+  :root, :root:has(.sk-header .sk-nav) { --sk-header-space: 3.5625rem; }
+  .sk-header { top: -.75rem; }
+  @media (max-width: 47.999rem) {
+    .sk-header:has(.sk-nav) { top: calc(-1 * (.75rem + 44px + .5rem)); }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .sk-header, .sk-header .sk-bar, .sk-header .sk-brand { animation-timing-function: linear; animation-fill-mode: both; animation-timeline: scroll(root block); animation-range: 0 4rem; }
+    .sk-header { animation-name: sk-compact; }
+    .sk-header .sk-bar { animation-name: sk-compact-bar; }
+    .sk-header .sk-brand { animation-name: sk-compact-brand; transform-origin: left center; }
+  }
+}
+@keyframes sk-compact { to { box-shadow: 0 2px 12px rgb(0 0 0 / .08); } }
+@keyframes sk-compact-bar { to { transform: translateY(.375rem); } }
+@keyframes sk-compact-brand { to { transform: scale(.92); } }
 .sk-header a { color: inherit; text-decoration: none; }
 .sk-header a:focus-visible, .sk-header summary:focus-visible, .sk-footer a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 

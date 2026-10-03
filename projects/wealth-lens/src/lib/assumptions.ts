@@ -6,7 +6,7 @@
  */
 
 import type { I18n } from "@/i18n";
-import { dividendNote } from "@/i18n/investment-text";
+import { dividendNote, isStartingGrowth } from "@/i18n/investment-text";
 import { SAVINGS_RATE } from "./assets";
 import { periodText, toNominal, type ResolvedInvestment } from "./investment";
 import { BEST_20_YEARS, beyondHistory, closestHistory, type BestRun } from "./realism";
@@ -68,6 +68,7 @@ export function upsAndDownsExample(volatility: number, { m, f }: I18n): string {
 
 /** Where the figures come from: "data 1988–2022", "1.5% interest, prices rise 2%", "your numbers". */
 export function sourceText(investment: ResolvedInvestment, { m, f }: I18n): string {
+  if (isStartingGrowth(investment)) return m.assumptions.worldAverage;
   if (investment.custom) return investment.investment.kind === "custom" ? m.assumptions.yourNumbers : m.assumptions.yourNumbersNotData;
   if (investment.investment.kind === "asset" && investment.investment.asset === "savings") {
     return m.assumptions.savingsSource(f.rate(SAVINGS_RATE), f.rate(investment.inflation));
@@ -76,9 +77,26 @@ export function sourceText(investment: ResolvedInvestment, { m, f }: I18n): stri
   return period && m.assumptions.data(period);
 }
 
-/** The compact line: growth after rising prices · ups and downs · where from. */
-export function assumptionsLine(investment: ResolvedInvestment, i18n: I18n): string {
-  return [growthText(investment, i18n), upsAndDownsText(investment.volatility, i18n), sourceText(investment, i18n)].filter(Boolean).join(" · ");
+/** The user's money, for the euros beside each percent: what growth adds in the first year, and what a year's move is measured on. */
+export interface OnYourMoney {
+  firstYear: number;
+  base: number;
+}
+
+/**
+ * The compact line: growth after rising prices · ups and downs · where
+ * from; with the user's money, each percent with its euros ("Grows 5% a
+ * year after rising prices: +€55 the first year · can move ±18% in a year:
+ * ±€198 on €1,100 · your numbers").
+ */
+export function assumptionsLine(investment: ResolvedInvestment, i18n: I18n, money?: OnYourMoney): string {
+  const { m, f } = i18n;
+  const growth = money ? m.assumptions.growsEuros(growthText(investment, i18n), f.eur(money.firstYear, { signed: true })) : growthText(investment, i18n);
+  const moves =
+    money && investment.volatility > 0 && money.base > 0
+      ? m.assumptions.canMoveEuros(f.percent(investment.volatility, { decimals: 0 }), f.eur(money.base * investment.volatility), f.eur(money.base))
+      : upsAndDownsText(investment.volatility, i18n);
+  return [growth, moves, sourceText(investment, i18n)].filter(Boolean).join(" · ");
 }
 
 /** The short note under the line: what matters about this choice (My portfolio's label sits over its holdings). */
@@ -89,7 +107,7 @@ export function assumptionsNote(investment: ResolvedInvestment, i18n: I18n): str
   if (chosen.kind === "asset" && chosen.asset === "gold") said.push(notes.gold);
   const dividends = dividendNote(investment, i18n);
   if (dividends) said.push(`${dividends.charAt(0).toUpperCase()}${dividends.slice(1)}.`);
-  said.push(investment.custom ? notes.yours : investment.period ? notes.past : notes.notPromise);
+  said.push(isStartingGrowth(investment) ? notes.world : investment.custom ? notes.yours : investment.period ? notes.past : notes.notPromise);
   said.push(notes.todaysEuros);
   return said.join(" ");
 }

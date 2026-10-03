@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SAVINGS_RATE, seriesVolatility } from "./assets";
 import { annualizedReturn, SERIES } from "./indexes";
 import { EN } from "@/i18n";
-import { dividendNote, growthSource, investmentName, simulationsText } from "@/i18n/investment-text";
+import { decadeSource, dividendNote, growthSource, investmentName } from "@/i18n/investment-text";
 import { inflationFor, periodText, resolveInvestment, STANDARD_SETTINGS, toNominal, toReal, type ProjectionSettings } from "./investment";
 import { logStats } from "./volatility";
 import { STANDARD_ASSUMPTIONS, type Holding } from "./types";
@@ -45,8 +45,8 @@ describe("standard assumptions: filled in from the data", () => {
     expect(gold.volatility).toBeGreaterThan(bonds.volatility);
     expect(bonds.realReturn).toBeLessThan(sp500.realReturn);
     expect(gold.realReturn).toBeLessThan(bonds.realReturn);
-    expect(simulationsText(bonds, EN)).toBe("euro bond simulations");
-    expect(simulationsText(gold, EN)).toBe("gold simulations");
+    expect(decadeSource(bonds, EN)).toBe("euro government bonds");
+    expect(decadeSource(gold, EN)).toBe("gold");
   });
 
   it("gives a savings account its rate less the country's inflation, with no swings: it can be below zero", () => {
@@ -163,7 +163,7 @@ describe("Custom growth", () => {
     const resolved = resolveInvestment({ kind: "custom" }, [], settings({ growth: 0.06, volatility: 0.1 }));
     expect(resolved.realReturn).toBeCloseTo(0.06, 12);
     expect(resolved.volatility).toBe(0.1);
-    expect(simulationsText(resolved, EN)).toBe("simulations with your numbers");
+    expect(decadeSource(resolved, EN)).toBe("world stocks, moved to this plan's growth");
     expect(annualizedReturn(resolved.returns)).toBeCloseTo(0.06, 4);
   });
 });

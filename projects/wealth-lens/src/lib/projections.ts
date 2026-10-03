@@ -6,9 +6,9 @@
  */
 
 import type { ResolvedInvestment } from "./investment";
-import { concentration, mixModel, mixPercentiles, mixSuccessRates, sharedYears, worstYear, type Concentration, type WorstYear } from "./mix";
+import { concentration, mixModel, mixPercentiles, mixSamples, mixSuccessRates, sharedYears, worstYear, type Concentration, type WorstYear } from "./mix";
 import { SERIES } from "./indexes";
-import { cachedSuccessRates, wealthPercentiles, type WealthPercentiles } from "./simulation";
+import { cachedSuccessRates, wealthPercentiles, wealthSamples, type WealthPercentiles } from "./simulation";
 
 export interface Amounts {
   start: number;
@@ -30,6 +30,21 @@ export function bandsFor(investment: ResolvedInvestment, { start, monthly, years
   lastBands.unshift({ id, bands });
   lastBands.length = Math.min(lastBands.length, 6);
   return bands;
+}
+
+/** How many possible futures each simulation works out: the percentiles, the bands and "1 in 10" are of these. */
+export const FUTURES = 1000;
+
+/**
+ * `count` whole possible futures, from the very simulations the bands come
+ * from, evenly spread over them: for the view "Where do these futures come
+ * from?". Empty with no ups and downs.
+ */
+export function samplesFor(investment: ResolvedInvestment, { start, monthly, years }: Amounts, count: number): number[][] {
+  if (investment.volatility <= 0) return [];
+  return investment.simulation === "joint" && investment.model
+    ? mixSamples(investment.model, { start, monthly, years }, count, undefined, investment.growthFactor)
+    : wealthSamples({ start, monthly, returns: investment.returns, years, key: investment.key, count, simulations: FUTURES });
 }
 
 const mixRates = new Map<string, number>();

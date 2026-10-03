@@ -493,6 +493,24 @@ export function mixPercentiles(
   return result;
 }
 
+/** A few whole simulated paths of a mix, evenly spread over its simulations, for the view of the possible futures. */
+export function mixSamples(
+  model: MixModel,
+  { start, monthly, years }: { start: number; monthly: number; years: number },
+  count: number,
+  market: PricesFile = MARKET,
+  growth = 1,
+): number[][] {
+  const returns = partReturns(model, market);
+  const span = Math.min(years, MIX_YEARS);
+  const totals = balanceColumns(span);
+  const weights = Float64Array.from(model.parts, (part) => part.weight);
+  if (model.rebalance) balancesRebalanced(returns, weights, start, monthly, totals, growth);
+  else balancesDrifting(returns, weights, start, monthly, totals, growth);
+  const step = MIX_SIMULATIONS / count;
+  return Array.from({ length: count }, (_, index) => totals.map((column) => column[Math.floor(index * step)]));
+}
+
 /** 10th and 50th percentile of the balance after `years` only: one column sorted, not one a year. */
 function mixOutcomeAt(model: MixModel, { start, monthly, years }: { start: number; monthly: number; years: number }, market: PricesFile, growth: number): { p10: number; p50: number } {
   const returns = partReturns(model, market);
