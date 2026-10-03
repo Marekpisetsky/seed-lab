@@ -298,12 +298,13 @@ describe("the front page", () => {
     }
   });
 
-  it("explains how every tool is built: three steps and the base they share", () => {
+  it("explains how every tool is built: the factory, the pieces and the research, and the base they share", () => {
     for (const locale of LOCALES) {
       const band = section(page(locale), "build");
       assert.equal((band.match(/<span class="step-number"/g) ?? []).length, 3, locale);
+      assert.deepEqual([...band.matchAll(/<p class="build-name">([^<]+)<\/p>/g)].map(([, name]) => name), ["Forja", "seed-kit", "Research"], locale);
       assert.match(band, /<div class="diagram-base"><p>seed-kit<\/p>/, locale);
-      assert.match(band, /Forja/, locale);
+      assert.match(band, /<p class="diagram-research"><strong>Research<\/strong>/, locale);
     }
   });
 
