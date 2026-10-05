@@ -294,6 +294,11 @@ describe("no percentage without its euros, in the result", () => {
     app.state = state;
     const bundle = calculationFor(state, today);
     const render = (element: React.ReactElement) => renderToStaticMarkup(createElement(Provider, { i18n }, element));
+    if (bundle.calc.scenario.head) {
+      const futures = render(createElement(FuturesView, { bundle, onClose: () => {} }));
+      expect(futures).toContain(locale === "en" ? "Thin lines and shading show futures without this decade." : "Las líneas finas y la franja muestran futuros sin esa década.");
+      expect(futures).not.toContain(i18n.m.futures.average);
+    }
     const html = [
       render(createElement(Results, { bundle })),
       render(createElement(PayDetails, { bundle })),
