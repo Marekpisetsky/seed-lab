@@ -85,12 +85,14 @@ describe("the result and the timeline", () => {
     assert.match(resultHtml({ ...choice, place: "ZZ" }, [SERIES], "en").value, /Type an amount/);
   });
 
-  it("draw one bar per year, the years since the chosen one standing out, with a table of every year", () => {
+  it("draw one bar per year, the years since the chosen one standing out (colour and a dashed line), with a table of every year", () => {
     const drawn = timelineHtml({ ...choice, year: 2022 }, [SERIES], "en").value;
     assert.equal((drawn.match(/<rect /g) ?? []).length, 4);
     assert.equal((drawn.match(/<rect class="in"/g) ?? []).length, 2);
     assert.match(drawn, /role="img" aria-label="How much prices rose each year in Testland, from 2021 to 2024\."/);
     assert.equal((drawn.match(/<tr class="in"><th scope="row">/g) ?? []).length, 2);
-    assert.match(drawn, /<title>2022: -10\.0%<\/title>/);
+    assert.match(drawn, /<title>2022: \u221210\.0%<\/title>/, "the true minus sign");
+    assert.match(drawn, /<line class="since" x1="320\.0" x2="320\.0"/, "between 2022 and 2023");
+    assert.match(drawn, /<span class="edge" aria-hidden="true"><\/span><span class="swatch" aria-hidden="true"><\/span> Since 2022/);
   });
 });

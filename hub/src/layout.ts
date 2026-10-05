@@ -2,6 +2,7 @@ import { footerHtml, headerHtml } from "../../packages/seed-kit/src/chrome-html.
 import { footerModel, headerModel } from "../../packages/seed-kit/src/chrome.ts";
 import type { Weight } from "../../packages/seed-kit/src/checks.ts";
 import { languageScript } from "../../packages/seed-kit/src/detect.ts";
+import { themeScript } from "../../packages/seed-kit/src/theme.ts";
 import { html, raw } from "../../packages/seed-kit/src/html.ts";
 import type { Html } from "../../packages/seed-kit/src/html.ts";
 import { DEFAULT_LOCALE, LOCALE_SETTINGS, LOCALES, PAGES, localePath, messages } from "./i18n/index.ts";
@@ -38,6 +39,13 @@ export function linkTo(locale: Locale): (href: string) => string | Html {
  * Nothing is stored. Only on English pages: the others need nothing.
  */
 const LANGUAGE_SCRIPT = languageScript({ folders: true });
+
+/**
+ * seed-kit's theme script: light, dark or the device's, picked in the
+ * header and kept for the tab only (theme.ts). A mode picked there turns
+ * the dark and light bands into that one mode, and the bar colour too.
+ */
+const THEME_SCRIPT = themeScript({ menu: true });
 
 function formatKb(bytes: number, locale: Locale): string {
   return new Intl.NumberFormat(LOCALE_SETTINGS[locale].intl, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(bytes / 1000);
@@ -96,6 +104,7 @@ export function layout(page: PageInput, weight: Weight): string {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>${raw(THEME_SCRIPT)}</script>
 ${indexed && locale === DEFAULT_LOCALE ? html`<script>${raw(LANGUAGE_SCRIPT)}</script>` : ""}
 <title>${page.title}</title>
 <meta name="description" content="${page.description}">

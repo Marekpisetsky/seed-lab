@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit",
     "test": "npm run build && node --experimental-strip-types --test test/*.test.ts",
     "check": "npm run lint && npm run typecheck && npm test",
+    "test:browser": "node --experimental-strip-types --test e2e/*.test.ts",
     "images": "playwright install chromium && node --experimental-strip-types scripts/images.ts",
     "shots": "playwright install chromium && node --experimental-strip-types scripts/shots.ts"
   },

@@ -40,7 +40,7 @@ describe("the growth line under the result", () => {
     expect(formatMultiple(0.952, EN)).toBe("×0.95");
     expect(formatShare(1.2916, EN)).toBe("+129%");
     expect(formatShare(0.004, EN)).toBe("+0.4%");
-    expect(formatShare(-0.05, EN)).toBe("-5%");
+    expect(formatShare(-0.05, EN)).toBe("−5%");
     expect(formatShare(0, EN)).toBe("0%");
   });
 });

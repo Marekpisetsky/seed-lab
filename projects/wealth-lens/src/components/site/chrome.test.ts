@@ -11,16 +11,27 @@ import { SiteFooter, SiteHeader } from "@seed-kit/react/chrome.tsx";
  * so every seed-lab app wears one header and one footer.
  */
 
+/** A radio button's attributes in one order, `checked=""` written `checked`, and its group's name left out (React makes its own). */
+const input = (tag: string) =>
+  `<input ${[...tag.matchAll(/([\w-]+)(?:="([^"]*)")?/g)]
+    .slice(1)
+    .filter(([, name]) => name !== "name")
+    .map(([, name, value]) => (value ? `${name}="${value}"` : name))
+    .sort()
+    .join(" ")}>`;
+
 /**
  * The same markup, whatever the spaces between tags, the case of attribute
- * names (React writes "hrefLang"; HTML reads both alike) and the launcher's
- * id (React makes its own, so two headers never share one).
+ * names (React writes "hrefLang"; HTML reads both alike), the order of a
+ * radio button's attributes and the menus' ids and group names (React
+ * makes its own, so two headers never share one).
  */
 const normal = (markup: string) =>
   markup
     .replace(/>\s+</g, "><")
     .replace(/ hrefLang=/g, " hreflang=")
-    .replace(/(aria-controls|id)="(_R_|«|:R)[^"]*"/g, '$1="sk-launcher"')
+    .replace(/(aria-controls|id)="(_R_|«|:R|sk-launcher)[^"]*"/g, '$1="sk-menu"')
+    .replace(/<input [^>]*?\/?>/g, input)
     .trim();
 
 describe("the seed-lab header and footer", () => {
@@ -40,6 +51,14 @@ describe("the seed-lab header and footer", () => {
 
     it(`draws the same header in React and in HTML (${locale})`, () => {
       expect(normal(renderToStaticMarkup(createElement(SiteHeader, { model: header })))).toBe(normal(headerHtml(header).value));
+    });
+
+    it(`keeps each copy of the theme menu its own group of radio buttons, Automatic checked until the page says otherwise (${locale})`, () => {
+      const markup = renderToStaticMarkup(createElement(SiteHeader, { model: header }));
+      const radios = [...markup.matchAll(/<input type="radio" data-sk-theme="" name="([^"]+)"( checked="")? value="(\w+)"\/>/g)];
+      expect(radios.map(([, , , value]) => value)).toEqual(["auto", "light", "dark", "auto", "light", "dark"]);
+      expect(new Set(radios.map(([, name]) => name)).size).toBe(2);
+      expect(radios.filter(([, , checked]) => checked).map(([, , , value]) => value)).toEqual(["auto", "auto"]);
     });
 
     it(`draws the same footer in React and in HTML (${locale})`, () => {

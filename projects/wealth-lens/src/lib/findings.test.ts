@@ -175,7 +175,7 @@ describe("concentration", () => {
     expect(finding).toMatchObject({ value: "70%", tone: "warning" });
     expect(finding?.text).toMatch(/^ASML alone is 70% of your portfolio: €[\d,]+\.$/);
     // Every percent with its euros, on what is held.
-    expect(finding?.calculation.join(" ")).toMatch(/Worst fall from a peak since 2016: -48%, -€[\d,]+ on what you hold\./);
+    expect(finding?.calculation.join(" ")).toMatch(/Worst fall from a peak since 2016: −48%, −€[\d,]+ on what you hold\./);
   });
 
   it("does not count index funds, and needs more than 40%", () => {
@@ -200,7 +200,7 @@ describe("currency", () => {
 describe("a bad first decade", () => {
   it("shows how much less there is by the end after a real bad decade, the one “What if…?” applies", () => {
     const finding = sequenceFinding(byDefault);
-    expect(finding?.value).toMatch(/^-€[\d,]+$/);
+    expect(finding?.value).toMatch(/^−€[\d,]+$/);
     expect(finding?.text).toMatch(/^First 10 years like 2000–2009: €[\d,]+ less by 2046\.$/);
     const base = byDefault.calc;
     const decade = calculate(plan(), [], today, "bad-decade");

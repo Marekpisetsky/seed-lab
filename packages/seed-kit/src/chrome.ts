@@ -1,7 +1,8 @@
 /**
  * The header and footer every seed-lab app wears, as a plain model: the
- * logo and the app's name, its pages, the EN/ES switch, the tools
- * launcher, and the footer's links, notes and "Part of seed-lab". Two
+ * logo and the app's name, its pages, the EN/ES switch, the theme menu
+ * (theme.ts), the tools launcher, and the footer's links, notes and "Part
+ * of seed-lab". Two
  * renderers draw the same model with the same markup and classes
  * (chrome.css): chrome-html.ts for static apps, react/chrome.tsx for
  * Wealth Lens. An app only says what is its own: its name, pages, links
@@ -9,6 +10,7 @@
  */
 
 import { LOCALE_SETTINGS, LOCALES, type Locale } from "./locales.ts";
+import type { Theme } from "./theme.ts";
 import { HUB_URL } from "./site.ts";
 import { SHOWN_TOOLS } from "./tools.ts";
 
@@ -23,6 +25,10 @@ export const CHROME_WORDS = {
     tools: "Tools",
     here: "You are here",
     more: "More",
+    theme: "Theme",
+    themes: { auto: "Automatic", light: "Light", dark: "Dark" },
+    themeAuto: "Like your device",
+    themeNote: "Kept only in this tab.",
     partOf: "Part of seed-lab",
     copyright: "© 2026 seed-lab. Free to use.",
   },
@@ -36,10 +42,14 @@ export const CHROME_WORDS = {
     tools: "Herramientas",
     here: "Estás aquí",
     more: "Más",
+    theme: "Tema",
+    themes: { auto: "Automático", light: "Claro", dark: "Oscuro" },
+    themeAuto: "Como tu dispositivo",
+    themeNote: "Solo se recuerda en esta pestaña.",
     partOf: "Parte de seed-lab",
     copyright: "© 2026 seed-lab. De uso gratuito.",
   },
-} as const satisfies Record<Locale, Record<string, string>>;
+} as const satisfies Record<Locale, Record<string, string | Readonly<Record<Theme, string>>>>;
 
 export type ChromeWords = (typeof CHROME_WORDS)[Locale];
 
@@ -74,7 +84,7 @@ export interface HeaderModel {
   languages: LanguageLink[];
   hubHref: string;
   tools: LauncherTool[];
-  /** "dark": always near-black (the hub's top band); otherwise it follows the device. */
+  /** "dark": near-black (the hub's top band) unless a mode is chosen in the theme menu; otherwise it follows the device. */
   theme?: "dark";
 }
 
@@ -86,7 +96,7 @@ export interface FooterModel {
   notes: string[];
   /** Where "Part of seed-lab" goes; absent on the hub itself. */
   partOf?: string;
-  /** "light": always white (the hub's last band); otherwise it follows the device. */
+  /** "light": white (the hub's last band) unless a mode is chosen in the theme menu; otherwise it follows the device. */
   theme?: "light";
 }
 

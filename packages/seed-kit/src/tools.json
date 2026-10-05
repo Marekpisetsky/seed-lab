@@ -43,8 +43,8 @@
       "light": {
         "status": "meets",
         "note": {
-          "en": "210 to 231 KB per page on a first visit, under the 350 KB limit.",
-          "es": "De 210 a 231 KB por página en la primera visita, por debajo del límite de 350 KB."
+          "en": "212 to 233 KB per page on a first visit, under the 350 KB limit.",
+          "es": "De 212 a 233 KB por página en la primera visita, por debajo del límite de 350 KB."
         }
       },
       "everyone": {
@@ -100,8 +100,8 @@
       "light": {
         "status": "meets",
         "note": {
-          "en": "About 16 KB per page, compressed, under the 350 KB limit.",
-          "es": "Unos 16 KB por página, comprimida, por debajo del límite de 350 KB."
+          "en": "About 17 KB per page, compressed, under the 350 KB limit.",
+          "es": "Unos 17 KB por página, comprimida, por debajo del límite de 350 KB."
         }
       },
       "everyone": {
@@ -157,8 +157,8 @@
       "light": {
         "status": "meets",
         "note": {
-          "en": "About 15 KB per page, compressed, under the 350 KB limit.",
-          "es": "Unos 15 KB por página, comprimida, por debajo del límite de 350 KB."
+          "en": "About 16 KB per page, compressed, under the 350 KB limit.",
+          "es": "Unos 16 KB por página, comprimida, por debajo del límite de 350 KB."
         }
       },
       "everyone": {

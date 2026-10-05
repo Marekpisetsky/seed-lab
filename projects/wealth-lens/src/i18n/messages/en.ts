@@ -29,7 +29,7 @@ export const en = {
     name: "Wealth Lens",
     tagline: "What your money can do, in plain words.",
     nav: { money: "My money", test: "Test my plan", stocks: "My stocks" },
-    footerNote: "Nothing is saved or sent. Not financial advice.",
+    footerNote: "Nothing you type is saved or sent. Not financial advice.",
   },
   meta: {
     money: { title: "What your money can do", description: "See how your money grows and what it pays you. Free and private." },
@@ -37,7 +37,7 @@ export const en = {
     stocks: { title: "My stocks", description: "What you hold, what you gained, and each fund's years." },
     about: { title: "About", description: "What Wealth Lens is, who makes it, and why it is free." },
     howItWorks: { title: "How it works", description: "The method and every source, with links and dates." },
-    privacy: { title: "Privacy", description: "Nothing is saved or sent. No cookies. What the hosting logs." },
+    privacy: { title: "Privacy", description: "Nothing you type is saved or sent. No cookies. What the hosting logs." },
     terms: { title: "Terms", description: "Not financial advice. No guarantee. Use it at your own risk." },
   },
   about: {
@@ -272,9 +272,9 @@ export const en = {
   },
   privacy: {
     title: "Privacy",
-    updated: "Updated on 1 October 2026.",
+    updated: "Updated on 3 October 2026.",
     sections: [
-      { heading: "In short", body: ["**Nothing is saved or sent.** No cookies. No tracking."] },
+      { heading: "In short", body: ["**Nothing you type is saved or sent.** No cookies. No tracking."] },
       {
         heading: "Your numbers",
         body: [
@@ -285,9 +285,12 @@ export const en = {
         ],
       },
       {
-        heading: "Cookies",
+        heading: "Cookies and storage",
         body: [
-          "Wealth Lens uses no cookies and no browser storage. That is why there is no cookie banner.",
+          "Wealth Lens uses no cookies. That is why there is no cookie banner.",
+          "It keeps one thing, only if you pick it: light or dark.",
+          "That choice stays in this tab's session storage. Closing the tab deletes it.",
+          "It is never sent. Choosing “Automatic” deletes it at once.",
           "The first time, the language comes from your browser's settings. Nothing is stored to remember it.",
           "An older version saved data in the browser. If Wealth Lens finds it, it offers to load it once, then deletes it.",
         ],

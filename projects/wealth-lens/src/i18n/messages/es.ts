@@ -25,7 +25,7 @@ export const es: Messages = {
     name: "Wealth Lens",
     tagline: "Lo que tu dinero puede hacer, en palabras simples.",
     nav: { money: "Mi dinero", test: "Probar mi plan", stocks: "Mis acciones" },
-    footerNote: "No se guarda ni se envía nada. No es consejo financiero.",
+    footerNote: "No se guarda ni se envía nada de lo que escribes. No es consejo financiero.",
   },
   meta: {
     money: { title: "Lo que tu dinero puede hacer", description: "Mira cómo crece tu dinero y cuánto te paga. Gratis y privado." },
@@ -33,7 +33,7 @@ export const es: Messages = {
     stocks: { title: "Mis acciones", description: "Lo que tienes, lo que ganaste y los años de cada fondo." },
     about: { title: "Acerca de", description: "Qué es Wealth Lens, quién lo hace y por qué es gratis." },
     howItWorks: { title: "Cómo funciona", description: "El método, las cifras y todas las fuentes, con enlaces y fechas." },
-    privacy: { title: "Privacidad", description: "No se guarda ni se envía nada. Sin cookies. Qué registra el hosting." },
+    privacy: { title: "Privacidad", description: "No se guarda ni se envía nada de lo que escribes. Sin cookies. Qué registra el alojamiento." },
     terms: { title: "Condiciones", description: "No es consejo financiero. Sin garantía. Úsalo bajo tu responsabilidad." },
   },
   about: {
@@ -268,9 +268,9 @@ export const es: Messages = {
   },
   privacy: {
     title: "Privacidad",
-    updated: "Actualizado el 1 de octubre de 2026.",
+    updated: "Actualizado el 3 de octubre de 2026.",
     sections: [
-      { heading: "En resumen", body: ["**No se guarda ni se envía nada.** Sin cookies. Sin seguimiento."] },
+      { heading: "En resumen", body: ["**No se guarda ni se envía nada de lo que escribes.** Sin cookies. Sin seguimiento."] },
       {
         heading: "Tus números",
         body: [
@@ -281,9 +281,12 @@ export const es: Messages = {
         ],
       },
       {
-        heading: "Cookies",
+        heading: "Cookies y almacenamiento",
         body: [
-          "Wealth Lens no usa cookies ni el almacenamiento del navegador. Por eso no hay aviso de cookies.",
+          "Wealth Lens no usa cookies. Por eso no hay aviso de cookies.",
+          "Guarda una sola cosa, y solo si la eliges: claro u oscuro.",
+          "Esa elección queda en el almacenamiento de sesión de esta pestaña. Al cerrar la pestaña, se borra.",
+          "Nunca se envía. Elegir «Automático» la borra al momento.",
           "La primera vez, el idioma sale de la configuración de tu navegador. No se guarda nada para recordarlo.",
           "Una versión anterior guardaba datos en el navegador. Si Wealth Lens los encuentra, ofrece cargarlos una vez y después los borra.",
         ],
