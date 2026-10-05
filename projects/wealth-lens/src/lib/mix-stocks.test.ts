@@ -143,11 +143,11 @@ describe("the concentration effect", () => {
     expect(concentrationEffect(fig(95, 120))).toEqual({ middle: "higher", bad: "worse" });
     expect(concentrationEffect(fig(101, 90))).toEqual({ middle: "lower", bad: "same" });
     expect(concentrationEffect(fig(110, 100))).toEqual({ middle: "same", bad: "better" });
-    expect(EN.m.result.mix.concentration("40%", EN.m.result.mix.middleEffect.same, EN.m.result.mix.badEffect["much-worse"])).toBe(
-      "One stock is 40% of your mix: the middle result barely changes, the bad cases get much worse.",
+    expect(EN.m.result.mix.concentration("40%", "€440", EN.m.result.mix.middleEffect.same, EN.m.result.mix.badEffect["much-worse"])).toBe(
+      "One stock is 40% of your mix (€440): the middle result barely changes, the bad cases get much worse.",
     );
-    expect(ES.m.result.mix.concentration("40 %", ES.m.result.mix.middleEffect.lower, ES.m.result.mix.badEffect["much-worse"])).toBe(
-      "Una acción es el 40 % de tu mezcla: el resultado del medio baja, los casos malos empeoran mucho.",
+    expect(ES.m.result.mix.concentration("40 %", "440 €", ES.m.result.mix.middleEffect.lower, ES.m.result.mix.badEffect["much-worse"])).toBe(
+      "Una acción es el 40 % de tu mezcla (440 €): el resultado del medio baja, los casos malos empeoran mucho.",
     );
   });
 });

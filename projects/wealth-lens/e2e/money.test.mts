@@ -208,9 +208,11 @@ describe("the result, by the width of the window", () => {
       await page.waitForLoadState("networkidle");
       await page.mouse.wheel(0, 700);
       await page.waitForTimeout(300);
-      for (const side of ["aside", '[style*="view-transition-name"]']) {
+      // Right under seed-lab's header, which stays in sight too.
+      const header = await page.locator(".sk-header").evaluate((element) => element.getBoundingClientRect().bottom);
+      for (const side of ["aside", "[data-steps]"]) {
         const top = await page.locator(side).first().evaluate((element) => element.getBoundingClientRect().top);
-        assert.ok(top >= 0 && top < 40, `${side} in sight at ${width}`);
+        assert.ok(top >= header && top < header + 40, `${side} in sight at ${width}: ${top} under ${header}`);
       }
       await page.close();
     }
@@ -223,7 +225,7 @@ describe("the result, by the width of the window", () => {
       const visible = await columns(page);
       assert.equal(visible.length, 2, `two columns at ${width}`);
       assert.ok(visible[0].width > visible[1].width);
-      const steps = page.locator('[style*="view-transition-name"]');
+      const steps = page.locator('[data-steps]');
       assert.ok(await steps.getByRole("heading", { name: "What if…?" }).isVisible());
       await page.close();
     }
@@ -232,7 +234,7 @@ describe("the result, by the width of the window", () => {
   it("is one column on a phone, with the plan in a bar at the foot of the screen and What if…? under the chart", async () => {
     const page = await open("es", 360, 780);
     await firstResult(page, "es");
-    assert.equal(await page.locator('[style*="view-transition-name"]').isVisible(), false);
+    assert.equal(await page.locator('[data-steps]').isVisible(), false);
     const bar = page.getByRole("button", { name: WORDS.es.edit });
     const box = await bar.boundingBox();
     assert.ok(box && box.y + box.height > 780 - 80, "the bar is at the foot of the screen");
@@ -250,7 +252,7 @@ describe("the compact steps beside the result and in the sheet", () => {
         const page = await open(lang, width, 800);
         await firstResult(page, lang);
         if (width < 1024) await page.getByRole("button", { name: WORDS[lang].edit }).click();
-        const card = page.locator(`[style*="view-transition-name"] section[aria-label]`).first();
+        const card = page.locator(`[data-steps] section[aria-label]`).first();
         await card.waitFor();
         const overflowing = await card.evaluate((element) => {
           const edge = element.getBoundingClientRect().right;
@@ -309,8 +311,124 @@ describe("for a finger", () => {
     assert.deepEqual(await small(), []);
     await page.getByRole("button", { name: WORDS.es.edit }).click();
     assert.deepEqual(await small(), []);
-    const fields = await page.evaluate(() => [...document.querySelectorAll("input:not([type=file]):not([type=search])")].filter((input) => input.getBoundingClientRect().width > 0).map((input) => parseFloat(getComputedStyle(input).fontSize)));
+    // Fields one types in (a slider has no text to zoom in on).
+    const fields = await page.evaluate(() => [...document.querySelectorAll("input:not([type=file]):not([type=search]):not([type=range])")].filter((input) => input.getBoundingClientRect().width > 0).map((input) => parseFloat(getComputedStyle(input).fontSize)));
     assert.ok(fields.length >= 4 && fields.every((size) => size >= 16), String(fields));
     await page.close();
+  });
+});
+
+/** A page with motion allowed, recording every layout shift from the start. */
+async function withShifts(lang: Lang, width: number, height = 900): Promise<Page> {
+  const page = await browser.newPage({ viewport: { width, height } });
+  await page.addInitScript(() => {
+    const shifts: { value: number; recent: boolean }[] = [];
+    (window as unknown as { shifts: typeof shifts }).shifts = shifts;
+    new PerformanceObserver((list) => {
+      for (const entry of list.getEntries() as unknown as { value: number; hadRecentInput: boolean }[]) shifts.push({ value: entry.value, recent: entry.hadRecentInput });
+    }).observe({ type: "layout-shift", buffered: true });
+  });
+  await page.goto(base + WORDS[lang].path, { waitUntil: "networkidle" });
+  return page;
+}
+
+/** Cumulative layout shift as the browser counts it: shifts not right after an input. */
+const cls = (page: Page) => page.evaluate(() => (window as unknown as { shifts: { value: number; recent: boolean }[] }).shifts.filter((shift) => !shift.recent).reduce((sum, shift) => sum + shift.value, 0));
+
+describe("the way to the first result", () => {
+  it("glides and shrinks the card into the column beside the result (FLIP), then the result comes in by parts in 300-400 ms", async () => {
+    for (const width of [1366, 1920]) {
+      const page = await withShifts("en", width);
+      const t = WORDS.en;
+      await page.getByLabel(t.have, { exact: true }).fill("20000");
+      await page.getByLabel(t.monthly, { exact: true }).fill("400");
+      await page.waitForLoadState("networkidle");
+      await page.getByRole("button", { name: t.see }).click();
+      // Once React has drawn the change: the card's move and the result's parts, all under way together.
+      await page.waitForFunction(
+        () =>
+          document.getAnimations().some((animation) => (animation.effect as KeyframeEffect).target instanceof HTMLElement && ((animation.effect as KeyframeEffect).target as HTMLElement).getAttribute("aria-label") === "Calculator") &&
+          document.getAnimations().filter((animation) => (animation as CSSAnimation).animationName === "reveal").length >= 3,
+        undefined,
+        { timeout: 2000, polling: "raf" },
+      );
+      const running = await page.evaluate(() =>
+        document.getAnimations().map((animation) => {
+          const effect = animation.effect as KeyframeEffect;
+          const target = effect.target as HTMLElement;
+          const timing = effect.getTiming();
+          return { tag: target.tagName, label: target.getAttribute("aria-label"), css: (animation as CSSAnimation).animationName ?? null, duration: Number(timing.duration), delay: Number(timing.delay), first: (effect.getKeyframes()[0]?.transform as string) ?? "" };
+        }),
+      );
+      // The card: a box that starts at the card's old size and place (translate and scale), its content kept at its final size.
+      const card = running.find((animation) => animation.tag === "SECTION" && animation.label === "Calculator" && !animation.css);
+      assert.ok(card && /translate\(-?\d/.test(card.first) && /scale\((?!1, 1\))/.test(card.first), JSON.stringify(running));
+      assert.ok(running.some((animation) => animation.tag === "OL" && /^scale\(/.test(animation.first)));
+      assert.ok(card.duration >= 300 && card.duration <= 400);
+      // Number, grid, chart: one after the other, all done within 400 ms.
+      const parts = running.filter((animation) => animation.css === "reveal");
+      assert.deepEqual([...new Set(parts.map((animation) => animation.delay))].sort((a, b) => a - b), [0, 60, 120]);
+      assert.ok(parts.every((animation) => animation.delay + animation.duration <= 400));
+      await page.waitForTimeout(600);
+      assert.equal(await page.evaluate(() => document.getAnimations().filter((animation) => animation.playState === "running" && animation.timeline === document.timeline).length), 0);
+      // The steps' column scrolls again once the card is in place: its last "What if…?" can be reached.
+      assert.equal(await page.locator("[data-steps]").evaluate((element) => getComputedStyle(element).overflowY), "auto");
+      await page.getByRole("button", { name: /^First 10 years like 2000–2009/ }).filter({ visible: true }).click();
+      await page.getByRole("button", { name: /What if: first 10 years like 2000–2009/ }).waitFor();
+      await page.close();
+    }
+  });
+
+  it("moves nothing for those who ask for less motion", async () => {
+    const page = await open("en", 1366);
+    const t = WORDS.en;
+    await page.getByLabel(t.have, { exact: true }).fill("20000");
+    await page.getByLabel(t.monthly, { exact: true }).fill("400");
+    await page.getByRole("button", { name: t.see }).click();
+    await page.locator("#result-total").waitFor();
+    assert.equal(await page.evaluate(() => document.getAnimations().filter((animation) => animation.timeline === document.timeline).length), 0);
+    await page.close();
+  });
+
+  it("shifts no layout (CLS 0) at 360, 1366 and 1920 px: the result, its sections and the page scrolled to the end", async () => {
+    for (const lang of ["en", "es"] as const) {
+      for (const width of [360, 1366, 1920]) {
+        const page = await withShifts(lang, width, width < 1024 ? 780 : 900);
+        const t = WORDS[lang];
+        await page.getByLabel(t.have, { exact: true }).fill("20000");
+        await page.getByLabel(t.monthly, { exact: true }).fill("400");
+        await page.getByRole("button", { name: t.see }).click();
+        await page.locator("tbody tr").first().waitFor();
+        await page.waitForLoadState("networkidle");
+        for (let step = 0; step < 12; step++) {
+          await page.mouse.wheel(0, 400);
+          await page.waitForTimeout(60);
+        }
+        await page.waitForTimeout(500);
+        assert.equal(await cls(page), 0, `${lang} at ${width}`);
+        await page.close();
+      }
+    }
+  });
+});
+
+describe("seed-lab's header", () => {
+  it("stays at the top while the page scrolls, compact: on a phone, the row of pages", async () => {
+    for (const width of [360, 1366]) {
+      const page = await open("en", width, 800);
+      const full = await page.locator(".sk-header").evaluate((element) => element.getBoundingClientRect().height);
+      await page.mouse.wheel(0, 900);
+      await page.waitForTimeout(300);
+      const box = await page.locator(".sk-header").evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        return { top: rect.top, bottom: rect.bottom, position: getComputedStyle(element).position };
+      });
+      assert.equal(box.position, "sticky");
+      // In sight, and taking less of the screen than at the top of the page.
+      assert.ok(box.bottom > 40 && box.bottom < full, `${width}: ${JSON.stringify(box)} of ${full}`);
+      const pages = await page.getByRole("link", { name: "Test my plan" }).boundingBox();
+      assert.ok(pages && pages.y >= 0 && pages.y + pages.height <= box.bottom, "the pages stay in reach");
+      await page.close();
+    }
   });
 });

@@ -23,11 +23,6 @@
   }
 }
 
-/* "See my result": the steps glide to their place beside the result (only where the browser can, and only with motion). */
-::view-transition-group(*) {
-  animation-duration: 0.4s;
-}
-
 @theme {
   /* Three columns for a result from here on (lib: lg is two, from 1024 px). */
   --breakpoint-wide: 90rem;
@@ -56,6 +51,8 @@
 @theme {
   --animate-changed: changed 1.6s ease-out;
   --animate-reveal: reveal 0.45s ease-out both;
+  /* The result's parts as it arrives: number, grid, chart, one after the other (components/money/results.tsx). */
+  --animate-arrive: reveal 0.22s ease-out both;
 
   @keyframes reveal {
     from {

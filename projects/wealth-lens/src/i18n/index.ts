@@ -10,7 +10,7 @@ import { createI18n, type I18n } from "./make";
 import { en, type Messages } from "./messages/en";
 import { es } from "./messages/es";
 
-export type { Formats, I18n } from "./make";
+export type { Formats, I18n, Reach } from "./make";
 
 const MESSAGES: Readonly<Record<Locale, Messages>> = { en, es };
 
