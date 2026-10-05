@@ -57,6 +57,66 @@ async function firstResult(page: Page, lang: Lang): Promise<void> {
 
 const bigNumber = (page: Page) => page.locator("#result-total").innerText();
 
+describe("personal goals", () => {
+  it("keeps the page within a phone's width, including doubled text", async () => {
+    for (const lang of ["en", "es"] as const) {
+      const page = await open(lang, 360);
+      await page.getByLabel(WORDS[lang].have, { exact: true }).fill("60000");
+      await page.getByLabel(WORDS[lang].monthly, { exact: true }).fill("100");
+      await page.getByRole("button", { name: WORDS[lang].see }).click();
+      await page.getByRole("columnheader", { name: lang === "en" ? "With rent" : "Con alquiler", exact: true }).waitFor();
+      await page.waitForLoadState("networkidle");
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `${lang}: no page overflow`);
+      await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `${lang}: no page overflow with doubled text`);
+      await page.close();
+    }
+  });
+
+  it("adds a country immediately with editable rent, in both languages", async () => {
+    for (const lang of ["en", "es"] as const) {
+      const page = await open(lang, 360);
+      await firstResult(page, lang);
+      assert.equal(await page.getByText(lang === "en" ? "When your plan gets there, if you keep going." : "Cuándo llega tu plan, si sigues así.", { exact: true }).count(), 0);
+      await page.getByRole("button", { name: lang === "en" ? "Add a goal" : "Añadir una meta", exact: true }).click();
+      await page.getByRole("radio", { name: lang === "en" ? "Live somewhere" : "Vivir en un lugar", exact: true }).click();
+      await page.getByLabel(lang === "en" ? "Choose a country" : "Elige un país", { exact: true }).selectOption("ES");
+      const goal = page.getByRole("button", { name: lang === "en" ? /^Live in Spain/ : /^Vivir en España/ });
+      await goal.waitFor();
+      assert.match(await goal.innerText(), lang === "en" ? /including rent/ : /con alquiler incluido/);
+      await goal.click();
+      const rent = page.getByRole("checkbox", { name: lang === "en" ? "including rent" : "con alquiler incluido" });
+      await rent.uncheck();
+      assert.match(await goal.innerText(), lang === "en" ? /excluding rent/ : /sin incluir alquiler/);
+      await page.close();
+    }
+  });
+
+  it("shows personal independence progress and lets a priority be removed", async () => {
+    for (const lang of ["en", "es"] as const) {
+      const page = await open(lang, 1366);
+      await firstResult(page, lang);
+      await page.getByRole("button", { name: lang === "en" ? "Add a goal" : "Añadir una meta", exact: true }).click();
+      await page.getByRole("radio", { name: lang === "en" ? "Live without working" : "Vivir sin trabajar", exact: true }).click();
+      await page.getByLabel(lang === "en" ? "Your living costs each month" : "Tus gastos de vida al mes").fill("1200");
+      await page.getByRole("button", { name: lang === "en" ? "Add" : "Añadir", exact: true }).click();
+      await page.getByRole("heading", { name: lang === "en" ? "My priorities" : "Mis prioridades" }).waitFor();
+      const progress = page.getByRole("progressbar");
+      assert.equal(await progress.getAttribute("max"), "360000");
+      assert.equal(await progress.getAttribute("value"), "20000");
+      assert.ok(await page.getByText(lang === "en" ? /30-year model, not a guarantee/ : /modelo de 30 años, sin garantía/).count());
+      await page.getByRole("button", { name: lang === "en" ? "Most important to me" : "Lo más importante para mí" }).click();
+      assert.equal(await progress.count(), 0);
+      await page.getByRole("button", { name: lang === "en" ? /^Live without working/ : /^Vivir sin trabajar/ }).click();
+      await page.getByLabel(lang === "en" ? "Your living costs each month" : "Tus gastos de vida al mes").fill("1300");
+      await page.getByRole("button", { name: lang === "en" ? "Adjust" : "Ajustar", exact: true }).click();
+      assert.equal(await page.getByRole("button", { name: lang === "en" ? "Most important to me" : "Lo más importante para mí" }).getAttribute("aria-pressed"), "false");
+      assert.equal(await progress.count(), 0);
+      await page.close();
+    }
+  });
+});
+
 describe("the first screen", () => {
   it("is one column in the middle of the page: headline, card, More options and what to trust, all as wide as the card", async () => {
     for (const lang of ["en", "es"] as const) {

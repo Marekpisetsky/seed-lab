@@ -7,8 +7,8 @@
 
 /**
  * The seed-lab mark: an oval seed with a sprout of two leaves, on a 32 px
- * grid, all filled shapes so it still reads at 16 px. Each tool's icon is
- * the same seed carrying its own sign (Wealth Lens: a rising line).
+ * grid, all filled shapes so it still reads at 16 px. Tools can have a
+ * distinct mark: Wealth Lens uses a lens framing three financial bars.
  */
 export const SEED_MARK =
   '<ellipse cx="16" cy="23.5" rx="10" ry="6.5"/><rect x="14.7" y="11" width="2.6" height="8" rx="1.3"/><path d="M15.6 13.2C15 8.6 11.4 5.6 6.2 5.8c.4 5 4.2 8 9.4 7.4z"/><path d="M16.4 11.6c.8-4.8 4.6-7.8 9.6-7.4-.6 5-4.6 7.8-9.6 7.4z"/>';
@@ -21,6 +21,16 @@ export const INK = "#0a0a0a";
 /** The mark in a header, in the text's colour. */
 export function seedSvg(size = 26): string {
   return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true" focusable="false">${SEED_MARK}</svg>`;
+}
+
+/** Wealth Lens: a broad lens and three bars; a different outline from the seed. */
+export const WEALTH_LENS_MARK = '<circle cx="13" cy="13" r="10" fill="none" stroke="currentColor" stroke-width="4"/><path d="M21 21l8 8" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M7 18v-4h3v4zm5 0v-7h3v7zm5 0V8h3v10z"/>';
+
+/** Only known marks are selected; no caller-provided SVG enters the header. */
+export function brandSvg(mark?: "wealth-lens", size = 26): string {
+  return mark === "wealth-lens"
+    ? `<svg data-mark="wealth-lens" width="${size}" height="${size}" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true" focusable="false">${WEALTH_LENS_MARK}</svg>`
+    : seedSvg(size);
 }
 
 /** The site icon: the seed in green, on nothing. */

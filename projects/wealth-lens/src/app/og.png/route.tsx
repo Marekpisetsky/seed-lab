@@ -23,15 +23,13 @@ export function GET() {
     (
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: 72, background: COLORS.background, color: COLORS.foreground }}>
         <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
-          {/* The icon of src/app/icon.svg: the seed-lab seed with a rising line. */}
+          {/* The product's own mark, matching src/app/icon.svg. */}
           <svg width="120" height="120" viewBox="0 0 32 32">
             <g fill={COLORS.brand}>
-              <ellipse cx="16" cy="22" rx="12.5" ry="8" />
-              <rect x="14.7" y="8.5" width="2.6" height="7" rx="1.3" />
-              <path d="M15.6 11.4C15 7.6 12 5.2 7.6 5.4c.4 4.2 3.6 6.6 8 6z" />
-              <path d="M16.4 9.8c.7-4 3.9-6.4 8.1-6-.5 4.2-3.9 6.4-8.1 6z" />
+              <circle cx="13" cy="13" r="10" fill="none" stroke={COLORS.brand} strokeWidth="4" />
+              <path d="M21 21l8 8" fill="none" stroke={COLORS.brand} strokeWidth="5" strokeLinecap="round" />
+              <path d="M7 18v-4h3v4zm5 0v-7h3v7zm5 0V8h3v10z" />
             </g>
-            <path d="M10 25l3.8-3.8 3.2 2.3 5-5.2" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <div style={{ fontSize: 84, fontWeight: 800, letterSpacing: -3 }}>{EN.site.name}</div>
         </div>
