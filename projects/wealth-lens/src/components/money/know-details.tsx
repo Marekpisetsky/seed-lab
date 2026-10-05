@@ -147,7 +147,7 @@ function RangeView({ bundle }: { bundle: CalculationBundle }) {
 }
 
 /**
- * "What you should know", in its card: for a mix or the portfolio its
+ * "Good to know", in its card: for a mix or the portfolio its
  * range, worst year and what one stock does to it; for anything else with
  * ups and downs, where 8 in 10 possible futures end; then two or three
  * findings about the plan. All worked out when the card is opened.

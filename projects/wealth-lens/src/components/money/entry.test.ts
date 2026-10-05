@@ -263,7 +263,7 @@ describe.each(["en", "es"] as const)("the result in levels (%s)", (locale) => {
     expect(html.indexOf(`aria-label="${m.chart.periods}"`)).toBeLessThan(html.indexOf('role="img"'));
   });
 
-  it("follows with four sections, their titles always in sight, in order: What if…?, my goals, where it reaches, what you should know", () => {
+  it("follows with four sections, their titles always in sight, in order: What if…?, my goals, where it reaches, good to know", () => {
     expect(html).not.toContain(FOLDED);
     const titles = [...decode(html).matchAll(/<h2 id="[^"]+" class="text-lg font-bold">([^<]*)<\/h2>/g)].map((match) => match[1]);
     expect(titles).toEqual([m.whatIf.title, m.goals.title, m.cards.where, m.findings.title]);
@@ -278,7 +278,7 @@ describe.each(["en", "es"] as const)("the result in levels (%s)", (locale) => {
     expect(text(html)).toContain(m.help.whatIf);
   });
 
-  it("leaves only the long detail of what you should know behind “See more”", () => {
+  it("leaves only the long detail of good to know behind “See more”", () => {
     const know = decode(html).slice(decode(html).indexOf(m.findings.title));
     expect(text(know)).toContain(m.cards.knowSummary);
     expect(know).toMatch(new RegExp(`<button type="button" aria-expanded="false"[^>]*>${m.cards.more}<span class="sr-only">: ${m.findings.title}</span>`));

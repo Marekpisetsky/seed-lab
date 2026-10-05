@@ -15,7 +15,7 @@ const holding: Holding = {
   priceDate: null,
 };
 
-describe("the compact line in What you should know", () => {
+describe("the compact line in Good to know", () => {
   it("says in plain words how much it grows, how much it can move and the years of data", () => {
     const sp500 = resolveInvestment({ kind: "asset", asset: "sp500" }, []);
     expect(assumptionsLine(sp500, EN)).toMatch(/^Grows 7\.5% a year after rising prices · can move ±1\d% in a year · data 1988–2022$/);

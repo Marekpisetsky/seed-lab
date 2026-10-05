@@ -29,7 +29,7 @@ src/
   locales.ts         EN y ES, sus formatos (Intl) y direcciones por idioma
   detect.ts          el script de idioma: no guarda nada
   format.ts          números, dinero, porcentajes y fechas en cada idioma (con el signo menos −)
-  plain-language.ts  el test anti-jerga y de frases cortas, reutilizable
+  plain-language.ts  el test de lenguaje sencillo: frases cortas, sin jerga, sin consejos (research/legal)
   checks.ts          peso por página, peticiones a otros sitios, almacenamiento
   vision.ts          para las pruebas en navegador: daltonismo emulado, distancia de color, contraste AA
   serve.ts           para las pruebas en navegador: sirve una web compilada desde esta máquina

@@ -27,7 +27,7 @@ function Loading() {
 
 /**
  * The sections in sight come with the result's code, so none arrives late
- * and pushes the page. What opens with a tap (what you should know, the
+ * and pushes the page. What opens with a tap (good to know, the
  * withdrawal slider, the things to buy, the possible futures) has its own
  * code, fetched as soon as the result is shown, ready before it is asked for.
  */
@@ -95,7 +95,7 @@ function concentratedShare(investment: ResolvedInvestment): number | null {
  * The result in levels: what the user said and the total, the six key
  * figures under it, the chart with its tabs (the main picture), then, with
  * their titles always in sight: "What if…?", my stocks today (only with
- * holdings), my goals, where it reaches and what you should know. Only each
+ * holdings), my goals, where it reaches and good to know. Only each
  * one's long detail waits behind "See more".
  */
 export function Results({ bundle, arrive = false, onArrived }: { bundle: CalculationBundle; arrive?: boolean; onArrived?: () => void }) {

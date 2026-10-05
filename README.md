@@ -18,11 +18,11 @@ herramienta y la prueba de los principios.
   en su página *Roadmap*.
 - **Web de seed-lab:** [`hub/`](hub/README.md), estática, en EN y ES, sin
   cookies.
-- **Cómo construimos:** cada producto nace de una plataforma interna,
-  [seed-kit](packages/seed-kit/README.md) (colores, cabecera y pie,
-  idiomas, privacidad, comprobaciones) más el molde `web-tool` de
-  [Forja](tools/forja/README.md). Ver "Cómo construimos" en
-  [`docs/direction.md`](docs/direction.md).
+- **Cómo construimos:** [Forja](tools/forja/README.md) fabrica (su
+  molde `web-tool`), [seed-kit](packages/seed-kit/README.md) son las
+  piezas (colores, cabecera y pie, idiomas, privacidad, comprobaciones) y
+  [Research](research/README.md) decide y valida los métodos. Ver "Cómo
+  construimos" en [`docs/direction.md`](docs/direction.md).
 - **Alojamiento:** hoy en Vercel (EE. UU.). El plan para pasar a Europa,
   sin migrar todavía, está en [`docs/hosting.md`](docs/hosting.md).
 - **Licencia:** código propietario, © 2026 Marek Pisetsky, todos los
@@ -43,6 +43,11 @@ herramienta y la prueba de los principios.
   también son los de seed-kit.
 - **Nada empieza de cero:** cada producto nuevo nace de la plataforma
   (seed-kit y Forja) y la usa desde el código, sin copiarla.
+- **Ningún método sin su ficha:** ningún modelo ni supuesto de una app
+  cambia sin su ficha en [`research/`](research/README.md).
+- **Informar, no aconsejar:** ninguna app dice qué comprar, qué vender ni
+  qué pesos poner; da consecuencias y datos
+  ([ficha legal](research/legal/informar-no-aconsejar.md)).
 
 ## Estructura
 
@@ -59,6 +64,9 @@ herramienta y la prueba de los principios.
 - `docs/` — dirección (`direction.md`), plan de alojamiento
   (`hosting.md`), historia (`history.md`: cómo se definía seed-lab antes
   de septiembre de 2026) y capturas.
+- `research/` — seed-lab Research: una ficha por modelo y supuesto de
+  cada app (pregunta, fórmula, supuestos, fuentes con fecha, tests,
+  límites, lo discutible), más las fichas educativas y legales comunes.
 - `tools/forja/` — herramienta interna: genera herramientas web de
   seed-lab sobre seed-kit (molde `web-tool`) y proyectos de Python, todos
   con tests que pasan al nacer. No es un producto.

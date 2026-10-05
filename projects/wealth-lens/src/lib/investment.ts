@@ -11,7 +11,8 @@
  *   of" country's inflation, with no swings;
  * - a mix or My portfolio: the weighted growth of its parts, its swings,
  *   and a joint simulation of the parts (lib/mix.ts);
- * - Custom growth: the S&P 500's figures, as a starting point.
+ * - Custom growth: the growth typed (5 % to start, lib/validation.ts) with
+ *   world stocks' swings (CUSTOM_BASE).
  *
  * Every one of them can be changed (Plan.assumptions): the growth after
  * inflation (Custom growth, "My %"), the swings and the inflation.

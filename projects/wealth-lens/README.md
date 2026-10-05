@@ -160,7 +160,7 @@ idiomas y con planes de todo tipo (`percentWithoutMoney` de seed-kit).
          sin fecha. Buscador, "Show all 172" y un "+" para añadir a My
          goals; tras *See more*, *Things you could buy* (las 19 compras con
          "now" o "in 2 years (2028)" y su fuente al tocarlas).
-       - **What you should know**: una línea ("What could go wrong, and
+       - **Good to know**: una línea ("What could go wrong, and
          what helps most", o en tono de aviso, con sus euros, si una acción
          pesa más del 20 % de una mezcla); tras *See more*, la línea de
          supuestos con sus euros ("Grows 5% a year after rising prices:
@@ -985,7 +985,7 @@ src/
     app-store.ts        estado en memoria (plan, holdings, CSV subidos)
     calculator.ts       resultado, metas, tabla de países, compras, tope de 60 años
     settle.ts           aplica un número cuando se termina de escribir (500 ms)
-    findings.ts         "What you should know": una regla por hallazgo
+    findings.ts         "Good to know": una regla por hallazgo
     connections.ts      la lista de compras, con fuentes
     simulation.ts       bandas de Monte Carlo y cachés de simulación
     success-table.ts    tasas de éxito del 2 al 7 % precalculadas por activo

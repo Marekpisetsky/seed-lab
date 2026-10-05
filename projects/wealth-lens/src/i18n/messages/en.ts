@@ -1034,7 +1034,7 @@ export const en = {
     } as Record<string, { name: string; source: string }>,
   },
   findings: {
-    title: "What you should know",
+    title: "Good to know",
     nothing: "Nothing stands out for these numbers.",
     risk: "Risk",
     lever: {

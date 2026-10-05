@@ -1,6 +1,6 @@
 /**
  * The assumptions in plain words and in the page's language: the growth
- * line under the chips, one compact line for "What you should know"
+ * line under the chips, one compact line for "Good to know"
  * ("Grows 7.5% a year after rising prices · can move ±17% in a year · data
  * 1988–2022"), a short note under the chart, and the hints in More options.
  */

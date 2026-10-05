@@ -156,6 +156,8 @@ td { background: var(--card); }
 .diagram-base { padding: 1.25rem; border-radius: 12px; background: var(--brand); color: var(--brand-foreground); }
 .diagram-base p { margin: 0 0 .625rem; font-size: 1.25rem; font-weight: 800; }
 .diagram-base ul { display: flex; flex-wrap: wrap; gap: .375rem; margin: 0; padding: 0; list-style: none; }
+.diagram-research { margin: 0; padding: .75rem 1rem; border: 1px dashed var(--border); border-radius: 12px; color: var(--muted); text-align: center; }
+.diagram-research strong { color: var(--foreground); }
 .diagram-base li { padding: .25rem .625rem; border-radius: 999px; background: rgb(0 0 0 / .12); font-size: .875rem; font-weight: 600; }
 .closing { max-width: 36ch; margin: 3rem 0 0; font-size: clamp(1.375rem, 1.1rem + 1.1vw, 1.875rem); font-weight: 800; letter-spacing: -.02em; line-height: 1.25; }
 

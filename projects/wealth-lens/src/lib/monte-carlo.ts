@@ -4,8 +4,9 @@
  * invests in (lib/investment.ts), from the index datasets in src/data/.
  *
  * Model
- * - The portfolio starts at 1 and is 100 % stocks. Returns are real, so
- *   amounts are in today's money.
+ * - The portfolio starts at 1 and stays in what the plan invests in (its
+ *   yearly returns are the pool). Returns are real, so amounts are in
+ *   today's money. A mix uses its joint model instead (lib/mix.ts).
  * - Each year the same real amount is withdrawn (withdrawalRate × starting
  *   capital: the "4 % rule" adjusted for inflation), at the start of the
  *   year, and the rest earns that year's return.
