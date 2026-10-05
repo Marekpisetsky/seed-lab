@@ -138,6 +138,11 @@ export function removeGoal(id: string): void {
   updatePlan((plan) => ({ goals: plan.goals.filter((goal) => goal.id !== id) }));
 }
 
+/** Optional goal edits, including a priority flag; money stays in the shared plan. */
+export function updateGoal(id: string, change: (goal: Plan["goals"][number]) => Plan["goals"][number]): void {
+  updatePlan((plan) => ({ goals: plan.goals.map((goal) => goal.id === id ? change(goal) : goal) }));
+}
+
 export function setHoldings(next: Updater<readonly Holding[]>): void {
   appStore.set((state) => ({
     ...state,

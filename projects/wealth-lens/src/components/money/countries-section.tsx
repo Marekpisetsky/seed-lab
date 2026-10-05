@@ -33,13 +33,13 @@ function Cell({ cell, when }: { cell: CountryCell; when: When }) {
       <span className="block">{f.eur(cell.amount)}</span>
       {/* Two short lines, so a narrow cell does not break them anywhere: "✓ from 2031" / "in 5 years". */}
       <span className={`block text-sm ${cell.covered ? "font-medium text-positive" : "text-muted"}`}>
-        <span className="block whitespace-nowrap">
+        <span className="block">
           {cell.covered && <Check aria-hidden="true" className="mr-0.5 inline size-4 align-[-3px]" />}
           {cell.covered && <span className="sr-only">{m.countryTable.covered} </span>}
           <Changed value={reach.lines[0]} />
         </span>
         {reach.lines[1] && (
-          <span className="block whitespace-nowrap">
+          <span className="block">
             <Changed value={reach.lines[1]} />
           </span>
         )}
@@ -52,37 +52,15 @@ function Cell({ cell, when }: { cell: CountryCell; when: When }) {
 function AddRow({ row, onClose }: { row: CountryRow; onClose: () => void }) {
   const i18n = useI18n();
   const t = i18n.m.countryTable;
-  const [added, setAdded] = useState<boolean | null>(null);
   const name = countryInSentence(row.code, i18n);
-  const add = (housing: boolean) => {
-    addGoal({ kind: "live", country: row.code, housing });
-    setAdded(housing);
-  };
   return (
     <tr>
       <td colSpan={4} className="px-2 pb-3">
         <div className="flex flex-wrap items-center gap-2 rounded-lg bg-background p-2 text-sm">
-          {added !== null ? (
-            <span className="flex-1 font-medium text-positive">
+            <span role="status" className="flex-1 font-medium text-positive">
               <Check aria-hidden="true" className="mr-1 inline size-4 align-[-3px]" />
-              {t.added(name, added)}
+              {t.added(name, true)}
             </span>
-          ) : (
-            <>
-              <span className="w-full text-sm text-muted">{t.addPrompt(name)}</span>
-              {[false, true].map((housing) => (
-                <button
-                  key={String(housing)}
-                  type="button"
-                  onClick={() => add(housing)}
-                  className="min-h-11 rounded-md border border-border bg-card px-3 py-1 font-medium hover:border-accent"
-                >
-                  <Plus aria-hidden="true" className="mr-0.5 inline size-3.5 align-[-2px]" />
-                  {housing ? t.optionWith : t.optionWithout}
-                </button>
-              ))}
-            </>
-          )}
           <button type="button" aria-label={t.close} onClick={onClose} className="ml-auto flex size-11 items-center justify-center rounded-md text-muted hover:bg-border/40">
             <X aria-hidden="true" className="size-4" />
           </button>
@@ -119,7 +97,7 @@ export function CountriesSection({ income, rows, horizonMonths, today }: { incom
         <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
         <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} aria-label={t.search} placeholder={t.search} className={`${inputClass} pl-9 text-base`} />
       </label>
-      <div className="rounded-xl border border-border bg-card">
+      <div role="region" aria-label={t.comparison} tabIndex={0} className="relative overflow-x-auto rounded-xl border border-border bg-card">
         <table className="w-full text-left text-sm">
           <thead className="text-sm text-muted">
             <tr className="border-b border-border">
@@ -159,7 +137,11 @@ export function CountriesSection({ income, rows, horizonMonths, today }: { incom
                       type="button"
                       aria-label={t.add(countryInSentence(row.code, i18n))}
                       aria-expanded={adding === row.code}
-                      onClick={() => setAdding(adding === row.code ? null : row.code)}
+                      onClick={() => {
+                        if (adding === row.code) { setAdding(null); return; }
+                        addGoal({ kind: "live", country: row.code, housing: true });
+                        setAdding(row.code);
+                      }}
                       className="flex size-11 items-center justify-center rounded-md text-accent hover:bg-accent/10"
                     >
                       <Plus aria-hidden="true" className="size-4" />

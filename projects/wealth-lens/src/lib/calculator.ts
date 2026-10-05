@@ -359,6 +359,8 @@ function shapeOf(goal: Goal, items: ReadonlyMap<string, PricedItem>, countries: 
       return { kind: "once", amount: goal.amount, referenceDate: null };
     case "monthly":
       return { kind: "monthly", amount: goal.amount, referenceDate: null };
+    case "freedom":
+      return { kind: "monthly", amount: goal.amount, referenceDate: goal.estimateDate ?? null };
   }
 }
 

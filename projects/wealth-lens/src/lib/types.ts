@@ -116,12 +116,15 @@ export const STANDARD_ASSUMPTIONS: AssumptionOverrides = { growth: null, volatil
  * - monthly: a monthly amount the money should pay (expenses, a mortgage,
  *   anything), with an optional label the user writes.
  */
-export type Goal =
+export type Goal = (
   | { id: string; kind: "live"; country: string; housing: boolean }
   | { id: string; kind: "buy"; item: string }
   | { id: string; kind: "buy-own"; name: string; amount: number }
-  | { id: string; kind: "amount"; amount: number }
-  | { id: string; kind: "monthly"; amount: number; label: string | null };
+  | { id: string; kind: "amount"; amount: number; label?: string }
+  | { id: string; kind: "monthly"; amount: number; label: string | null }
+  /** Total monthly living expenses, including housing. Country is only the estimate's source; null means personal expenses. */
+  | { id: string; kind: "freedom"; amount: number; country: string | null; estimateDate?: string }
+) & { important?: true };
 
 /** A goal before it gets its id. */
 export type NewGoal = Goal extends infer G ? (G extends Goal ? Omit<G, "id"> : never) : never;
