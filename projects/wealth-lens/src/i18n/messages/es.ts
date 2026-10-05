@@ -860,6 +860,8 @@ export const es: Messages = {
     lines: (count: number) => `Líneas finas: ${count} futuros posibles`,
     band: "Franja: donde terminan 8 de cada 10",
     average: "Línea gruesa: tu resultado, a la media",
+    badStart: "Línea gruesa: tu resultado, con la primera década mala",
+    withoutDecade: "Las líneas finas y la franja muestran futuros sin esa década.",
     aria: (count: number, year: number, low: string, high: string) => `${count} futuros posibles hasta ${year}. 8 de cada 10 terminan entre ${low} y ${high}.`,
     shuffle: (of: string, period: string) => `Cada futuro posible baraja años reales ${of}, ${period}.`,
     shuffleParts: (period: string) => `Cada futuro posible baraja años reales, ${period}, en todas las partes.`,

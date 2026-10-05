@@ -75,7 +75,9 @@ export function badStartHead(investment: ResolvedInvestment, start: number, mont
 /** A scenario with a bad start, when there is one. */
 export function withBadStart(scenario: Scenario, investment: ResolvedInvestment, years: number): Scenario {
   const head = badStartHead(investment, scenario.capital, scenario.monthly, years);
-  return head ? { ...scenario, head } : scenario;
+  if (!head) return scenario;
+  const contributionHead = badStartHead(investment, 0, 1, years) ?? undefined;
+  return { ...scenario, head, contributionHead };
 }
 
 export interface WhatIfEffect {

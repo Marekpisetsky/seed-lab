@@ -22,16 +22,73 @@ dirección a largo plazo, no algo que exista hoy.
 
 ## Modelo
 
-Como NVIDIA y ASML, seed-lab busca ser imprescindible en una capa antes de
-ampliarse a la siguiente. Y lo hace con los valores de Proton (privacidad,
-transparencia, financiación por los propios usuarios), no con el modelo de
-las grandes tecnológicas de EE. UU., que viven de los datos de quien las
-usa.
+Marek aclaró la dirección el **5 de octubre de 2026**: seed-lab es la casa
+de las herramientas públicas, como Microsoft reúne productos; la ambición
+para las herramientas financieras es ser un **«Office de las finanzas»**:
+una familia conectada de herramientas cotidianas, gratuitas y comprensibles.
+**Forja** es el centro de desarrollo de la infraestructura que las hace
+posibles, con NVIDIA como referencia de ambición técnica. Son analogías
+para orientar el proyecto, no afirmaciones de escala, capacidad o afiliación.
+
+Europa es el punto de partida y la prioridad. La ambición es poder servir
+a personas de todo el mundo, con una dirección común del proyecto y una
+base compartida. El control central se refiere a los productos, sus métodos
+y su infraestructura; los datos y las decisiones personales pertenecen
+a quienes usan las herramientas.
+
+El objetivo es dar a las personas información y medios para ganar autonomía,
+incluida la posibilidad de depender menos del trabajo para vivir. La visión
+de un futuro en el que trabajar no sea necesario para subsistir inspira la
+dirección; las herramientas no prometen que ese futuro exista ni que una
+inversión permita alcanzarlo.
 
 Hoy esa capa son herramientas personales que funcionan en el dispositivo
 de quien las usa. No hay ingresos ni pagos: todo es gratis, y mantenerlo
 cuesta cero (regla de seed-lab). Si algún día hay financiación, vendrá de
 los usuarios, nunca de vender sus datos ni de contratos con gobiernos.
+
+## Cómo se entiende una herramienta
+
+**Una imagen vale más que mil palabras.** La pantalla muestra primero el
+resultado y cómo cambia al mover un control: gráficos, progreso, comparaciones
+y ejemplos concretos. El texto visible se limita a lo necesario para entender
+qué se ve, qué se puede hacer y qué supuesto afecta al resultado.
+
+- Una pregunta principal por pantalla y una acción principal clara.
+- Frases cortas y palabras de uso cotidiano; evitar jerga financiera.
+- Mostrar visualmente la relación entre una acción y su consecuencia.
+- Fuentes, métodos y explicaciones extensas se abren al pedir detalles.
+- Los supuestos y límites que cambian la interpretación permanecen junto al
+  resultado. Reducir texto no significa ocultarlos.
+- Los gráficos tienen etiquetas y una alternativa accesible. El color y los
+  iconos no son el único medio para comunicar una cifra o una acción.
+
+La prueba es que una persona nueva entienda el propósito y su siguiente paso
+en unos cinco segundos, también en móvil. No añadir párrafos para explicar
+una interacción que se puede hacer más clara.
+
+## Deseos y autonomía financiera
+
+Wealth Lens conecta el ahorro con cosas que una persona desea conseguir:
+tranquilidad, experiencias, vivienda, aprendizaje, proyectos propios o tiempo.
+Estas son áreas a investigar, no una clasificación demostrada de los deseos
+de los europeos. La investigación debe distinguir necesidades observadas,
+aspiraciones expresadas y propuestas de diseño, con fuentes y fecha.
+
+La persona elige su deseo o escribe uno propio. Los ejemplos sirven para
+descubrir posibilidades, con costes estimados relevantes para su país, y ver
+cuánto falta y cuándo podría alcanzarlas con su ahorro. Por ejemplo,
+100 €/mes desde cero permiten reunir 600 € en seis meses sin rendimiento
+ni cambios de precio. No recomendar compras, inversiones ni pesos.
+
+«Corto, medio y largo» fue una propuesta de Claude, no una regla de Marek.
+El plazo resulta del deseo y del plan de cada persona. Europa es el alcance
+de la investigación; los seis países de la sesión interrumpida son una
+selección inicial, no un límite permanente de la visión.
+
+Esta dirección no decide por sí sola cómo modelar una fecha deseada o
+descontar un gasto del capital: esas reglas pertenecen al spec de la función
+y a su ficha de Research.
 
 ## Cómo construimos: la plataforma
 

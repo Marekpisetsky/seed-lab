@@ -880,6 +880,8 @@ export const en = {
     lines: (count: number) => `Thin lines: ${count} possible futures`,
     band: "Shaded: where 8 in 10 end",
     average: "Thick line: your result, at the average",
+    badStart: "Thick line: your result, with the bad first decade",
+    withoutDecade: "Thin lines and shading show futures without this decade.",
     aria: (count: number, year: number, low: string, high: string) => `${count} possible futures to ${year}. 8 in 10 end between ${low} and ${high}.`,
     shuffle: (of: string, period: string) => `Each possible future shuffles real years ${of}, ${period}.`,
     shuffleParts: (period: string) => `Each possible future shuffles real years, ${period}, for all parts at once.`,

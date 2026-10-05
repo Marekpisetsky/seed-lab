@@ -48,8 +48,9 @@
  *
  * Concentration: when one stock is over CONCENTRATION_LIMIT of a mix, the
  * same mix with that stock's index in its place, over the same draws,
- * shows what the one company adds: the middle result barely changes (the
- * stock grows like its index), the bad cases get worse (it moves more).
+ * shows what the one company adds. Its expected mean matches the index,
+ * but its greater ups and downs can lower both the middle and bad cases;
+ * the wording follows the actual comparison.
  */
 
 import { isSeriesAsset, type AssetId } from "./assets";

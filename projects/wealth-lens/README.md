@@ -29,7 +29,7 @@ tabla de *Principles* del hub, `packages/seed-kit/src/tools.json`):
 | Light | Cumple | De 212 a 233 KB por página en la primera visita, por debajo del límite de 350 KB. |
 | For everyone | En parte | Palabras sencillas, teclado y objetivos de 44 px; aún sin pruebas con personas reales. |
 
-**Estado actual (2026-10-03):** dos pantallas (Next.js 16 + TypeScript +
+**Estado actual (2026-10-05):** dos pantallas (Next.js 16 + TypeScript +
 Tailwind 4), exportadas como sitio estático. La principal empieza con
 **cuatro pasos numerados**, con los importes vacíos y el crecimiento en
 5 %; el resultado llega al pulsar *See my result* (solo la primera vez),
@@ -38,7 +38,7 @@ opcionales. El móvil es el diseño principal. La app no
 supone nada sobre la vida del usuario: no pregunta país, ni si alquila o
 es propietario, ni qué quiere hacer con su dinero. Nada se guarda ni se
 envía, y la app no llama a ningún servicio mientras se usa. La lógica
-vive en funciones puras con unos 700 tests unitarios (Vitest). El uso real
+vive en funciones puras con 785 tests unitarios (Vitest). El uso real
 sostenido (la condición del peldaño 1 de seed-lab) todavía no está
 demostrado. Solo se proyecta lo que tiene una
 historia larga y un rango conocido; nada se presenta como predecible, y
@@ -219,6 +219,15 @@ Nasdaq-100 es solo precio. Las series de bonos y oro se introdujeron a
 mano desde las cifras publicadas (ver "Retornos").
 
 ## Arquitectura
+
+**Continuidad tras la interrupción (2026-10-05).** El contexto recuperado,
+la cadena de PR #26–#29 y lo pendiente de las fases 5 y 6 están en
+[`docs/continuity-2026-10-04.md`](docs/continuity-2026-10-04.md).
+La aportación necesaria para una meta lejana incorpora ahora la década
+mala seleccionada; la vista de futuros distingue esa curva de los futuros
+sin esa década impuesta. Las fichas de Research acompañan las correcciones.
+Lint, tipos, build, 785 tests unitarios y 25 pruebas de navegador pasan.
+El PR #17 de migración no forma parte de esta continuación.
 
 - Next.js (App Router) + TypeScript con `output: "export"`: `next build`
   genera HTML/CSS/JS estático en `out/`, servido por la CDN de Vercel sin
