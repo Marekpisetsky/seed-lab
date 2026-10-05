@@ -37,7 +37,7 @@ after(async () => {
 
 /** A page in a mode picked earlier in the tab ("auto": none), on a device in light or dark mode; in a window of its own. */
 async function open(path: string, { theme = "auto", device = "light", width = 1366 }: { theme?: string; device?: "light" | "dark"; width?: number } = {}): Promise<Page> {
-  const page = await (await browser.newContext({ viewport: { width, height: 900 } })).newPage();
+  const page = await (await browser.newContext({ viewport: { width, height: 900 }, locale: "en-GB" })).newPage();
   await page.emulateMedia({ reducedMotion: "reduce", colorScheme: device });
   if (theme !== "auto") await page.addInitScript((picked) => sessionStorage.setItem("sk-theme", picked), theme);
   await page.goto(base + path, { waitUntil: "networkidle" });

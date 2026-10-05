@@ -39,7 +39,7 @@ after(async () => {
 });
 
 async function open(lang: Lang, width: number, height = 800): Promise<Page> {
-  const page = await browser.newPage({ viewport: { width, height } });
+  const page = await browser.newPage({ viewport: { width, height }, locale: lang === "es" ? "es-ES" : "en-GB" });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(base + WORDS[lang].path, { waitUntil: "networkidle" });
   return page;
@@ -108,15 +108,17 @@ describe("the four steps", () => {
     for (const lang of ["en", "es"] as const) {
       for (const width of [360, 1366, 1920]) {
         const page = await open(lang, width);
-        const { slot, text, gap } = await page.evaluate(() => {
+        const { slot, text, gap, lineHeight } = await page.evaluate(() => {
           const about = document.querySelector('[id$="-about"]') as HTMLElement;
           const range = document.createRange();
           range.selectNodeContents(about);
           const before = about.nextElementSibling as HTMLElement;
-          return { slot: about.clientHeight, text: range.getBoundingClientRect().height, gap: before.getBoundingClientRect().top - about.getBoundingClientRect().bottom };
+          return { slot: about.clientHeight, text: range.getBoundingClientRect().height, gap: before.getBoundingClientRect().top - about.getBoundingClientRect().bottom, lineHeight: parseFloat(getComputedStyle(about).lineHeight) };
         });
-        // The glyphs of two 20 px lines measure about 36 px; an empty line would leave about 18.
-        assert.ok(slot - text < 8, `the line fills its place (${lang} ${width}: ${text} of ${slot})`);
+        // The slot reserves two lines on phones, one on wide screens, even
+        // when the system font fits the same words on fewer lines.
+        assert.ok(Math.abs(slot - lineHeight * (width < 1024 ? 2 : 1)) < 1, `only the reserved lines (${lang} ${width}: ${slot})`);
+        assert.ok(text > 0 && text <= slot, `the words fit their slot (${lang} ${width}: ${text} of ${slot})`);
         assert.ok(gap < 8, `the line before inflation right under it (${lang} ${width})`);
         await page.close();
       }
@@ -312,7 +314,7 @@ describe("for a finger", () => {
 
 /** A page with motion allowed, recording every layout shift from the start. */
 async function withShifts(lang: Lang, width: number, height = 900): Promise<Page> {
-  const page = await browser.newPage({ viewport: { width, height } });
+  const page = await browser.newPage({ viewport: { width, height }, locale: lang === "es" ? "es-ES" : "en-GB" });
   await page.addInitScript(() => {
     const shifts: { value: number; recent: boolean }[] = [];
     (window as unknown as { shifts: typeof shifts }).shifts = shifts;
