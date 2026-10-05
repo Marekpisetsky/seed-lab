@@ -98,6 +98,14 @@ cherry-pick, merge, rebase, cierre ni cambios en esa rama.
 
 ## Punto donde se interrumpió Claude
 
+**Aclaración de Marek, 5 de octubre:** investigar los deseos de las personas
+en Europa, no implementar una lista personal ya elegida por él. Cada persona
+elige o añade su deseo y ve cómo acercarse con su ahorro, por ejemplo
+100 €/mes. «Corto, medio y largo» era una propuesta de Claude, no una regla
+aprobada. Los seis países son una selección inicial. La dirección vigente
+y el criterio de mínimo texto/explicación visual están en
+[`docs/direction.md`](../../../docs/direction.md), relativa a la raíz del repo.
+
 La última frase recuperada sitúa el trabajo en la **fase 5: deseos con
 fecha y precios por país**, para Países Bajos, España, Alemania, Francia,
 Italia y Portugal. Claude anunciaba ejemplos de horizonte corto, medio y
@@ -145,10 +153,10 @@ La diferencia entre proyección mensual y simulación anual, las divisas y
 los dos umbrales de concentración son limitaciones ya documentadas por
 Research; no se presentan como nuevos bugs de esta recuperación.
 
-Falta el encargo completo de las fases 5 y 6. Antes de implementarlas hay
-que recuperar, al menos, qué significa la fecha deseada, cómo se aplica el
-país a cada compra y si gastar debe descontarse del plan. No inventar esas
-reglas a partir de la última frase de Claude.
+La intención de la fase 5 ya está aclarada. Siguen pendientes sus reglas de
+implementación: qué significa una fecha deseada y si gastar descuenta capital
+del plan. Investigar deseos y costes no depende de recuperar un antiguo prompt;
+no inventar esas reglas financieras a partir de la última frase de Claude.
 
 La fase 6 solo aparece mencionada en Research como «Chequeo de tu plan»,
 con el umbral de concentración del 20 %. Esa mención no es su spec completo.
