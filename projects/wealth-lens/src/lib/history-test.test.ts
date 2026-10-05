@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { calculate, type CalculatorPlan } from "./calculator";
 import { parseIsoDate } from "./dates";
-import { averageResult, CRISES, crisisResult, crisisResults, everyStartYear, historyPath, historySource, SP500_ALONE, yearsCovered, type HistorySource } from "./history-test";
+import { averageResult, cardYears, CRISES, crisisResult, crisisResults, everyStartYear, fallAmount, historyPath, historySource, SP500_ALONE, yearsCovered, type HistorySource } from "./history-test";
 import { SERIES } from "./indexes";
 import { resolveInvestment } from "./investment";
 import type { Holding } from "./types";
@@ -15,10 +15,12 @@ const worldOnly: HistorySource = { parts: [{ asset: "world", weight: 1 }], rebal
 const sixtyForty: HistorySource = { parts: [{ asset: "world", weight: 0.6 }, { asset: "bonds", weight: 0.4 }], rebalance: true, savingsReturn: 0 };
 
 describe("the history a plan follows", () => {
-  it("is its asset, a mix's parts, or the index of each stock of My portfolio; none for savings or custom growth", () => {
+  it("is its asset, a mix's parts, or the index of each stock of My portfolio; world stocks for custom growth; none with no ups and downs", () => {
     expect(historySource(resolveInvestment({ kind: "asset", asset: "sp500" }, []))).toEqual(SP500_ALONE);
     expect(historySource(resolveInvestment({ kind: "asset", asset: "savings" }, []))).toBeNull();
-    expect(historySource(resolveInvestment({ kind: "custom" }, []))).toBeNull();
+    // The starting 5 %: it moves like world stocks, so it is tested with their real years.
+    expect(historySource(resolveInvestment({ kind: "custom" }, []))).toEqual({ parts: [{ asset: "world", weight: 1 }], rebalance: true, savingsReturn: 0 });
+    expect(historySource(resolveInvestment({ kind: "custom" }, [], { pricesOf: "NL", assumptions: { growth: 0.05, volatility: 0, inflation: null } }))).toBeNull();
     const mix = historySource(resolveInvestment({ kind: "mix", parts: [{ asset: "world", weight: 60 }, { asset: "bonds", weight: 40 }], rebalance: true }, []));
     expect(mix).toMatchObject({ rebalance: true, parts: [{ asset: "world", weight: 0.6 }, { asset: "bonds", weight: 0.4 }] });
     const nasdaqFund: Holding = { id: "n", ticker: "EQQQ", quantity: 1, costBasis: 100, currency: "EUR", currentPrice: 100, priceSource: "manual", priceDate: null };
@@ -113,6 +115,24 @@ describe("the crashes", () => {
     const mix = crisisResult(sixtyForty, amounts, 20, "financial");
     const alone = crisisResult(SP500_ALONE, amounts, 20, "financial");
     expect(mix?.fall?.drop ?? 1).toBeLessThan(alone?.fall?.drop ?? 0);
+  });
+});
+
+describe("a crisis card", () => {
+  it("says the fall in euros of the money there was at the top", () => {
+    const result = crisisResult(SP500_ALONE, { start: 1_100, monthly: 0 }, 20, "financial");
+    expect(fallAmount(result ?? { fall: null })).toBeCloseTo((result?.fall?.from ?? 0) * (result?.fall?.drop ?? 0), 9);
+    expect(fallAmount(result ?? { fall: null })).toBeGreaterThan(300);
+    expect(fallAmount({ fall: null })).toBe(0);
+  });
+
+  it("draws its small line from the start until the money is back at its top, or a few years past the crisis", () => {
+    const financial = crisisResult(SP500_ALONE, { start: 10_000, monthly: 0 }, 20, "financial");
+    expect(cardYears(financial!)).toBe((financial?.fall?.peak ?? 0) + (financial?.yearsToRecover ?? 0));
+    const covid = crisisResult(SP500_ALONE, { start: 10_000, monthly: 0 }, 20, "covid");
+    expect(covid?.fall).toBeNull();
+    // 2019 to 2023 at most, as far as the data goes.
+    expect(cardYears(covid!)).toBe(Math.min(covid!.path.length - 1, 1 + 1 + 3));
   });
 });
 
