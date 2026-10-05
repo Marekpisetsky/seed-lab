@@ -30,7 +30,9 @@ export function goalName(status: GoalStatus, i18n: I18n): string {
     case "buy-own":
       return goal.name;
     case "amount":
-      return m.goals.reach(f.eur(goal.amount));
+      return goal.label ?? m.goals.reach(f.eur(goal.amount));
+    case "freedom":
+      return m.goals.freedom;
     case "monthly":
       return goal.label ? goal.label.charAt(0).toUpperCase() + goal.label.slice(1) : m.goals.monthlyName;
   }
@@ -59,12 +61,14 @@ export function goalExplain(status: GoalStatus, scenario: Scenario, investment: 
         : t.tooFar(start, MAX_YEARS, f.eur(status.needed ?? 0), NEEDED_WITHIN_YEARS);
   const { goal } = status;
   const where =
-    goal.kind === "live"
+    goal.kind === "freedom" && goal.country && goal.estimateDate
+      ? m.goals.form.onePerson(countryInSentence(goal.country, i18n), goal.estimateDate)
+      : goal.kind === "live"
       ? t.liveSource(goal.housing, liveSource(goal.country, status.referenceDate, i18n))
       : goal.kind === "buy"
         ? t.itemSource(m.things.items[goal.item]?.source ?? "")
         : goal.kind === "buy-own"
           ? t.ownPrice
           : t.ownAmount;
-  return [cost, reach, where];
+  return [cost, reach, where, ...(goal.kind === "freedom" ? [m.goals.freedomRisk] : [])];
 }

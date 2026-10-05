@@ -75,7 +75,7 @@ function ResultTotal({ bundle, ref }: { bundle: CalculationBundle; ref: React.Re
         </p>
         <WhatIfIndicator bundle={bundle} />
       </div>
-      <p id={TOTAL_ID} className="flex items-center gap-2 text-5xl font-extrabold tracking-tight tabular-nums sm:text-6xl">
+      <p id={TOTAL_ID} className="flex flex-wrap items-center gap-2 text-5xl font-extrabold tracking-tight tabular-nums [overflow-wrap:anywhere] sm:text-6xl">
         <Changed value={f.eur(result.total)} />
         <Help what={m.result.inYears(years)} text={m.help.total} />
       </p>

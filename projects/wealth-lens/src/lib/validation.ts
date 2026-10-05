@@ -279,24 +279,35 @@ const isYears = (value: unknown): value is number =>
 /** One goal of "My goals", or `null` when it is not a valid one. */
 export function parseGoalItem(value: unknown): Goal | null {
   if (!isRecord(value) || typeof value.id !== "string" || !ID_PATTERN.test(value.id)) return null;
+  if (value.important !== undefined && typeof value.important !== "boolean") return null;
   const { id } = value;
+  const base = { id, ...(value.important === true ? { important: true as const } : {}) };
   switch (value.kind) {
     case "live":
       return typeof value.country === "string" && COUNTRY_PATTERN.test(value.country) && typeof value.housing === "boolean"
-        ? { id, kind: "live", country: value.country, housing: value.housing }
+        ? { ...base, kind: "live", country: value.country, housing: value.housing }
         : null;
     case "buy":
-      return typeof value.item === "string" && ID_PATTERN.test(value.item) ? { id, kind: "buy", item: value.item } : null;
+      return typeof value.item === "string" && ID_PATTERN.test(value.item) ? { ...base, kind: "buy", item: value.item } : null;
     case "buy-own":
-      return isName(value.name) && isAmount(value.amount) ? { id, kind: "buy-own", name: value.name.trim(), amount: value.amount } : null;
+      return isName(value.name) && isAmount(value.amount) ? { ...base, kind: "buy-own", name: value.name.trim(), amount: value.amount } : null;
     case "amount":
-      return isAmount(value.amount) ? { id, kind: "amount", amount: value.amount } : null;
+      return isAmount(value.amount) ? { ...base, kind: "amount", amount: value.amount, ...(isName(value.label) ? { label: value.label.trim() } : {}) } : null;
+    case "freedom":
+      if (value.estimateDate !== undefined) {
+        if (typeof value.estimateDate !== "string" || !/^\d{4}(?:-\d{2}){0,2}$/.test(value.estimateDate)) return null;
+        const complete = value.estimateDate.length === 4 ? `${value.estimateDate}-01-01` : value.estimateDate.length === 7 ? `${value.estimateDate}-01` : value.estimateDate;
+        if (!isIsoDate(complete)) return null;
+      }
+      return isAmount(value.amount) && (value.country === null || (typeof value.country === "string" && COUNTRY_PATTERN.test(value.country)))
+        ? { ...base, kind: "freedom", amount: value.amount, country: value.country, ...(typeof value.estimateDate === "string" && value.country ? { estimateDate: value.estimateDate } : {}) }
+        : null;
     case "monthly":
     // Version 4 called it "income", with its label in "name".
     case "income":
     case "spending": {
       const label = [value.label, value.name].find(isName);
-      return isAmount(value.amount) ? { id, kind: "monthly", amount: value.amount, label: label ? label.trim() : null } : null;
+      return isAmount(value.amount) ? { ...base, kind: "monthly", amount: value.amount, label: label ? label.trim() : null } : null;
     }
     default:
       return null;

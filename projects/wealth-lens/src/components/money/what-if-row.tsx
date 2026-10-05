@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Trend } from "@seed-kit/react/trend.tsx";
 import { X } from "lucide-react";
@@ -87,7 +87,7 @@ export function WhatIfRow({ bundle, layout = "grid" }: { bundle: CalculationBund
               } disabled:opacity-60`}
             >
               <span className="text-base font-medium">{whatIfChip(effect.id, bundle.base.investment, bundle.base.result.years, i18n)}</span>
-              <span className={`shrink-0 text-sm font-semibold tabular-nums ${tone}`}>
+              <span className={`max-w-full text-sm font-semibold tabular-nums [overflow-wrap:anywhere] what-if-value ${tone}`}>
                 {effect.available ? (
                   <Trend change={shown}>
                     <Changed value={effectText(effect, i18n)} />
