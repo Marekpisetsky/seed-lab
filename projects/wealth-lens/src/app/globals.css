@@ -79,7 +79,19 @@
 body {
   background: var(--background);
   color: var(--foreground);
+  font-weight: 500;
 }
+
+/* Readable supporting text; medium where the system font has no variable weights. */
+.text-sm {
+  font-size: 0.9375rem;
+  line-height: 1.25rem;
+}
+
+.goal-progress { accent-color: var(--accent); border: 0; border-radius: 1rem; overflow: hidden; }
+.goal-progress::-webkit-progress-bar { background: var(--border); border-radius: 1rem; }
+.goal-progress::-webkit-progress-value { background: var(--accent); border-radius: 1rem; }
+.goal-progress::-moz-progress-bar { background: var(--accent); border-radius: 1rem; }
 
 /* The email address before the browser joins it into a link (components/ui/email.tsx). "\40" is the @. */
 .email-parts::before {
@@ -97,3 +109,7 @@ h1,
 h2 {
   letter-spacing: -0.02em;
 }
+
+/* Allow signed amounts to wrap when text is enlarged. */
+.what-if-value > span { white-space: normal !important; }
+

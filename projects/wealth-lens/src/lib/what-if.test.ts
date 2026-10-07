@@ -130,6 +130,26 @@ describe("A bad first decade", () => {
     expect(peru(bad)).toBeGreaterThan(peru(plain));
   });
 
+  it.each([0, 10])("the amount needed in 30 years includes the bad decade (starting contribution %s)", (monthlyContribution) => {
+    const original = plan({ invested: 1000, monthlyContribution, goals: [{ id: "far", kind: "amount", amount: 1_000_000 }] });
+    const bad = calculate(original, [], today, "bad-decade");
+    expect(bad.goals[0].reachable).toBe(false);
+    const needed = bad.goals[0].needed;
+    expect(needed).not.toBeNull();
+    const adjusted = calculate({ ...original, monthlyContribution: needed }, [], today, "bad-decade");
+    expect(valueAt(adjusted.scenario, 30 * 12)).toBeCloseTo(1_000_000, 5);
+  });
+
+  it.each([false, true])("solves the same bad decade for a mix from zero capital (rebalance %s)", (rebalance) => {
+    const original = plan({ invested: 0, monthlyContribution: 10, investment: { kind: "mix", parts: [{ asset: "world", weight: 60 }, { asset: "bonds", weight: 40 }], rebalance }, goals: [{ id: "far", kind: "amount", amount: 1_000_000 }] });
+    const bad = calculate(original, [], today, "bad-decade");
+    expect(bad.goals[0].reachable).toBe(false);
+    const needed = bad.goals[0].needed;
+    expect(needed).not.toBeNull();
+    const adjusted = calculate({ ...original, monthlyContribution: needed }, [], today, "bad-decade");
+    expect(valueAt(adjusted.scenario, 30 * 12)).toBeCloseTo(1_000_000, 5);
+  });
+
   it("lasts the plan's years when they are fewer than ten", () => {
     const short = calculate(plan({ years: 6 }), [], today, "bad-decade");
     expect(short.scenario.head).toHaveLength(7);

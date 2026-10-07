@@ -33,7 +33,9 @@ concentración.
   año.
 - **Concentración**: si una acción pesa más del 20 % de la mezcla, se
   compara con la misma mezcla poniendo su índice en su lugar, sobre los
-  mismos sorteos: el caso del medio apenas cambia y los malos empeoran.
+  mismos sorteos. La media esperada se iguala al índice; los altibajos
+  mayores pueden reducir tanto el caso del medio como los malos. El texto
+  de la app describe la comparación calculada, sin prometer su dirección.
 
 Exacta (una acción, en logaritmos, cada año sorteado t):
 
@@ -130,6 +132,8 @@ cada enero, sobre los años que tienen todas sus partes.
 ## Historial
 
 - 2026-10-03: primera ficha (sin cambios en el cálculo).
+- 2026-10-05: la descripción de concentración distingue media esperada
+  y caso central, según el modelo y sus tests actuales. No cambia el cálculo.
 - 2026-10-07: un solo umbral de concentración, el 20 %, en el [chequeo de
   tu plan](chequeo.md); se quita el hallazgo del 40 % de *Mi cartera*. Sin
   cambios en los cálculos de las mezclas.

@@ -111,8 +111,7 @@ export const STANDARD_ASSUMPTIONS: AssumptionOverrides = { growth: null, volatil
  * (things of the list at the prices of the country they see, lib/
  * wish-country.ts).
  * - live: living in a country of the cost-of-living list, with or without
- *   paying for housing there; `stopWorking` when it was added as "Stop
- *   working" (the money paying a life at home), which only names it;
+ *   paying for housing there;
  * - buy: an item of the "Buy it" list (src/data/connections.json, its id),
  *   priced for the country of the prices;
  * - buy-own: something of the user's own, at the price they give;
@@ -120,12 +119,15 @@ export const STANDARD_ASSUMPTIONS: AssumptionOverrides = { growth: null, volatil
  * - monthly: a monthly amount the money should pay (expenses, a mortgage,
  *   anything), with an optional label the user writes.
  */
-export type Goal =
-  | { id: string; kind: "live"; country: string; housing: boolean; stopWorking?: boolean }
+export type Goal = (
+  | { id: string; kind: "live"; country: string; housing: boolean }
   | { id: string; kind: "buy"; item: string }
   | { id: string; kind: "buy-own"; name: string; amount: number }
-  | { id: string; kind: "amount"; amount: number }
-  | { id: string; kind: "monthly"; amount: number; label: string | null };
+  | { id: string; kind: "amount"; amount: number; label?: string }
+  | { id: string; kind: "monthly"; amount: number; label: string | null }
+  /** Total monthly living expenses, including housing. Country is only the estimate's source; null means personal expenses. */
+  | { id: string; kind: "freedom"; amount: number; country: string | null; estimateDate?: string }
+) & { important?: true };
 
 /** A goal before it gets its id. */
 export type NewGoal = Goal extends infer G ? (G extends Goal ? Omit<G, "id"> : never) : never;

@@ -1,20 +1,20 @@
 "use client";
 
-import { Check, Plus, X } from "lucide-react";
-import { useId, useMemo, useState } from "react";
+import { Check, Plus, Star, X } from "lucide-react";
+import { Fragment, useId, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n";
 import { Button } from "@/components/ui/button";
 import { Changed } from "@/components/ui/changed";
 import { inputClass, LiveNumberInput } from "@/components/ui/form";
 import { Help } from "@/components/ui/help";
 import { RadioGroup } from "@/components/ui/radio-group";
-import { byCountryName, countryInSentence, countryName, matchesCountry } from "@/i18n/countries";
+import { byCountryName, countryName, matchesCountry } from "@/i18n/countries";
 import { goalDetail, goalExplain, goalName } from "@/i18n/goal-text";
 import { itemName, itemPrice } from "@/i18n/item-text";
-import { addGoal, removeGoal } from "@/lib/app-store";
+import { addGoal, removeGoal, updateGoal } from "@/lib/app-store";
 import { NEEDED_WITHIN_YEARS, pricedItems, type Calculation, type GoalStatus } from "@/lib/calculator";
 import { costOfLiving } from "@/lib/cost-of-living";
-import type { NewGoal } from "@/lib/types";
+import type { Goal, NewGoal } from "@/lib/types";
 import { MAX_AMOUNT } from "@/lib/validation";
 import { PricesOf } from "./prices-of";
 
@@ -31,15 +31,17 @@ function GoalRow({ status, calc, today }: { status: GoalStatus; calc: Calculatio
   // A thing of the list keeps its "≈" when its price is a rough estimate, as everywhere else.
   const once = status.item ? itemPrice(status.item, i18n) : f.eur(status.amount);
   const amountLine = !status.known ? "" : status.kind === "once" ? once : m.goals.perMonthNeeded(f.eur(status.amount), f.eur(status.target));
+  const remaining = Math.max(0, status.target - calc.scenario.capital);
+  const saved = Math.min(status.target, Math.max(0, calc.scenario.capital));
   return (
     <li className="py-2">
-      <div className="flex items-start gap-2">
+      <div className="flex flex-wrap items-start gap-2">
         <button
           type="button"
           aria-expanded={open}
           aria-controls={panel}
           onClick={() => setOpen(!open)}
-          className="min-h-11 min-w-0 flex-1 rounded-md px-1 py-1 text-left hover:bg-border/30"
+          className="min-h-11 min-w-0 max-w-full flex-[1_0_10rem] rounded-md px-1 py-1 text-left [overflow-wrap:anywhere] hover:bg-border/30"
         >
           <span className="block text-sm font-medium">
             {name}
@@ -47,16 +49,24 @@ function GoalRow({ status, calc, today }: { status: GoalStatus; calc: Calculatio
           </span>
           <span className="mt-0.5 flex flex-wrap items-baseline gap-x-2 text-sm">
             {status.known && (
-              <span className={reached ? "whitespace-nowrap font-medium text-positive" : status.reachable ? "whitespace-nowrap font-medium" : "text-muted"}>
+              <span className={reached ? "font-medium text-positive" : status.reachable ? "font-medium" : "text-muted"}>
                 {reached && <Check aria-hidden="true" className="mr-0.5 inline size-4 align-[-3px]" />}
                 {reached && <span className="sr-only">{m.goals.reached} </span>}
                 <Changed value={status.reachable ? reach.text : m.goals.notAtThisPace(f.eur(status.needed ?? 0), NEEDED_WITHIN_YEARS)} />
               </span>
             )}
-            <span className="text-sm text-muted">
+            <span className="text-sm font-medium text-muted">
               <Changed value={amountLine} />
             </span>
           </span>
+        </button>
+        <button type="button" aria-label={`${m.goals.important}: ${name}`} aria-pressed={status.goal.important === true}
+          onClick={() => updateGoal(status.goal.id, (goal) => {
+            const { important, ...rest } = goal;
+            return important ? rest : { ...rest, important: true };
+          })}
+          className="flex size-11 shrink-0 items-center justify-center rounded-md text-accent hover:bg-accent/10">
+          <Star aria-hidden="true" className="size-4" fill={status.goal.important ? "currentColor" : "none"} />
         </button>
         <button
           type="button"
@@ -67,23 +77,38 @@ function GoalRow({ status, calc, today }: { status: GoalStatus; calc: Calculatio
           <X aria-hidden="true" className="size-4" />
         </button>
       </div>
+      {status.known && status.goal.important && (
+        <div className="px-1 pb-2">
+          <progress aria-label={`${m.goals.progress}: ${name}`} max={status.target} value={saved} className="goal-progress block h-2 w-full" />
+          <p className="mt-1 text-sm font-medium">{m.goals.missing(f.eur(remaining))}</p>
+        </div>
+      )}
+      {status.goal.kind === "freedom" && <p className="px-1 text-sm font-medium text-muted">{m.goals.freedomAssumption(f.rate(calc.scenario.withdrawalRate))}</p>}
       {open && (
-        <ol id={panel} className="mt-1 space-y-1 rounded-md bg-background px-3 py-2 text-sm text-muted">
+        <div id={panel} className="mt-1 space-y-2 rounded-md bg-background px-3 py-2 text-sm text-muted">
+        {status.goal.kind === "live" && (
+          <label className="flex min-h-11 items-center gap-2 font-medium">
+            <input type="checkbox" checked={status.goal.housing} onChange={(event) => updateGoal(status.goal.id, (goal) => goal.kind === "live" ? { ...goal, housing: event.target.checked } : goal)} />
+            {m.goals.withHousing}
+          </label>
+        )}
+        {status.goal.kind === "freedom" && <FreedomForm initial={status.goal} onAdd={(next) => updateGoal(status.goal.id, () => ({ ...next, id: status.goal.id, ...(status.goal.important ? { important: true } : {}) }))} />}
+        <ol className="space-y-1">
           {goalExplain(status, calc.scenario, calc.investment, i18n).map((line) => (
             <li key={line}>{line}</li>
           ))}
-        </ol>
+        </ol></div>
       )}
     </li>
   );
 }
 
-type Kind = "live" | "buy" | "amount" | "monthly";
-const KINDS: readonly Kind[] = ["live", "buy", "amount", "monthly"];
+type Kind = "freedom" | "live" | "buy" | "amount" | "monthly";
+const KINDS: readonly Kind[] = ["freedom", "live", "amount", "buy", "monthly"];
 
 const validAmount = (amount: number | null): amount is number => amount !== null && amount > 0 && amount <= MAX_AMOUNT;
 
-/** The form behind "+ Add a goal": one of four kinds, each with what it needs and nothing more. */
+/** The form behind "+ Add a goal": only the fields the chosen goal needs. */
 function AddGoal({ onDone, wishCountry }: { onDone: () => void; wishCountry: string }) {
   const { m } = useI18n();
   const [kind, setKind] = useState<Kind | null>(null);
@@ -98,11 +123,12 @@ function AddGoal({ onDone, wishCountry }: { onDone: () => void; wishCountry: str
         options={KINDS.map((id) => ({ value: id, label: m.goals.kinds[id] }))}
         value={kind}
         onChange={setKind}
-        className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+        className="grid grid-cols-2 gap-2 sm:grid-cols-3"
         optionClassName={(checked) =>
           `min-h-11 rounded-lg border px-3 py-2 text-left text-sm font-medium ${checked ? "border-accent bg-accent/10" : "border-border hover:border-accent"}`
         }
       />
+      {kind === "freedom" && <FreedomForm onAdd={add} />}
       {kind === "live" && <LiveForm onAdd={add} />}
       {kind === "buy" && <BuyForm onAdd={add} country={wishCountry} />}
       {kind === "amount" && <AmountForm onAdd={add} />}
@@ -114,23 +140,21 @@ function AddGoal({ onDone, wishCountry }: { onDone: () => void; wishCountry: str
   );
 }
 
-/** Where to live: a search that narrows the list of countries, then with or without housing. */
+/** Country selection gives an immediate answer; rent remains editable in the goal. */
 function LiveForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
   const i18n = useI18n();
-  const { m, f } = i18n;
+  const { m } = i18n;
   const t = m.goals.form;
-  const [code, setCode] = useState("");
   const [query, setQuery] = useState("");
   const countries = useMemo(() => byCountryName(costOfLiving.countries, i18n), [i18n]);
   const shown = countries.filter((entry) => matchesCountry(entry.code, query, i18n));
-  const country = countries.find((entry) => entry.code === code);
   return (
     <div className="space-y-2">
       <label className="block space-y-1 text-sm">
         <span className="font-medium">{t.where}</span>
         <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.search} className={inputClass} />
       </label>
-      <select aria-label={t.chooseCountry} className={inputClass} value={code} onChange={(event) => setCode(event.target.value)}>
+      <select aria-label={t.chooseCountry} className={inputClass} value="" onChange={(event) => onAdd({ kind: "live", country: event.target.value, housing: true })}>
         <option value="" disabled>
           {t.chooseCountry}
         </option>
@@ -140,22 +164,52 @@ function LiveForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
           </option>
         ))}
       </select>
-      {country && (
-        <div className="grid gap-2 sm:grid-cols-2">
-          {[false, true].map((housing) => (
-            <Button key={String(housing)} variant="primary" onClick={() => onAdd({ kind: "live", country: country.code, housing })}>
-              <Plus aria-hidden="true" className="size-4" />
-              {t.option(housing, f.eur(housing ? country.monthlyCostEur.withRent : country.monthlyCostEur.withoutRent))}
-            </Button>
-          ))}
-          <p className="text-sm text-muted sm:col-span-2">
-            {country.priceLevel
-              ? t.onePersonEstimated(countryInSentence(country.code, i18n), country.priceLevel.year)
-              : t.onePerson(countryInSentence(country.code, i18n), country.referenceDate)}
-          </p>
-        </div>
-      )}
+      <p className="text-sm font-medium text-muted">{t.includesRent}</p>
     </div>
+  );
+}
+
+/** Personal expenses first; selecting a country only fills an editable estimate. */
+function FreedomForm({ onAdd, initial }: { onAdd: (goal: NewGoal) => void; initial?: Extract<Goal, { kind: "freedom" }> }) {
+  const i18n = useI18n();
+  const { m } = i18n;
+  const t = m.goals.form;
+  const [amount, setAmount] = useState<number | null>(initial?.amount ?? null);
+  const [country, setCountry] = useState<string | null>(initial?.country ?? null);
+  const [estimateDate, setEstimateDate] = useState<string | undefined>(initial?.estimateDate);
+  const countries = useMemo(() => byCountryName(costOfLiving.countries, i18n), [i18n]);
+  const source = countries.find((entry) => entry.code === country);
+  return (
+    <form className="space-y-2" onSubmit={(event) => {
+      event.preventDefault();
+      if (validAmount(amount)) onAdd({ kind: "freedom", amount, country,
+        ...(country && estimateDate ? { estimateDate } : {}),
+        ...(initial ? {} : { important: true }) });
+    }}>
+      <label className="block space-y-1 text-sm font-medium">
+        <span>{t.expenses}</span>
+        <LiveNumberInput value={amount} onValue={(value) => { setAmount(value); setCountry(null); setEstimateDate(undefined); }} placeholder={t.amountMonthPlaceholder} />
+      </label>
+      <details className="text-sm">
+        <summary className="min-h-11 cursor-pointer py-2 font-medium text-accent">{t.countryEstimate}</summary>
+        <select aria-label={t.chooseCountry} className={inputClass} value={country ?? ""} onChange={(event) => {
+          const selected = countries.find((entry) => entry.code === event.target.value);
+          if (selected) {
+            setCountry(selected.code);
+            setAmount(selected.monthlyCostEur.withRent);
+            setEstimateDate(selected.priceLevel ? String(selected.priceLevel.year) : selected.referenceDate);
+          }
+        }}>
+          <option value="" disabled>{t.chooseCountry}</option>
+          {countries.map((entry) => <option key={entry.code} value={entry.code}>{countryName(entry.code, i18n)}</option>)}
+        </select>
+      </details>
+      <p className="text-sm font-medium text-muted">{source
+        ? t.onePerson(countryName(source.code, i18n), estimateDate ?? "")
+        : t.ownExpenses}</p>
+      {source && <p className="text-sm font-medium text-muted">{t.includesRent}</p>}
+      <Button type="submit" variant="primary" disabled={!validAmount(amount)}>{initial ? m.goals.edit : t.add}</Button>
+    </form>
   );
 }
 
@@ -207,15 +261,20 @@ function AmountForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
   const { m } = useI18n();
   const t = m.goals.form;
   const [amount, setAmount] = useState<number | null>(null);
+  const [label, setLabel] = useState("");
   const valid = validAmount(amount);
   return (
     <form
-      className="flex items-end gap-2"
+      className="space-y-2"
       onSubmit={(event) => {
         event.preventDefault();
-        if (valid) onAdd({ kind: "amount", amount });
+        if (valid) onAdd({ kind: "amount", amount, ...(label.trim() ? { label: label.trim().slice(0, 60) } : {}), important: true });
       }}
     >
+      <label className="block space-y-1 text-sm font-medium">
+        <span>{t.goalName}</span>
+        <input value={label} onChange={(event) => setLabel(event.target.value)} maxLength={60} placeholder={t.goalPlaceholder} className={inputClass} />
+      </label>
       <label className="block flex-1 space-y-1 text-sm">
         <span className="font-medium">{t.howMuch}</span>
         <LiveNumberInput value={amount} onValue={setAmount} placeholder={t.amountPlaceholder} />
@@ -268,12 +327,14 @@ export function GoalsSection({ calc, today, wishCountry, inCard = false }: { cal
   const { m } = useI18n();
   const [adding, setAdding] = useState(false);
   const { goals } = calc;
+  const ordered = [...goals].sort((a, b) => Number(Boolean(b.goal.important)) - Number(Boolean(a.goal.important)));
+  const hasPriorities = goals.some((status) => status.goal.important);
   return (
     // Under a section titled "My goals" (inCard) it needs no name of its own: two places with one name confuse a screen reader.
     <section aria-labelledby={goals.length > 0 && !inCard ? "goals-title" : undefined} aria-label={goals.length > 0 || inCard ? undefined : m.goals.title} className="space-y-2">
       {inCard && (
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-          <p className="text-sm text-muted">{m.help.goals}</p>
+          <p className="text-sm font-medium text-muted">{goals.length ? m.help.goals : m.goals.empty}</p>
           <PricesOf country={wishCountry} />
         </div>
       )}
@@ -285,9 +346,13 @@ export function GoalsSection({ calc, today, wishCountry, inCard = false }: { cal
               <Help what={m.goals.title} text={m.help.goals} />
             </h2>
           )}
+          {hasPriorities && <h3 className="text-base font-semibold">{m.goals.priorities}</h3>}
           <ul className="divide-y divide-border rounded-xl border border-border bg-card px-2">
-            {goals.map((status) => (
-              <GoalRow key={status.goal.id} status={status} calc={calc} today={today} />
+            {ordered.map((status, index) => (
+              <Fragment key={status.goal.id}>
+                {hasPriorities && !status.goal.important && ordered[index - 1]?.goal.important && <li role="presentation" className="pt-3"><h3 className="text-base font-semibold">{m.goals.otherGoals}</h3></li>}
+                <GoalRow status={status} calc={calc} today={today} />
+              </Fragment>
             ))}
           </ul>
         </>

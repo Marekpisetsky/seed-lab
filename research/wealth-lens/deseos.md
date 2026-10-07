@@ -21,29 +21,48 @@ llega a ese precio, con el mismo cálculo que el resto (ver
 [crecimiento](crecimiento.md)): "en 4 años", "ya", o nada si tarda más de
 60 años.
 
-Bajo el número grande salen hasta tres deseos, uno de cada horizonte:
+Bajo el número grande salen hasta tres deseos. **Los deseos son de la
+persona** ([dirección](../../docs/direction.md), aclaración de Marek del
+5 de octubre de 2026): primero, las metas que marcó como más importantes
+en *Mis metas* (la estrella de las [metas personales](metas-personales.md)),
+en su orden. El resto de la línea son **ejemplos para descubrir**, uno por
+cada área que sus prioridades no cubren, en este orden:
 
-| Horizonte | Candidatos | Cuál sale |
-| --- | --- | --- |
-| Corto (un viaje) | Fin de semana en una capital europea, un mes por el Sudeste Asiático, un viaje a Japón | El más caro que el plan alcanza en 3 años; si ninguno, el más barato, cuando llegue |
-| Medio | La entrada de una vivienda, un coche nuevo, un coche usado | El más caro que el plan alcanza en 15 años; si ninguno, el más barato, cuando llegue |
-| Largo | Dejar de trabajar en el país de los precios | Si el plan llega en 60 años |
-| Largo, si no | Vivir en Portugal, España, Tailandia o Perú, el que sea más barato que el país de los precios | El más caro que el plan alcanza en 60 años |
+| Área | Ejemplos |
+| --- | --- |
+| Experiencias | Fin de semana en una capital europea, un mes por el Sudeste Asiático, un viaje a Japón |
+| Vivienda | La entrada de una vivienda (20 % de 80 m²), una vivienda de 80 m² pagada |
+| Tiempo | Un año sin trabajar; vivir sin trabajar en el país de los precios |
 
-Un deseo que no llega en 60 años no sale: cada uno dice cuándo. Con un
-plan muy pequeño pueden salir uno o dos.
+Son tres de las áreas que la dirección pide investigar (tranquilidad,
+experiencias, vivienda, aprendizaje, proyectos propios, tiempo); el
+aprendizaje (un año de universidad), los coches y la boda están en la
+lista completa y se pueden añadir como meta.
+
+**No hay plazos fijos.** "Corto, medio y largo" fue una propuesta de
+Claude, no una regla de Marek: el plazo sale del plan de cada persona.
+Dentro de un área sale el ejemplo más caro que el plan alcanza antes de
+que acaben sus años; si ninguno llega en ese tiempo, el más barato, con
+su fecha. Un ejemplo que no llega en 60 años no sale; con un plan muy
+pequeño pueden salir uno o dos. Tocar un ejemplo lo añade a *Mis metas*
+marcado como importante: pasa a ser un deseo de la persona.
+
+Cada deseo se calcula por separado contra el mismo plan, como toda meta:
+ninguno resta dinero a otro y ninguno tiene una fecha deseada (esas reglas
+quedan para su propio spec y su ficha, como dice la dirección).
 
 Exacta, con los meses hasta un objetivo de la [ficha de
 crecimiento](crecimiento.md) (`monthsTo`):
 
 - Una cosa: objetivo = su precio.
-- Dejar de trabajar o vivir en un país: objetivo = 12 × coste al mes con
-  alquiler / tasa de retiro (ver [coste de vida](coste-de-vida.md) y
-  [tasa de retiro](tasa-de-retiro.md)). Al añadirlo, es una meta de
-  "vivir en un país, con vivienda"; la de dejar de trabajar se llama así.
-- `pick`: de los candidatos con meses ≤ 60 × 12, el de precio mayor entre
-  los que tienen meses ≤ el límite del horizonte; si no hay ninguno, el
-  de precio menor. Con el mismo precio, el primero de la lista.
+- Vivir sin trabajar: objetivo = 12 × coste al mes con alquiler en el
+  país de los precios / tasa de retiro (ver [coste de vida](coste-de-vida.md),
+  [tasa de retiro](tasa-de-retiro.md) y [metas personales](metas-personales.md)).
+  Al añadirlo es la meta "Vivir sin trabajar" con la estimación de ese
+  país, que la persona puede ajustar.
+- `pick`: de los candidatos con meses ≤ 60 × 12, el de objetivo mayor
+  entre los que tienen meses ≤ los años del plan × 12; si no hay ninguno,
+  el de objetivo menor. Con el mismo objetivo, el primero de la lista.
 
 ### Precios de: el país
 
@@ -88,8 +107,8 @@ viajes, meses de vida) y las cifras redondeadas o de una fuente débil.
 | Un año sin trabajar (12 meses con alquiler) | ≈ 26.280 | ≈ 17.280 | ≈ 19.800 | ≈ 18.600 | ≈ 17.520 | ≈ 16.920 |
 | Tasas de un año de universidad pública | 2.601 | 922 | 0 | 178 | ≈ 1.550 | 697 |
 | Un año de universidad (12 meses + tasas) | ≈ 28.881 | ≈ 18.202 | ≈ 19.800 | ≈ 18.778 | ≈ 19.070 | ≈ 17.617 |
-| Dejar de trabajar: al mes, con alquiler | 2.190 | 1.440 | 1.650 | 1.550 | 1.460 | 1.410 |
-| Dejar de trabajar: capital al 4 % | 657.000 | 432.000 | 495.000 | 465.000 | 438.000 | 423.000 |
+| Vivir sin trabajar: al mes, con alquiler | 2.190 | 1.440 | 1.650 | 1.550 | 1.460 | 1.410 |
+| Vivir sin trabajar: capital al 4 % | 657.000 | 432.000 | 495.000 | 465.000 | 438.000 | 423.000 |
 
 "—": sin cifra publicada encontrada; la cosa no sale con esos precios.
 
@@ -146,8 +165,8 @@ Fuentes por país (la app muestra el editor, lo que mide y la fecha):
   paga ([PDF](https://www.federconsumatori.it/wp-content/uploads/2025/12/rapporto-universita-2025-2026.pdf));
   Portugal, propina máxima de licenciatura 2025-2026, congelada en 697 €
   desde 2021 ([RTP](https://www.rtp.pt/noticias/economia/orcamento-do-estado-oposicao-mantem-congelamento-das-propinas-no-proximo-ano-letivo_n1700397)).
-- **Meses de vida** (año sin trabajar, año de universidad, dejar de
-  trabajar, vivir en otro país): [coste de vida](coste-de-vida.md), con
+- **Meses de vida** (año sin trabajar, año de universidad, vivir sin
+  trabajar): [coste de vida](coste-de-vida.md), con
   alquiler, septiembre de 2026.
 
 Consultadas entre el 3 y el 7 de octubre de 2026. Desde el entorno donde
@@ -179,18 +198,20 @@ fuente y confirmar la cifra y su fecha** (ver lo pendiente al final).
 - `src/lib/calculator.test.ts`: cada lista según el país (sin bici
   eléctrica neerlandesa con precios de España, sin coche nuevo con los de
   Portugal); meses de vida con alquiler; una meta de un archivo conserva
-  el precio de Países Bajos y lo dice; "Dejar de trabajar" con su nombre.
-- `src/lib/wishes.test.ts`: la regla de elección de cada horizonte, el
-  "si no", lo que tarda más de 60 años, que los mismos números dan los
-  mismos deseos.
+  el precio de Países Bajos y lo dice.
+- `src/lib/wishes.test.ts`: las prioridades de la persona primero; un
+  ejemplo por área, en su orden; el más caro dentro de los años del plan
+  y, si no, el más barato; lo que tarda más de 60 años; vivir sin trabajar
+  con el coste del país; que los mismos números dan los mismos deseos.
 - `src/lib/wish-country.test.ts` y `packages/seed-kit/test/detect.test.ts`:
   la región de cada idioma, Países Bajos por defecto, y que no se guarda
   (ni en el archivo ni en el navegador).
 - `src/components/money/entry.test.ts`: la línea bajo el número grande,
   cada deseo con su cuándo e icono, el selector "Precios de".
 - `e2e/money.test.mts`: en el navegador, con idioma `es-ES` salen precios
-  de España; tocar un deseo lo añade a Mis metas; cambiar el país cambia
-  los precios; nada queda en el almacenamiento.
+  de España; tocar un ejemplo lo añade a Mis metas como prioridad y pasa
+  al principio de la línea; cambiar el país cambia los precios de la
+  línea y de Mis metas; nada queda en el almacenamiento.
 
 ## Límites
 
@@ -220,16 +241,16 @@ fuente y confirmar la cifra y su fecha** (ver lo pendiente al final).
    impuestos de la compra rondan el 10 %. Un solo tamaño y una sola
    entrada simplifican. *Coste:* un tamaño y una entrada por país, con su
    fuente.
-5. **"El más caro" decide.** Con precios de España y 10.000 € más 500 € al
-   mes, sale el coche nuevo (44.419 €) y no la entrada (35.680 €): la
-   regla mira el precio, no lo que importa más. Es neutral, pero puede
-   sorprender. *Coste:* decidir un orden fijo (vivienda, coche nuevo,
-   coche usado) y escribirlo aquí.
-6. **Los países de "vivir en otro país".** Portugal, España, Tailandia y
-   Perú son una elección de seed-lab (destinos frecuentes de europeos,
-   los mismos que ya tenía la lista), no un dato. *Coste:* usar datos de
-   pensiones pagadas en el extranjero (Eurostat, seguridad social de cada
-   país).
+5. **"El más caro dentro de los años del plan" decide.** Con precios de
+   España, 20.000 € y 400 € al mes durante 20 años, sale la vivienda
+   entera (178.400 €), no la entrada: la regla mira el precio y el plan,
+   no lo que importa más a cada uno. Por eso las prioridades de la
+   persona van primero. *Coste:* investigar qué deseos expresan los
+   europeos (ver el pendiente de investigación) y ordenar los ejemplos
+   con esos datos.
+6. **Tres áreas de seis.** La línea muestra experiencias, vivienda y
+   tiempo; tranquilidad, aprendizaje y proyectos propios no tienen aún
+   ejemplos en la línea. *Coste:* fichas de esas áreas, con fuentes.
 7. **El idioma no es el país.** Una persona española que vive en Países
    Bajos con el navegador en `es-ES` ve precios de España. El selector
    está a la vista para cambiarlo. *Coste:* ninguno sin preguntar o
@@ -264,3 +285,9 @@ fuente y confirmar la cifra y su fecha** (ver lo pendiente al final).
   80 m² y su entrada del 20 %) y el máster en Países Bajos (ahora un año
   de universidad). La boda, el coche usado y el coche nuevo pasan de un
   precio neerlandés a uno por país.
+- 2026-10-07 (2): la regla de la línea sigue la aclaración de Marek del 5
+  de octubre en `docs/direction.md`: primero las prioridades de la
+  persona; después un ejemplo por área (experiencias, vivienda, tiempo),
+  el más caro dentro de los años del plan; sin "corto, medio y largo" ni
+  la lista de países para vivir más barato. "Dejar de trabajar" pasa a
+  ser la meta "Vivir sin trabajar" de las [metas personales](metas-personales.md).

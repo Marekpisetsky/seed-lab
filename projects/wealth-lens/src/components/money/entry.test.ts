@@ -376,7 +376,8 @@ describe.each(["en", "es"] as const)("where it reaches and my goals (%s)", (loca
 
   it("asks for a first goal, with what goals are for, without naming the place again", () => {
     const html = render(locale, filled, createElement(GoalsSection, { calc: bundle.calc, today, wishCountry: bundle.wishCountry, inCard: true }));
-    expect(text(html)).toContain(m.help.goals);
+    expect(text(html)).toContain(m.goals.empty);
+    expect(text(html)).not.toContain(m.help.goals);
     expect(text(html)).toContain(m.goals.add);
     // The section around it is already titled "My goals".
     expect(html).not.toMatch(/<section[^>]*aria-label/);

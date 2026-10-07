@@ -39,7 +39,7 @@ after(async () => {
 });
 
 async function open(lang: Lang, width: number, height = 800): Promise<Page> {
-  const page = await browser.newPage({ viewport: { width, height } });
+  const page = await browser.newPage({ viewport: { width, height }, locale: lang === "es" ? "es-ES" : "en-GB" });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(base + WORDS[lang].path, { waitUntil: "networkidle" });
   return page;
@@ -56,6 +56,66 @@ async function firstResult(page: Page, lang: Lang): Promise<void> {
 }
 
 const bigNumber = (page: Page) => page.locator("#result-total").innerText();
+
+describe("personal goals", () => {
+  it("keeps the page within a phone's width, including doubled text", async () => {
+    for (const lang of ["en", "es"] as const) {
+      const page = await open(lang, 360);
+      await page.getByLabel(WORDS[lang].have, { exact: true }).fill("60000");
+      await page.getByLabel(WORDS[lang].monthly, { exact: true }).fill("100");
+      await page.getByRole("button", { name: WORDS[lang].see }).click();
+      await page.getByRole("columnheader", { name: lang === "en" ? "With rent" : "Con alquiler", exact: true }).waitFor();
+      await page.waitForLoadState("networkidle");
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `${lang}: no page overflow`);
+      await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `${lang}: no page overflow with doubled text`);
+      await page.close();
+    }
+  });
+
+  it("adds a country immediately with editable rent, in both languages", async () => {
+    for (const lang of ["en", "es"] as const) {
+      const page = await open(lang, 360);
+      await firstResult(page, lang);
+      assert.equal(await page.getByText(lang === "en" ? "When your plan gets there, if you keep going." : "Cuándo llega tu plan, si sigues así.", { exact: true }).count(), 0);
+      await page.getByRole("button", { name: lang === "en" ? "Add a goal" : "Añadir una meta", exact: true }).click();
+      await page.getByRole("radio", { name: lang === "en" ? "Live somewhere" : "Vivir en un lugar", exact: true }).click();
+      await page.getByLabel(lang === "en" ? "Choose a country" : "Elige un país", { exact: true }).selectOption("ES");
+      const goal = page.getByRole("button", { name: lang === "en" ? /^Live in Spain/ : /^Vivir en España/ });
+      await goal.waitFor();
+      assert.match(await goal.innerText(), lang === "en" ? /including rent/ : /con alquiler incluido/);
+      await goal.click();
+      const rent = page.getByRole("checkbox", { name: lang === "en" ? "including rent" : "con alquiler incluido" });
+      await rent.uncheck();
+      assert.match(await goal.innerText(), lang === "en" ? /excluding rent/ : /sin incluir alquiler/);
+      await page.close();
+    }
+  });
+
+  it("shows personal independence progress and lets a priority be removed", async () => {
+    for (const lang of ["en", "es"] as const) {
+      const page = await open(lang, 1366);
+      await firstResult(page, lang);
+      await page.getByRole("button", { name: lang === "en" ? "Add a goal" : "Añadir una meta", exact: true }).click();
+      await page.getByRole("radio", { name: lang === "en" ? "Live without working" : "Vivir sin trabajar", exact: true }).click();
+      await page.getByLabel(lang === "en" ? "Your living costs each month" : "Tus gastos de vida al mes").fill("1200");
+      await page.getByRole("button", { name: lang === "en" ? "Add" : "Añadir", exact: true }).click();
+      await page.getByRole("heading", { name: lang === "en" ? "My priorities" : "Mis prioridades" }).waitFor();
+      const progress = page.getByRole("progressbar");
+      assert.equal(await progress.getAttribute("max"), "360000");
+      assert.equal(await progress.getAttribute("value"), "20000");
+      assert.ok(await page.getByText(lang === "en" ? /30-year model, not a guarantee/ : /modelo de 30 años, sin garantía/).count());
+      await page.getByRole("button", { name: lang === "en" ? "Most important to me" : "Lo más importante para mí" }).click();
+      assert.equal(await progress.count(), 0);
+      await page.getByRole("button", { name: lang === "en" ? /^Live without working/ : /^Vivir sin trabajar/ }).click();
+      await page.getByLabel(lang === "en" ? "Your living costs each month" : "Tus gastos de vida al mes").fill("1300");
+      await page.getByRole("button", { name: lang === "en" ? "Adjust" : "Ajustar", exact: true }).click();
+      assert.equal(await page.getByRole("button", { name: lang === "en" ? "Most important to me" : "Lo más importante para mí" }).getAttribute("aria-pressed"), "false");
+      assert.equal(await progress.count(), 0);
+      await page.close();
+    }
+  });
+});
 
 describe("the first screen", () => {
   it("is one column in the middle of the page: headline, card, More options and what to trust, all as wide as the card", async () => {
@@ -108,15 +168,17 @@ describe("the four steps", () => {
     for (const lang of ["en", "es"] as const) {
       for (const width of [360, 1366, 1920]) {
         const page = await open(lang, width);
-        const { slot, text, gap } = await page.evaluate(() => {
+        const { slot, text, gap, lineHeight } = await page.evaluate(() => {
           const about = document.querySelector('[id$="-about"]') as HTMLElement;
           const range = document.createRange();
           range.selectNodeContents(about);
           const before = about.nextElementSibling as HTMLElement;
-          return { slot: about.clientHeight, text: range.getBoundingClientRect().height, gap: before.getBoundingClientRect().top - about.getBoundingClientRect().bottom };
+          return { slot: about.clientHeight, text: range.getBoundingClientRect().height, gap: before.getBoundingClientRect().top - about.getBoundingClientRect().bottom, lineHeight: parseFloat(getComputedStyle(about).lineHeight) };
         });
-        // The glyphs of two 20 px lines measure about 36 px; an empty line would leave about 18.
-        assert.ok(slot - text < 8, `the line fills its place (${lang} ${width}: ${text} of ${slot})`);
+        // The slot reserves two lines on phones, one on wide screens, even
+        // when the system font fits the same words on fewer lines.
+        assert.ok(Math.abs(slot - lineHeight * (width < 1024 ? 2 : 1)) < 1, `only the reserved lines (${lang} ${width}: ${slot})`);
+        assert.ok(text > 0 && text <= slot, `the words fit their slot (${lang} ${width}: ${text} of ${slot})`);
         assert.ok(gap < 8, `the line before inflation right under it (${lang} ${width})`);
         await page.close();
       }
@@ -312,7 +374,7 @@ describe("for a finger", () => {
 
 /** A page with motion allowed, recording every layout shift from the start. */
 async function withShifts(lang: Lang, width: number, height = 900): Promise<Page> {
-  const page = await browser.newPage({ viewport: { width, height } });
+  const page = await browser.newPage({ viewport: { width, height }, locale: lang === "es" ? "es-ES" : "en-GB" });
   await page.addInitScript(() => {
     const shifts: { value: number; recent: boolean }[] = [];
     (window as unknown as { shifts: typeof shifts }).shifts = shifts;
@@ -521,19 +583,24 @@ describe("With this you could", () => {
     const t = WISH.es;
     const pricesOf = page.getByLabel(t.pricesOf).first();
     assert.equal(await pricesOf.inputValue(), "ES");
-    const chips = page.getByRole("list", { name: t.title }).getByRole("button");
-    // The second wish, something bigger: at Spain's prices, a new car (€44,419) within 15 years.
-    const bigger = chips.nth(1);
-    assert.match(await bigger.innerText(), /^Un coche nuevo · 44\.419\s€ ·/);
-    await bigger.click();
-    assert.equal(await bigger.getAttribute("aria-disabled"), "true");
-    assert.match((await bigger.getAttribute("aria-label")) ?? "", t.added);
+    const list = page.getByRole("list", { name: t.title });
+    const chips = list.getByRole("button");
+    // An experience, a home, time: at Spain's prices the whole 80 m² home (€178,400) comes within the plan's 20 years.
+    const texts = await chips.allInnerTexts();
+    assert.deepEqual(texts.map((text) => text.split(" · ")[0]), ["Un viaje a Japón", "Una vivienda de 80 m², pagada", "Un año sin trabajar"]);
+    assert.match(texts[1], /^Una vivienda de 80 m², pagada · ≈ 178\.400\s€ · en \d+ años$/);
+    // Tapping it makes it the person's own priority: first in the line, ✓, and in My goals.
+    await chips.nth(1).click();
+    const first = chips.first();
+    assert.match(await first.innerText(), /^Una vivienda de 80 m², pagada/);
+    assert.equal(await first.getAttribute("aria-disabled"), "true");
+    assert.match((await first.getAttribute("aria-label")) ?? "", t.added);
     const goals = page.getByRole("region", { name: t.goals });
-    assert.match(await goals.innerText(), /Un coche nuevo[\s\S]*44\.419\s€/);
-    // The Netherlands' prices: a deposit on a Dutch home comes within 15 years; the car in My goals takes the Dutch price.
+    assert.match(await goals.innerText(), /Una vivienda de 80 m², pagada[\s\S]*178\.400\s€/);
+    // The Netherlands' prices: the same home costs €378,080 there, in the line and in My goals.
     await pricesOf.selectOption("NL");
-    assert.match(await chips.nth(1).innerText(), /^La entrada de una vivienda · ≈ 75\.616\s€ ·/);
-    assert.match(await goals.innerText(), /Un coche nuevo[\s\S]*50\.026\s€/);
+    assert.match(await first.innerText(), /^Una vivienda de 80 m², pagada · ≈ 378\.080\s€ ·/);
+    assert.match(await goals.innerText(), /Una vivienda de 80 m², pagada[\s\S]*378\.080\s€/);
     // Kept in memory only: nothing in the browser's storage, and a reload starts from the language again.
     assert.deepEqual(await page.evaluate(() => [localStorage.length, sessionStorage.length]), [0, 0]);
     await page.reload({ waitUntil: "networkidle" });

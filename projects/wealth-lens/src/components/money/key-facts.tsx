@@ -94,7 +94,7 @@ export function KeyFacts({ bundle }: { bundle: CalculationBundle }) {
                 }`}
               >
                 <span className="text-sm text-muted">{m.facts[fact.id]}</span>
-                <span className="text-xl font-bold tabular-nums break-words">
+                <span className="max-w-full text-xl font-bold tabular-nums [overflow-wrap:anywhere]">
                   <Changed value={fact.value} />
                 </span>
                 {fact.note && (

@@ -10,7 +10,7 @@ import { problem, type Problem } from "./problems";
 import { isRecord, parseHoldings, parsePlan, parseUploadedPrices, type Notices, type UploadedPrices } from "./validation";
 
 export const DATA_FILE_KIND = "wealth-lens-data";
-export const DATA_FILE_VERSION = 9;
+export const DATA_FILE_VERSION = 10;
 
 export function dataFileName(savedAt: Date): string {
   return `wealth-lens-${toIsoDate(savedAt)}.json`;
@@ -32,7 +32,7 @@ export function serializeState(state: AppState, savedAt: Date): string {
 export type DataFileResult = { ok: true; state: AppState; notices: Notices } | { ok: false; error: Problem };
 
 /**
- * Reads a file made by "Download my data" (versions 1 to 9); anything invalid
+ * Reads a file made by "Download my data" (versions 1 to 10); anything invalid
  * inside falls back field by field.
  */
 export function parseDataFile(text: string): DataFileResult {

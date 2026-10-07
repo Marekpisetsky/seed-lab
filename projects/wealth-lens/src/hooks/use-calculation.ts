@@ -55,7 +55,7 @@ export function calculationFor(state: AppState, today: Date, wishCountry: string
   const base = calculate(state.plan, holdings, today, null, wishCountry);
   const calc = state.whatIf ? calculate(state.plan, holdings, today, state.whatIf, wishCountry) : base;
   const rates = offeredRates(state.plan.withdrawalRate);
-  const wishes = wishesFor(calc.scenario, wishCountry);
+  const wishes = wishesFor(calc.scenario, calc.result.years, calc.goals, wishCountry);
   const ready = planReady(state.plan, holdings);
   // Simulated futures only once there is a result to show.
   const checks = ready ? planChecks(base, state.plan, holdings) : [];

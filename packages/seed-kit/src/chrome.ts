@@ -77,6 +77,7 @@ export interface LauncherTool {
 
 export interface HeaderModel {
   locale: Locale;
+  mark?: "wealth-lens";
   words: ChromeWords;
   /** The logo and the app's name, linking to its home page. */
   home: ChromeLink;
@@ -121,6 +122,7 @@ export function headerModel(input: HeaderInput): HeaderModel {
   const { locale } = input;
   return {
     locale,
+    ...(input.current === "wealth-lens" ? { mark: "wealth-lens" as const } : {}),
     words: CHROME_WORDS[locale],
     home: { label: input.name, href: input.homeHref, current: input.homeCurrent ?? false },
     nav: input.nav ?? [],

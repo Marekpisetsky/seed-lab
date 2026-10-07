@@ -24,7 +24,7 @@ it("speaks to the person and what they want, as the hub promises", () => {
   expect(m.money.headline).toBe("¿Qué podrías hacer con tu dinero?");
   // A trip, a home, stopping work: something for someone of 20 and of 60.
   const hub = toolById("wealth-lens").description.es;
-  for (const wish of ["viaje", "casa", "dejar de trabajar"]) {
+  for (const wish of ["viaje", "casa", "sin trabajar"]) {
     expect(m.money.support).toContain(wish);
     expect(hub).toContain(wish);
   }
