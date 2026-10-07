@@ -11,7 +11,7 @@ import { successRatesFor } from "@/lib/projections";
 import type { Holding } from "@/lib/types";
 import { wishCountryStore } from "@/lib/wish-country";
 import { wishesFor, type Wish } from "@/lib/wishes";
-import { WITHDRAWAL_STEPS } from "@/lib/withdrawal";
+import { offeredRates } from "@/lib/withdrawal";
 import { useAppState } from "./use-app";
 import { useToday } from "./use-plan";
 
@@ -37,10 +37,7 @@ export interface CalculationBundle {
 
 let last: { state: AppState; day: string; wishCountry: string; bundle: CalculationBundle } | null = null;
 
-/** The rates the slider offers, 2 % to 7 % (the plan's own is always one of them: lib/validation.ts). */
-export function offeredRates(withdrawalRate: number): number[] {
-  return [...new Set([...WITHDRAWAL_STEPS, withdrawalRate])].sort((a, b) => a - b);
-}
+export { offeredRates, wishCountryStore };
 
 /**
  * Everything the page shows, worked out once per change of the shared state

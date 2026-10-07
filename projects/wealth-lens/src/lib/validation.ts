@@ -6,7 +6,7 @@
  */
 
 import { isAssetId } from "./assets";
-import { countryByCode, DEFAULT_PRICES_OF, referenceInflation } from "./cost-of-living";
+import { DEFAULT_PRICES_OF, isPriceCountry, referenceRate } from "@seed-kit/inflation-rates.ts";
 import { isIndexId, type IndexId } from "./indexes";
 import { resolveInvestment, toReal } from "./investment";
 import { instrumentById, instrumentForHolding } from "./market-data";
@@ -255,7 +255,7 @@ export function parseAssumptions(value: unknown, pricesOf: string = DEFAULT_PRIC
   if (!isRecord(value)) return STANDARD_ASSUMPTIONS;
   const volatility = isFiniteNumber(value.volatility) && value.volatility >= 0 && value.volatility <= MAX_VOLATILITY ? value.volatility : null;
   const inflation = isRate(value.inflation) ? value.inflation : null;
-  const fileInflation = inflation ?? referenceInflation(pricesOf).rate;
+  const fileInflation = inflation ?? referenceRate(pricesOf);
   let growth: AssumptionOverrides["growth"] = null;
   if (isFiniteNumber(value.growth)) growth = version >= GROWTH_AFTER_PRICES_SINCE ? (isGrowth(value.growth) ? value.growth : null) : afterPrices(value.growth, fileInflation);
   else if (isRecord(value.growth) && isFiniteNumber(value.growth.rate)) {
@@ -429,10 +429,10 @@ export function parsePlan(value: unknown, holdings: readonly Holding[] = [], not
     parse(value[key]) ?? DEFAULT_PLAN[key];
   // Saved before it was typed (version 8): still to type. Missing or bad: 0, never the examples.
   const amount = (v: unknown) => (v === null && version >= GROWTH_AFTER_PRICES_SINCE ? null : isNonNegativeNumber(v) && v <= MAX_AMOUNT ? v : 0);
-  const pricesOf = typeof value.pricesOf === "string" && countryByCode(value.pricesOf) ? value.pricesOf : DEFAULT_PRICES_OF;
+  const pricesOf = typeof value.pricesOf === "string" && isPriceCountry(value.pricesOf) ? value.pricesOf : DEFAULT_PRICES_OF;
   let assumptions = parseAssumptions(value.assumptions, pricesOf, version);
   if (!("assumptions" in value)) {
-    const inflation = isRate(value.inflation) && Math.abs(value.inflation - referenceInflation(pricesOf).rate) > 1e-9 ? value.inflation : null;
+    const inflation = isRate(value.inflation) && Math.abs(value.inflation - referenceRate(pricesOf)) > 1e-9 ? value.inflation : null;
     const investment = isRecord(value.investment) ? value.investment : {};
     const growth = investment.kind === "custom" && isGrowth(investment.realReturn) ? investment.realReturn : null;
     assumptions = { growth, volatility: null, inflation };

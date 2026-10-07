@@ -46,10 +46,13 @@ Two branches, one PR each, to merge in this order:
 
 ## Follow-up requested before merging #33 (same day)
 
-- Savings check: one sentence with both sides, what savings give up
-  against world stocks and world stocks' worst fall in the data
-  (2000–2002, −46%) on the money they typically reach: "With savings,
-  €219,239 less; with stocks, a fall like 2000–2002 (−46%) = −€170,390."
+- Savings check: both sides, what savings give up against world stocks
+  and world stocks' worst fall in the data (2000–2002, −46%) on the money
+  they typically reach. Last round: two short sentences, "With savings you
+  would end with €219,239 less than with world stocks." and "But stocks
+  can fall: from 2000 to 2002 they fell at least 46% (−€170,390)." "At
+  least" because the data are yearly; How it works says that within a year
+  the fall may have been deeper.
 - AGENTS.md sends to the handoff with the highest date, never a fixed
   file; a test (src/lib/handoff.test.ts) keeps it so.
 - Step 3 takes −50% to 500% a year (GROWTH_LIMITS; 500% is a technical
@@ -62,18 +65,27 @@ Two branches, one PR each, to merge in this order:
   billion", "1230 millones de euros", "€4.02 × 10¹⁸"); big number, cards
   and What if shrink or stack on a phone so nothing is cut. A negative
   custom growth reads "losing 50% a year".
+- Performance, last round: the first screen only asks, so the
+  calculation's code arrives when the person starts using the page
+  (src/hooks/use-lazy-calculation.ts, guarded by a test in entry.test.ts);
+  steps take reference inflation from seed-kit inflation-rates.ts (3 KB,
+  generated from the cost-of-living data and checked by a test) instead of
+  the whole country data; seed-kit builds its date formats and the euro's
+  position on first use. Scripts on the first screen: 226 to 206 KB gzip.
 
 ## Verification (phase 6 head, after merging phase 5 and master)
 
-Wealth Lens lint, types, 840 unit tests, clean build (`rm -rf .next out`)
-and 34 browser tests passed; seed-kit 64, hub 34 + 8, Cost Lens 24,
+Wealth Lens lint, types, 841 unit tests, clean build (`rm -rf .next out`)
+and 34 browser tests passed; seed-kit 66, hub 34 + 8, Cost Lens 24,
 Inflation Lens 31, Forja 7. Recalculation in the browser, 156 changes
-including typing 500%, 70% and −50%: median 0.7 ms, p95 2.7 ms, max
-10.7 ms. Lighthouse mobile performance: / 95, 99 and 96 (three runs), /es
-97, /how-it-works 99, /es/how-it-works 97; 100 in the other three
-categories. First-visit weight 215–244 KB. No requests outside the site;
-no cookies or browser storage. Screenshots in docs/screenshots (p5-*,
-p6-*, r3-*).
+including typing 500%, 70% and −50%: median 0.7 ms, p95 2.2 ms, max
+11.0 ms. Lighthouse mobile performance, machine at rest: / 98 in six runs
+in a row, /es 98 in three; /how-it-works 98, /es/how-it-works 99; 100 in
+the other three categories. Measured right after another heavy run, / gave
+95 or 96 once; the series at rest is the reference. First-visit weight
+208–237 KB (/ 222.6 KB, was 242.6). No requests outside the site; no
+cookies or browser storage. Screenshots in docs/screenshots (p5-*, p6-*,
+r3-*).
 
 ## Open for Marek
 

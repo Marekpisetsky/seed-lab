@@ -1,9 +1,10 @@
 import { readFileSync } from "node:fs";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "@/components/i18n";
 import { calculationFor } from "@/hooks/use-calculation";
+import { loadCalculation } from "@/hooks/use-lazy-calculation";
 import { getI18n, type I18n } from "@/i18n";
 import { countryName } from "@/i18n/countries";
 import type { Locale } from "@/i18n/locales";
@@ -437,8 +438,19 @@ describe.each(["en", "es"] as const)("“See my result”, only the first time (
   });
 });
 
+it("keeps the calculation's code off the first screen: the steps never import it, it comes when wanted", () => {
+  for (const file of ["./money-module.tsx", "./calculator-card.tsx", "./growth-field.tsx"]) {
+    const source = readFileSync(new URL(file, import.meta.url), "utf8");
+    // Types only: a value import would put lib/calculator.ts and all a result needs in the page's first code.
+    expect(source, file).not.toMatch(/^import (?!type)[^;]*from "@\/hooks\/use-calculation"/m);
+    expect(source, file).not.toMatch(/^import (?!type)[^;]*from "@\/lib\/(calculator|plan-check|wishes|warm)"/m);
+  }
+});
+
 describe.each(["en", "es"] as const)("the page after the first result, by its width (%s)", (locale) => {
   const { m, f } = getI18n(locale);
+  // The calculation's code comes once the user starts (hooks/use-lazy-calculation.ts): here, before drawing.
+  beforeAll(() => loadCalculation());
   afterEach(() => firstResult.set(false));
   const page = () => {
     firstResult.set(true);

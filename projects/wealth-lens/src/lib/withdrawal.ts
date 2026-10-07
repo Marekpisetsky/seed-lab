@@ -12,6 +12,11 @@ export const WITHDRAWAL_STEPS: readonly number[] = Array.from(
   (_, index) => Math.round((WITHDRAWAL_MIN + index * WITHDRAWAL_STEP) * 1000) / 1000,
 );
 
+/** The rates the slider offers, 2 % to 7 %, lowest first (the plan's own is always one of them: lib/validation.ts). */
+export function offeredRates(withdrawalRate: number): number[] {
+  return [...new Set([...WITHDRAWAL_STEPS, withdrawalRate])].sort((a, b) => a - b);
+}
+
 /** A rate on the slider: within 2–7 %, on a step of 0.5 % (a file could hold any). */
 export function snapWithdrawal(rate: number): number {
   const clamped = Math.min(WITHDRAWAL_MAX, Math.max(WITHDRAWAL_MIN, rate));

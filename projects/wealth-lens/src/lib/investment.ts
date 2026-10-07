@@ -24,7 +24,8 @@
  */
 
 import { isSeriesAsset, SAVINGS_RATE, savingsRealReturn, seriesVolatility, type AssetId } from "./assets";
-import { DEFAULT_PRICES_OF, countryByCode, referenceInflation } from "./cost-of-living";
+// Only each country's inflation rate: the whole country dataset is not part of the first screen.
+import { DEFAULT_PRICES_OF, isPriceCountry, referenceRate } from "@seed-kit/inflation-rates.ts";
 import { COMMON_PERIOD, SERIES } from "./indexes";
 import { MARKET, type PricesFile } from "./market-data";
 import { mixInputs, mixModel, mixVolatility, type MixModel } from "./mix";
@@ -111,7 +112,7 @@ export function periodText({ period }: Pick<ResolvedInvestment, "period">): stri
 
 /** Inflation a year for these settings: the user's, or the "Rising prices in" country's reference. */
 export function inflationFor(settings: ProjectionSettings): number {
-  return settings.assumptions.inflation ?? referenceInflation(settings.pricesOf).rate;
+  return settings.assumptions.inflation ?? referenceRate(settings.pricesOf);
 }
 
 /** Growth before inflation from growth after it, and back. */
@@ -231,7 +232,7 @@ export function resolveInvestment(
     realReturn,
     volatility,
     inflation,
-    pricesOf: countryByCode(settings.pricesOf) ? settings.pricesOf : DEFAULT_PRICES_OF,
+    pricesOf: isPriceCountry(settings.pricesOf) ? settings.pricesOf : DEFAULT_PRICES_OF,
     standard: { ...base.standard, realReturn: standardReal },
     custom,
     customInflation: settings.assumptions.inflation !== null,

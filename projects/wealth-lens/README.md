@@ -26,7 +26,7 @@ tabla de *Principles* del hub, `packages/seed-kit/src/tools.json`):
 | Your data never leaves your device | Cumple | Todo se calcula en el navegador; nada se guarda ni se envía. |
 | Transparent | En parte | Gratis, con método y fuentes públicos; los cambios del método aún no se publican. |
 | Truly European | Pendiente | EN y ES, pero alojada en Vercel (EE. UU.) y sin auditoría de accesibilidad hecha por personas. |
-| Light | Cumple | De 215 a 244 KB por página en la primera visita, por debajo del límite de 350 KB. |
+| Light | Cumple | De 208 a 237 KB por página en la primera visita, por debajo del límite de 350 KB. |
 | For everyone | En parte | Palabras sencillas, teclado y objetivos de 44 px; aún sin pruebas con personas reales. |
 
 **Estado actual (2026-10-07):** dos pantallas (Next.js 16 + TypeScript +
@@ -38,7 +38,7 @@ opcionales. El móvil es el diseño principal. La app no
 supone nada sobre la vida del usuario: no pregunta país, ni si alquila o
 es propietario, ni qué quiere hacer con su dinero. Nada se guarda ni se
 envía, y la app no llama a ningún servicio mientras se usa. La lógica
-vive en funciones puras con 840 tests unitarios (Vitest). El uso real
+vive en funciones puras con 841 tests unitarios (Vitest). El uso real
 sostenido (la condición del peldaño 1 de seed-lab) todavía no está
 demostrado. Solo se proyecta lo que tiene una
 historia larga y un rango conocido; nada se presenta como predecible, y
@@ -271,7 +271,8 @@ El PR #17 de migración no forma parte de esta continuación.
   inflación; `null` = estándar) y las metas (una lista, vacía al empezar). `src/lib/calculator.ts` deriva de él todo lo
   que se ve (resultado, metas, tabla de países, compras) y
   `src/hooks/use-calculation.ts` lo calcula una vez por cambio para todas
-  las secciones (medido como `performance.measure("wealth-lens:report")`:
+  las secciones (su código llega al empezar a usar la página:
+  `src/hooks/use-lazy-calculation.ts`) (medido como `performance.measure("wealth-lens:report")`:
   por debajo de 16 ms al escribir, usar − / +, cambiar la inversión o
   tocar un *What if…?*, con los efectos de los cinco incluidos; cargar un
   archivo con cartera tras una sesión larga llegó a 23-34 ms; ver
@@ -493,6 +494,22 @@ El PR #17 de migración no forma parte de esta continuación.
   claro y oscuro. `npm run test:browser` (tras `npm run build`) lo
   comprueba en un navegador real: tamaños iguales en EN y ES, las tres
   disposiciones, el panel inferior, el botón una sola vez y 44 × 44 px.
+  **Primera pantalla sin el cálculo (2026-10-07).** La portada solo
+  pregunta, así que el código del cálculo (`lib/calculator.ts`, la tabla
+  de países, los deseos, el chequeo y lo que necesita un resultado) ya no
+  va con ella: llega al empezar a usar la página (al tocar, enfocar o
+  escribir) o cuando hay un plan que mostrar
+  (`src/hooks/use-lazy-calculation.ts`; un test impide volver a
+  importarlo desde los pasos). Los pasos solo necesitan la inflación de
+  referencia de cada país, que ahora sale de seed-kit
+  `inflation-rates.ts` (3 KB, generado de los datos de coste de vida y
+  comprobado por un test) en lugar de los datos de países enteros; y
+  seed-kit crea sus formatos de fecha y la posición del euro al usarlos.
+  Scripts de la portada: de 226 a 206 KB con gzip; primera visita de `/`
+  de 242,6 a 222,6 KB. Lighthouse móvil, rendimiento: `/` 98 en seis
+  pasadas seguidas y `/es` 98 en tres, con el equipo en reposo (justo
+  después de otra medición pesada salió algún 95-96); recálculo, máximo
+  11 ms.
 - Sin credenciales de bróker ni APIs de pago — respeta la regla de
   costo cero de seed-lab.
 
@@ -1023,6 +1040,7 @@ src/
                                palabras de cada idioma); money/explainers.tsx
                                (los "i" plegados) y plain-language.test.ts (sin jerga)
   hooks/                       use-app (estado), use-calculation (todo por cambio),
+                               use-lazy-calculation (su código, al empezar a usar la página),
                                calculation-details (lo que calculan las secciones
                                y See more, fuera de la primera pantalla), use-plan
   lib/
