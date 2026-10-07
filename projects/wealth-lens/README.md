@@ -26,7 +26,7 @@ tabla de *Principles* del hub, `packages/seed-kit/src/tools.json`):
 | Your data never leaves your device | Cumple | Todo se calcula en el navegador; nada se guarda ni se envía. |
 | Transparent | En parte | Gratis, con método y fuentes públicos; los cambios del método aún no se publican. |
 | Truly European | Pendiente | EN y ES, pero alojada en Vercel (EE. UU.) y sin auditoría de accesibilidad hecha por personas. |
-| Light | Cumple | De 213 a 239 KB por página en la primera visita, por debajo del límite de 350 KB. |
+| Light | Cumple | De 213 a 240 KB por página en la primera visita, por debajo del límite de 350 KB. |
 | For everyone | En parte | Palabras sencillas, teclado y objetivos de 44 px; aún sin pruebas con personas reales. |
 
 **Estado actual (2026-10-03):** dos pantallas (Next.js 16 + TypeScript +
@@ -142,6 +142,16 @@ idiomas y con planes de todo tipo (`percentWithoutMoney` de seed-kit).
          Cada uno con lo que cambia en euros; tocar uno lo aplica a toda la
          pantalla, con "What if: 5 more years (+€87,000) ×" junto al total
          para quitarlo. No se guarda en el archivo.
+       - **Check your plan** / **Chequeo de tu plan**, solo si algo
+         destaca (`src/lib/plan-check.ts`): de 0 a 3 observaciones, cada
+         una con sus euros y un enlace a *How it works*: pocos años (menos
+         de 5, o una meta a menos de 5) con dinero que sube y baja, cuántos
+         de los 1000 futuros acaban por debajo de lo puesto (desde 1 de
+         cada 10); una acción con más del 20 % de la mezcla o de *Mi
+         cartera*, con sus euros y su peor caída sobre ellos; y Ahorro
+         durante 10 años o más, lo que vale frente a lo puesto y frente a
+         las acciones del mundo. Informa, nunca aconseja; método en
+         [research/wealth-lens/chequeo.md](../../research/wealth-lens/chequeo.md).
        - **My stocks today**, solo si hay acciones: lo que valen hoy, el
          cambio de los últimos 12 meses en euros y % (con signo y flecha),
          su línea pequeña y el enlace a My stocks.
@@ -158,11 +168,10 @@ idiomas y con planes de todo tipo (`percentWithoutMoney` de seed-kit).
          Cada celda dice cuándo, en dos líneas cortas: "✓ from 2041 / in 15
          years", "in 21 years / (2046)" o "not at this pace"; nunca un ✓
          sin fecha. Buscador, "Show all 172" y un "+" para añadir a My
-         goals; tras *See more*, *Things you could buy* (las 19 compras con
+         goals; tras *See more*, *Things you could buy* (las compras del país de los precios, con
          "now" o "in 2 years (2028)" y su fuente al tocarlas).
        - **Good to know**: una línea ("What could go wrong, and
-         what helps most", o en tono de aviso, con sus euros, si una acción
-         pesa más del 20 % de una mezcla); tras *See more*, la línea de
+         what helps most"); tras *See more*, la línea de
          supuestos con sus euros ("Grows 5% a year after rising prices:
          +€1,109 the first year · can move ±18% in a year: ±€3,564 on
          €20,000"), dónde terminan 8 de cada 10 futuros posibles (en una
@@ -1000,6 +1009,9 @@ src/
     calculator.ts       resultado, metas, tabla de países, compras, tope de 60 años
     settle.ts           aplica un número cuando se termina de escribir (500 ms)
     findings.ts         "Good to know": una regla por hallazgo
+    plan-check.ts       "Check your plan": horizonte, concentración y ahorro, con sus euros
+    wishes.ts           "With this you could": la regla de los deseos
+    wish-country.ts     "Prices of": el país de los precios, solo en memoria
     connections.ts      la lista de compras, con fuentes
     simulation.ts       bandas de Monte Carlo y cachés de simulación
     success-table.ts    tasas de éxito del 2 al 7 % precalculadas por activo

@@ -115,6 +115,16 @@ export const es: Messages = {
         ],
       },
       {
+        heading: "Chequeo de tu plan",
+        id: "check",
+        body: [
+          "Bajo el resultado, hasta tres observaciones, solo cuando aplican. Cada una con sus euros. Dicen lo que hay, nunca qué hacer.",
+          "Pocos años: los años de tu plan, o una meta, a menos de 5 años, con dinero que sube y baja. Cuenta cuántos de los 1000 futuros posibles acaban por debajo de lo que pones hasta entonces. Sale desde 1 de cada 10. [El método](research:wealth-lens/chequeo.md#horizonte-frente-a-riesgo).",
+          "Una acción: una empresa con más de un quinto de tu mezcla o de Mi cartera, sin contar los fondos indexados. Da sus euros y su peor caída desde un máximo, sobre tu dinero. [El método](research:wealth-lens/chequeo.md#concentración).",
+          "Ahorro durante 10 años o más: lo que conserva la cuenta en dinero de hoy, frente a lo que pones. Y frente a las acciones del mundo, con las mismas cantidades. [El método](research:wealth-lens/chequeo.md#ahorro-a-largo-plazo).",
+        ],
+      },
+      {
         heading: "Países",
         body: [
           `La tabla tiene ${facts.countries} países. En ${facts.detailed}, el coste de una persona sale de Numbeo (sin alquiler) y Wise (piso de 1 dormitorio fuera del centro).`,
@@ -657,7 +667,6 @@ export const es: Messages = {
     more: "Ver más",
     less: "Ver menos",
     knowSummary: "Qué puede salir mal y qué ayuda más",
-    concentration: (share: string, amount: string) => `Una acción es el ${share} de tu mezcla (${amount}): mira qué pasa si va mal`,
     loading: "Cargando…",
   },
   picker: {
@@ -1048,6 +1057,37 @@ export const es: Messages = {
       "study-year": { name: "Un año de universidad", about: (country: string) => `12 meses del coste de vida con alquiler en ${country}, y un año de tasas universitarias` },
     } as Record<string, ItemWords>,
   },
+  check: {
+    title: "Chequeo de tu plan",
+    intro: "Lo que destaca de tu plan, con sus euros. Qué hacer lo decides tú.",
+    how: "Cómo se calcula",
+    count: (count: number) => `${count} de cada 100`,
+    horizon: {
+      plan: (putIn: string, years: string) => `En ${years} pones ${putIn}.`,
+      goal: (name: string, years: string, putIn: string) => `${name} llega en ${years}. Hasta entonces pones ${putIn}.`,
+      below: (count: string) => `${count} futuros posibles acaban por debajo.`,
+      bad: (amount: string) => `En el peor 1 de cada 10, ${amount} o más por debajo.`,
+      why: "En pocos años, una caída puede no recuperarse.",
+    },
+    concentration: {
+      mix: (name: string, percent: string, amount: string) => `${name} es el ${percent} de tu mezcla: ${amount}.`,
+      mixAtEnd: (name: string, percent: string, amount: string) => `${name} es el ${percent} de tu mezcla: ${amount} al final.`,
+      portfolio: (name: string, percent: string, amount: string) => `${name} es el ${percent} de tu cartera: ${amount}.`,
+      fall: (year: string, fall: string, amount: string, base: string) => `Una caída como su peor desde ${year} (${fall}) = ${amount} de tus ${base}.`,
+      lastYear: (change: string, amount: string) => `Últimos 12 meses: ${change} (${amount}).`,
+      growsLike: (reference: string) => `Aquí crece como ${reference}, con sus propios altibajos.`,
+      oneCompany: "Una sola empresa puede caer mucho más que un índice.",
+      euros: "Solo se cuentan las posiciones en euros.",
+    },
+    savings: {
+      keeps: (years: string, total: string) => `En ${years}, el ahorro vale ${total} de hoy.`,
+      less: (amount: string) => `Son ${amount} menos de lo que pones.`,
+      more: (amount: string) => `Son ${amount} más de lo que pones.`,
+      why: "Los precios suben más que el interés del ahorro.",
+      world: (period: string, typical: string, more: string) => `Las acciones del mundo (${period}) suelen dar ${typical}: ${more} más.`,
+      worldBad: (bad: string) => `Suben y bajan: 1 de cada 10 futuros acaba por debajo de ${bad}.`,
+    },
+  },
   wishes: {
     title: "Con esto podrías:",
     stopWorking: "Dejar de trabajar",
@@ -1093,14 +1133,6 @@ export const es: Messages = {
       cheap: (amount: string, year: number) => `Al 0,2\u00a0% al año: ${amount} en ${year}.`,
       dear: (amount: string) => `Al 1\u00a0% al año: ${amount}.`,
       assumption: "Estas rentabilidades son antes de los costes del fondo. Los fondos indexados cuestan cerca de 0,1–0,3\u00a0% al año: de 1 a 3\u00a0€ por cada 1000\u00a0€.",
-    },
-    concentration: {
-      text: (percent: string, ticker: string, value: string) => `Solo ${ticker} es el ${percent} de tu cartera: ${value}.`,
-      share: (ticker: string, value: string, total: string) => `${ticker}: ${value} de ${total} en euros.`,
-      lastYear: (change: string, amount: string) => `Últimos 12 meses: ${change} (${amount}).`,
-      worstFall: (year: string, fall: string, amount: string) => `Peor caída desde un máximo desde ${year}: ${fall}, ${amount} sobre lo que tienes.`,
-      growsLike: (reference: string, own: boolean) => `En Mi cartera crece como ${reference}${own ? ", con sus propios altibajos" : ""}. Una sola empresa puede caer mucho más que un índice.`,
-      assumption: "Solo se cuentan las posiciones en euros.",
     },
     currency: {
       one: (money: string, currency: string) => `Tus ${money} en ${currency} no se cuentan. No se convierten monedas.`,

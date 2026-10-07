@@ -79,9 +79,15 @@ operación sobre un instrumento concreto**. Dice que no es asesoramiento
 3. **Plantillas de mezcla (100 %, 80/20, 60/40).** Son las mismas para
    todos y se llaman ejemplos de libro de texto: información genérica. No
    deben decir nunca "para ti".
-4. **"Chequeo de tu plan" (fase 6).** Las observaciones describen un hecho
-   del plan con su cifra en euros; nunca dicen qué comprar, qué vender ni
-   qué pesos poner.
+4. **"Chequeo de tu plan".** Las observaciones describen un hecho del
+   plan con su cifra en euros; nunca dicen qué comprar, qué vender ni qué
+   pesos poner, y la sección empieza diciendo que qué hacer lo decide la
+   persona. La referencia del ahorro son "las acciones del mundo", un
+   índice, nunca un fondo, y va con su caso malo. Ver el [chequeo de tu
+   plan](../wealth-lens/chequeo.md); un test comprueba su redacción.
+   **Para revisar con el profesional:** si comparar un ahorro con las
+   acciones del mundo, con las cifras de la persona, puede leerse como
+   una sugerencia.
 5. **Mi cartera.** Lee las posiciones que la persona ya tiene y dice cómo
    se movieron y cuánto pesan; nunca qué hacer con ellas.
 
@@ -137,7 +143,14 @@ De criterio (las revisa quien escribe y quien revisa):
 - Al aplicarlo, el único texto que incumplía era el título "What you
   should know" de Wealth Lens: ahora "Good to know" ("Para tener en
   cuenta").
+- El chequeo de tu plan tiene además su propio test de redacción
+  (`projects/wealth-lens/src/lib/plan-check.test.ts`): sin palabras de
+  compra, venta o pesos ("compra", "vende", "mantén", "cambia", "reduce",
+  "aumenta" y sus equivalentes en inglés), cada porcentaje con sus euros.
 
 ## Historial
 
 - 2026-10-03: primera ficha; la regla 1 pasa a ser un test de seed-kit.
+- 2026-10-07: el chequeo de tu plan, hecho y con su test de redacción;
+  un punto más para el profesional (comparar el ahorro con las acciones
+  del mundo).

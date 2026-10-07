@@ -6,7 +6,6 @@ import { parseIsoDate } from "./dates";
 import { futureValueWithContributions, monthsToGoal } from "./finance";
 import {
   allFindings,
-  concentrationFinding,
   currencyFinding,
   doublingFinding,
   feesFinding,
@@ -169,22 +168,6 @@ describe("fees", () => {
   });
 });
 
-describe("concentration", () => {
-  it("flags one stock over 40% of the portfolio, with its worst fall", () => {
-    const finding = concentrationFinding(concentrated);
-    expect(finding).toMatchObject({ value: "70%", tone: "warning" });
-    expect(finding?.text).toMatch(/^ASML alone is 70% of your portfolio: €[\d,]+\.$/);
-    // Every percent with its euros, on what is held.
-    expect(finding?.calculation.join(" ")).toMatch(/Worst fall from a peak since 2016: −48%, −€[\d,]+ on what you hold\./);
-  });
-
-  it("does not count index funds, and needs more than 40%", () => {
-    expect(concentrationFinding(context({}, [holding("VWCE", 90, 169.4), holding("ASML", 1, 1601.2)]))).toBeNull();
-    expect(concentrationFinding(context({}, [holding("ASML", 2, 1601.2), holding("VWCE", 30, 169.4)]))).toBeNull();
-    expect(concentrationFinding(small)).toBeNull();
-  });
-});
-
 describe("currency", () => {
   it("says what is left out for being in another currency", () => {
     const finding = currencyFinding(context({}, [holding("VWCE", 10, 169.4), holding("NVDA", 5, 228, "USD")]));
@@ -277,8 +260,8 @@ describe("the findings shown", () => {
     }
   });
 
-  it("put the risk of a concentrated portfolio at the top", () => {
-    expect(topFindings(concentrated)[0].id).toBe("concentration");
+  it("leave one stock that weighs too much to Check your plan, which says it once", () => {
+    expect(allFindings(concentrated).map((finding) => finding.id)).not.toContain("concentration");
   });
 
   it("are short, concrete and never tell the user what to do, in English and in Spanish", () => {

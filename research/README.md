@@ -61,6 +61,7 @@ Las rutas de código son de `projects/wealth-lens/` salvo que digan otra cosa.
 | [Inflación](wealth-lens/inflacion.md) | Todo en euros de hoy; el ahorro; "Subida de precios en". | `src/lib/investment.ts`, `assets.ts`, seed-kit `cost-of-living.ts` |
 | [Valor inicial del 5 %](wealth-lens/valor-inicial.md) | Con qué crecimiento empieza la calculadora. | `src/lib/validation.ts` (`STARTING_GROWTH`) |
 | [Década mala histórica](wealth-lens/decada-mala.md) | "Si tus primeros 10 años fueran como 2000–2009". | `src/lib/decade.ts`, `what-if.ts`, `findings.ts` |
+| [Chequeo de tu plan](wealth-lens/chequeo.md) | Las 0 a 3 observaciones: horizonte frente a riesgo, concentración y ahorro a largo plazo. | `src/lib/plan-check.ts`, `src/i18n/check-text.ts` |
 | [Deseos y precios por país](wealth-lens/deseos.md) | "Con esto podrías", "Cosas que podrías comprar" y "Precios de". | `src/data/connections.json`, `src/lib/wishes.ts`, `wish-country.ts`, `calculator.ts` |
 
 ### Para todas las apps
@@ -91,6 +92,11 @@ país](wealth-lens/deseos.md), con su regla de elección y sus fuentes, en
 el mismo cambio que el código; la de inflación y la de crecimiento llaman
 al ajuste de la inflación por su etiqueta, "Subida de precios en", para
 no confundirlo con "Precios de" de los deseos.
+
+Fase 6 (7 de octubre de 2026): nueva ficha del [chequeo de tu
+plan](wealth-lens/chequeo.md); un solo umbral de concentración, el 20 %
+(se resuelve el punto 4 de lo discutible de las mezclas); la ficha legal
+anota el chequeo y su test.
 
 Las cifras que las fichas citan de los datos (medias, oscilaciones, tasas
 de éxito) salen de los mismos archivos que usa la app

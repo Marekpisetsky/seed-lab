@@ -119,6 +119,16 @@ export const en = {
         ],
       },
       {
+        heading: "Check your plan",
+        id: "check",
+        body: [
+          "Under the result, up to three observations, only when they apply. Each has its euros. They say what is, never what to do.",
+          "Few years: your plan's years, or a goal, under 5 years away, and money that goes up and down. It counts how many of the 1,000 possible futures end below what you put in by then. It shows from 1 in 10. [The method](research:wealth-lens/chequeo.md#horizonte-frente-a-riesgo).",
+          "One stock: one company over a fifth of your mix or of My portfolio, index funds aside. It gives its euros and its worst fall from a peak, on your money. [The method](research:wealth-lens/chequeo.md#concentración).",
+          "Savings for 10 years or more: what the account keeps in today's money, against what you put in. And against world stocks, with the same amounts. [The method](research:wealth-lens/chequeo.md#ahorro-a-largo-plazo).",
+        ],
+      },
+      {
         heading: "Countries",
         body: [
           `The table has ${facts.countries} countries. For ${facts.detailed}, the monthly cost for one person comes from Numbeo (without rent) and Wise (rent of a 1-bedroom outside the centre).`,
@@ -676,7 +686,6 @@ export const en = {
     more: "See more",
     less: "See less",
     knowSummary: "What could go wrong, and what helps most",
-    concentration: (share: string, amount: string) => `One stock is ${share} of your mix (${amount}): see the bad cases`,
     loading: "Loading…",
   },
   picker: {
@@ -1079,6 +1088,39 @@ export const en = {
       "study-year": { name: "A year at university", about: (country: string) => `12 months of living costs with rent in ${country}, and a year's university fees` },
     } as Record<string, ItemWords>,
   },
+  check: {
+    title: "Check your plan",
+    intro: "What stands out in your plan, with its euros. What to do is up to you.",
+    how: "How it is worked out",
+    /** "34 of 100": how many possible futures, as a count. */
+    count: (count: number) => `${count} of 100`,
+    horizon: {
+      plan: (putIn: string, years: string) => `You put in ${putIn} over ${years}.`,
+      goal: (name: string, years: string, putIn: string) => `${name} comes in ${years}. By then you put in ${putIn}.`,
+      below: (count: string) => `${count} possible futures end below it.`,
+      bad: (amount: string) => `In the worst 1 in 10, ${amount} or more below.`,
+      why: "In a few years, a fall may not come back.",
+    },
+    concentration: {
+      mix: (name: string, percent: string, amount: string) => `${name} is ${percent} of your mix: ${amount}.`,
+      mixAtEnd: (name: string, percent: string, amount: string) => `${name} is ${percent} of your mix: ${amount} at the end.`,
+      portfolio: (name: string, percent: string, amount: string) => `${name} is ${percent} of your portfolio: ${amount}.`,
+      /** "A fall like its worst since 2016 (−48%) = −€2,400 of your €5,000." */
+      fall: (year: string, fall: string, amount: string, base: string) => `A fall like its worst since ${year} (${fall}) = ${amount} of your ${base}.`,
+      lastYear: (change: string, amount: string) => `Last 12 months: ${change} (${amount}).`,
+      growsLike: (reference: string) => `It grows like ${reference} here, with its own ups and downs.`,
+      oneCompany: "One company can fall much further than an index.",
+      euros: "Only holdings in euros are counted.",
+    },
+    savings: {
+      keeps: (years: string, total: string) => `In ${years}, savings are worth ${total} of today's money.`,
+      less: (amount: string) => `That is ${amount} less than you put in.`,
+      more: (amount: string) => `That is ${amount} more than you put in.`,
+      why: "Prices rise faster than a savings account's interest.",
+      world: (period: string, typical: string, more: string) => `World stocks (${period}) typically give ${typical}: ${more} more.`,
+      worldBad: (bad: string) => `They go up and down: 1 in 10 futures end under ${bad}.`,
+    },
+  },
   wishes: {
     title: "With this you could:",
     stopWorking: "Stop working",
@@ -1125,14 +1167,6 @@ export const en = {
       cheap: (amount: string, year: number) => `At 0.2% a year: ${amount} by ${year}.`,
       dear: (amount: string) => `At 1% a year: ${amount}.`,
       assumption: "These returns are before fund costs. Index funds cost about 0.1–0.3% a year: €1 to €3 per €1,000.",
-    },
-    concentration: {
-      text: (percent: string, ticker: string, value: string) => `${ticker} alone is ${percent} of your portfolio: ${value}.`,
-      share: (ticker: string, value: string, total: string) => `${ticker}: ${value} of ${total} in euros.`,
-      lastYear: (change: string, amount: string) => `Last 12 months: ${change} (${amount}).`,
-      worstFall: (year: string, fall: string, amount: string) => `Worst fall from a peak since ${year}: ${fall}, ${amount} on what you hold.`,
-      growsLike: (reference: string, own: boolean) => `In My portfolio it grows like ${reference}${own ? ", with its own ups and downs" : ""}. One company can fall much further than an index.`,
-      assumption: "Only holdings in euros are counted.",
     },
     currency: {
       one: (money: string, currency: string) => `Your ${money} in ${currency} is not counted. No currency conversion.`,

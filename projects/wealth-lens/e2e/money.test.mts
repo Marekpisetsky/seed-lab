@@ -551,3 +551,28 @@ describe("With this you could", () => {
     }
   });
 });
+
+describe("Check your plan", () => {
+  it("shows what stands out in a short or a savings plan, with its euros, and links to how it is worked out", async () => {
+    for (const lang of ["en", "es"] as const) {
+      const words = lang === "en" ? { title: "Check your plan", how: "How it is worked out", years: "For how many years?" } : { title: "Chequeo de tu plan", how: "Cómo se calcula", years: "¿Durante cuántos años?" };
+      const page = await open(lang, 1366);
+      await firstResult(page, lang);
+      // 20 years in the starting 5 %: nothing stands out, no section.
+      assert.equal(await page.getByRole("heading", { name: words.title }).count(), 0);
+      // 3 years: some futures end below what was put in.
+      const years = page.getByLabel(words.years, { exact: true }).first();
+      await years.fill("3");
+      await years.press("Enter");
+      const section = page.getByRole("region", { name: words.title });
+      await section.waitFor();
+      const text = await section.innerText();
+      assert.match(text, /€/);
+      assert.match(text, lang === "en" ? /\d+ of 100 possible futures end below it\./ : /\d+ de cada 100 futuros posibles acaban por debajo\./);
+      await section.getByRole("link", { name: words.how }).first().click();
+      await page.waitForURL(/how-it-works#check$/);
+      assert.ok(await page.locator("#check").isVisible());
+      await page.close();
+    }
+  });
+});

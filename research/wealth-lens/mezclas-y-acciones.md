@@ -113,10 +113,13 @@ cada enero, sobre los años que tienen todas sus partes.
 3. **Estimaciones frágiles.** σ con 3 años de cierres diarios y ρ con
    rendimientos semanales: ruido grande, y el respaldo (2 × el índice, ρ =
    0,6) es un número de criterio. *Coste:* intervalos o más años de datos.
-4. **Dos umbrales de concentración.** El efecto de concentración en una
-   mezcla aparece por encima del 20 %; el hallazgo de concentración de *Mi
-   cartera* (`findings.ts`) por encima del 40 %. Deberían ser uno, con su
-   razón. *Coste:* decidir; la fase 6 (*Chequeo de tu plan*) usa el 20 %.
+4. **Dos umbrales de concentración** (resuelto el 7 de octubre de 2026).
+   El efecto de concentración en una mezcla aparecía por encima del 20 %
+   y el hallazgo de *Mi cartera* (`findings.ts`), por encima del 40 %.
+   Ahora hay uno: el 20 %, en el [chequeo de tu plan](chequeo.md), para la
+   mezcla y para *Mi cartera*; el hallazgo del 40 % ya no existe. Queda
+   por justificar el 20 % con datos (ver el chequeo, punto 2 de lo
+   discutible).
 5. **Correlaciones estables.** En las crisis, las correlaciones suben; el
    sorteo conjunto lo recoge para los años de la muestra (2008, 2022),
    pero no más allá.
@@ -127,3 +130,6 @@ cada enero, sobre los años que tienen todas sus partes.
 ## Historial
 
 - 2026-10-03: primera ficha (sin cambios en el cálculo).
+- 2026-10-07: un solo umbral de concentración, el 20 %, en el [chequeo de
+  tu plan](chequeo.md); se quita el hallazgo del 40 % de *Mi cartera*. Sin
+  cambios en los cálculos de las mezclas.

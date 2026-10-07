@@ -10,7 +10,8 @@
  * (ORDER): risks the user carries first, then what moves the plan, general
  * facts last, so a card never jumps places when a number changes; the page
  * shows the first three that apply. Findings inform with numbers; they
- * never say what to do. The words come from the dictionaries (`findings`),
+ * never say what to do. One stock that weighs too much is not a finding:
+ * "Check your plan" says it (lib/plan-check.ts), once. The words come from the dictionaries (`findings`),
  * in the page's language.
  */
 
@@ -22,11 +23,10 @@ import { addMonths } from "./dates";
 import { DECADE_YEARS, historicalDecade } from "./decade";
 import { holdingValue, monthsToGoal } from "./finance";
 import type { ResolvedInvestment } from "./investment";
-import { INDEX_TRACKERS, instrumentForHolding, MARKET, type PricesFile } from "./market-data";
-import { referenceFor } from "./portfolio";
+import { MARKET, type PricesFile } from "./market-data";
 import { BASE_CURRENCY, type Holding } from "./types";
 
-export type FindingId = "lever" | "waiting" | "inflation" | "fees" | "concentration" | "currency" | "sequence" | "doubling";
+export type FindingId = "lever" | "waiting" | "inflation" | "fees" | "currency" | "sequence" | "doubling";
 
 export interface Finding {
   id: FindingId;
@@ -56,7 +56,6 @@ export const MAX_FINDINGS = 3;
 
 /** The order findings are shown in: risks first, then what moves the plan, general facts last. */
 export const ORDER: readonly FindingId[] = [
-  "concentration",
   "currency",
   "lever",
   "sequence",
@@ -242,51 +241,6 @@ export function feesFinding(context: FindingContext): Finding | null {
   };
 }
 
-/** One holding (not an index fund) weighing more than 40 % of the portfolio. */
-export function concentrationFinding({ holdings, market, i18n }: FindingContext): Finding | null {
-  const { m, f } = i18n;
-  const t = m.findings.concentration;
-  const priced = holdings
-    .filter((holding) => holding.currency === BASE_CURRENCY)
-    .map((holding) => ({ holding, value: holdingValue(holding) ?? 0 }))
-    .filter((entry) => entry.value > 0);
-  const total = priced.reduce((sum, entry) => sum + entry.value, 0);
-  if (priced.length === 0 || total <= 0) return null;
-  const isIndexFund = (holding: Holding) => {
-    const instrument = instrumentForHolding(holding.ticker, holding.currency);
-    if (instrument) return instrument.kind === "etf";
-    const ticker = holding.ticker.trim().toUpperCase().split(".")[0];
-    return Object.values(INDEX_TRACKERS).some((list) => list.includes(ticker));
-  };
-  const biggest = priced.filter((entry) => !isIndexFund(entry.holding)).sort((a, b) => b.value - a.value)[0];
-  if (!biggest) return null;
-  const weight = biggest.value / total;
-  if (weight <= 0.4) return null;
-  const { ticker } = biggest.holding;
-  const instrument = instrumentForHolding(ticker, biggest.holding.currency);
-  const prices = instrument ? market.prices[instrument.id] : undefined;
-  const pct = f.percent(weight, { decimals: 0 });
-  const value = biggest.value;
-  return {
-    id: "concentration",
-    value: pct,
-    text: t.text(pct, ticker, f.eur(value)),
-    tone: "warning",
-    calculation: [
-      t.share(ticker, f.eur(value), f.eur(total)),
-      // A year ago it was worth value ÷ (1 + change): the change, in euros of what is held.
-      ...(prices?.change1y != null
-        ? [t.lastYear(f.percent(prices.change1y, { signed: true, decimals: 0 }), f.eur(value - value / (1 + prices.change1y), { signed: true }))]
-        : []),
-      ...(prices?.drawdown
-        ? [t.worstFall(prices.drawdown.from.slice(0, 4), f.percent(-prices.drawdown.max, { decimals: 0 }), f.eur(-value * prices.drawdown.max, { signed: true }))]
-        : []),
-      t.growsLike(m.assets.inSentence[referenceFor(biggest.holding).asset], Boolean(instrument)),
-    ],
-    assumptions: [t.assumption],
-  };
-}
-
 /** Holdings in another currency, which are left out of every figure. */
 export function currencyFinding({ holdings, i18n }: FindingContext): Finding | null {
   const { m, f } = i18n;
@@ -383,7 +337,6 @@ export function doublingFinding({ calc, i18n }: FindingContext): Finding | null 
 }
 
 const RULES: Record<FindingId, (context: FindingContext) => Finding | null> = {
-  concentration: concentrationFinding,
   currency: currencyFinding,
   lever: leverFinding,
   sequence: sequenceFinding,

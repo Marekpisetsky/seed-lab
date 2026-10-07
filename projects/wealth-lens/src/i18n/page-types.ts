@@ -2,6 +2,8 @@
 
 export interface ProseSection {
   heading: string;
+  /** An anchor other pages link to ("check": /how-it-works#check). */
+  id?: string;
   /** Paragraphs; "**bold**" and "[words](/page)" or "[words](https://…)" links (components/ui/marked.tsx). */
   body: string[];
 }

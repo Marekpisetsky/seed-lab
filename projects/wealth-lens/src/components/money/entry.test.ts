@@ -246,6 +246,21 @@ describe.each(["en", "es"] as const)("the result in levels (%s)", (locale) => {
     expect(line).toMatch(/<option value="NL" selected="">/);
   });
 
+  it("checks the plan only when something stands out: savings for 30 years, with its euros and how it is worked out", () => {
+    // The example plan: nothing stands out, no section.
+    expect(text(html)).not.toContain(m.check.title);
+    const saving: AppState = { ...filled, plan: { ...filled.plan, investment: { kind: "asset", asset: "savings" }, years: 30 } };
+    const page = decode(render(locale, saving, createElement(Results, { bundle: calculationFor(saving, today) })));
+    const titles = [...page.matchAll(/<h2 id="[^"]+" class="text-lg font-bold">([^<]*)<\/h2>/g)].map((match) => match[1]);
+    // After "What if…?", before My goals.
+    expect(titles.slice(0, 3)).toEqual([m.whatIf.title, m.check.title, m.goals.title]);
+    const start = page.indexOf(m.check.title);
+    const section = page.slice(start, page.indexOf(`>${m.goals.title}</h2>`, start));
+    expect(text(section)).toContain(m.check.intro);
+    expect(text(section)).toMatch(locale === "en" ? /In 30 years, savings are worth €[\d,]+ of today's money\./ : /En 30 años, el ahorro vale [\d.]+\s€ de hoy\./);
+    expect(section).toContain(`href="${locale === "en" ? "" : "/es"}/how-it-works#check"`);
+  });
+
   it("shows six key figures, two across on a phone and three on a wide screen, each one tappable", () => {
     const grid = html.slice(html.indexOf(`aria-label="${m.facts.label}"`), html.indexOf('role="img"'));
     expect(grid).toContain("grid-cols-2 ");

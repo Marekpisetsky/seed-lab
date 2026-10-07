@@ -9,12 +9,11 @@ import type { CalculationBundle } from "@/hooks/use-calculation";
 import type { I18n } from "@/i18n";
 import { investedInText } from "@/i18n/investment-text";
 import { growsText } from "@/lib/growth";
-import type { ResolvedInvestment } from "@/lib/investment";
-import { CONCENTRATION_LIMIT } from "@/lib/mix";
 import { GoalsSection } from "./goals-section";
 import { GrowthChart } from "./growth-chart";
 import { TOTAL_ID } from "./first-result";
 import { KeyFacts } from "./key-facts";
+import { PlanCheckSection } from "./plan-check";
 import { ResultSection, SeeMore } from "./result-section";
 import { StocksSummary } from "./stocks-summary";
 import { WhatIfIndicator, whatIfApplied, WhatIfRow } from "./what-if-row";
@@ -87,19 +86,12 @@ function ResultTotal({ bundle, ref }: { bundle: CalculationBundle; ref: React.Re
   );
 }
 
-/** The share of a mix in its biggest stock when it is over the concentration line; `null` otherwise. */
-function concentratedShare(investment: ResolvedInvestment): number | null {
-  const { model } = investment;
-  if (investment.investment.kind !== "mix" || investment.simulation !== "joint" || !model) return null;
-  const biggest = Math.max(0, ...model.parts.filter((part) => part.kind === "stock").map((part) => part.weight));
-  return biggest > CONCENTRATION_LIMIT ? biggest : null;
-}
-
 /**
  * The result in levels: what the user said and the total, the six key
  * figures under it, the chart with its tabs (the main picture), then, with
- * their titles always in sight: "What if…?", my stocks today (only with
- * holdings), my goals, where it reaches and good to know. Only each
+ * their titles always in sight: "What if…?", check your plan (only when
+ * something stands out), my stocks today (only with holdings), my goals,
+ * where it reaches and good to know. Only each
  * one's long detail waits behind "See more".
  */
 export function Results({ bundle, arrive = false, onArrived }: { bundle: CalculationBundle; arrive?: boolean; onArrived?: () => void }) {
@@ -120,10 +112,8 @@ export function Results({ bundle, arrive = false, onArrived }: { bundle: Calcula
   }, [arrive, onArrived]);
   /** Number, grid, chart: one after the other, 60 ms apart, each 220 ms (340 ms in all). */
   const part = (delay: number, className = "") => (stagger ? { className: `${className} motion-safe:animate-arrive`, style: { animationDelay: `${delay}ms` } } : { className });
-  const { m, f } = i18n;
+  const { m } = i18n;
   const { calc, today } = bundle;
-  const { result } = calc;
-  const share = concentratedShare(calc.investment);
 
   return (
     <div className="space-y-6">
@@ -143,6 +133,7 @@ export function Results({ bundle, arrive = false, onArrived }: { bundle: Calcula
         <ResultSection title={m.whatIf.title} className="lg:hidden">
           <WhatIfRow bundle={bundle} />
         </ResultSection>
+        <PlanCheckSection checks={bundle.checks} />
         <StocksSummary holdings={bundle.holdings} />
         <ResultSection title={m.goals.title}>
           <GoalsSection calc={calc} today={today} wishCountry={bundle.wishCountry} inCard />
@@ -150,12 +141,8 @@ export function Results({ bundle, arrive = false, onArrived }: { bundle: Calcula
         <ResultSection title={m.cards.where}>
           <WhereDetails bundle={bundle} />
         </ResultSection>
-        <ResultSection title={m.findings.title} tone={share === null ? "plain" : "warning"}>
-          <p className={`text-sm ${share === null ? "text-muted" : "text-warning-foreground"}`}>
-            {share === null
-              ? m.cards.knowSummary
-              : m.cards.concentration(f.percent(share, { decimals: 0 }), f.eur(share * (calc.scenario.capital > 0 ? calc.scenario.capital : result.total)))}
-          </p>
+        <ResultSection title={m.findings.title}>
+          <p className="text-sm text-muted">{m.cards.knowSummary}</p>
           <SeeMore what={m.findings.title}>
             <KnowDetails bundle={bundle} />
           </SeeMore>
