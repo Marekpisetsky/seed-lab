@@ -26,10 +26,10 @@ tabla de *Principles* del hub, `packages/seed-kit/src/tools.json`):
 | Your data never leaves your device | Cumple | Todo se calcula en el navegador; nada se guarda ni se envía. |
 | Transparent | En parte | Gratis, con método y fuentes públicos; los cambios del método aún no se publican. |
 | Truly European | Pendiente | EN y ES, pero alojada en Vercel (EE. UU.) y sin auditoría de accesibilidad hecha por personas. |
-| Light | Cumple | De 214 a 240 KB por página en la primera visita, por debajo del límite de 350 KB. |
+| Light | Cumple | De 214 a 241 KB por página en la primera visita, por debajo del límite de 350 KB. |
 | For everyone | En parte | Palabras sencillas, teclado y objetivos de 44 px; aún sin pruebas con personas reales. |
 
-**Estado actual (2026-10-05):** dos pantallas (Next.js 16 + TypeScript +
+**Estado actual (2026-10-07):** dos pantallas (Next.js 16 + TypeScript +
 Tailwind 4), exportadas como sitio estático. La principal empieza con
 **cuatro pasos numerados**, con los importes vacíos y el crecimiento en
 5 %; el resultado llega al pulsar *See my result* (solo la primera vez),
@@ -38,7 +38,7 @@ opcionales. El móvil es el diseño principal. La app no
 supone nada sobre la vida del usuario: no pregunta país, ni si alquila o
 es propietario, ni qué quiere hacer con su dinero. Nada se guarda ni se
 envía, y la app no llama a ningún servicio mientras se usa. La lógica
-vive en funciones puras con 790 tests unitarios (Vitest). El uso real
+vive en funciones puras con 826 tests unitarios (Vitest). El uso real
 sostenido (la condición del peldaño 1 de seed-lab) todavía no está
 demostrado. Solo se proyecta lo que tiene una
 historia larga y un rango conocido; nada se presenta como predecible, y

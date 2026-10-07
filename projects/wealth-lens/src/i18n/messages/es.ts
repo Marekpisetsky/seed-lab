@@ -1094,7 +1094,7 @@ export const es: Messages = {
       mixAtEnd: (name: string, percent: string, amount: string) => `${name} es el ${percent} de tu mezcla: ${amount} al final.`,
       portfolio: (name: string, percent: string, amount: string) => `${name} es el ${percent} de tu cartera: ${amount}.`,
       fall: (year: string, fall: string, amount: string, base: string) => `Una caída como su peor desde ${year} (${fall}) = ${amount} de tus ${base}.`,
-      lastYear: (change: string, amount: string) => `Últimos 12 meses: ${change} (${amount}).`,
+      lastYear: (change: string, from: string, to: string) => `Últimos 12 meses: ${change}, de ${from} a ${to}.`,
       growsLike: (reference: string) => `Aquí crece como ${reference}, con sus propios altibajos.`,
       oneCompany: "Una sola empresa puede caer mucho más que un índice.",
       euros: "Solo se cuentan las posiciones en euros.",

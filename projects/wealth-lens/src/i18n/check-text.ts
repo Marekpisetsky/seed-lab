@@ -29,12 +29,16 @@ export function checkWords(check: PlanCheck, i18n: I18n): CheckWords {
     case "concentration": {
       const t = m.check.concentration;
       const percent = f.percent(check.share, { decimals: 0 });
-      const amount = f.eur(check.amount);
+      // The euros come from the whole percent and euros shown, so a reader can check the sum: 48% of €14,411 = €6,917.
+      const held = Math.round(check.amount);
+      const amount = f.eur(held);
       const lead = check.where === "portfolio" ? t.portfolio(check.name, percent, amount) : (check.atEnd ? t.mixAtEnd : t.mix)(check.name, percent, amount);
+      const fall = check.fall ? Math.round(check.fall.max * 100) / 100 : null;
+      const change = check.change1y !== null ? Math.round(check.change1y * 100) / 100 : null;
       const details = [
-        ...(check.fall ? [t.fall(check.fall.from.slice(0, 4), f.percent(-check.fall.max, { decimals: 0 }), f.eur(-check.amount * check.fall.max, { signed: true }), amount)] : []),
-        // A year ago it was worth amount ÷ (1 + change): the change, in euros of what is held.
-        ...(check.change1y !== null ? [t.lastYear(f.percent(check.change1y, { signed: true, decimals: 0 }), f.eur(check.amount - check.amount / (1 + check.change1y), { signed: true }))] : []),
+        ...(check.fall && fall !== null ? [t.fall(check.fall.from.slice(0, 4), f.percent(-fall, { decimals: 0 }), f.eur(-held * fall, { signed: true }), amount)] : []),
+        // A year ago it was worth what it is now ÷ (1 + change): from that to its euros now.
+        ...(change !== null && change > -1 ? [t.lastYear(f.percent(change, { signed: true, decimals: 0 }), f.eur(held / (1 + change)), amount)] : []),
         ...(check.where === "mix" ? [t.growsLike(m.assets.inSentence[check.reference])] : []),
         t.oneCompany,
         ...(check.where === "portfolio" ? [t.euros] : []),
@@ -43,11 +47,13 @@ export function checkWords(check: PlanCheck, i18n: I18n): CheckWords {
     }
     case "savings": {
       const t = m.check.savings;
-      const { total, putIn, world } = check;
+      // Whole euros, as shown, so each gap is the difference of the figures on the page.
+      const [total, putIn, typical] = [check.total, check.putIn, check.world.typical].map(Math.round);
+      const { world } = check;
       const lead = [t.keeps(m.units.years(check.years), f.eur(total)), total < putIn ? t.less(f.eur(putIn - total)) : t.more(f.eur(total - putIn))];
       const details = [
         ...(total < putIn ? [t.why] : []),
-        t.world(periodText(world), f.eur(world.typical), f.eur(world.typical - total)),
+        t.world(periodText(world), f.eur(typical), f.eur(typical - total)),
         t.worldBad(f.eur(world.bad)),
       ];
       return { lead, details };

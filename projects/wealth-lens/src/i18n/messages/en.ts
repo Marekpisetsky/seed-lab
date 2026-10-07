@@ -1126,7 +1126,7 @@ export const en = {
       portfolio: (name: string, percent: string, amount: string) => `${name} is ${percent} of your portfolio: ${amount}.`,
       /** "A fall like its worst since 2016 (−48%) = −€2,400 of your €5,000." */
       fall: (year: string, fall: string, amount: string, base: string) => `A fall like its worst since ${year} (${fall}) = ${amount} of your ${base}.`,
-      lastYear: (change: string, amount: string) => `Last 12 months: ${change} (${amount}).`,
+      lastYear: (change: string, from: string, to: string) => `Last 12 months: ${change}, from ${from} to ${to}.`,
       growsLike: (reference: string) => `It grows like ${reference} here, with its own ups and downs.`,
       oneCompany: "One company can fall much further than an index.",
       euros: "Only holdings in euros are counted.",

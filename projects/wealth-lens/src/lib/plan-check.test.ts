@@ -192,8 +192,27 @@ describe("Check your plan", () => {
   it("reads as the principle asks: a fall, in euros of the user's money", () => {
     const concentrated = shown.find((check) => check.id === "concentration" && check.where === "portfolio");
     const { details } = checkWords(concentrated!, EN);
-    // ASML: 9 × €1,601.20 = €14,410.80; its worst fall since 2016, −48.42%: −€6,977.71.
-    expect(details[0]).toBe("A fall like its worst since 2016 (−48%) = −€6,978 of your €14,411.");
-    expect(checkWords(concentrated!, ES).details[0]).toBe("Una caída como su peor desde 2016 (−48 %) = −6978 € de tus 14.411 €.");
+    // ASML: 9 × €1,601.20 = €14,411; its worst fall since 2016, −48.42%, shows as −48%: 48% of €14,411 = −€6,917,
+    // the sum a reader can check (as in "(−37%) = −€407 of your €1,100").
+    expect(details[0]).toBe("A fall like its worst since 2016 (−48%) = −€6,917 of your €14,411.");
+    expect(checkWords(concentrated!, ES).details[0]).toBe("Una caída como su peor desde 2016 (−48 %) = −6917 € de tus 14.411 €.");
+  });
+
+  it("subtracts the euros as they are shown, so the sums on the page add up", () => {
+    // €370,414.60 and €151,175.40 show as €370,415 and €151,175: the gap shown is €219,240, not €219,239.
+    const check: PlanCheck = { id: "savings", years: 30, total: 151_175.4, putIn: 164_000, world: { typical: 370_414.6, bad: 169_417, rate: 0.045, period: [1988, 2022] } };
+    const { lead, details } = checkWords(check, EN);
+    expect(lead).toEqual(["In 30 years, savings are worth €151,175 of today's money.", "That is €12,825 less than you put in."]);
+    expect(details).toContain("World stocks (1988–2022) typically give €370,415: €219,240 more.");
+  });
+
+  it("gives the last 12 months as where its euros came from, so the percent can be checked by eye", () => {
+    // €6,000 today after +25%: €4,800 a year ago. "+25% (+€1,200)" beside "€6,000" read as a wrong 25% of €6,000.
+    const check: PlanCheck = { id: "concentration", where: "mix", name: "NVDA", share: 0.3, amount: 6000, total: 20_000, atEnd: false, fall: null, change1y: 0.25, reference: "nasdaq100" };
+    expect(checkWords(check, EN).details[0]).toBe("Last 12 months: +25%, from €4,800 to €6,000.");
+    expect(checkWords(check, ES).details[0]).toBe("Últimos 12 meses: +25 %, de 4800 € a 6000 €.");
+    // +28.6% shows as +29%: €6,000 ÷ 1.29 = €4,651, so that €4,651 + 29% = €6,000 on the page.
+    expect(checkWords({ ...check, change1y: 0.286 }, EN).details[0]).toBe("Last 12 months: +29%, from €4,651 to €6,000.");
+    expect(checkWords({ ...check, change1y: -0.2 }, ES).details[0]).toBe("Últimos 12 meses: −20 %, de 7500 € a 6000 €.");
   });
 });

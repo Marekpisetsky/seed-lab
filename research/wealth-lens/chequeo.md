@@ -74,12 +74,18 @@ dinero hoy, × el total al final, y lo dice); en *Mi cartera*, su valor.
 **Su peor caída** es la mayor caída desde un máximo en los precios
 guardados (`drawdown` de `public/data/prices.json`, desde el inicio de su
 historia guardada), aplicada a esos euros; también el cambio de los
-últimos 12 meses, en euros.
+últimos 12 meses, como de dónde vienen esos euros: "+25 %, de 4800 € a
+6000 €" (con "+25 % (+1200 €)" al lado de "6000 €", el lector calcula el
+25 % de 6000 € y cree ver un error).
 
 **Ejemplo:** una mezcla 75 % Mundo y 25 % NVDA con 10.000 €: "NVDA es el
 25 % de tu mezcla: 2500 €. Una caída como su peor desde 2016 (−66 %) =
-−1659 € de tus 2500 €." Es la forma del principio de toda la app: ningún
-porcentaje sin sus euros.
+−1650 € de tus 2500 €." Es la forma del principio de toda la app: ningún
+porcentaje sin sus euros. Los euros salen del porcentaje y los euros tal
+como se muestran (66 % de 2500 €), no de la cifra exacta (−66,37 % daría
+−1659 €): así la cuenta se puede comprobar a mano. Por lo mismo, cada
+diferencia entre dos cifras se calcula con las cifras redondeadas que se
+ven.
 
 **Cambio respecto a antes:** *Para tener en cuenta* tenía su propio
 hallazgo de concentración para *Mi cartera* con un umbral del 40 %, y la
