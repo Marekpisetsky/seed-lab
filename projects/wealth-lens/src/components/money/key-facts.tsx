@@ -94,7 +94,8 @@ export function KeyFacts({ bundle }: { bundle: CalculationBundle }) {
                 }`}
               >
                 <span className="text-sm text-muted">{m.facts[fact.id]}</span>
-                <span className="max-w-full text-xl font-bold tabular-nums [overflow-wrap:anywhere]">
+                {/* A long figure ("€8.41 × 10⁴⁹") a size smaller on a phone, so it fits half its width without breaking. */}
+                <span className={`max-w-full font-bold tabular-nums [overflow-wrap:anywhere] ${/\d/.test(fact.value) && fact.value.length > 11 ? "text-base sm:text-xl" : "text-xl"}`}>
                   <Changed value={fact.value} />
                 </span>
                 {fact.note && (

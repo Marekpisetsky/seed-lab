@@ -654,6 +654,17 @@ export const es: Messages = {
     examples: { sp500: "S&P 500", world: "Mundo", "60-40": "60/40", bonds: "Bonos", savings: "Ahorro" },
     example: (name: string, rate: string) => `${name}, ${rate}`,
     veryRare: (years: number, best: string) => `Muy raro: los mejores ${years} años de los datos dieron un ${best}.`,
+    strong: {
+      none: (rate: string, span: string) => `Ningún índice ni gran empresa ha mantenido esto: un ${rate} de media durante ${span}.`,
+      only: (rate: string, span: string, name: string, period: string) => `Un ${rate} de media durante ${span}: solo ${name} lo ha logrado (${period}).`,
+      onlyFewer: (rate: string, span: string, name: string, fewer: string, period: string) =>
+        `Un ${rate} de media durante ${span}: solo ${name} lo logró, y solo durante ${fewer} (${period}).`,
+      few: (rate: string, span: string, name: string, period: string) => `Un ${rate} de media durante ${span}: muy pocos lo han logrado, como ${name} (${period}).`,
+      fewFewer: (rate: string, span: string, name: string, fewer: string, period: string) =>
+        `Un ${rate} de media durante ${span}: muy pocos lo lograron, y solo durante ${fewer}, como ${name} (${period}).`,
+      yours: (amount: string, total: string) => `A ese ritmo, tus ${amount} serían ${total}.`,
+      yoursMonthly: (monthly: string, total: string) => `A ese ritmo, tus ${monthly} al mes serían ${total}.`,
+    },
   },
   more: {
     title: "Más opciones",
@@ -807,6 +818,7 @@ export const es: Messages = {
       mix: "en tu mezcla",
       portfolio: "en tu cartera",
       custom: (rate: string) => `creciendo un ${rate} al año`,
+      customLoss: (rate: string) => `perdiendo un ${rate} al año`,
     },
     announce: (years: string, total: string, grows: string) => `En ${years} tendrás ${total}. ${grows}.`,
     announceWhatIf: (label: string) => ` ¿Y si… ${label}?`,
@@ -815,6 +827,7 @@ export const es: Messages = {
     shrinksAbout: (rate: string) => `Pierde cerca de un ${rate} al año`,
     staysSame: "Se queda casi igual cada año",
     timesPutIn: (multiple: string) => `${multiple} lo que pones`,
+    timesPutInMany: (count: string) => `${count} veces lo que pones`,
     perMonth: (amount: string) => `${amount}/mes`,
     underOne: "menos de 1\u00a0€",
     takenOut: "Lo que sacas cada año",

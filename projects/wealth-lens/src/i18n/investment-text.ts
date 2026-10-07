@@ -60,7 +60,7 @@ export function investedInText({ investment, realReturn }: Pick<ResolvedInvestme
     case "portfolio":
       return t.portfolio;
     case "custom":
-      return t.custom(f.rate(realReturn));
+      return realReturn < 0 ? t.customLoss(f.rate(-realReturn)) : t.custom(f.rate(realReturn));
   }
 }
 

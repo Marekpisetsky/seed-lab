@@ -26,7 +26,7 @@ tabla de *Principles* del hub, `packages/seed-kit/src/tools.json`):
 | Your data never leaves your device | Cumple | Todo se calcula en el navegador; nada se guarda ni se envía. |
 | Transparent | En parte | Gratis, con método y fuentes públicos; los cambios del método aún no se publican. |
 | Truly European | Pendiente | EN y ES, pero alojada en Vercel (EE. UU.) y sin auditoría de accesibilidad hecha por personas. |
-| Light | Cumple | De 214 a 241 KB por página en la primera visita, por debajo del límite de 350 KB. |
+| Light | Cumple | De 215 a 244 KB por página en la primera visita, por debajo del límite de 350 KB. |
 | For everyone | En parte | Palabras sencillas, teclado y objetivos de 44 px; aún sin pruebas con personas reales. |
 
 **Estado actual (2026-10-07):** dos pantallas (Next.js 16 + TypeScript +
@@ -38,7 +38,7 @@ opcionales. El móvil es el diseño principal. La app no
 supone nada sobre la vida del usuario: no pregunta país, ni si alquila o
 es propietario, ni qué quiere hacer con su dinero. Nada se guarda ni se
 envía, y la app no llama a ningún servicio mientras se usa. La lógica
-vive en funciones puras con 826 tests unitarios (Vitest). El uso real
+vive en funciones puras con 840 tests unitarios (Vitest). El uso real
 sostenido (la condición del peldaño 1 de seed-lab) todavía no está
 demostrado. Solo se proyecta lo que tiene una
 historia larga y un rango conocido; nada se presenta como predecible, y
@@ -85,10 +85,17 @@ idiomas y con planes de todo tipo (`percentWithoutMoney` de seed-kit).
      **Examples:** *S&P 500 7.5%*, *World 4.5%*, *60/40*, *Bonds* y
      *Savings*, enlaces que rellenan la casilla y marcan cuál coincide. La
      cifra de un ejemplo usa sus propios años pasados; cualquier otra es
-     Custom growth, que sube y baja como las acciones del mundo. Si supera
-     el mejor promedio de 20 años seguidos de los datos (13 %), la línea
-     avisa en su mismo sitio y tamaño: "Very rare: the best 20 years in
-     the data gave 13%." **More options**, cargado al abrirlo: cualquier
+     Custom growth, que sube y baja como las acciones del mundo. Acepta de
+     −50 % a 500 % al año (500 % es un límite técnico). Si supera el mejor
+     promedio de 20 años seguidos de los datos (13 %), la línea avisa en su
+     mismo sitio y tamaño: "Very rare: the best 20 years in the data gave
+     13%." Por encima del 50 %, un aviso entero y con euros: "No index or
+     large company has kept this up: 70% on average for 20 years. At that
+     pace, your €1,100 would be €44,706,545.", o, si una empresa de los
+     datos lo logró, cuál y cuántos años (ficha de
+     [crecimiento](../../research/wealth-lens/crecimiento.md)). Las cifras
+     enormes van en palabras ("€1.23 billion", "1230 millones de euros") o
+     como potencia de diez ("€4.02 × 10¹⁸"). **More options**, cargado al abrirlo: cualquier
      otra inversión (Nasdaq-100, oro, "A mix…", My portfolio), *How much it
      can go up or down in a normal year*, *Rising prices in* y *Prices rise
      per year*, con *Reset to standard* (que deja el número del paso 3).
@@ -231,7 +238,9 @@ mano desde las cifras publicadas (ver "Retornos").
 
 **Continuidad tras la interrupción (2026-10-05).** El contexto recuperado,
 la cadena de PR #26–#29 y lo pendiente de las fases 5 y 6 están en
-[`docs/continuity-2026-10-04.md`](docs/continuity-2026-10-04.md).
+[`docs/continuity-2026-10-04.md`](docs/continuity-2026-10-04.md). El
+traspaso vigente es siempre el `docs/continuity-AAAA-MM-DD.md` de fecha más
+alta.
 La aportación necesaria para una meta lejana incorpora ahora la década
 mala seleccionada; la vista de futuros distingue esa curva de los futuros
 sin esa década impuesta. Las fichas de Research acompañan las correcciones.

@@ -11,6 +11,11 @@ import { goalExplain, goalName } from "@/i18n/goal-text";
 import { calculate, itemStatuses, type Calculation, type CalculatorPlan } from "./calculator";
 import { parseIsoDate } from "./dates";
 import { allFindings } from "./findings";
+import { planChecks } from "./plan-check";
+import { checkWords } from "@/i18n/check-text";
+import { timesPutInText } from "./growth";
+import { bandsFor, samplesFor } from "./projections";
+import { wishesFor } from "./wishes";
 import { STANDARD_ASSUMPTIONS, type Goal } from "./types";
 
 const ES = getI18n("es");
@@ -65,8 +70,8 @@ function expectSensible(calc: Calculation) {
   for (const i18n of [EN, ES]) {
     for (const text of texts(calc, i18n)) {
       expect(text).not.toMatch(/NaN|Infinity|undefined|-€0\b|€-|-0\u00a0€|−0\u00a0€/);
-      // Spanish writes €2400 as "2400 €": that is money, not a year.
-      for (const year of text.match(/\b2\d{3}\b(?!\u00a0€)/g) ?? []) expect(Number(year), text).toBeLessThanOrEqual(2026 + 60);
+      // Spanish writes €2400 as "2400 €", and big amounts as "2400 billones": money, not a year.
+      for (const year of text.match(/\b2\d{3}\b(?!\u00a0(?:€|\p{L}))/gu) ?? []) expect(Number(year), text).toBeLessThanOrEqual(2026 + 60);
     }
   }
 }
@@ -158,6 +163,55 @@ describe("no growth, or a loss, every year", () => {
       const calc = calculate(plan({ investment: { kind: "asset", asset: "gold" }, assumptions: { ...STANDARD_ASSUMPTIONS, volatility }, goals }), [], today);
       expectSensible(calc);
     }
+  });
+});
+
+describe("growth from −50% to 500% a year, the whole range of step 3", () => {
+  const custom = (growth: number, years: number) =>
+    plan({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth }, years, goals });
+
+  for (const growth of [-0.5, 0, 0.7, 5]) {
+    it(`stays sensible at ${growth * 100}% a year, over 1, 20 and 60 years`, () => {
+      for (const years of [1, 20, 60]) {
+        const p = custom(growth, years);
+        const calc = calculate(p, [], today);
+        for (const value of [calc.result.total, calc.result.putIn, calc.result.growth, calc.result.income]) expect(Number.isFinite(value), `${growth} ${years}`).toBe(true);
+        const amounts = { start: calc.scenario.capital, monthly: calc.scenario.monthly, years };
+        const bands = bandsFor(calc.investment, amounts);
+        for (const band of [bands.p10, bands.p50, bands.p90]) expect(band.every(Number.isFinite), `${growth} ${years}`).toBe(true);
+        expect(samplesFor(calc.investment, amounts, 50).flat().every(Number.isFinite)).toBe(true);
+        expectSensible(calc);
+        for (const i18n of [EN, ES]) {
+          const shown = [
+            i18n.f.eur(calc.result.total),
+            i18n.f.eur(bands.p90[years]),
+            timesPutInText(calc.result, i18n) ?? "",
+            ...planChecks(calc, p, []).flatMap((check) => [...checkWords(check, i18n).lead, ...checkWords(check, i18n).details]),
+            ...wishesFor(calc.scenario, years, calc.goals).map((wish) => i18n.f.when(wish.months, today)),
+          ];
+          for (const text of shown) {
+            expect(text).not.toMatch(/NaN|Infinity|undefined|e\+|E\d/);
+            // No figure of more than twelve digits in a row: big ones are in words or a power of ten.
+            expect(text.replace(/[,.\u00a0]/g, "")).not.toMatch(/\d{13}/);
+          }
+        }
+      }
+    });
+  }
+
+  it("gives figures one can check at the edges", () => {
+    // 0%: what is put in, €1,000 and €200 a month for 20 years.
+    expect(calculate(custom(0, 20), [], today).result.total).toBeCloseTo(49_000, 6);
+    // −50% a year: €1,000 alone halves every year.
+    expect(calculate({ ...custom(-0.5, 2), monthlyContribution: 0 }, [], today).result.total).toBeCloseTo(250, 6);
+    // 70% for 20 years: €1,000 alone becomes 1.7^20 times as much, in full.
+    expect(calculate({ ...custom(0.7, 20), monthlyContribution: 0 }, [], today).result.total).toBeCloseTo(1000 * 1.7 ** 20, 0);
+    expect(EN.f.eur(1000 * 1.7 ** 20)).toBe("€40,642,314");
+    // 500% for 20 years: €1,000 alone is 6^20 times as much, a power of ten.
+    const huge = calculate({ ...custom(5, 20), monthlyContribution: 0 }, [], today).result.total;
+    expect(huge / (1000 * 6 ** 20)).toBeCloseTo(1, 9);
+    expect(EN.f.eur(huge)).toBe("€3.66\u00a0×\u00a010¹⁸");
+    expect(ES.f.eur(huge)).toBe("3,66\u00a0×\u00a010¹⁸\u00a0€");
   });
 });
 

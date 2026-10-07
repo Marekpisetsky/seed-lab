@@ -75,7 +75,11 @@ function ResultTotal({ bundle, ref }: { bundle: CalculationBundle; ref: React.Re
         </p>
         <WhatIfIndicator bundle={bundle} />
       </div>
-      <p id={TOTAL_ID} className="flex flex-wrap items-center gap-2 text-5xl font-extrabold tracking-tight tabular-nums [overflow-wrap:anywhere] sm:text-6xl">
+      {/* A long figure ("€8.41 × 10⁴⁹", "4,4 billones de euros") a size smaller on a phone, so it is never cut. */}
+      <p
+        id={TOTAL_ID}
+        className={`flex flex-wrap items-center gap-2 font-extrabold tracking-tight tabular-nums [overflow-wrap:anywhere] sm:text-6xl ${f.eur(result.total).length > 10 ? "text-4xl" : "text-5xl"}`}
+      >
         <Changed value={f.eur(result.total)} />
         <Help what={m.result.inYears(years)} text={m.help.total} />
       </p>

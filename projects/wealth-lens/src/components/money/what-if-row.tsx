@@ -66,10 +66,15 @@ export function WhatIfRow({ bundle, layout = "grid" }: { bundle: CalculationBund
   const effects = whatIfsFor(bundle);
   const applied = bundle.calc.whatIf;
   const list = layout === "list";
+  // A huge figure ("−7,98 × 10⁴⁸ €") does not fit half a phone, nor beside its name in a narrow column: one across, under its name.
+  const long = effects.some((effect) => {
+    const text = effectText(effect, i18n);
+    return effect.available && (text.includes("×") || text.length > 13);
+  });
   return (
     <div className="space-y-2">
       {!list && <p className="text-base text-muted">{m.help.whatIf}</p>}
-      <div role="group" aria-label={m.whatIf.title} className={list ? "flex flex-col gap-2" : "grid grid-cols-2 gap-2 sm:grid-cols-3"}>
+      <div role="group" aria-label={m.whatIf.title} className={list ? "flex flex-col gap-2" : `grid gap-2 sm:grid-cols-3 ${long ? "grid-cols-1" : "grid-cols-2"}`}>
         {effects.map((effect) => {
           const pressed = applied === effect.id;
           // As shown: rounded to the euro or more, so €0 has no colour and no mark.
@@ -82,7 +87,7 @@ export function WhatIfRow({ bundle, layout = "grid" }: { bundle: CalculationBund
               aria-pressed={pressed}
               disabled={!effect.available}
               onClick={() => toggleWhatIf(effect.id)}
-              className={`flex min-h-14 w-full rounded-lg border px-3 py-2 text-left ${list ? "items-center justify-between gap-2" : "flex-col items-start justify-center gap-0.5"} ${
+              className={`flex min-h-14 w-full rounded-lg border px-3 py-2 text-left ${list && !long ? "items-center justify-between gap-2" : "flex-col items-start justify-center gap-0.5"} ${
                 pressed ? "border-accent bg-accent/10 ring-1 ring-accent" : "border-border bg-card hover:bg-border/30"
               } disabled:opacity-60`}
             >

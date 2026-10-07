@@ -643,3 +643,59 @@ describe("Check your plan", () => {
     }
   });
 });
+
+describe("growth from −50% to 500% a year", () => {
+  it("takes 500%, warns plainly with the euros, and keeps huge figures within a phone's width", async () => {
+    for (const lang of ["en", "es"] as const) {
+      const t = WORDS[lang];
+      const page = await open(lang, 360);
+      await page.getByLabel(t.have, { exact: true }).fill("1100");
+      await page.getByLabel(t.monthly, { exact: true }).fill("100");
+      const growth = page.getByLabel(t.growth, { exact: true });
+      // 501% is past the technical limit: marked, never applied.
+      await growth.fill("501");
+      assert.equal(await growth.getAttribute("aria-invalid"), "true");
+      await growth.fill("500");
+      assert.equal(await growth.getAttribute("aria-invalid"), null);
+      await growth.press("Tab");
+      const warning = page.locator(`[id="${await growth.getAttribute("id")}-about"]`);
+      await page.waitForFunction((id) => /10/.test(document.getElementById(`${id}-about`)?.textContent ?? ""), await growth.getAttribute("id"));
+      const said = (await warning.innerText()).replace(/ /g, " ");
+      assert.match(
+        said,
+        lang === "en"
+          ? /^No index or large company has kept this up: 500% on average for 20 years\. At that pace, your €1,100 would be €4\.02 × 10¹⁸\.$/
+          : /^Ningún índice ni gran empresa ha mantenido esto: un 500 % de media durante 20 años\. A ese ritmo, tus 1100 € serían 4,02 × 10¹⁸ €\.$/,
+      );
+      await page.getByRole("button", { name: t.see }).click();
+      await page.locator(`section[aria-label="${t.result}"]`).waitFor();
+      await page.waitForLoadState("networkidle");
+      assert.match(await bigNumber(page), /×\s10/);
+      const cut = await page.evaluate(() => {
+        const width = window.innerWidth;
+        const found: string[] = [];
+        if (document.documentElement.scrollWidth > width + 1) found.push(`page ${document.documentElement.scrollWidth}`);
+        for (const element of document.querySelectorAll<HTMLElement>("#result-total, section[aria-label] li, [role=group] button")) {
+          const box = element.getBoundingClientRect();
+          if (box.width > 0 && (box.right > width + 1 || element.scrollWidth > element.clientWidth + 1)) found.push(element.innerText.slice(0, 40));
+        }
+        return found;
+      });
+      assert.deepEqual(cut, [], `${lang}: nothing cut or beyond the screen`);
+      await page.close();
+    }
+  });
+
+  it("says a loss as one: −50% a year is losing 50%", async () => {
+    const page = await open("en", 1366);
+    await page.getByLabel(WORDS.en.have, { exact: true }).fill("1100");
+    await page.getByLabel(WORDS.en.monthly, { exact: true }).fill("100");
+    const growth = page.getByLabel(WORDS.en.growth, { exact: true });
+    await growth.fill("-50");
+    await growth.press("Tab");
+    await page.getByRole("button", { name: WORDS.en.see }).click();
+    await page.locator(`section[aria-label="${WORDS.en.result}"]`).waitFor();
+    assert.match(await page.locator(`section[aria-label="${WORDS.en.result}"]`).innerText(), /losing 50% a year/);
+    await page.close();
+  });
+});

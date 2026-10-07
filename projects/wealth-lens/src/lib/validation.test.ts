@@ -3,6 +3,7 @@ import {
   DEFAULT_GOAL,
   DEFAULT_PLAN,
   isIsoDate,
+  GROWTH_LIMITS,
   parseAssumptions,
   parseGoal,
   parseHoldings,
@@ -112,12 +113,18 @@ describe("parseAssumptions", () => {
     expect(parseAssumptions({ growth: 0.05 }, "BR", 8).growth).toBe(0.05);
   });
 
+  it("keeps a growth from −50% to 500% a year, the field's range, and nothing past it", () => {
+    for (const growth of [-0.5, 0, 0.7, 5]) expect(parseAssumptions({ growth }).growth).toBe(growth);
+    for (const growth of [-0.51, 5.01, Infinity]) expect(parseAssumptions({ growth }).growth).toBeNull();
+    expect(GROWTH_LIMITS).toEqual({ min: -0.5, max: 5 });
+  });
+
   it("drops a bad field on its own", () => {
     expect(parseAssumptions({ growth: { rate: 0.06, basis: "gross" }, volatility: -0.1, inflation: 2 })).toEqual({ growth: null, volatility: null, inflation: null });
-    expect(parseAssumptions({ growth: { rate: 5, basis: "real" }, volatility: 1.5 })).toEqual({ growth: null, volatility: null, inflation: null });
-    expect(parseAssumptions({ growth: 5 })).toEqual({ growth: null, volatility: null, inflation: null });
-    // Growth before rising prices that would be 100% or more after them (99% with prices falling 9%): none.
-    expect(parseAssumptions({ growth: 0.99, inflation: -0.09 }, "NL", 7)).toEqual({ growth: null, volatility: null, inflation: -0.09 });
+    expect(parseAssumptions({ growth: { rate: 5.5, basis: "real" }, volatility: 1.5 })).toEqual({ growth: null, volatility: null, inflation: null });
+    expect(parseAssumptions({ growth: 5.5 })).toEqual({ growth: null, volatility: null, inflation: null });
+    // Growth before rising prices that would be over 500% after them (500% with prices falling 9%: 559%): none.
+    expect(parseAssumptions({ growth: 5, inflation: -0.09 }, "NL", 7)).toEqual({ growth: null, volatility: null, inflation: -0.09 });
     expect(parseAssumptions("custom")).toEqual({ growth: null, volatility: null, inflation: null });
   });
 });

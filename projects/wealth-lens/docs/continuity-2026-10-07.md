@@ -44,15 +44,36 @@ Two branches, one PR each, to merge in this order:
   anchor. It never says what to buy, sell or weigh
   (research/legal/informar-no-aconsejar.md, item 4).
 
+## Follow-up requested before merging #33 (same day)
+
+- Savings check: one sentence with both sides, what savings give up
+  against world stocks and world stocks' worst fall in the data
+  (2000–2002, −46%) on the money they typically reach: "With savings,
+  €219,239 less; with stocks, a fall like 2000–2002 (−46%) = −€170,390."
+- AGENTS.md sends to the handoff with the highest date, never a fixed
+  file; a test (src/lib/handoff.test.ts) keeps it so.
+- Step 3 takes −50% to 500% a year (GROWTH_LIMITS; 500% is a technical
+  limit, documented in research/wealth-lens/crecimiento.md). Over 50%, a
+  stronger warning with euros; its first sentence is checked against the
+  data (lib/realism.ts keptRecords): NVDA kept 64% a year in 2016–2026,
+  so the app names it instead of saying no company did. The requested
+  sentence had 13 words; reordered to 12 for the plain-language test.
+- Huge amounts in words or powers of ten (seed-kit format.ts: "€1.23
+  billion", "1230 millones de euros", "€4.02 × 10¹⁸"); big number, cards
+  and What if shrink or stack on a phone so nothing is cut. A negative
+  custom growth reads "losing 50% a year".
+
 ## Verification (phase 6 head, after merging phase 5 and master)
 
-Wealth Lens lint, types, 826 unit tests, clean build (`rm -rf .next out`)
-and 32 browser tests passed. Recalculation in the browser, 156 changes:
-median 0.7 ms, p95 3.3 ms, max 10.0 ms. Lighthouse mobile performance:
-/ 96, /es 98, /how-it-works 96, /es/how-it-works 99; 100 in the other
-three categories. First-visit weight 214–241 KB. No requests outside the
-site; no cookies or browser storage. Screenshots in docs/screenshots
-(p5-*, p6-*).
+Wealth Lens lint, types, 840 unit tests, clean build (`rm -rf .next out`)
+and 34 browser tests passed; seed-kit 64, hub 34 + 8, Cost Lens 24,
+Inflation Lens 31, Forja 7. Recalculation in the browser, 156 changes
+including typing 500%, 70% and −50%: median 0.7 ms, p95 2.7 ms, max
+10.7 ms. Lighthouse mobile performance: / 95, 99 and 96 (three runs), /es
+97, /how-it-works 99, /es/how-it-works 97; 100 in the other three
+categories. First-visit weight 215–244 KB. No requests outside the site;
+no cookies or browser storage. Screenshots in docs/screenshots (p5-*,
+p6-*, r3-*).
 
 ## Open for Marek
 
@@ -65,6 +86,8 @@ site; no cookies or browser storage. Screenshots in docs/screenshots
   docs/direction.md says so; confirm or change it in src/lib/wishes.ts.
 - The savings check compares with world stocks over their own period;
   confirm that this comparison reads as information, not advice.
+- The step 3 warning over 50%: the request's sentence reordered to 12
+  words, and a company of the data named when it did keep the rate.
 
 Do not infer desired purchase dates, shared spending deductions, or advice
 from the wishes or the checks.

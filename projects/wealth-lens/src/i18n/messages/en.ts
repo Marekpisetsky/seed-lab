@@ -673,6 +673,18 @@ export const en = {
     /** What a screen reader says for an example: "S&P 500, 7.5%". */
     example: (name: string, rate: string) => `${name}, ${rate}`,
     veryRare: (years: number, best: string) => `Very rare: the best ${years} years in the data gave ${best}.`,
+    /** Over 50 % a year (lib/assumptions.ts strongGrowthWarning). */
+    strong: {
+      none: (rate: string, span: string) => `No index or large company has kept this up: ${rate} on average for ${span}.`,
+      only: (rate: string, span: string, name: string, period: string) => `${rate} on average for ${span}: only ${name} has done it (${period}).`,
+      onlyFewer: (rate: string, span: string, name: string, fewer: string, period: string) =>
+        `${rate} on average for ${span}: only ${name} did, and only for ${fewer} (${period}).`,
+      few: (rate: string, span: string, name: string, period: string) => `${rate} on average for ${span}: very few have done it, like ${name} (${period}).`,
+      fewFewer: (rate: string, span: string, name: string, fewer: string, period: string) =>
+        `${rate} on average for ${span}: very few did, and only for ${fewer}, like ${name} (${period}).`,
+      yours: (amount: string, total: string) => `At that pace, your ${amount} would be ${total}.`,
+      yoursMonthly: (monthly: string, total: string) => `At that pace, your ${monthly} a month would be ${total}.`,
+    },
   },
   more: {
     title: "More options",
@@ -819,6 +831,7 @@ export const en = {
       mix: "in your mix",
       portfolio: "in your portfolio",
       custom: (rate: string) => `at ${rate} a year`,
+      customLoss: (rate: string) => `losing ${rate} a year`,
     },
     announce: (years: string, total: string, grows: string) => `In ${years} you'll have ${total}. ${grows}.`,
     announceWhatIf: (label: string) => ` What if: ${label}.`,
@@ -828,6 +841,8 @@ export const en = {
     staysSame: "Stays about the same every year",
     /** "×2.3 what you put in": what the money became, at the end of the chart's curve. */
     timesPutIn: (multiple: string) => `${multiple} what you put in`,
+    /** "12,346 times what you put in": a thousand times or more. */
+    timesPutInMany: (count: string) => `${count} times what you put in`,
     perMonth: (amount: string) => `${amount}/month`,
     underOne: "under €1",
     takenOut: "Taken out each year",

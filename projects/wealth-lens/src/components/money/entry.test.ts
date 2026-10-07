@@ -401,6 +401,8 @@ describe.each(["en", "es"] as const)("the sentence before the big number (%s)", 
   it("names where the money goes: a chip's index, a mix, or the user's own growth", () => {
     expect(said({ investment: { kind: "asset", asset: "savings" } })).toContain(t.investedIn.asset(m.assets.inSentence.savings));
     expect(said({ investment: { kind: "custom" }, assumptions: { ...EXAMPLE_PLAN.assumptions, growth: 0.06 } })).toContain(t.investedIn.custom(f.rate(0.06)));
+    // A loss is said as one, never "growing −50% a year".
+    expect(said({ investment: { kind: "custom" }, assumptions: { ...EXAMPLE_PLAN.assumptions, growth: -0.5 } })).toContain(t.investedIn.customLoss(f.rate(0.5)));
     expect(said({ investment: { kind: "mix", parts: [{ asset: "world", weight: 60 }, { asset: "bonds", weight: 40 }], rebalance: false } })).toContain(t.investedIn.mix);
   });
 });
