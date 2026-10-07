@@ -58,9 +58,10 @@ Las rutas de código son de `projects/wealth-lens/` salvo que digan otra cosa.
 | [Tasa de retiro](wealth-lens/tasa-de-retiro.md) | "Te pagaría al mes" y "duró 30 años". | `src/lib/monte-carlo.ts`, `withdrawal.ts`, `success-table.ts` |
 | [Mezclas y volatilidad de acciones](wealth-lens/mezclas-y-acciones.md) | Una mezcla, Mi cartera y una acción dentro de ellas. | `src/lib/mix.ts`, `volatility.ts`, `portfolio.ts` |
 | [Coste de vida por países](wealth-lens/coste-de-vida.md) | "Alcanza para vivir en", la tabla de países y las metas de un país. | `packages/seed-kit/src/cost-of-living.ts`, `projects/wealth-lens/scripts/estimate-countries.mts` |
-| [Inflación](wealth-lens/inflacion.md) | Todo en euros de hoy; el ahorro; "Precios de". | `src/lib/investment.ts`, `assets.ts`, seed-kit `cost-of-living.ts` |
+| [Inflación](wealth-lens/inflacion.md) | Todo en euros de hoy; el ahorro; "Subida de precios en". | `src/lib/investment.ts`, `assets.ts`, seed-kit `cost-of-living.ts` |
 | [Valor inicial del 5 %](wealth-lens/valor-inicial.md) | Con qué crecimiento empieza la calculadora. | `src/lib/validation.ts` (`STARTING_GROWTH`) |
 | [Década mala histórica](wealth-lens/decada-mala.md) | "Si tus primeros 10 años fueran como 2000–2009". | `src/lib/decade.ts`, `what-if.ts`, `findings.ts` |
+| [Deseos y precios por país](wealth-lens/deseos.md) | "Con esto podrías", "Cosas que podrías comprar" y "Precios de". | `src/data/connections.json`, `src/lib/wishes.ts`, `wish-country.ts`, `calculator.ts` |
 
 ### Para todas las apps
 
@@ -84,6 +85,12 @@ Lo único que cambió al escribirlas, sin tocar ningún resultado:
   un test de seed-kit para todas las apps, y el único texto que la
   incumplía, el título "What you should know" de Wealth Lens, pasa a ser
   "Good to know" ("Para tener en cuenta").
+
+Fase 5 (7 de octubre de 2026): nueva ficha de [deseos y precios por
+país](wealth-lens/deseos.md), con su regla de elección y sus fuentes, en
+el mismo cambio que el código; la de inflación y la de crecimiento llaman
+al ajuste de la inflación por su etiqueta, "Subida de precios en", para
+no confundirlo con "Precios de" de los deseos.
 
 Las cifras que las fichas citan de los datos (medias, oscilaciones, tasas
 de éxito) salen de los mismos archivos que usa la app

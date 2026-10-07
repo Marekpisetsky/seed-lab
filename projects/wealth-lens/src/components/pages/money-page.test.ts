@@ -2,6 +2,7 @@ import { createElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { getI18n } from "@/i18n";
+import { toolById } from "@/lib/seed-lab";
 import { MoneyPage } from "./money-page";
 
 // Only the page's own top: the header, footer and calculator have their tests.
@@ -18,6 +19,13 @@ describe.each(["en", "es"] as const)("My money's first screen (%s)", (locale) =>
   });
 });
 
-it("asks the question the hub promises", () => {
-  expect(getI18n("es").m.money.headline).toBe("¿Cuánto crecerá tu dinero?");
+it("speaks to the person and what they want, as the hub promises", () => {
+  const { m } = getI18n("es");
+  expect(m.money.headline).toBe("¿Qué podrías hacer con tu dinero?");
+  // A trip, a home, stopping work: something for someone of 20 and of 60.
+  const hub = toolById("wealth-lens").description.es;
+  for (const wish of ["viaje", "casa", "dejar de trabajar"]) {
+    expect(m.money.support).toContain(wish);
+    expect(hub).toContain(wish);
+  }
 });

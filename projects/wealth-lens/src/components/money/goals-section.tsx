@@ -10,11 +10,13 @@ import { Help } from "@/components/ui/help";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { byCountryName, countryInSentence, countryName, matchesCountry } from "@/i18n/countries";
 import { goalDetail, goalExplain, goalName } from "@/i18n/goal-text";
+import { itemName, itemPrice } from "@/i18n/item-text";
 import { addGoal, removeGoal } from "@/lib/app-store";
 import { NEEDED_WITHIN_YEARS, pricedItems, type Calculation, type GoalStatus } from "@/lib/calculator";
 import { costOfLiving } from "@/lib/cost-of-living";
 import type { NewGoal } from "@/lib/types";
 import { MAX_AMOUNT } from "@/lib/validation";
+import { PricesOf } from "./prices-of";
 
 function GoalRow({ status, calc, today }: { status: GoalStatus; calc: Calculation; today: Date }) {
   const i18n = useI18n();
@@ -26,7 +28,9 @@ function GoalRow({ status, calc, today }: { status: GoalStatus; calc: Calculatio
   const reached = status.reachable && reach.reached;
   const name = goalName(status, i18n);
   const detail = goalDetail(status, i18n);
-  const amountLine = !status.known ? "" : status.kind === "once" ? f.eur(status.amount) : m.goals.perMonthNeeded(f.eur(status.amount), f.eur(status.target));
+  // A thing of the list keeps its "≈" when its price is a rough estimate, as everywhere else.
+  const once = status.item ? itemPrice(status.item, i18n) : f.eur(status.amount);
+  const amountLine = !status.known ? "" : status.kind === "once" ? once : m.goals.perMonthNeeded(f.eur(status.amount), f.eur(status.target));
   return (
     <li className="py-2">
       <div className="flex items-start gap-2">
@@ -80,7 +84,7 @@ const KINDS: readonly Kind[] = ["live", "buy", "amount", "monthly"];
 const validAmount = (amount: number | null): amount is number => amount !== null && amount > 0 && amount <= MAX_AMOUNT;
 
 /** The form behind "+ Add a goal": one of four kinds, each with what it needs and nothing more. */
-function AddGoal({ onDone }: { onDone: () => void }) {
+function AddGoal({ onDone, wishCountry }: { onDone: () => void; wishCountry: string }) {
   const { m } = useI18n();
   const [kind, setKind] = useState<Kind | null>(null);
   const add = (goal: NewGoal) => {
@@ -100,7 +104,7 @@ function AddGoal({ onDone }: { onDone: () => void }) {
         }
       />
       {kind === "live" && <LiveForm onAdd={add} />}
-      {kind === "buy" && <BuyForm onAdd={add} />}
+      {kind === "buy" && <BuyForm onAdd={add} country={wishCountry} />}
       {kind === "amount" && <AmountForm onAdd={add} />}
       {kind === "monthly" && <MonthlyForm onAdd={add} />}
       <Button variant="ghost" onClick={onDone}>
@@ -155,10 +159,12 @@ function LiveForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
   );
 }
 
-function BuyForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
-  const { m, f } = useI18n();
+/** A thing of the list at the prices of `country`, or one of the user's own at their price. */
+function BuyForm({ onAdd, country }: { onAdd: (goal: NewGoal) => void; country: string }) {
+  const i18n = useI18n();
+  const { m } = i18n;
   const t = m.goals.form;
-  const items = useMemo(() => [...pricedItems()].sort((a, b) => a.amount - b.amount), []);
+  const items = useMemo(() => [...pricedItems(country)].sort((a, b) => a.amount - b.amount || a.id.localeCompare(b.id)), [country]);
   const [name, setName] = useState("");
   const [amount, setAmount] = useState<number | null>(null);
   const valid = name.trim() !== "" && validAmount(amount);
@@ -172,7 +178,7 @@ function BuyForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
           </option>
           {items.map((item) => (
             <option key={item.id} value={item.id}>
-              {t.thingOption(m.things.items[item.id]?.name ?? item.id, f.eur(item.amount))}
+              {t.thingOption(itemName(item.id, i18n), itemPrice(item, i18n))}
             </option>
           ))}
         </select>
@@ -258,14 +264,19 @@ function MonthlyForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
  * row that stays where it was added, with its status against the same
  * plan; tapping it shows the calculation, × removes it.
  */
-export function GoalsSection({ calc, today, inCard = false }: { calc: Calculation; today: Date; inCard?: boolean }) {
+export function GoalsSection({ calc, today, wishCountry, inCard = false }: { calc: Calculation; today: Date; wishCountry: string; inCard?: boolean }) {
   const { m } = useI18n();
   const [adding, setAdding] = useState(false);
   const { goals } = calc;
   return (
     // Under a section titled "My goals" (inCard) it needs no name of its own: two places with one name confuse a screen reader.
     <section aria-labelledby={goals.length > 0 && !inCard ? "goals-title" : undefined} aria-label={goals.length > 0 || inCard ? undefined : m.goals.title} className="space-y-2">
-      {inCard && <p className="text-sm text-muted">{m.help.goals}</p>}
+      {inCard && (
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+          <p className="text-sm text-muted">{m.help.goals}</p>
+          <PricesOf country={wishCountry} />
+        </div>
+      )}
       {goals.length > 0 && (
         <>
           {!inCard && (
@@ -282,7 +293,7 @@ export function GoalsSection({ calc, today, inCard = false }: { calc: Calculatio
         </>
       )}
       {adding ? (
-        <AddGoal onDone={() => setAdding(false)} />
+        <AddGoal onDone={() => setAdding(false)} wishCountry={wishCountry} />
       ) : (
         <button
           type="button"

@@ -15,13 +15,38 @@ describe("connections dataset", () => {
     }
   });
 
-  it("assumes nothing about the user's life: no items priced from a home country", () => {
+  it("guesses only the country of the prices, which the user sees and changes", () => {
     expect("live" in raw).toBe(false);
+    expect(connectionsData.priceCountries).toEqual(["NL", "ES", "DE", "FR", "IT", "PT"]);
+    for (const item of connectionsData.buy) {
+      // Names describe the thing, not the user's life: no "your roof", "your home".
+      expect(item.name, item.id).not.toMatch(/\byour?\b/i);
+      // A figure for each country always has the Netherlands', the prices shown when the browser's country has none.
+      if (item.prices) expect(Object.keys(item.prices), item.id).toContain("NL");
+      // A fee is needed in every country: a year at university is listed in all of them.
+      if (item.monthsHome?.fees) expect(Object.keys(item.monthsHome.fees).sort(), item.id).toEqual([...connectionsData.priceCountries].sort());
+    }
     const ids = connectionsData.buy.map((item) => item.id);
     expect(ids).not.toContain("cushion");
-    expect(ids).not.toContain("sabbatical");
-    // Names describe the thing, not the user's life: no "your roof", "your home".
-    for (const item of connectionsData.buy) expect(item.name, item.id).not.toMatch(/\byour?\b/i);
+  });
+
+  it("has a trip and something bigger to wish for, each with its icon", () => {
+    const by = (horizon: string) => connectionsData.buy.filter((item) => item.horizon === horizon).map((item) => item.id);
+    expect(by("short")).toEqual(["weekend-capital", "month-southeast-asia", "trip-japan"]);
+    expect(by("medium").sort()).toEqual(["home-deposit", "new-car", "used-car"]);
+    for (const item of connectionsData.buy) if (item.horizon) expect(item.icon, item.id).toBeTruthy();
+  });
+
+  it("names who published each country's figure, what it measures and when", () => {
+    for (const item of connectionsData.buy) {
+      for (const [country, price] of [...Object.entries(item.prices ?? {}), ...Object.entries(item.monthsHome?.fees ?? {})]) {
+        const where = `${item.id} ${country}`;
+        // Shown as it is in every language: a name, not an English sentence.
+        expect(price.source, where).not.toMatch(/\b(the|of|and|average|price)\b/);
+        expect(price.note.length, where).toBeGreaterThan(15);
+        expect(price.referenceDate, where).toMatch(/^20\d\d(-\d\d)?$/);
+      }
+    }
   });
 
   it("says it is an estimate", () => {
@@ -41,6 +66,18 @@ describe("connections dataset", () => {
     expect(items.get("home-deposit-nl")?.amount).toBe(0.1 * 480000);
     expect(items.get("home-nl")?.amount).toBe(480000);
     expect(items.get("small-business")?.amount).toBe(4 * 50000 * 0.35);
+    // Two nights at Eurostat's €224 a night on short trips abroad.
+    expect(items.get("weekend-capital")?.amount).toBe(2 * 224);
+    // ¥393,710 at ¥169.07 to the euro, to the nearest €10.
+    expect(items.get("trip-japan")?.amount).toBe(Math.round(393710 / 169.07 / 10) * 10);
+    // A home: 80 m² at each country's price per m²; its deposit, 20% of it.
+    for (const [country, price] of Object.entries(items.get("home")?.prices ?? {})) {
+      const perM2 = Number(price.calc?.eurPerSquareMetre);
+      expect(price.amount, country).toBe(80 * perM2);
+      expect(items.get("home-deposit")?.prices?.[country]?.amount, country).toBe(Math.round(0.2 * 80 * perM2));
+    }
+    // Spain's university fees: €15.37 a credit × 60 credits.
+    expect(items.get("study-year")?.monthsHome?.fees?.ES.amount).toBe(Math.round(15.37 * 60));
     // Same USD rate as the cost-of-living dataset.
     expect(connectionsData.usdPerEur).toBe(costOfLiving.conversion.usdPerEur);
   });
@@ -48,7 +85,14 @@ describe("connections dataset", () => {
   it("fails loudly on bad entries", () => {
     const base = raw as unknown as { buy: Record<string, unknown>[] };
     const withBuy = (patch: Record<string, unknown>) => ({ ...base, buy: [{ ...base.buy[0], ...patch }] });
-    expect(() => parseConnections(withBuy({ amount: -1 }), codes)).toThrow(/amount or monthsAt/);
+    expect(() => parseConnections(withBuy({ amount: -1 }), codes)).toThrow(/invalid amount/);
+    expect(() => parseConnections(withBuy({ monthsAt: { countries: ["JP"], months: 1 } }), codes)).toThrow(/exactly one/);
+    expect(() => parseConnections(withBuy({ country: "JP" }), codes)).toThrow(/country of the prices/);
+    expect(() => parseConnections(withBuy({ horizon: "short" }), codes)).toThrow(/icon/);
+    const noNetherlands = { amount: undefined, prices: { ES: { amount: 1, basis: "survey", source: "X", note: "A note long enough", referenceDate: "2025" } } };
+    expect(() => parseConnections(withBuy(noNetherlands), codes)).toThrow(/no price for NL/);
+    const badBasis = { amount: undefined, prices: { NL: { amount: 1, basis: "guess", source: "X", note: "A note long enough", referenceDate: "2025" } } };
+    expect(() => parseConnections(withBuy(badBasis), codes)).toThrow(/basis/);
     expect(() => parseConnections(withBuy({ source: "" }), codes)).toThrow(/source/);
     expect(() => parseConnections(withBuy({ referenceDate: "last year" }), codes)).toThrow(/referenceDate/);
     expect(() => parseConnections(withBuy({ amount: undefined, monthsAt: { countries: ["ZZ"], months: 3 } }), codes)).toThrow(

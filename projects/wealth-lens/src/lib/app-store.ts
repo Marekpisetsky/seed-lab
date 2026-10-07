@@ -102,7 +102,7 @@ export function resetAssumptions(): void {
   updatePlan((plan) => ({ assumptions: { ...STANDARD_ASSUMPTIONS, growth: plan.investment.kind === "custom" ? plan.assumptions.growth : null } }));
 }
 
-/** "Prices of": the country's reference inflation replaces any typed one. */
+/** "Rising prices in" (More options): the country's reference inflation replaces any typed one. */
 export function setPricesOf(pricesOf: string): void {
   updatePlan((plan) => ({ pricesOf, assumptions: { ...plan.assumptions, inflation: null } }));
 }

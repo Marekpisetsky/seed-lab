@@ -32,7 +32,7 @@ Exacta (ecuación de Fisher, sin aproximar):
 - nominal = (1 + real) × (1 + inflación) − 1
 - Ahorro: (1,015 / 1,02) − 1 = −0,49 % al año con el 2 % del euro.
 
-La inflación de partida es la de "Precios de" (Países Bajos por defecto): el **objetivo de su banco central**
+La inflación de partida es la de "Subida de precios en" (Más opciones; Países Bajos por defecto): el **objetivo de su banco central**
 (el 2 % del BCE para los países del euro), comprobado en septiembre de
 2026; donde no hay objetivo numérico, la media de 2015 a 2024.
 
@@ -42,7 +42,7 @@ La inflación de partida es la de "Precios de" (Países Bajos por defecto): el *
 - La inflación futura será la del objetivo del banco central.
 - Los índices en dólares ya vienen en términos reales de EE. UU. (IPC de
   EE. UU.); los bonos del euro, en términos reales alemanes (IPC de
-  Destatis). La inflación de "Precios de" no los toca.
+  Destatis). La inflación de "Subida de precios en" no los toca.
 - El interés del ahorro es fijo: 1,5 % antes de inflación.
 
 ## Fuentes (con fecha)
@@ -60,7 +60,7 @@ La inflación de partida es la de "Precios de" (Países Bajos por defecto): el *
 
 - `src/lib/investment.test.ts` (17): de real a nominal y vuelta; el
   ahorro, su interés menos la inflación del país (puede ser negativo); la
-  inflación de "Precios de" o la escrita; escribir solo la inflación no
+  inflación de "Subida de precios en" o la escrita; escribir solo la inflación no
   cambia el crecimiento de un activo.
 - `src/lib/cost-of-living.test.ts` ("reference inflation"): cada país con
   su referencia, su base y su fecha.
@@ -98,3 +98,6 @@ La inflación de partida es la de "Precios de" (Países Bajos por defecto): el *
 ## Historial
 
 - 2026-10-03: primera ficha (sin cambios en el cálculo).
+- 2026-10-07: el ajuste se nombra por su etiqueta, "Subida de precios en",
+  para no confundirlo con "Precios de" de los deseos
+  ([deseos](deseos.md)). Sin cambios en el cálculo.

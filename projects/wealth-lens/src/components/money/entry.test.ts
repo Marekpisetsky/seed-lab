@@ -224,6 +224,28 @@ describe.each(["en", "es"] as const)("the result in levels (%s)", (locale) => {
     expect(grid).toBeLessThan(html.indexOf('role="img"'));
   });
 
+  it("says right under the big number what the person could do with it, and when", () => {
+    const total = html.indexOf(`id="${TOTAL_ID}"`);
+    const facts = html.indexOf(`aria-label="${m.facts.label}"`);
+    const line = decode(html.slice(total, facts));
+    expect(text(line)).toContain(m.wishes.title);
+    const list = line.slice(line.indexOf("<ul aria-labelledby"));
+    const chips = [...list.matchAll(/<button type="button" aria-label="([^"]+)"[^>]*>(.*?)<\/button>/g)];
+    // A trip, something bigger, stopping work (or living somewhere cheaper): each with its price and when.
+    expect(chips.length).toBeGreaterThanOrEqual(2);
+    expect(chips.length).toBeLessThanOrEqual(3);
+    bundle.wishes.forEach((wish, index) => {
+      const when = f.when(wish.months);
+      expect(text(chips[index][2])).toContain(when);
+      expect(chips[index][1]).toContain(locale === "en" ? "Add to My goals" : "Añadir a Mis metas");
+      // An icon beside the words, never instead of them.
+      expect(chips[index][2]).toMatch(/<svg[^>]*aria-hidden="true"/);
+    });
+    // "Prices of": small, beside the wishes, the country in sight.
+    expect(text(line)).toContain(`${m.things.pricesOf}:`);
+    expect(line).toMatch(/<option value="NL" selected="">/);
+  });
+
   it("shows six key figures, two across on a phone and three on a wide screen, each one tappable", () => {
     const grid = html.slice(html.indexOf(`aria-label="${m.facts.label}"`), html.indexOf('role="img"'));
     expect(grid).toContain("grid-cols-2 ");
@@ -326,7 +348,7 @@ describe.each(["en", "es"] as const)("where it reaches and my goals (%s)", (loca
       ] },
     };
     const calc = calculationFor(state, today).calc;
-    const html = decode(render(locale, state, createElement(WhereDetails, { bundle: calculationFor(state, today) })) + render(locale, state, createElement(GoalsSection, { calc, today, inCard: true })));
+    const html = decode(render(locale, state, createElement(WhereDetails, { bundle: calculationFor(state, today) })) + render(locale, state, createElement(GoalsSection, { calc, today, wishCountry: "NL", inCard: true })));
     const since = locale === "en" ? /^(from \d{4}|from today)/ : /^(desde \d{4}|desde hoy)/;
     const checks = html.split('class="lucide lucide-check').slice(1);
     expect(checks.length).toBeGreaterThan(3);
@@ -338,7 +360,7 @@ describe.each(["en", "es"] as const)("where it reaches and my goals (%s)", (loca
   });
 
   it("asks for a first goal, with what goals are for, without naming the place again", () => {
-    const html = render(locale, filled, createElement(GoalsSection, { calc: bundle.calc, today, inCard: true }));
+    const html = render(locale, filled, createElement(GoalsSection, { calc: bundle.calc, today, wishCountry: bundle.wishCountry, inCard: true }));
     expect(text(html)).toContain(m.help.goals);
     expect(text(html)).toContain(m.goals.add);
     // The section around it is already titled "My goals".

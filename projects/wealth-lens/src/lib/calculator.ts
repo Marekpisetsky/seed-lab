@@ -2,16 +2,18 @@
  * The calculator: what the plan gives after the chosen number of years,
  * and, for each goal the user added, when the same plan gets there.
  *
- * Everything is a pure function of the plan, the priced holdings and
- * today's date. Goals are independent: each is worked out on the whole
- * plan, none takes money from another, and they keep the order the user
- * added them in. Countries and purchases are only rows to read: nothing
- * about the user's life (a country, a home, what the money is for) is
- * assumed. All amounts are in today's euros: growth is after inflation and
- * the monthly amount is assumed to rise with prices.
+ * Everything is a pure function of the plan, the priced holdings, today's
+ * date and the country of the prices. Goals are independent: each is
+ * worked out on the whole plan, none takes money from another, and they
+ * keep the order the user added them in. Countries and purchases are only
+ * rows to read; the one guess about the user's life is the country whose
+ * prices wishes and goals use, taken from the browser's language, always
+ * in sight and changeable ("Prices of", lib/wish-country.ts), never saved.
+ * All amounts are in today's euros: growth is after inflation and the
+ * monthly amount is assumed to rise with prices.
  */
 
-import { connectionsData, type BuyItem, type ConnectionsDataset } from "./connections";
+import { connectionsData, DEFAULT_PRICE_COUNTRY, type BuyItem, type ConnectionsDataset, type CountryPrice, type Horizon, type WishIcon } from "./connections";
 import { costOfLiving, type CountryCost } from "./cost-of-living";
 import { addMonths } from "./dates";
 import { futureValueWithContributions, monthlyWithdrawal, monthsToGoal, requiredCapital, requiredMonthlyContribution } from "./finance";
@@ -262,31 +264,80 @@ export function featuredRows(rows: readonly CountryRow[]): CountryRow[] {
   return rows.filter((row) => featured(row) || shown.has(row.code));
 }
 
-/** A purchase of the list; its name and source come from the page's language (things.items). */
+/** A purchase of the list, priced for one country of the prices; its name and the words of its source come from the page's language (things.items). */
 export interface PricedItem {
   /** The item's id in src/data/connections.json. */
   id: string;
   amount: number;
   referenceDate: string;
+  /** A rough figure: shown with "≈". */
+  estimate: boolean;
+  /** Whose figure it is: the country asked for, or the Netherlands when that one has none; `null` when it is the same wherever the user lives. */
+  country: string | null;
+  /** The published figure behind it, with its source: a country's price, or its fee for a year at university. */
+  figure: CountryPrice | null;
+  /** Months of living costs in `country` it includes (a year off work, a year at university). */
+  monthsHome: number | null;
+  icon: WishIcon | null;
+  horizon: Horizon | null;
 }
 
 const roundTo10 = (value: number) => Math.round(value / 10) * 10;
 
-/** The "Buy it" list with its prices. Months of living somewhere are priced with housing: a stay there includes a place to stay. */
+/**
+ * An item priced for `country`: its figure there, or the Netherlands' when
+ * that one has none, so a goal from a file always keeps a price.
+ */
+export function priceItem(item: BuyItem, country: string, countries: ReadonlyMap<string, CountryCost>): PricedItem {
+  const base = { id: item.id, icon: item.icon ?? null, horizon: item.horizon ?? null, monthsHome: null };
+  if (item.prices) {
+    const own = item.prices[country];
+    const used = own ? country : DEFAULT_PRICE_COUNTRY;
+    const figure = own ?? item.prices[DEFAULT_PRICE_COUNTRY];
+    return { ...base, amount: figure.amount, referenceDate: figure.referenceDate, estimate: figure.estimate === true, country: used, figure };
+  }
+  if (item.monthsHome) {
+    const living = countries.get(country) ? country : DEFAULT_PRICE_COUNTRY;
+    const fee = item.monthsHome.fees?.[living] ?? null;
+    const amount = roundTo10((countries.get(living)?.monthlyCostEur.withRent ?? 0) * item.monthsHome.months) + (fee?.amount ?? 0);
+    // Living costs are "≈" estimates; so is the sum.
+    const referenceDate = countries.get(living)?.referenceDate ?? item.referenceDate;
+    return { ...base, amount, referenceDate, estimate: true, country: living, figure: fee, monthsHome: item.monthsHome.months };
+  }
+  let amount = item.amount ?? 0;
+  if (item.monthsAt) {
+    const place = item.monthsAt.countries;
+    const monthly = place.reduce((sum, code) => sum + (countries.get(code)?.monthlyCostEur.withRent ?? 0), 0) / place.length;
+    amount = roundTo10(monthly * item.monthsAt.months) + (item.plus ?? 0);
+  }
+  return { ...base, amount, referenceDate: item.referenceDate, estimate: item.estimate === true, country: item.country ?? null, figure: null };
+}
+
+/** Listed for the prices of `country`: an item of the list that has a figure there, other than a home's in the country itself. */
+function listedFor(item: BuyItem, country: string): boolean {
+  if (item.listed === false || item.place === country) return false;
+  if (item.prices) return country in item.prices;
+  return item.country === undefined || item.country === country;
+}
+
+/**
+ * The "Buy it" list with its prices for the prices of `country`. Months of
+ * living somewhere are priced with housing: a stay there includes a place
+ * to stay.
+ */
 export function pricedItems(
+  country: string = DEFAULT_PRICE_COUNTRY,
   data: ConnectionsDataset = connectionsData,
   countries: readonly CountryCost[] = costOfLiving.countries,
 ): PricedItem[] {
-  const byCode = new Map(countries.map((country) => [country.code, country]));
-  return data.buy.map((item: BuyItem) => {
-    let amount = item.amount ?? 0;
-    if (item.monthsAt) {
-      const place = item.monthsAt.countries;
-      const monthly = place.reduce((sum, code) => sum + (byCode.get(code)?.monthlyCostEur.withRent ?? 0), 0) / place.length;
-      amount = roundTo10(monthly * item.monthsAt.months) + (item.plus ?? 0);
-    }
-    return { id: item.id, amount, referenceDate: item.referenceDate };
-  });
+  const byCode = new Map(countries.map((entry) => [entry.code, entry]));
+  return data.buy.filter((item) => listedFor(item, country)).map((item) => priceItem(item, country, byCode));
+}
+
+/** Every item, listed or not, priced for `country`: what a goal of a file finds. */
+function itemsForGoals(country: string, data: ConnectionsDataset = connectionsData, countries: readonly CountryCost[] = costOfLiving.countries): Map<string, PricedItem> {
+  const byCode = new Map(countries.map((entry) => [entry.code, entry]));
+  return new Map(data.buy.map((item) => [item.id, priceItem(item, country, byCode)]));
 }
 
 export interface ItemStatus {
@@ -319,12 +370,17 @@ export interface GoalStatus {
   known: boolean;
   /** When the country's or the item's figures are from ("2026-09"); `null` for the user's own amounts. */
   referenceDate: string | null;
+  /** An item of the list: priced as the list shows it, with its source. */
+  item: PricedItem | null;
+  /** The country whose prices an item uses when it is not the one of the prices shown (a Dutch kitchen while Spain's prices are shown); `null` otherwise. */
+  otherCountry: string | null;
 }
 
 interface GoalShape {
   kind: "monthly" | "once";
   amount: number;
   referenceDate: string | null;
+  item: PricedItem | null;
 }
 
 function shapeOf(goal: Goal, items: ReadonlyMap<string, PricedItem>, countries: ReadonlyMap<string, CountryCost>): GoalShape | null {
@@ -332,41 +388,43 @@ function shapeOf(goal: Goal, items: ReadonlyMap<string, PricedItem>, countries: 
     case "live": {
       const country = countries.get(goal.country);
       if (!country) return null;
-      return { kind: "monthly", amount: goal.housing ? country.monthlyCostEur.withRent : country.monthlyCostEur.withoutRent, referenceDate: country.referenceDate };
+      return { kind: "monthly", amount: goal.housing ? country.monthlyCostEur.withRent : country.monthlyCostEur.withoutRent, referenceDate: country.referenceDate, item: null };
     }
     case "buy": {
       const item = items.get(goal.item);
-      return item ? { kind: "once", amount: item.amount, referenceDate: item.referenceDate } : null;
+      return item ? { kind: "once", amount: item.amount, referenceDate: item.referenceDate, item } : null;
     }
     case "buy-own":
     case "amount":
-      return { kind: "once", amount: goal.amount, referenceDate: null };
+      return { kind: "once", amount: goal.amount, referenceDate: null, item: null };
     case "monthly":
-      return { kind: "monthly", amount: goal.amount, referenceDate: null };
+      return { kind: "monthly", amount: goal.amount, referenceDate: null, item: null };
   }
 }
 
-/** Each goal against the same plan, in the order the user added them. */
+/** Each goal against the same plan, in the order the user added them; things of the list at the prices of `country`. */
 export function goalStatuses(
   goals: readonly Goal[],
   scenario: Scenario,
   today: Date,
-  items: readonly PricedItem[] = pricedItems(),
+  country: string = DEFAULT_PRICE_COUNTRY,
   countries: readonly CountryCost[] = costOfLiving.countries,
 ): GoalStatus[] {
-  const itemById = new Map(items.map((item) => [item.id, item]));
-  const countryByCode = new Map(countries.map((country) => [country.code, country]));
+  const itemById = itemsForGoals(country, connectionsData, countries);
+  const countryByCode = new Map(countries.map((entry) => [entry.code, entry]));
   return goals.map((goal) => {
     const shape = shapeOf(goal, itemById, countryByCode);
     if (!shape) {
-      return { goal, kind: "once", amount: 0, target: 0, months: Infinity, reachable: false, date: null, needed: null, known: false, referenceDate: null };
+      return { goal, kind: "once", amount: 0, target: 0, months: Infinity, reachable: false, date: null, needed: null, known: false, referenceDate: null, item: null, otherCountry: null };
     }
     const target = shape.kind === "monthly" ? requiredCapital(shape.amount * 12, scenario.withdrawalRate) : shape.amount;
     const months = monthsTo(scenario, target);
     const reachable = withinReach(months);
     const date = reachable && months > 1e-9 ? addMonths(today, Math.ceil(months - 1e-9)) : null;
     const needed = reachable ? null : requiredMonthlyContribution(scenario.capital, scenario.realReturn, NEEDED_WITHIN_YEARS * 12, target);
-    return { goal, kind: shape.kind, amount: shape.amount, target, months, reachable, date, needed, known: true, referenceDate: shape.referenceDate };
+    const priced = shape.item?.country ?? null;
+    const otherCountry = priced !== null && priced !== country ? priced : null;
+    return { goal, kind: shape.kind, amount: shape.amount, target, months, reachable, date, needed, known: true, referenceDate: shape.referenceDate, item: shape.item, otherCountry };
   });
 }
 
@@ -389,9 +447,16 @@ export interface Calculation {
  * `holdings` must already carry their prices (lib/auto-price.ts). With a
  * "What if…?" (lib/what-if.ts), everything is worked out with it: a
  * scenario that cannot apply to this plan (five more years past 60, a bad
- * decade with no ups and downs) is left out.
+ * decade with no ups and downs) is left out. Goals that are things of the
+ * list are priced for `wishCountry` ("Prices of", lib/wish-country.ts).
  */
-export function calculate(plan: CalculatorPlan, holdings: readonly Holding[], today: Date, whatIf: WhatIfId | null = null): Calculation {
+export function calculate(
+  plan: CalculatorPlan,
+  holdings: readonly Holding[],
+  today: Date,
+  whatIf: WhatIfId | null = null,
+  wishCountry: string = DEFAULT_PRICE_COUNTRY,
+): Calculation {
   const capital = startingCapital(holdings, plan.invested);
   const resolved = resolveInvestment(plan.investment, holdings, plan);
   const applied = whatIf !== null && whatIfAvailable(whatIf, plan.years, resolved) ? whatIf : null;
@@ -410,7 +475,7 @@ export function calculate(plan: CalculatorPlan, holdings: readonly Holding[], to
     scenario,
     whatIf: applied,
     result: resultOf(scenario, investment, inputs.years),
-    goals: goalStatuses(plan.goals, scenario, today),
+    goals: goalStatuses(plan.goals, scenario, today, wishCountry),
     countries: countryRows(scenario, inputs.years * 12),
   };
 }

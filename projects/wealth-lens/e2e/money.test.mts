@@ -476,3 +476,78 @@ describe("Test my plan", () => {
     }
   });
 });
+
+describe("With this you could", () => {
+  /** A page as a browser in this language would open it: navigator.language is `locale`. */
+  async function openAs(locale: string, lang: Lang, width: number): Promise<Page> {
+    const context = await browser.newContext({ viewport: { width, height: 800 }, locale, reducedMotion: "reduce" });
+    const page = await context.newPage();
+    await page.goto(base + WORDS[lang].path, { waitUntil: "networkidle" });
+    return page;
+  }
+  const WISH = {
+    en: { title: "With this you could:", pricesOf: "Prices of:", added: /In My goals\.$/, goals: "My goals" },
+    es: { title: "Con esto podrías:", pricesOf: "Precios de:", added: /En Mis metas\.$/, goals: "Mis metas" },
+  } as const;
+
+  it("sits under the big number: two or three wishes, each with its price and when, every one a finger's size", async () => {
+    for (const lang of ["en", "es"] as const) {
+      for (const width of [360, 1366, 1920]) {
+        const page = await openAs(lang === "es" ? "es-ES" : "en-GB", lang, width);
+        await firstResult(page, lang);
+        const list = page.getByRole("list", { name: WISH[lang].title });
+        const chips = list.getByRole("button");
+        const count = await chips.count();
+        assert.ok(count >= 2 && count <= 3, `${count} wishes (${lang} ${width})`);
+        const total = (await page.locator("#result-total").boundingBox())!;
+        const box = (await list.boundingBox())!;
+        assert.ok(box.y > total.y + total.height - 1, `under the big number (${lang} ${width})`);
+        for (let index = 0; index < count; index++) {
+          const chip = chips.nth(index);
+          const text = await chip.innerText();
+          assert.match(text, /€/, `its price (${text})`);
+          assert.match(text, lang === "en" ? /· (now|in \d+ (months?|years?))$/ : /· (ahora|en \d+ (meses|mes|años?))$/, `when (${text})`);
+          const size = (await chip.boundingBox())!;
+          assert.ok(size.height >= 44 && size.x >= 0 && size.x + size.width <= width, `a finger's size, in the window (${lang} ${width}: ${text})`);
+        }
+        await page.context().close();
+      }
+    }
+  });
+
+  it("starts from the country of the browser's language, adds a wish to My goals with a tap, and stores nothing", async () => {
+    const page = await openAs("es-ES", "es", 360);
+    await firstResult(page, "es");
+    const t = WISH.es;
+    const pricesOf = page.getByLabel(t.pricesOf).first();
+    assert.equal(await pricesOf.inputValue(), "ES");
+    const chips = page.getByRole("list", { name: t.title }).getByRole("button");
+    // The second wish, something bigger: at Spain's prices, a new car (€44,419) within 15 years.
+    const bigger = chips.nth(1);
+    assert.match(await bigger.innerText(), /^Un coche nuevo · 44\.419\s€ ·/);
+    await bigger.click();
+    assert.equal(await bigger.getAttribute("aria-disabled"), "true");
+    assert.match((await bigger.getAttribute("aria-label")) ?? "", t.added);
+    const goals = page.getByRole("region", { name: t.goals });
+    assert.match(await goals.innerText(), /Un coche nuevo[\s\S]*44\.419\s€/);
+    // The Netherlands' prices: a deposit on a Dutch home comes within 15 years; the car in My goals takes the Dutch price.
+    await pricesOf.selectOption("NL");
+    assert.match(await chips.nth(1).innerText(), /^La entrada de una vivienda · ≈ 75\.616\s€ ·/);
+    assert.match(await goals.innerText(), /Un coche nuevo[\s\S]*50\.026\s€/);
+    // Kept in memory only: nothing in the browser's storage, and a reload starts from the language again.
+    assert.deepEqual(await page.evaluate(() => [localStorage.length, sessionStorage.length]), [0, 0]);
+    await page.reload({ waitUntil: "networkidle" });
+    await firstResult(page, "es");
+    assert.equal(await page.getByLabel(t.pricesOf).first().inputValue(), "ES");
+    await page.context().close();
+  });
+
+  it("shows the Netherlands' prices to a browser whose country has none", async () => {
+    for (const locale of ["en-US", "de-AT", "pt-BR"]) {
+      const page = await openAs(locale, "en", 1366);
+      await firstResult(page, "en");
+      assert.equal(await page.getByLabel(WISH.en.pricesOf).first().inputValue(), "NL", locale);
+      await page.context().close();
+    }
+  });
+});

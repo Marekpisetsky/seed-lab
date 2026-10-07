@@ -7,7 +7,8 @@
   `estimated-countries.json`); `projects/wealth-lens/scripts/estimate-countries.mts`
   (la estimación); en Wealth Lens, `src/lib/calculator.ts`
   (`countryRows`, `dearestCovered`, `featuredRows`, metas de un país) y
-  `pricedItems` (meses de vida en un país)
+  `pricedItems` (meses de vida en un país); `src/lib/wishes.ts` (dejar de
+  trabajar o vivir en otro país, ver [deseos](deseos.md))
 
 ## Pregunta que responde
 
@@ -114,3 +115,7 @@ Exacta:
 ## Historial
 
 - 2026-10-03: primera ficha (sin cambios en el cálculo).
+- 2026-10-07: los mismos costes con alquiler ponen precio a cuatro deseos
+  (un año sin trabajar, un año de universidad, un mes por el Sudeste
+  Asiático, dejar de trabajar o vivir en otro país): ver
+  [deseos](deseos.md). Sin cambios en estos datos.

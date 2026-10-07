@@ -31,7 +31,7 @@ De dónde sale g:
 | Elección | g | Cómo |
 | --- | --- | --- |
 | Un índice (S&P 500, Mundo, Nasdaq-100, bonos, oro) | 7,54 %, 4,45 %, 9,90 %, 2,47 %, 1,06 % | Media geométrica de sus rendimientos reales anuales de 1988 a 2022 (los mismos años para todos) |
-| Ahorro | (1 + 1,5 %) / (1 + inflación) − 1: −0,49 % con el 2 % del euro | Interés fijo de 1,5 % menos la inflación de "Precios de" |
+| Ahorro | (1 + 1,5 %) / (1 + inflación) − 1: −0,49 % con el 2 % del euro | Interés fijo de 1,5 % menos la inflación de "Subida de precios en" |
 | Una mezcla o Mi cartera | Media ponderada de las g de sus partes | Ver [mezclas](mezclas-y-acciones.md) |
 | Crecimiento propio ("Mi %") | El que se escribe; 5 % al empezar | Ver [valor inicial](valor-inicial.md) |
 
@@ -140,3 +140,5 @@ década" sustituye los diez primeros años por los de una década real (ver
 ## Historial
 
 - 2026-10-03: primera ficha (sin cambios en el cálculo).
+- 2026-10-07: "Subida de precios en" en lugar de "Precios de" para el
+  país de la inflación. Sin cambios en el cálculo.

@@ -15,8 +15,8 @@
       "es": "Planifica tu dinero sin regalar tus datos."
     },
     "description": {
-      "en": "See how your money could grow, what it could pay you each month and where in the world that is enough. It runs on your device: nothing is saved or sent.",
-      "es": "Mira cómo podría crecer tu dinero, cuánto podría pagarte al mes y en qué lugares del mundo alcanza. Funciona en tu dispositivo: no se guarda ni se envía nada."
+      "en": "See when your money could get you a trip, a home or stopping work, and in which countries it is enough. It runs on your device: nothing is saved or sent.",
+      "es": "Mira cuándo podrías hacer un viaje, comprar una casa o dejar de trabajar con tu dinero, y en qué países alcanza. Funciona en tu dispositivo: no se guarda ni se envía nada."
     },
     "principles": {
       "device": {
@@ -43,8 +43,8 @@
       "light": {
         "status": "meets",
         "note": {
-          "en": "212 to 233 KB per page on a first visit, under the 350 KB limit.",
-          "es": "De 212 a 233 KB por página en la primera visita, por debajo del límite de 350 KB."
+          "en": "213 to 239 KB per page on a first visit, under the 350 KB limit.",
+          "es": "De 213 a 239 KB por página en la primera visita, por debajo del límite de 350 KB."
         }
       },
       "everyone": {

@@ -283,7 +283,7 @@ export function parseGoalItem(value: unknown): Goal | null {
   switch (value.kind) {
     case "live":
       return typeof value.country === "string" && COUNTRY_PATTERN.test(value.country) && typeof value.housing === "boolean"
-        ? { id, kind: "live", country: value.country, housing: value.housing }
+        ? { id, kind: "live", country: value.country, housing: value.housing, ...(value.stopWorking === true ? { stopWorking: true } : {}) }
         : null;
     case "buy":
       return typeof value.item === "string" && ID_PATTERN.test(value.item) ? { id, kind: "buy", item: value.item } : null;

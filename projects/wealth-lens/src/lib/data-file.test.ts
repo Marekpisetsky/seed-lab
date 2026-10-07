@@ -53,7 +53,7 @@ const state: AppState = {
 };
 
 describe("data file", () => {
-  it("loads back exactly what was downloaded: the changed assumptions, Prices of and what each holding grows like included", () => {
+  it("loads back exactly what was downloaded: the changed assumptions, Rising prices in and what each holding grows like included", () => {
     const text = serializeState(state, new Date("2026-09-29T10:00:00Z"));
     expect(parseDataFile(text)).toEqual({ ok: true, state, notices: [] });
     const custom = { ...state, plan: { ...state.plan, investment: { kind: "custom" as const } } };

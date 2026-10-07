@@ -2,7 +2,7 @@
 
 import { useI18n } from "@/components/i18n";
 import { localePath } from "@/i18n/locales";
-import { SEED_LAB_HUB_URL } from "@/lib/seed-lab";
+import { SEED_LAB_HUB_URL, SEED_LAB_RESEARCH_URL } from "@/lib/seed-lab";
 import { Email } from "./email";
 import { IntentLink } from "./intent-link";
 
@@ -17,9 +17,11 @@ const linkClass = "py-3 font-medium text-accent underline underline-offset-2";
 /**
  * A dictionary sentence with its key figure marked "**like this**" (bold,
  * so each language places it where its words need it) and links written
- * "[words](/page)", "[words](https://…)" or "[words](hub)". A page of
- * the site ("/privacy") opens in the page's language. "[email](email)" is
- * seed-lab's email address, joined only in the browser (ui/email.tsx).
+ * "[words](/page)", "[words](https://…)", "[words](hub)" or
+ * "[words](research:wealth-lens/deseos.md)", a sheet of seed-lab Research.
+ * A page of the site ("/privacy") opens in the page's language.
+ * "[email](email)" is seed-lab's email address, joined only in the
+ * browser (ui/email.tsx).
  */
 export function Marked({ text, strongClassName = "font-medium text-foreground tabular-nums" }: { text: string; strongClassName?: string }) {
   const { locale } = useI18n();
@@ -45,8 +47,9 @@ export function Marked({ text, strongClassName = "font-medium text-foreground ta
             </IntentLink>
           );
         }
+        const href = target.startsWith("research:") ? `${SEED_LAB_RESEARCH_URL}/${target.slice("research:".length)}` : (NAMED_LINKS[target] ?? target);
         return (
-          <a key={index} href={NAMED_LINKS[target] ?? target} className={linkClass} rel="noopener">
+          <a key={index} href={href} className={linkClass} rel="noopener">
             {words}
           </a>
         );

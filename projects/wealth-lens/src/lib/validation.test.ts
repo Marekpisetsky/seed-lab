@@ -5,6 +5,7 @@ import {
   isIsoDate,
   parseAssumptions,
   parseGoal,
+  parseGoalItem,
   parseHoldings,
   parseInvestment,
   parsePlan,
@@ -257,5 +258,13 @@ describe("isIsoDate", () => {
     expect(isIsoDate("2023-02-29")).toBe(false);
     expect(isIsoDate("2024-2-1")).toBe(false);
     expect(isIsoDate(20240201)).toBe(false);
+  });
+});
+
+describe("a goal added as Stop working", () => {
+  it("keeps its name through a file, and older files load as before", () => {
+    expect(parseGoalItem({ id: "a", kind: "live", country: "ES", housing: true, stopWorking: true })).toEqual({ id: "a", kind: "live", country: "ES", housing: true, stopWorking: true });
+    expect(parseGoalItem({ id: "a", kind: "live", country: "ES", housing: true })).toEqual({ id: "a", kind: "live", country: "ES", housing: true });
+    expect(parseGoalItem({ id: "a", kind: "live", country: "ES", housing: true, stopWorking: "yes" })).toEqual({ id: "a", kind: "live", country: "ES", housing: true });
   });
 });

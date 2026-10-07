@@ -125,7 +125,7 @@ describe("the dictionaries", () => {
         // Jargon has its own test above.
         technical: () => true,
         // A source is a citation ("average cost of a Dutch B licence in 2025, 41 lessons and exams"), not a sentence to read.
-        skip: (path) => path.endsWith(".source"),
+        skip: (path) => path.endsWith(".source") || path.endsWith(".about"),
       }),
     );
     expect(long).toEqual([]);
@@ -136,7 +136,10 @@ describe("the dictionaries", () => {
       const { things } = getI18n(locale).m;
       for (const item of connectionsData.buy) {
         expect(things.items[item.id]?.name, `${locale} ${item.id}`).toBeTruthy();
-        expect(things.items[item.id]?.source, `${locale} ${item.id}`).toBeTruthy();
+        // One figure for everyone has its source; a figure for each country says what it is ("Average price of a used car in X").
+        const words = things.items[item.id];
+        const priced = item.prices !== undefined || item.monthsHome !== undefined;
+        expect(priced ? words?.about : words?.source, `${locale} ${item.id}`).toBeTruthy();
       }
     }
   });
@@ -298,7 +301,7 @@ describe("no percentage without its euros, in the result", () => {
       render(createElement(Results, { bundle })),
       render(createElement(PayDetails, { bundle })),
       render(createElement(KnowDetails, { bundle })),
-      render(createElement(GoalsSection, { calc: bundle.calc, today, inCard: true })),
+      render(createElement(GoalsSection, { calc: bundle.calc, today, wishCountry: bundle.wishCountry, inCard: true })),
       render(createElement(WhereDetails, { bundle })),
       render(createElement(WhatIfRow, { bundle })),
       render(createElement(StocksSummary, { holdings: bundle.holdings })),

@@ -170,7 +170,7 @@ export const ESTIMATE_METHOD: EstimateMethod = estimatedRaw.method;
 /** Countries with World Bank price data that are left out, and why (not enough data, or prices rising over 30% a year). */
 export const ESTIMATE_EXCLUDED: readonly { code: string; reason: string }[] = estimatedRaw.excluded;
 
-/** The country "Prices of" starts with. */
+/** The country "Rising prices in" (Wealth Lens' inflation) starts with. */
 export const DEFAULT_PRICES_OF = "NL";
 
 /** A country of the list by its code; `undefined` for any other. */

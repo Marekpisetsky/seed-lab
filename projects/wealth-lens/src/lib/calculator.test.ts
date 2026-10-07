@@ -236,9 +236,20 @@ describe("goals", () => {
   });
 
   it("keep an item a file names but the list no longer has, so it can be removed", () => {
-    const [gone] = calculate(plan({ goals: [{ id: "x", kind: "buy", item: "sabbatical" }] }), [], today).goals;
+    const [gone] = calculate(plan({ goals: [{ id: "x", kind: "buy", item: "cushion" }] }), [], today).goals;
     expect(gone).toMatchObject({ known: false, reachable: false });
     expect(goalName(gone, EN)).toBe(EN.m.goals.unknown);
+  });
+
+  it("name a goal added as Stop working, with where and with housing", () => {
+    const stop: Goal = { id: "s", kind: "live", country: "ES", housing: true, stopWorking: true };
+    const [status] = calculate(plan({ goals: [stop] }), [], today, null, "ES").goals;
+    expect(goalName(status, EN)).toBe("Stop working");
+    expect(goalDetail(status, EN)).toBe("in Spain, with housing");
+    expect(goalName(status, getI18n("es"))).toBe("Dejar de trabajar");
+    expect(goalDetail(status, getI18n("es"))).toBe("en España, con vivienda");
+    // The same as living there with housing: €1,440 a month × 12 ÷ 4%.
+    expect(status.target).toBe(432_000);
   });
 
   it("follow the withdrawal rate when they are monthly", () => {
@@ -249,20 +260,62 @@ describe("goals", () => {
 });
 
 describe("the things to buy", () => {
-  it("are the list, without items priced from a country of the user's own", () => {
-    const ids = pricedItems().map((item) => item.id);
-    expect(ids).toContain("used-car");
-    expect(ids).not.toContain("cushion");
-    expect(ids).not.toContain("sabbatical");
+  const ids = (country: string) => pricedItems(country).map((item) => item.id);
+
+  it("are the list at the prices of the country shown", () => {
+    // The Netherlands: its own things (an e-bike, a kitchen) and those priced for every country.
+    expect(ids("NL")).toEqual(expect.arrayContaining(["e-bike", "kitchen", "used-car", "new-car", "home-deposit", "sabbatical", "trip-japan"]));
+    // Spain: no Dutch e-bike or kitchen; a Spanish used car.
+    expect(ids("ES")).not.toContain("e-bike");
+    expect(ids("ES")).not.toContain("kitchen");
+    expect(pricedItems("ES").find((item) => item.id === "used-car")).toMatchObject({ amount: 17758, country: "ES" });
+    // No published price for a new car in Portugal: not listed there rather than shown with another country's.
+    expect(ids("PT")).not.toContain("new-car");
+    // A flat in Portugal is "an 80 m² home" for Portugal's prices.
+    expect(ids("PT")).not.toContain("flat-portugal");
+    expect(ids("NL")).toContain("flat-portugal");
+    // Kept only for goals in older files, never listed.
+    for (const country of ["NL", "ES", "DE", "FR", "IT", "PT"]) {
+      for (const old of ["masters-nl", "home-deposit-nl", "home-nl"]) expect(ids(country)).not.toContain(old);
+    }
   });
 
-  it("price months abroad with housing there", () => {
-    const byId = new Map(pricedItems().map((item) => [item.id, item]));
-    expect(byId.get("three-months-japan")?.amount).toBe(1060 * 3);
-    // Thailand 770, Vietnam 620, Indonesia 510, Malaysia 710, Philippines 600 → 642/month.
-    expect(byId.get("southeast-asia")?.amount).toBe(7700);
-    expect(byId.get("masters-nl")?.amount).toBe(12 * 2190 + 2601);
-    expect(byId.get("six-months-portugal")?.amount).toBe(6 * 1410);
+  it("price months abroad with housing there, wherever the prices are from", () => {
+    for (const country of ["NL", "ES"]) {
+      const byId = new Map(pricedItems(country).map((item) => [item.id, item]));
+      expect(byId.get("three-months-japan")?.amount).toBe(1060 * 3);
+      // Thailand 770, Vietnam 620, Indonesia 510, Malaysia 710, Philippines 600 → 642/month.
+      expect(byId.get("southeast-asia")?.amount).toBe(7700);
+      expect(byId.get("month-southeast-asia")?.amount).toBe(640);
+      expect(byId.get("six-months-portugal")?.amount).toBe(6 * 1410);
+    }
+  });
+
+  it("price a year off work and a year at university in the country of the prices", () => {
+    const year = (country: string, id: string) => pricedItems(country).find((item) => item.id === id);
+    expect(year("NL", "sabbatical")).toMatchObject({ amount: 12 * 2190, country: "NL", estimate: true, referenceDate: "2026-09" });
+    expect(year("ES", "sabbatical")?.amount).toBe(12 * 1440);
+    // Living costs with rent, plus a year's public university fees there (none in Germany).
+    expect(year("NL", "study-year")?.amount).toBe(12 * 2190 + 2601);
+    expect(year("ES", "study-year")?.amount).toBe(12 * 1440 + 922);
+    expect(year("DE", "study-year")?.amount).toBe(12 * 1650);
+    expect(year("PT", "study-year")?.amount).toBe(12 * 1410 + 697);
+  });
+
+  it("price a goal from a file even where its thing has no price, with the Netherlands'", () => {
+    const goals: Goal[] = [
+      { id: "a", kind: "buy", item: "new-car" },
+      { id: "b", kind: "buy", item: "kitchen" },
+      { id: "c", kind: "buy", item: "masters-nl" },
+      { id: "d", kind: "buy", item: "used-car" },
+    ];
+    const [car, kitchen, masters, used] = calculate(plan({ goals }), [], today, null, "PT").goals;
+    expect(car).toMatchObject({ known: true, amount: 50026, otherCountry: "NL" });
+    expect(kitchen).toMatchObject({ known: true, amount: 15000, otherCountry: "NL" });
+    expect(masters).toMatchObject({ known: true, amount: 12 * 2190 + 2601, otherCountry: null });
+    expect(used).toMatchObject({ amount: 24214, otherCountry: null });
+    expect(goalDetail(car, EN)).toBe("prices of the Netherlands");
+    expect(goalDetail(used, EN)).toBeNull();
   });
 
   it("each say now, or when the plan gets there", () => {
