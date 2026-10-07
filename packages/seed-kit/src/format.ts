@@ -133,7 +133,9 @@ function createFormats(intl: string): NumberFormats {
       }).format(Number.isFinite(fraction) ? shown(fraction, decimals + 2) : fraction),
     );
   const language = intl.split("-")[0];
-  const currencyFirst = new Intl.NumberFormat(intl, { style: "currency", currency: "EUR" }).formatToParts(1)[0]?.type === "currency";
+  // Made on first use, like every formatter here: a page that never shows a date or a huge amount never builds one.
+  let currencyFirstCache: boolean | null = null;
+  const currencyFirst = () => (currencyFirstCache ??= new Intl.NumberFormat(intl, { style: "currency", currency: "EUR" }).formatToParts(1)[0]?.type === "currency");
   const figures = (value: number, digits: number) => typeset(numberFormat(`figures|${digits}`, { maximumSignificantDigits: digits }).format(value));
   /** "4.35 × 10¹⁸". */
   const power = (abs: number, digits: number) => {
@@ -146,7 +148,7 @@ function createFormats(intl: string): NumberFormats {
     return `${figures(mantissa, digits)}\u00a0×\u00a010${[...String(exponent)].map((digit) => SUPERSCRIPT[Number(digit)]).join("")}`;
   };
   /** "4.35 × 10¹⁸" with the euro where the language puts it. */
-  const powerEur = (abs: number, sign: string, digits: number) => (currencyFirst ? `${sign}€${power(abs, digits)}` : `${sign}${power(abs, digits)}\u00a0€`);
+  const powerEur = (abs: number, sign: string, digits: number) => (currencyFirst() ? `${sign}€${power(abs, digits)}` : `${sign}${power(abs, digits)}\u00a0€`);
   /** "1.23 billion", "1230 millones", three figures; `null` where the language has no word for it (10¹⁸ and more). */
   const inWords = (abs: number): string | null => {
     // Rounded first, so 999,999,999,999 is "1 trillion", never "1000 billion".
@@ -166,10 +168,13 @@ function createFormats(intl: string): NumberFormats {
     // The number keeps its word; "de euros" may go to the next line.
     return `${sign}${before}${words}${after}`;
   };
-  const monthYear = new Intl.DateTimeFormat(intl, { month: "short", year: "numeric", timeZone: "UTC" });
-  const fullDate = new Intl.DateTimeFormat(intl, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+  let monthYearFormat: Intl.DateTimeFormat | null = null;
+  let fullDateFormat: Intl.DateTimeFormat | null = null;
+  let decimal: string | null = null;
   return {
-    decimalSeparator: new Intl.NumberFormat(intl).formatToParts(1.5).find((part) => part.type === "decimal")?.value ?? ".",
+    get decimalSeparator() {
+      return (decimal ??= new Intl.NumberFormat(intl).formatToParts(1.5).find((part) => part.type === "decimal")?.value ?? ".");
+    },
     money,
     eur,
     eurRounded(amount, { signed = false } = {}) {
@@ -206,14 +211,16 @@ function createFormats(intl: string): NumberFormats {
       return typeset(numberFormat(`price|${maxDecimals}`, { minimumFractionDigits: 2, maximumFractionDigits: maxDecimals }).format(value));
     },
     monthYear(date) {
-      return spaces(monthYear.format(date));
+      monthYearFormat ??= new Intl.DateTimeFormat(intl, { month: "short", year: "numeric", timeZone: "UTC" });
+      return spaces(monthYearFormat.format(date));
     },
     dayMonth(isoDate) {
       const [, month, day] = isoDate.split("-");
       return `${day}/${month}`;
     },
     date(isoDate) {
-      return spaces(fullDate.format(new Date(`${isoDate}T00:00:00Z`)));
+      fullDateFormat ??= new Intl.DateTimeFormat(intl, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+      return spaces(fullDateFormat.format(new Date(`${isoDate}T00:00:00Z`)));
     },
   };
 }

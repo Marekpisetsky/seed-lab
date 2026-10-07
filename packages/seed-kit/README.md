@@ -39,6 +39,10 @@ src/
   browser.ts         el código de una herramienta para el navegador, sin bundler
   icons.ts           la semilla, el favicon, el lanzador, el tema, ▲/▼ y los iconos de principios
   site.ts            la dirección del hub y el contacto
+  cost-of-living.ts  el coste de vida de 172 países (data/): precios, alquiler e inflación
+  inflation-rates.ts solo la inflación de referencia de cada país (3 KB), para una primera pantalla ligera
+  country-names.ts   los nombres de los 172 países, EN/ES, en tabla y en frase
+scripts/             inflation-rates.ts escribe data/inflation-rates.json desde el coste de vida
 test/                los tests del kit (node --test)
 ```
 
