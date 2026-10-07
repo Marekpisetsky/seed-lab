@@ -6,7 +6,7 @@
  */
 
 import { isAssetId } from "./assets";
-import { countryByCode, DEFAULT_PRICES_OF, referenceInflation } from "./cost-of-living";
+import { DEFAULT_PRICES_OF, isPriceCountry, referenceRate } from "@seed-kit/inflation-rates.ts";
 import { isIndexId, type IndexId } from "./indexes";
 import { resolveInvestment, toReal } from "./investment";
 import { instrumentById, instrumentForHolding } from "./market-data";
@@ -29,6 +29,17 @@ export const MAX_AMOUNT = 1e9;
  * ups and downs of world stocks.
  */
 export const STARTING_GROWTH = 0.05;
+
+/**
+ * The growth a year after rising prices a plan accepts, as fractions: from
+ * −50 % to 500 % (step 3 and the data file). 500 % is a technical limit,
+ * not a judgement: at it, 60 years give figures of about 10⁴⁷ €, still far
+ * inside what the browser's numbers hold (about 10³⁰⁸), also for the
+ * highest of the possible futures, and the page writes them in words or as
+ * a power of ten (seed-kit format.ts). Above 50 % step 3 says plainly that
+ * the data has nothing like it (lib/realism.ts).
+ */
+export const GROWTH_LIMITS = { min: -0.5, max: 5 } as const;
 
 /**
  * A first visit starts with these: the amounts empty, to be typed (the page
@@ -83,6 +94,11 @@ function isNonNegativeNumber(value: unknown): value is number {
 /** A yearly rate between −100 % and 100 % (exclusive). */
 function isRate(value: unknown): value is number {
   return isFiniteNumber(value) && value > -1 && value < 1;
+}
+
+/** A growth a year in GROWTH_LIMITS. */
+function isGrowth(value: unknown): value is number {
+  return isFiniteNumber(value) && value >= GROWTH_LIMITS.min && value <= GROWTH_LIMITS.max;
 }
 
 const CURRENCY_PATTERN = /^[A-Z]{3}$/;
@@ -224,7 +240,7 @@ const CUSTOM_LIKE_WORLD_SINCE = 9;
 /** Growth before rising prices as the growth after them with this inflation: the very same result. */
 function afterPrices(rate: number, inflation: number): number | null {
   const real = toReal(rate, inflation);
-  return isRate(real) ? real : null;
+  return isGrowth(real) ? real : null;
 }
 
 /**
@@ -239,13 +255,13 @@ export function parseAssumptions(value: unknown, pricesOf: string = DEFAULT_PRIC
   if (!isRecord(value)) return STANDARD_ASSUMPTIONS;
   const volatility = isFiniteNumber(value.volatility) && value.volatility >= 0 && value.volatility <= MAX_VOLATILITY ? value.volatility : null;
   const inflation = isRate(value.inflation) ? value.inflation : null;
-  const fileInflation = inflation ?? referenceInflation(pricesOf).rate;
+  const fileInflation = inflation ?? referenceRate(pricesOf);
   let growth: AssumptionOverrides["growth"] = null;
-  if (isRate(value.growth)) growth = version >= GROWTH_AFTER_PRICES_SINCE ? value.growth : afterPrices(value.growth, fileInflation);
-  else if (isRecord(value.growth) && isRate(value.growth.rate)) {
+  if (isFiniteNumber(value.growth)) growth = version >= GROWTH_AFTER_PRICES_SINCE ? (isGrowth(value.growth) ? value.growth : null) : afterPrices(value.growth, fileInflation);
+  else if (isRecord(value.growth) && isFiniteNumber(value.growth.rate)) {
     const { rate, basis } = value.growth;
     if (basis === "nominal") growth = afterPrices(rate, fileInflation);
-    if (basis === "real") growth = rate;
+    if (basis === "real") growth = isGrowth(rate) ? rate : null;
   }
   return { growth, volatility, inflation };
 }
@@ -413,12 +429,12 @@ export function parsePlan(value: unknown, holdings: readonly Holding[] = [], not
     parse(value[key]) ?? DEFAULT_PLAN[key];
   // Saved before it was typed (version 8): still to type. Missing or bad: 0, never the examples.
   const amount = (v: unknown) => (v === null && version >= GROWTH_AFTER_PRICES_SINCE ? null : isNonNegativeNumber(v) && v <= MAX_AMOUNT ? v : 0);
-  const pricesOf = typeof value.pricesOf === "string" && countryByCode(value.pricesOf) ? value.pricesOf : DEFAULT_PRICES_OF;
+  const pricesOf = typeof value.pricesOf === "string" && isPriceCountry(value.pricesOf) ? value.pricesOf : DEFAULT_PRICES_OF;
   let assumptions = parseAssumptions(value.assumptions, pricesOf, version);
   if (!("assumptions" in value)) {
-    const inflation = isRate(value.inflation) && Math.abs(value.inflation - referenceInflation(pricesOf).rate) > 1e-9 ? value.inflation : null;
+    const inflation = isRate(value.inflation) && Math.abs(value.inflation - referenceRate(pricesOf)) > 1e-9 ? value.inflation : null;
     const investment = isRecord(value.investment) ? value.investment : {};
-    const growth = investment.kind === "custom" && isRate(investment.realReturn) ? investment.realReturn : null;
+    const growth = investment.kind === "custom" && isGrowth(investment.realReturn) ? investment.realReturn : null;
     assumptions = { growth, volatility: null, inflation };
   }
   const chosen = withGrowthAsCustom(parseInvestment(value.investment, holdings, notices) ?? startingInvestment(version), assumptions, pricesOf, holdings);

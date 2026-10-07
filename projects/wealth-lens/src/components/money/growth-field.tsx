@@ -8,15 +8,22 @@ import { SettledNumberInput } from "@/components/ui/form";
 import { useAppState } from "@/hooks/use-app";
 import type { I18n } from "@/i18n";
 import { growthSource } from "@/i18n/investment-text";
-import { quotedGrowth, realismWarning } from "@/lib/assumptions";
+import { quotedGrowth, realismWarning, strongGrowthWarning } from "@/lib/assumptions";
 import { EXAMPLE_IDS, exampleOf, exampleRates, fieldPercent, pickExample, sameTenth, setGrowth } from "@/lib/examples";
 import type { ResolvedInvestment } from "@/lib/investment";
-import { STARTING_GROWTH } from "@/lib/validation";
+import type { Plan } from "@/lib/types";
+import { GROWTH_LIMITS, STARTING_GROWTH } from "@/lib/validation";
 
-/** The line under the field, in the place of a warning when the growth is beyond the best 20 years in the data. */
-function lineFor(current: ResolvedInvestment, i18n: I18n): { text: string; warning: boolean } {
+/**
+ * The line under the field: a warning in its place when the growth is
+ * beyond the best 20 years in the data, and a stronger one, in euros and
+ * with no lines cut, over 50 % a year.
+ */
+function lineFor(current: ResolvedInvestment, plan: Plan, i18n: I18n): { text: string; warning: false | "rare" | "strong" } {
+  const strong = strongGrowthWarning(current.realReturn, { years: plan.years, invested: plan.invested ?? 0, monthly: plan.monthlyContribution ?? 0 }, i18n);
+  if (strong) return { text: strong, warning: "strong" };
   const warning = realismWarning(current, i18n);
-  if (warning) return { text: warning, warning: true };
+  if (warning) return { text: warning, warning: "rare" };
   const t = i18n.m.growth;
   if (current.investment.kind === "custom") return { text: sameTenth(current.realReturn, STARTING_GROWTH) ? t.standard : t.yours, warning: false };
   const source = growthSource(current, i18n);
@@ -38,7 +45,7 @@ export function GrowthField({ id, current, compact, onEnter }: { id: string; cur
   const { pricesOf, assumptions } = plan;
   const rates = useMemo(() => exampleRates({ pricesOf, assumptions }), [pricesOf, assumptions]);
   const picked = current.custom ? null : exampleOf(plan.investment);
-  const line = lineFor(current, i18n);
+  const line = lineFor(current, plan, i18n);
   const before = `${id}-before`;
   const about = `${id}-about`;
   return (
@@ -49,8 +56,8 @@ export function GrowthField({ id, current, compact, onEnter }: { id: string; cur
           aria-describedby={`${about} ${before}`}
           enterKeyHint="next"
           value={fieldPercent(current.realReturn)}
-          min={-50}
-          max={50}
+          min={GROWTH_LIMITS.min * 100}
+          max={GROWTH_LIMITS.max * 100}
           onCommit={(percent) => setGrowth(percent / 100, current.realReturn, rates, plan.investment)}
           onKeyDown={(event) => {
             if (event.key !== "Enter") return;
@@ -63,8 +70,15 @@ export function GrowthField({ id, current, compact, onEnter }: { id: string; cur
           {t.unit}
         </span>
       </span>
-      {/* What the number is: two lines kept on a phone and beside a result, one on a wide screen, so nothing moves. */}
-      <p id={about} className={`text-sm ${compact ? "line-clamp-2 h-10" : "line-clamp-2 h-10 lg:line-clamp-1 lg:h-5"} ${line.warning ? "font-medium text-warning-foreground" : "text-muted"}`}>
+      {/* What the number is: two lines kept on a phone and beside a result, one on a wide screen, so nothing moves; over 50 % a year, the whole warning. */}
+      <p
+        id={about}
+        className={`text-sm ${
+          line.warning === "strong"
+            ? "rounded-md border border-warning-border bg-warning-bg px-2 py-1.5 font-medium text-warning-foreground"
+            : `${compact ? "line-clamp-2 h-10" : "line-clamp-2 h-10 lg:line-clamp-1 lg:h-5"} ${line.warning ? "font-medium text-warning-foreground" : "text-muted"}`
+        }`}
+      >
         <Changed value={line.text} />
       </p>
       <p id={before} className="h-5 truncate text-sm text-muted tabular-nums">

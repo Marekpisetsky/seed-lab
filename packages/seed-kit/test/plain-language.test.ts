@@ -13,6 +13,8 @@ describe("no percentage without its euros", () => {
 
   it("finds a percent with no amount in euros beside it, and lets a count of futures be", () => {
     assert.deepEqual(percentWithoutMoney(["−37 % (2008) = −407 € de tus 1.100 €", "Grows 5% a year", "In 8 of 10 possible futures", "4%: €374 a month"]), ["Grows 5% a year"]);
+    // A figure in words carries the name: "4,4 billones de euros".
+    assert.deepEqual(percentWithoutMoney(["Un 70 %: serían 4,4 billones de euros", "Un 70 % de los euros"]), ["Un 70 % de los euros"]);
   });
 });
 

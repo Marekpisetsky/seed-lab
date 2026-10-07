@@ -14,6 +14,7 @@
 
 import raw from "./data/cost-of-living.json" with { type: "json" };
 import estimatedRaw from "./data/estimated-countries.json" with { type: "json" };
+import { DEFAULT_PRICES_OF } from "./inflation-rates.ts";
 
 export const REGIONS = ["Europe", "North America", "Latin America", "Asia", "Africa", "Oceania"] as const;
 export type Region = (typeof REGIONS)[number];
@@ -170,8 +171,8 @@ export const ESTIMATE_METHOD: EstimateMethod = estimatedRaw.method;
 /** Countries with World Bank price data that are left out, and why (not enough data, or prices rising over 30% a year). */
 export const ESTIMATE_EXCLUDED: readonly { code: string; reason: string }[] = estimatedRaw.excluded;
 
-/** The country "Rising prices in" (Wealth Lens' inflation) starts with. */
-export const DEFAULT_PRICES_OF = "NL";
+/** The country "Rising prices in" (Wealth Lens' inflation) starts with: one source, inflation-rates.ts. */
+export { DEFAULT_PRICES_OF };
 
 /** A country of the list by its code; `undefined` for any other. */
 export function countryByCode(code: string, countries: readonly CountryCost[] = costOfLiving.countries): CountryCost | undefined {

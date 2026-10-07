@@ -24,12 +24,15 @@ of 2026-10-05. Read the relevant product README and nested AGENTS.md next.
 
 - Current user instructions take precedence. Compare old conversations with
   current source, specs and GitHub branch/PR state before resuming work.
-- For the interrupted Wealth Lens work, read
-  [the handoff](projects/wealth-lens/docs/continuity-2026-10-04.md).
+- For Wealth Lens work, read the latest handoff: the
+  `continuity-YYYY-MM-DD.md` with the highest date in
+  [projects/wealth-lens/docs/](projects/wealth-lens/docs/). List the folder
+  each time; do not rely on a fixed date. Older handoffs are history.
   Do not touch hosting migration PR #17 or its branch.
 - Record settled direction here through docs/direction.md; record feature
   semantics in the product spec and methods in research/. Keep current task
-  status in a dated handoff. Do not turn proposals into confirmed decisions.
+  status in a dated handoff: a new `continuity-YYYY-MM-DD.md` with the day's
+  date. Do not turn proposals into confirmed decisions.
 - Use relevant installed agent-skills before substantial engineering; use
   test-driven-development for new logic/bugs, debugging-and-error-recovery
   for unexpected behaviour, and review before completing code changes.

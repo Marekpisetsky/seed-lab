@@ -25,9 +25,15 @@ export function gainedShareOf({ total, putIn }: Pick<YearPoint, "total" | "putIn
   return putIn > 0 ? (total - putIn) / putIn : null;
 }
 
-/** "×2.3", "×12.4", "×0.95" ("×2,3" in Spanish). */
+/** From here a multiple is a count of times ("12,346 times"), and from `POWER_FROM` only its power of ten on the chart. */
+const MANY_TIMES = 1000;
+const POWER_FROM = 1e18;
+const SUPERSCRIPT = "⁰¹²³⁴⁵⁶⁷⁸⁹";
+
+/** "×2.3", "×12.4", "×0.95" ("×2,3" in Spanish); "×12,346", "×3,660 trillion"; past 10¹⁸, "≈×10⁴⁵", short enough for the chart. */
 export function formatMultiple(multiple: number, { f }: I18n): string {
-  return `×${f.fixed(multiple, multiple < 1 ? 2 : 1)}`;
+  if (multiple >= POWER_FROM) return `≈×10${[...String(Math.round(Math.log10(multiple)))].map((digit) => SUPERSCRIPT[Number(digit)]).join("")}`;
+  return multiple >= MANY_TIMES ? `×${f.count(multiple)}` : `×${f.fixed(multiple, multiple < 1 ? 2 : 1)}`;
 }
 
 /** "+129%", "-5%", "+0.4%", "0%". */
@@ -39,7 +45,8 @@ export function formatShare(share: number, { f }: I18n): string {
 /** "×2.3 what you put in": what the money became, without a percent; `null` with nothing put in. */
 export function timesPutInText(point: Pick<YearPoint, "total" | "putIn">, i18n: I18n): string | null {
   const multiple = multipleOf(point);
-  return multiple === null ? null : i18n.m.result.timesPutIn(formatMultiple(multiple, i18n));
+  if (multiple === null) return null;
+  return multiple >= MANY_TIMES ? i18n.m.result.timesPutInMany(i18n.f.count(multiple)) : i18n.m.result.timesPutIn(formatMultiple(multiple, i18n));
 }
 
 /** A year of the chart under the finger or the mouse: "2036: €48,200". */

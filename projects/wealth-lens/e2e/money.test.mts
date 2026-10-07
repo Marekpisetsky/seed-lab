@@ -618,3 +618,84 @@ describe("With this you could", () => {
     }
   });
 });
+
+describe("Check your plan", () => {
+  it("shows what stands out in a short or a savings plan, with its euros, and links to how it is worked out", async () => {
+    for (const lang of ["en", "es"] as const) {
+      const words = lang === "en" ? { title: "Check your plan", how: "How it is worked out", years: "For how many years?" } : { title: "Chequeo de tu plan", how: "Cómo se calcula", years: "¿Durante cuántos años?" };
+      const page = await open(lang, 1366);
+      await firstResult(page, lang);
+      // 20 years in the starting 5 %: nothing stands out, no section.
+      assert.equal(await page.getByRole("heading", { name: words.title }).count(), 0);
+      // 3 years: some futures end below what was put in.
+      const years = page.getByLabel(words.years, { exact: true }).first();
+      await years.fill("3");
+      await years.press("Enter");
+      const section = page.getByRole("region", { name: words.title });
+      await section.waitFor();
+      const text = await section.innerText();
+      assert.match(text, /€/);
+      assert.match(text, lang === "en" ? /\d+ of 100 possible futures end below it\./ : /\d+ de cada 100 futuros posibles acaban por debajo\./);
+      await section.getByRole("link", { name: words.how }).first().click();
+      await page.waitForURL(/how-it-works#check$/);
+      assert.ok(await page.locator("#check").isVisible());
+      await page.close();
+    }
+  });
+});
+
+describe("growth from −50% to 500% a year", () => {
+  it("takes 500%, warns plainly with the euros, and keeps huge figures within a phone's width", async () => {
+    for (const lang of ["en", "es"] as const) {
+      const t = WORDS[lang];
+      const page = await open(lang, 360);
+      await page.getByLabel(t.have, { exact: true }).fill("1100");
+      await page.getByLabel(t.monthly, { exact: true }).fill("100");
+      const growth = page.getByLabel(t.growth, { exact: true });
+      // 501% is past the technical limit: marked, never applied.
+      await growth.fill("501");
+      assert.equal(await growth.getAttribute("aria-invalid"), "true");
+      await growth.fill("500");
+      assert.equal(await growth.getAttribute("aria-invalid"), null);
+      await growth.press("Tab");
+      const warning = page.locator(`[id="${await growth.getAttribute("id")}-about"]`);
+      await page.waitForFunction((id) => /10/.test(document.getElementById(`${id}-about`)?.textContent ?? ""), await growth.getAttribute("id"));
+      const said = (await warning.innerText()).replace(/ /g, " ");
+      assert.match(
+        said,
+        lang === "en"
+          ? /^No index or large company has kept this up: 500% on average for 20 years\. At that pace, your €1,100 would be €4\.02 × 10¹⁸\.$/
+          : /^Ningún índice ni gran empresa ha mantenido esto: un 500 % de media durante 20 años\. A ese ritmo, tus 1100 € serían 4,02 × 10¹⁸ €\.$/,
+      );
+      await page.getByRole("button", { name: t.see }).click();
+      await page.locator(`section[aria-label="${t.result}"]`).waitFor();
+      await page.waitForLoadState("networkidle");
+      assert.match(await bigNumber(page), /×\s10/);
+      const cut = await page.evaluate(() => {
+        const width = window.innerWidth;
+        const found: string[] = [];
+        if (document.documentElement.scrollWidth > width + 1) found.push(`page ${document.documentElement.scrollWidth}`);
+        for (const element of document.querySelectorAll<HTMLElement>("#result-total, section[aria-label] li, [role=group] button")) {
+          const box = element.getBoundingClientRect();
+          if (box.width > 0 && (box.right > width + 1 || element.scrollWidth > element.clientWidth + 1)) found.push(element.innerText.slice(0, 40));
+        }
+        return found;
+      });
+      assert.deepEqual(cut, [], `${lang}: nothing cut or beyond the screen`);
+      await page.close();
+    }
+  });
+
+  it("says a loss as one: −50% a year is losing 50%", async () => {
+    const page = await open("en", 1366);
+    await page.getByLabel(WORDS.en.have, { exact: true }).fill("1100");
+    await page.getByLabel(WORDS.en.monthly, { exact: true }).fill("100");
+    const growth = page.getByLabel(WORDS.en.growth, { exact: true });
+    await growth.fill("-50");
+    await growth.press("Tab");
+    await page.getByRole("button", { name: WORDS.en.see }).click();
+    await page.locator(`section[aria-label="${WORDS.en.result}"]`).waitFor();
+    assert.match(await page.locator(`section[aria-label="${WORDS.en.result}"]`).innerText(), /losing 50% a year/);
+    await page.close();
+  });
+});

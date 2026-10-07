@@ -1,9 +1,10 @@
 import { readFileSync } from "node:fs";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "@/components/i18n";
 import { calculationFor } from "@/hooks/use-calculation";
+import { loadCalculation } from "@/hooks/use-lazy-calculation";
 import { getI18n, type I18n } from "@/i18n";
 import { countryName } from "@/i18n/countries";
 import type { Locale } from "@/i18n/locales";
@@ -246,6 +247,21 @@ describe.each(["en", "es"] as const)("the result in levels (%s)", (locale) => {
     expect(line).toMatch(/<option value="NL" selected="">/);
   });
 
+  it("checks the plan only when something stands out: savings for 30 years, with its euros and how it is worked out", () => {
+    // The example plan: nothing stands out, no section.
+    expect(text(html)).not.toContain(m.check.title);
+    const saving: AppState = { ...filled, plan: { ...filled.plan, investment: { kind: "asset", asset: "savings" }, years: 30 } };
+    const page = decode(render(locale, saving, createElement(Results, { bundle: calculationFor(saving, today) })));
+    const titles = [...page.matchAll(/<h2 id="[^"]+" class="text-lg font-bold">([^<]*)<\/h2>/g)].map((match) => match[1]);
+    // After "What if…?", before My goals.
+    expect(titles.slice(0, 3)).toEqual([m.whatIf.title, m.check.title, m.goals.title]);
+    const start = page.indexOf(m.check.title);
+    const section = page.slice(start, page.indexOf(`>${m.goals.title}</h2>`, start));
+    expect(text(section)).toContain(m.check.intro);
+    expect(text(section)).toMatch(locale === "en" ? /In 30 years, savings are worth €[\d,]+ of today's money\./ : /En 30 años, el ahorro vale [\d.]+\s€ de hoy\./);
+    expect(section).toContain(`href="${locale === "en" ? "" : "/es"}/how-it-works#check"`);
+  });
+
   it("shows six key figures, two across on a phone and three on a wide screen, each one tappable", () => {
     const grid = html.slice(html.indexOf(`aria-label="${m.facts.label}"`), html.indexOf('role="img"'));
     expect(grid).toContain("grid-cols-2 ");
@@ -386,6 +402,8 @@ describe.each(["en", "es"] as const)("the sentence before the big number (%s)", 
   it("names where the money goes: a chip's index, a mix, or the user's own growth", () => {
     expect(said({ investment: { kind: "asset", asset: "savings" } })).toContain(t.investedIn.asset(m.assets.inSentence.savings));
     expect(said({ investment: { kind: "custom" }, assumptions: { ...EXAMPLE_PLAN.assumptions, growth: 0.06 } })).toContain(t.investedIn.custom(f.rate(0.06)));
+    // A loss is said as one, never "growing −50% a year".
+    expect(said({ investment: { kind: "custom" }, assumptions: { ...EXAMPLE_PLAN.assumptions, growth: -0.5 } })).toContain(t.investedIn.customLoss(f.rate(0.5)));
     expect(said({ investment: { kind: "mix", parts: [{ asset: "world", weight: 60 }, { asset: "bonds", weight: 40 }], rebalance: false } })).toContain(t.investedIn.mix);
   });
 });
@@ -420,8 +438,19 @@ describe.each(["en", "es"] as const)("“See my result”, only the first time (
   });
 });
 
+it("keeps the calculation's code off the first screen: the steps never import it, it comes when wanted", () => {
+  for (const file of ["./money-module.tsx", "./calculator-card.tsx", "./growth-field.tsx"]) {
+    const source = readFileSync(new URL(file, import.meta.url), "utf8");
+    // Types only: a value import would put lib/calculator.ts and all a result needs in the page's first code.
+    expect(source, file).not.toMatch(/^import (?!type)[^;]*from "@\/hooks\/use-calculation"/m);
+    expect(source, file).not.toMatch(/^import (?!type)[^;]*from "@\/lib\/(calculator|plan-check|wishes|warm)"/m);
+  }
+});
+
 describe.each(["en", "es"] as const)("the page after the first result, by its width (%s)", (locale) => {
   const { m, f } = getI18n(locale);
+  // The calculation's code comes once the user starts (hooks/use-lazy-calculation.ts): here, before drawing.
+  beforeAll(() => loadCalculation());
   afterEach(() => firstResult.set(false));
   const page = () => {
     firstResult.set(true);

@@ -9,7 +9,11 @@ import type { I18n } from "@/i18n";
 import { dividendNote, isStartingGrowth } from "@/i18n/investment-text";
 import { SAVINGS_RATE } from "./assets";
 import { periodText, toNominal, type ResolvedInvestment } from "./investment";
-import { BEST_20_YEARS, beyondHistory, closestHistory, type BestRun } from "./realism";
+import { futureValueWithContributions } from "./finance";
+import type { SeriesId } from "./indexes";
+import { MARKET } from "./market-data";
+import type { PricesFile } from "./market-format";
+import { BEST_20_YEARS, beyondHistory, closestHistory, keptRecords, STRONG_GROWTH, type BestRun } from "./realism";
 import type { Plan } from "./types";
 
 /** The growth a year as banks and news quote it, before rising prices: the small line under the chips. */
@@ -41,6 +45,44 @@ export function optionsChanged({ assumptions, investment }: Pick<Plan, "assumpti
 export function realismWarning(investment: Pick<ResolvedInvestment, "realReturn">, { m, f }: I18n, best: BestRun = BEST_20_YEARS): string | null {
   if (!beyondHistory(investment.realReturn, best)) return null;
   return m.growth.veryRare(best.to - best.from + 1, f.rate(best.growth));
+}
+
+/**
+ * Over 50 % a year, step 3's warning, stronger and in euros: "No index or
+ * large company has kept this up: 70% on average for 20 years. At that
+ * pace, your €1,100 would be €44,706,545." When an index or a company of
+ * the data did keep it, it is named instead, with its years
+ * (lib/realism.ts keptRecords). The euros are today's money grown at the
+ * typed rate for the plan's years, so the sum can be checked; without
+ * money today, the monthly amount; without either, the first sentence
+ * only. `null` up to 50 %.
+ */
+export function strongGrowthWarning(
+  realReturn: number,
+  plan: { years: number; invested: number; monthly: number },
+  { m, f }: I18n,
+  market: PricesFile = MARKET,
+): string | null {
+  if (!(realReturn > STRONG_GROWTH)) return null;
+  const t = m.growth.strong;
+  const rate = f.rate(realReturn);
+  const span = m.units.years(plan.years);
+  const kept = keptRecords(plan.years, market).filter((record) => record.growth >= realReturn);
+  const top = kept[0];
+  let first = t.none(rate, span);
+  if (top) {
+    const name = top.kind === "index" ? m.assets.inSentence[top.id as SeriesId] : top.id;
+    const period = top.from === top.to ? String(top.from) : `${top.from}–${top.to}`;
+    const one = kept.length === 1;
+    first = top.years < plan.years ? (one ? t.onlyFewer : t.fewFewer)(rate, span, name, m.units.years(top.years), period) : (one ? t.only : t.few)(rate, span, name, period);
+  }
+  const second =
+    plan.invested > 0
+      ? t.yours(f.eur(plan.invested), f.eur(plan.invested * (1 + realReturn) ** plan.years))
+      : plan.monthly > 0
+        ? t.yoursMonthly(f.eur(plan.monthly), f.eur(futureValueWithContributions(0, plan.monthly, realReturn, plan.years)))
+        : null;
+  return second ? `${first} ${second}` : first;
 }
 
 /**

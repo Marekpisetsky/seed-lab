@@ -120,6 +120,16 @@ export const en = {
         ],
       },
       {
+        heading: "Check your plan",
+        id: "check",
+        body: [
+          "Under the result, up to three observations, only when they apply. Each has its euros. They say what is, never what to do.",
+          "Few years: your plan's years, or a goal, under 5 years away, and money that goes up and down. It counts how many of the 1,000 possible futures end below what you put in by then. It shows from 1 in 10. [The method](research:wealth-lens/chequeo.md#horizonte-frente-a-riesgo).",
+          "One stock: one company over a fifth of your mix or of My portfolio, index funds aside. It gives its euros and its worst fall from a peak, on your money. [The method](research:wealth-lens/chequeo.md#concentración).",
+          "Savings for 10 years or more: what the account keeps in today's money, against what you put in. And against world stocks, with the same amounts: what it gives up, and their worst fall. That fall comes from yearly data: within a year it may have been deeper. [The method](research:wealth-lens/chequeo.md#ahorro-a-largo-plazo).",
+        ],
+      },
+      {
         heading: "Countries",
         body: [
           `The table has ${facts.countries} countries. For ${facts.detailed}, the monthly cost for one person comes from Numbeo (without rent) and Wise (rent of a 1-bedroom outside the centre).`,
@@ -663,6 +673,18 @@ export const en = {
     /** What a screen reader says for an example: "S&P 500, 7.5%". */
     example: (name: string, rate: string) => `${name}, ${rate}`,
     veryRare: (years: number, best: string) => `Very rare: the best ${years} years in the data gave ${best}.`,
+    /** Over 50 % a year (lib/assumptions.ts strongGrowthWarning). */
+    strong: {
+      none: (rate: string, span: string) => `No index or large company has kept this up: ${rate} on average for ${span}.`,
+      only: (rate: string, span: string, name: string, period: string) => `${rate} on average for ${span}: only ${name} has done it (${period}).`,
+      onlyFewer: (rate: string, span: string, name: string, fewer: string, period: string) =>
+        `${rate} on average for ${span}: only ${name} did, and only for ${fewer} (${period}).`,
+      few: (rate: string, span: string, name: string, period: string) => `${rate} on average for ${span}: very few have done it, like ${name} (${period}).`,
+      fewFewer: (rate: string, span: string, name: string, fewer: string, period: string) =>
+        `${rate} on average for ${span}: very few did, and only for ${fewer}, like ${name} (${period}).`,
+      yours: (amount: string, total: string) => `At that pace, your ${amount} would be ${total}.`,
+      yoursMonthly: (monthly: string, total: string) => `At that pace, your ${monthly} a month would be ${total}.`,
+    },
   },
   more: {
     title: "More options",
@@ -677,7 +699,6 @@ export const en = {
     more: "See more",
     less: "See less",
     knowSummary: "What could go wrong, and what helps most",
-    concentration: (share: string, amount: string) => `One stock is ${share} of your mix (${amount}): see the bad cases`,
     loading: "Loading…",
   },
   picker: {
@@ -810,6 +831,7 @@ export const en = {
       mix: "in your mix",
       portfolio: "in your portfolio",
       custom: (rate: string) => `at ${rate} a year`,
+      customLoss: (rate: string) => `losing ${rate} a year`,
     },
     announce: (years: string, total: string, grows: string) => `In ${years} you'll have ${total}. ${grows}.`,
     announceWhatIf: (label: string) => ` What if: ${label}.`,
@@ -819,6 +841,8 @@ export const en = {
     staysSame: "Stays about the same every year",
     /** "×2.3 what you put in": what the money became, at the end of the chart's curve. */
     timesPutIn: (multiple: string) => `${multiple} what you put in`,
+    /** "12,346 times what you put in": a thousand times or more. */
+    timesPutInMany: (count: string) => `${count} times what you put in`,
     perMonth: (amount: string) => `${amount}/month`,
     underOne: "under €1",
     takenOut: "Taken out each year",
@@ -1098,6 +1122,44 @@ export const en = {
       "study-year": { name: "A year at university", about: (country: string) => `12 months of living costs with rent in ${country}, and a year's university fees` },
     } as Record<string, ItemWords>,
   },
+  check: {
+    title: "Check your plan",
+    intro: "What stands out in your plan, with its euros. What to do is up to you.",
+    how: "How it is worked out",
+    /** "34 of 100": how many possible futures, as a count. */
+    count: (count: number) => `${count} of 100`,
+    horizon: {
+      plan: (putIn: string, years: string) => `You put in ${putIn} over ${years}.`,
+      goal: (name: string, years: string, putIn: string) => `${name} comes in ${years}. By then you put in ${putIn}.`,
+      below: (count: string) => `${count} possible futures end below it.`,
+      bad: (amount: string) => `In the worst 1 in 10, ${amount} or more below.`,
+      why: "In a few years, a fall may not come back.",
+    },
+    concentration: {
+      mix: (name: string, percent: string, amount: string) => `${name} is ${percent} of your mix: ${amount}.`,
+      mixAtEnd: (name: string, percent: string, amount: string) => `${name} is ${percent} of your mix: ${amount} at the end.`,
+      portfolio: (name: string, percent: string, amount: string) => `${name} is ${percent} of your portfolio: ${amount}.`,
+      /** "A fall like its worst since 2016 (−48%) = −€2,400 of your €5,000." */
+      fall: (year: string, fall: string, amount: string, base: string) => `A fall like its worst since ${year} (${fall}) = ${amount} of your ${base}.`,
+      lastYear: (change: string, from: string, to: string) => `Last 12 months: ${change}, from ${from} to ${to}.`,
+      growsLike: (reference: string) => `It grows like ${reference} here, with its own ups and downs.`,
+      oneCompany: "One company can fall much further than an index.",
+      euros: "Only holdings in euros are counted.",
+    },
+    savings: {
+      keeps: (years: string, total: string) => `In ${years}, savings are worth ${total} of today's money.`,
+      less: (amount: string) => `That is ${amount} less than you put in.`,
+      more: (amount: string) => `That is ${amount} more than you put in.`,
+      why: "Prices rise faster than a savings account's interest.",
+      world: (period: string, typical: string) => `World stocks (${period}) typically give ${typical}.`,
+      savingsLess: (less: string) => `With savings you would end with ${less} less than with world stocks.`,
+      /** "At least": the data is yearly; within a year the fall may have been deeper. */
+      stocksFall: (when: string, fall: string, amount: string) => `But stocks can fall: ${when} they fell at least ${fall} (${amount}).`,
+      fallBetween: (from: number, to: number) => `from ${from} to ${to}`,
+      fallIn: (year: number) => `in ${year}`,
+      worldBad: (bad: string) => `They go up and down: 1 in 10 futures end under ${bad}.`,
+    },
+  },
   wishes: {
     title: "With this you could:",
     /** What a screen reader says for a wish: "A trip to Japan, in 2 years: ≈ €2,330. Add to My goals." */
@@ -1143,14 +1205,6 @@ export const en = {
       cheap: (amount: string, year: number) => `At 0.2% a year: ${amount} by ${year}.`,
       dear: (amount: string) => `At 1% a year: ${amount}.`,
       assumption: "These returns are before fund costs. Index funds cost about 0.1–0.3% a year: €1 to €3 per €1,000.",
-    },
-    concentration: {
-      text: (percent: string, ticker: string, value: string) => `${ticker} alone is ${percent} of your portfolio: ${value}.`,
-      share: (ticker: string, value: string, total: string) => `${ticker}: ${value} of ${total} in euros.`,
-      lastYear: (change: string, amount: string) => `Last 12 months: ${change} (${amount}).`,
-      worstFall: (year: string, fall: string, amount: string) => `Worst fall from a peak since ${year}: ${fall}, ${amount} on what you hold.`,
-      growsLike: (reference: string, own: boolean) => `In My portfolio it grows like ${reference}${own ? ", with its own ups and downs" : ""}. One company can fall much further than an index.`,
-      assumption: "Only holdings in euros are counted.",
     },
     currency: {
       one: (money: string, currency: string) => `Your ${money} in ${currency} is not counted. No currency conversion.`,

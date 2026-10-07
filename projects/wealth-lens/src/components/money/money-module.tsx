@@ -4,8 +4,12 @@ import { CalendarRange, Pencil, ShieldCheck, UserX } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n";
-import { useCalculation, type CalculationBundle } from "@/hooks/use-calculation";
+import { useAppState } from "@/hooks/use-app";
+import type { CalculationBundle } from "@/hooks/use-calculation";
+import { useLazyCalculation } from "@/hooks/use-lazy-calculation";
+import { priceHoldings } from "@/lib/auto-price";
 import { COMMON_PERIOD } from "@/lib/indexes";
+import { planReady } from "@/lib/plan";
 import { CalculatorCard, MoreOptionsLink } from "./calculator-card";
 import { firstResult, TOTAL_ID, useFirstResultAsked } from "./first-result";
 import { measure, play, type FlipSnapshot } from "./flip";
@@ -93,8 +97,11 @@ function PlanBar({ bundle, sheet, onEdit, button }: { bundle: CalculationBundle;
  */
 export function MoneyModule({ header }: { header?: React.ReactNode }) {
   const { m } = useI18n();
-  const bundle = useCalculation();
+  const { plan, holdings, uploadedPrices } = useAppState();
+  // Both amounts in: there is a result to show. Worked out without the calculation's code, which comes when wanted.
+  const ready = planReady(plan, priceHoldings(holdings, uploadedPrices));
   const asked = useFirstResultAsked();
+  const bundle = useLazyCalculation(ready || asked);
   const [arriving, setArriving] = useState(false);
   const [editing, setEditing] = useState(false);
   const arrived = useCallback(() => setArriving(false), []);
@@ -104,8 +111,8 @@ export function MoneyModule({ header }: { header?: React.ReactNode }) {
   const top = useRef<HTMLDivElement>(null);
   const editButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    if (bundle.ready) preloadResults();
-  }, [bundle.ready]);
+    if (ready) preloadResults();
+  }, [ready]);
   // "See my result": where everything is now, then the change; it glides from there once React has drawn it (flip.ts).
   const before = useRef<FlipSnapshot | null>(null);
   const see = () => {
@@ -141,7 +148,7 @@ export function MoneyModule({ header }: { header?: React.ReactNode }) {
     setEditing(false);
     requestAnimationFrame(() => editButton.current?.focus());
   };
-  const shown = asked && bundle.ready;
+  const shown = asked && bundle !== null && bundle.ready;
   const sheetOpen = asked && editing;
 
   return (
@@ -159,7 +166,7 @@ export function MoneyModule({ header }: { header?: React.ReactNode }) {
           <div className="min-w-0 space-y-6">
             {shown ? (
               <Results bundle={bundle} arrive={arriving} onArrived={arrived} />
-            ) : (
+            ) : ready ? null : (
               <>
                 {/* After a first result, an amount taken away: the line says what is missing. */}
                 <p role="status" className="text-base text-muted">
@@ -212,7 +219,7 @@ export function MoneyModule({ header }: { header?: React.ReactNode }) {
           )}
         </div>
         {!asked && <TrustPoints />}
-        {asked && !editing && <PlanBar bundle={bundle} sheet={sheet} onEdit={openSheet} button={editButton} />}
+        {asked && !editing && bundle && <PlanBar bundle={bundle} sheet={sheet} onEdit={openSheet} button={editButton} />}
       </div>
     </div>
   );

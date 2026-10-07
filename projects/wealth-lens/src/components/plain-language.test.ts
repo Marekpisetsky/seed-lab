@@ -282,6 +282,7 @@ describe("no percentage without its euros, in the result", () => {
     { name: "the Nasdaq-100, price only, grows 1 % more", plan: plan({ investment: { kind: "asset", asset: "nasdaq100" } }), whatIf: "grow-more" },
     { name: "gold, nothing today", plan: plan({ investment: { kind: "asset", asset: "gold" }, invested: 0 }) },
     { name: "a savings account", plan: plan({ investment: { kind: "asset", asset: "savings" } }) },
+    { name: "the S&P 500 for 3 years", plan: plan({ investment: { kind: "asset", asset: "sp500" }, years: 3 }) },
     { name: "my own growth and ups and downs", plan: plan({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.06, volatility: 0.25 } }) },
     {
       name: "a mix with one stock over a fifth",
@@ -317,6 +318,8 @@ describe("no percentage without its euros, in the result", () => {
       (finding) => [`${finding.value} ${finding.text}`, ...finding.calculation, ...finding.assumptions],
     );
     const blocks = [...textBlocks(html), ...findings];
+    // Check your plan, whenever it shows: every line with its euros too.
+    if (bundle.checks.length > 0) expect(html).toContain(i18n.m.check.title);
     expect(blocks.some((block) => /%/.test(block))).toBe(true);
     expect(percentWithoutMoney(blocks)).toEqual([]);
   });

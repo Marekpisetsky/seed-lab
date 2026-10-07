@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EN } from "@/i18n";
+import { EN, getI18n } from "@/i18n";
 import { calculate, yearlyPath, type CalculatorPlan } from "./calculator";
 import { parseIsoDate } from "./dates";
 import { formatMultiple, formatShare, gainedShareOf, growsText, multipleOf, timesPutInText, yearTooltip } from "./growth";
@@ -31,6 +31,15 @@ describe("the growth line under the result", () => {
 
   it("has nothing to say with nothing put in", () => {
     expect(timesPutInText({ total: 0, putIn: 0 }, EN)).toBeNull();
+    // 500% a year for 20 years: whole figures, then words, never twenty digits.
+    expect(formatMultiple(12_345.67, EN)).toBe("×12,346");
+    expect(formatMultiple(3.656e15, EN)).toBe("×3,660\u00a0trillion");
+    expect(formatMultiple(3.656e15, getI18n("es"))).toBe("×3660\u00a0billones");
+    // Past 10¹⁸ the short label on the chart gives the power of ten only; the note says it in full, as times.
+    expect(formatMultiple(1.15e45, EN)).toBe("≈×10⁴⁵");
+    expect(timesPutInText({ total: 1.15e45 * 1000, putIn: 1000 }, EN)).toBe("1.15\u00a0×\u00a010⁴⁵ times what you put in");
+    expect(timesPutInText({ total: 12_345_600, putIn: 1000 }, getI18n("es"))).toBe("12.346 veces lo que pones");
+    expect(timesPutInText({ total: 999_000, putIn: 1000 }, EN)).toBe("×999.0 what you put in");
     expect(multipleOf({ total: 0, putIn: 0 })).toBeNull();
   });
 

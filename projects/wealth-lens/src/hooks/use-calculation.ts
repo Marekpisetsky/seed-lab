@@ -6,11 +6,12 @@ import { priceHoldings } from "@/lib/auto-price";
 import { calculate, type Calculation } from "@/lib/calculator";
 import { toIsoDate } from "@/lib/dates";
 import { planReady } from "@/lib/plan";
+import { planChecks, type PlanCheck } from "@/lib/plan-check";
 import { successRatesFor } from "@/lib/projections";
 import type { Holding } from "@/lib/types";
 import { wishCountryStore } from "@/lib/wish-country";
 import { wishesFor, type Wish } from "@/lib/wishes";
-import { WITHDRAWAL_STEPS } from "@/lib/withdrawal";
+import { offeredRates } from "@/lib/withdrawal";
 import { useAppState } from "./use-app";
 import { useToday } from "./use-plan";
 
@@ -30,14 +31,13 @@ export interface CalculationBundle {
   wishCountry: string;
   /** "With this you could": two or three wishes, with what the page shows (lib/wishes.ts). */
   wishes: Wish[];
+  /** "Check your plan": what stands out in the plan as it is, without a "What if…?" (lib/plan-check.ts). */
+  checks: PlanCheck[];
 }
 
 let last: { state: AppState; day: string; wishCountry: string; bundle: CalculationBundle } | null = null;
 
-/** The rates the slider offers, 2 % to 7 % (the plan's own is always one of them: lib/validation.ts). */
-export function offeredRates(withdrawalRate: number): number[] {
-  return [...new Set([...WITHDRAWAL_STEPS, withdrawalRate])].sort((a, b) => a - b);
-}
+export { offeredRates, wishCountryStore };
 
 /**
  * Everything the page shows, worked out once per change of the shared state
@@ -53,7 +53,10 @@ export function calculationFor(state: AppState, today: Date, wishCountry: string
   const calc = state.whatIf ? calculate(state.plan, holdings, today, state.whatIf, wishCountry) : base;
   const rates = offeredRates(state.plan.withdrawalRate);
   const wishes = wishesFor(calc.scenario, calc.result.years, calc.goals, wishCountry);
-  const bundle = { state, today, holdings, ready: planReady(state.plan, holdings), calc, base, rates, wishCountry, wishes };
+  const ready = planReady(state.plan, holdings);
+  // Simulated futures only once there is a result to show.
+  const checks = ready ? planChecks(base, state.plan, holdings) : [];
+  const bundle = { state, today, holdings, ready, calc, base, rates, wishCountry, wishes, checks };
   try {
     performance.measure("wealth-lens:report", { start, end: performance.now() });
   } catch {

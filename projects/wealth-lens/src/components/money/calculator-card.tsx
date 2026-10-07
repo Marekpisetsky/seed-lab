@@ -7,7 +7,7 @@ import { useI18n } from "@/components/i18n";
 import { Changed } from "@/components/ui/changed";
 import { SettledNumberInput } from "@/components/ui/form";
 import { useAppState } from "@/hooks/use-app";
-import { offeredRates } from "@/hooks/use-calculation";
+import { loadCalculation } from "@/hooks/use-lazy-calculation";
 import { appStore, updatePlan } from "@/lib/app-store";
 import { optionsChanged } from "@/lib/assumptions";
 import { priceHoldings } from "@/lib/auto-price";
@@ -15,7 +15,7 @@ import { resolveInvestment } from "@/lib/investment";
 import { planReady, startingCapital } from "@/lib/plan";
 import { MONTHLY_STEP, stepValue, YEARS_STEP } from "@/lib/step";
 import { EXAMPLE_AMOUNTS, MAX_AMOUNT, MAX_YEARS_AHEAD, MIN_YEARS } from "@/lib/validation";
-import { warmUp } from "@/lib/warm";
+import { offeredRates } from "@/lib/withdrawal";
 import { GrowthField } from "./growth-field";
 
 /** Mixes, My portfolio, ups and downs and rising prices: loaded when "More options" is opened. */
@@ -108,10 +108,13 @@ export function CalculatorCard({ onSee, compact = false }: { onSee?: () => void;
   const ids = { have: useId(), monthly: useId(), growth: useId(), years: useId(), see: useId() };
   const seeButton = useRef<HTMLButtonElement>(null);
   const ready = planReady(plan, priced);
-  // Once the user starts using the page, idle moments work out ahead what the next choice will need
-  // (not before: a page only looked at does no extra work).
+  // Once the user starts using the page, the calculation's code comes, and idle moments work out ahead
+  // what the next choice will need (not before: a page only looked at loads and does no extra work).
   useEffect(() => {
-    const start = () => warmUp(offeredRates(plan.withdrawalRate));
+    const start = () => {
+      void loadCalculation();
+      void import("@/lib/warm").then(({ warmUp }) => warmUp(offeredRates(plan.withdrawalRate)));
+    };
     const events = ["pointerdown", "keydown", "focusin"] as const;
     events.forEach((name) => window.addEventListener(name, start, { once: true, passive: true }));
     return () => events.forEach((name) => window.removeEventListener(name, start));

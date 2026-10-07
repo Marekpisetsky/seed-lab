@@ -86,7 +86,16 @@ década" sustituye los diez primeros años por los de una década real (ver
 - `src/lib/investment.test.ts` (17): de la elección a g, la inflación y las
   conversiones.
 - `src/lib/edge-cases.test.ts`: importes en cero, crecimientos negativos,
-  60 años.
+  60 años, y el crecimiento en −50 %, 0 %, 70 % y 500 % a 1, 20 y 60 años:
+  todo finito, cuentas comprobables (0 %: lo puesto; −50 %: la mitad cada
+  año; 70 % y 500 %: 1,7²⁰ y 6²⁰ veces) y ninguna cifra de más de doce
+  dígitos seguidos.
+- `src/lib/realism.test.ts`: cuándo sale cada aviso, los récords de los
+  datos y su redacción en inglés y en español.
+- `src/lib/validation.test.ts`: un archivo con crecimiento de −50 % a
+  500 % se lee; fuera de ese rango, no.
+- `e2e/money.test.mts`: a 360 px, 500 % se acepta y 501 % no, el aviso
+  con sus euros y nada cortado ni fuera de la pantalla.
 
 ## Límites
 
@@ -99,6 +108,46 @@ década" sustituye los diez primeros años por los de una década real (ver
 - La comparación entre activos usa los mismos años, pero esos años no son
   "neutrales": incluyen la gran subida de los noventa y dos crisis
   bursátiles.
+
+## El crecimiento que escribe la persona
+
+La casilla del paso 3 acepta de **−50 % a 500 % al año**, después de la
+subida de precios (`GROWTH_LIMITS` en `src/lib/validation.ts`; también al
+leer un archivo). Es el número de la persona: la app no lo corrige, pero
+dice lo que los datos han visto.
+
+- **500 % es un límite técnico, no un juicio.** Con 500 % durante 60 años
+  las cifras llegan a unos 10⁴⁷ €, muy lejos de lo que guarda un número del
+  navegador (unos 10³⁰⁸), también en los futuros más altos. Por encima,
+  nada se rompería enseguida, pero tampoco tendría sentido mostrarlo.
+- **Las cifras enormes** se escriben en palabras desde mil millones, con
+  tres cifras ("€1.23 billion", "1230 millones de euros", "4,4 billones de
+  euros", como la prensa española), y como potencia de diez desde 10¹⁸
+  ("€4.02 × 10¹⁸"), en `packages/seed-kit/src/format.ts`. En el móvil, el
+  número grande, las tarjetas y "¿Y si…?" se hacen un tamaño más pequeños o
+  pasan a una columna para que nada se corte.
+- **Más del mejor tramo de 20 años de los datos** (13 %, S&P 500
+  1980–1999): "Muy raro: los mejores 20 años de los datos dieron un 13 %."
+- **Más del 50 %** (`strongGrowthWarning` en `src/lib/assumptions.ts`): un
+  aviso más fuerte, entero y con euros: "Ningún índice ni gran empresa ha
+  mantenido esto: un 70 % de media durante 20 años. A ese ritmo, tus
+  1100 € serían 44.706.545 €." Los euros son el dinero de hoy crecido a ese
+  ritmo durante los años del plan (1100 × 1,7²⁰), en euros de hoy, para que
+  la cuenta se pueda hacer a mano; sin dinero hoy, la aportación mensual.
+
+**Nunca una afirmación que los datos desmientan.** La primera frase se
+comprueba con los datos de la app (`keptRecords` en `src/lib/realism.ts`):
+la mejor media de cada índice (sus años reales, después de la subida de
+precios) y de cada gran empresa de los precios guardados (sus años de
+calendario o, si el plan es más largo, su crecimiento desde 2016, antes de
+la subida de precios, que lo sobrestima un poco) sobre los años del plan, o
+sobre todos sus datos si tiene menos. Si alguna lo superó, el aviso la
+nombra: Nvidia subió un 64 % al año de 2016 a 2026, así que con un 60 % a
+20 años dice "solo NVDA lo logró, y solo durante 10 años (2016–2026)", y a
+3 años "muy pocos lo han logrado, como TSLA (2019–2021)". La frase de la
+petición ("Ningún índice ni gran empresa ha mantenido X % de media durante
+N años") tiene 13 palabras; se reordenó para cumplir las 12 por frase del
+test de lenguaje sencillo, con las mismas palabras.
 
 ## Lo discutible
 
@@ -142,3 +191,7 @@ década" sustituye los diez primeros años por los de una década real (ver
 - 2026-10-03: primera ficha (sin cambios en el cálculo).
 - 2026-10-07: "Subida de precios en" en lugar de "Precios de" para el
   país de la inflación. Sin cambios en el cálculo.
+- 2026-10-07 (2): el crecimiento del paso 3 va de −50 % a 500 % (antes,
+  hasta 50 %), con un aviso más fuerte y en euros por encima del 50 %, y
+  las cifras enormes en palabras o potencias de diez. Sin cambios en el
+  cálculo.

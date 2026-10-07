@@ -26,10 +26,10 @@ tabla de *Principles* del hub, `packages/seed-kit/src/tools.json`):
 | Your data never leaves your device | Cumple | Todo se calcula en el navegador; nada se guarda ni se envía. |
 | Transparent | En parte | Gratis, con método y fuentes públicos; los cambios del método aún no se publican. |
 | Truly European | Pendiente | EN y ES, pero alojada en Vercel (EE. UU.) y sin auditoría de accesibilidad hecha por personas. |
-| Light | Cumple | De 214 a 240 KB por página en la primera visita, por debajo del límite de 350 KB. |
+| Light | Cumple | De 208 a 237 KB por página en la primera visita, por debajo del límite de 350 KB. |
 | For everyone | En parte | Palabras sencillas, teclado y objetivos de 44 px; aún sin pruebas con personas reales. |
 
-**Estado actual (2026-10-05):** dos pantallas (Next.js 16 + TypeScript +
+**Estado actual (2026-10-07):** dos pantallas (Next.js 16 + TypeScript +
 Tailwind 4), exportadas como sitio estático. La principal empieza con
 **cuatro pasos numerados**, con los importes vacíos y el crecimiento en
 5 %; el resultado llega al pulsar *See my result* (solo la primera vez),
@@ -38,7 +38,7 @@ opcionales. El móvil es el diseño principal. La app no
 supone nada sobre la vida del usuario: no pregunta país, ni si alquila o
 es propietario, ni qué quiere hacer con su dinero. Nada se guarda ni se
 envía, y la app no llama a ningún servicio mientras se usa. La lógica
-vive en funciones puras con 790 tests unitarios (Vitest). El uso real
+vive en funciones puras con 841 tests unitarios (Vitest). El uso real
 sostenido (la condición del peldaño 1 de seed-lab) todavía no está
 demostrado. Solo se proyecta lo que tiene una
 historia larga y un rango conocido; nada se presenta como predecible, y
@@ -85,10 +85,17 @@ idiomas y con planes de todo tipo (`percentWithoutMoney` de seed-kit).
      **Examples:** *S&P 500 7.5%*, *World 4.5%*, *60/40*, *Bonds* y
      *Savings*, enlaces que rellenan la casilla y marcan cuál coincide. La
      cifra de un ejemplo usa sus propios años pasados; cualquier otra es
-     Custom growth, que sube y baja como las acciones del mundo. Si supera
-     el mejor promedio de 20 años seguidos de los datos (13 %), la línea
-     avisa en su mismo sitio y tamaño: "Very rare: the best 20 years in
-     the data gave 13%." **More options**, cargado al abrirlo: cualquier
+     Custom growth, que sube y baja como las acciones del mundo. Acepta de
+     −50 % a 500 % al año (500 % es un límite técnico). Si supera el mejor
+     promedio de 20 años seguidos de los datos (13 %), la línea avisa en su
+     mismo sitio y tamaño: "Very rare: the best 20 years in the data gave
+     13%." Por encima del 50 %, un aviso entero y con euros: "No index or
+     large company has kept this up: 70% on average for 20 years. At that
+     pace, your €1,100 would be €44,706,545.", o, si una empresa de los
+     datos lo logró, cuál y cuántos años (ficha de
+     [crecimiento](../../research/wealth-lens/crecimiento.md)). Las cifras
+     enormes van en palabras ("€1.23 billion", "1230 millones de euros") o
+     como potencia de diez ("€4.02 × 10¹⁸"). **More options**, cargado al abrirlo: cualquier
      otra inversión (Nasdaq-100, oro, "A mix…", My portfolio), *How much it
      can go up or down in a normal year*, *Rising prices in* y *Prices rise
      per year*, con *Reset to standard* (que deja el número del paso 3).
@@ -142,6 +149,16 @@ idiomas y con planes de todo tipo (`percentWithoutMoney` de seed-kit).
          Cada uno con lo que cambia en euros; tocar uno lo aplica a toda la
          pantalla, con "What if: 5 more years (+€87,000) ×" junto al total
          para quitarlo. No se guarda en el archivo.
+       - **Check your plan** / **Chequeo de tu plan**, solo si algo
+         destaca (`src/lib/plan-check.ts`): de 0 a 3 observaciones, cada
+         una con sus euros y un enlace a *How it works*: pocos años (menos
+         de 5, o una meta a menos de 5) con dinero que sube y baja, cuántos
+         de los 1000 futuros acaban por debajo de lo puesto (desde 1 de
+         cada 10); una acción con más del 20 % de la mezcla o de *Mi
+         cartera*, con sus euros y su peor caída sobre ellos; y Ahorro
+         durante 10 años o más, lo que vale frente a lo puesto y frente a
+         las acciones del mundo. Informa, nunca aconseja; método en
+         [research/wealth-lens/chequeo.md](../../research/wealth-lens/chequeo.md).
        - **My stocks today**, solo si hay acciones: lo que valen hoy, el
          cambio de los últimos 12 meses en euros y % (con signo y flecha),
          su línea pequeña y el enlace a My stocks.
@@ -158,11 +175,10 @@ idiomas y con planes de todo tipo (`percentWithoutMoney` de seed-kit).
          Cada celda dice cuándo, en dos líneas cortas: "✓ from 2041 / in 15
          years", "in 21 years / (2046)" o "not at this pace"; nunca un ✓
          sin fecha. Buscador, "Show all 172" y un "+" para añadir a My
-         goals; tras *See more*, *Things you could buy* (las 19 compras con
+         goals; tras *See more*, *Things you could buy* (las compras del país de los precios, con
          "now" o "in 2 years (2028)" y su fuente al tocarlas).
        - **Good to know**: una línea ("What could go wrong, and
-         what helps most", o en tono de aviso, con sus euros, si una acción
-         pesa más del 20 % de una mezcla); tras *See more*, la línea de
+         what helps most"); tras *See more*, la línea de
          supuestos con sus euros ("Grows 5% a year after rising prices:
          +€1,109 the first year · can move ±18% in a year: ±€3,564 on
          €20,000"), dónde terminan 8 de cada 10 futuros posibles (en una
@@ -222,7 +238,9 @@ mano desde las cifras publicadas (ver "Retornos").
 
 **Continuidad tras la interrupción (2026-10-05).** El contexto recuperado,
 la cadena de PR #26–#29 y lo pendiente de las fases 5 y 6 están en
-[`docs/continuity-2026-10-04.md`](docs/continuity-2026-10-04.md).
+[`docs/continuity-2026-10-04.md`](docs/continuity-2026-10-04.md). El
+traspaso vigente es siempre el `docs/continuity-AAAA-MM-DD.md` de fecha más
+alta.
 La aportación necesaria para una meta lejana incorpora ahora la década
 mala seleccionada; la vista de futuros distingue esa curva de los futuros
 sin esa década impuesta. Las fichas de Research acompañan las correcciones.
@@ -253,7 +271,8 @@ El PR #17 de migración no forma parte de esta continuación.
   inflación; `null` = estándar) y las metas (una lista, vacía al empezar). `src/lib/calculator.ts` deriva de él todo lo
   que se ve (resultado, metas, tabla de países, compras) y
   `src/hooks/use-calculation.ts` lo calcula una vez por cambio para todas
-  las secciones (medido como `performance.measure("wealth-lens:report")`:
+  las secciones (su código llega al empezar a usar la página:
+  `src/hooks/use-lazy-calculation.ts`) (medido como `performance.measure("wealth-lens:report")`:
   por debajo de 16 ms al escribir, usar − / +, cambiar la inversión o
   tocar un *What if…?*, con los efectos de los cinco incluidos; cargar un
   archivo con cartera tras una sesión larga llegó a 23-34 ms; ver
@@ -475,6 +494,25 @@ El PR #17 de migración no forma parte de esta continuación.
   claro y oscuro. `npm run test:browser` (tras `npm run build`) lo
   comprueba en un navegador real: tamaños iguales en EN y ES, las tres
   disposiciones, el panel inferior, el botón una sola vez y 44 × 44 px.
+  **Primera pantalla sin el cálculo (2026-10-07).** La portada solo
+  pregunta, así que el código del cálculo (`lib/calculator.ts`, la tabla
+  de países, los deseos, el chequeo y lo que necesita un resultado) ya no
+  va con ella: llega al empezar a usar la página (al tocar, enfocar o
+  escribir) o cuando hay un plan que mostrar
+  (`src/hooks/use-lazy-calculation.ts`; un test impide volver a
+  importarlo desde los pasos). Los pasos solo necesitan la inflación de
+  referencia de cada país, que ahora sale de seed-kit
+  `inflation-rates.ts` (3 KB, generado de los datos de coste de vida y
+  comprobado por un test) en lugar de los datos de países enteros; y
+  seed-kit crea sus formatos de fecha y la posición del euro al usarlos.
+  Scripts de la portada: de 226 a 206 KB con gzip; primera visita de `/`
+  de 242,6 a 222,6 KB. Lighthouse móvil, rendimiento, con el equipo en
+  reposo y en series de tres: `/` 98-98-98, 98-98-98, 97-98-96 y
+  98-99-98; `/es` 98-98-98 y 98-99-98. Justo después de otra medición
+  pesada, 94-96. Varía con el momento de la primera pintura: la
+  simulación suma al LCP los scripts que corrieron antes (de 1,0 a 2,6 s).
+  Con el CSS en línea (`experimental.inlineCss`) no mejora (96, 98, 98) y
+  cada página pesa unos 17 KB más. Recálculo, máximo 11 ms.
 - Sin credenciales de bróker ni APIs de pago — respeta la regla de
   costo cero de seed-lab.
 
@@ -1005,6 +1043,7 @@ src/
                                palabras de cada idioma); money/explainers.tsx
                                (los "i" plegados) y plain-language.test.ts (sin jerga)
   hooks/                       use-app (estado), use-calculation (todo por cambio),
+                               use-lazy-calculation (su código, al empezar a usar la página),
                                calculation-details (lo que calculan las secciones
                                y See more, fuera de la primera pantalla), use-plan
   lib/
@@ -1012,6 +1051,9 @@ src/
     calculator.ts       resultado, metas, tabla de países, compras, tope de 60 años
     settle.ts           aplica un número cuando se termina de escribir (500 ms)
     findings.ts         "Good to know": una regla por hallazgo
+    plan-check.ts       "Check your plan": horizonte, concentración y ahorro, con sus euros
+    wishes.ts           "With this you could": la regla de los deseos
+    wish-country.ts     "Prices of": el país de los precios, solo en memoria
     connections.ts      la lista de compras, con fuentes
     simulation.ts       bandas de Monte Carlo y cachés de simulación
     success-table.ts    tasas de éxito del 2 al 7 % precalculadas por activo

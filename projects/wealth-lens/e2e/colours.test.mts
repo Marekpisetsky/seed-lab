@@ -114,7 +114,7 @@ describe("the theme menu", () => {
 });
 
 describe("contrast in both modes", () => {
-  it("keeps every text at WCAG AA: the first screen, the result with its sections open, Test my plan, My stocks and Privacy", async () => {
+  it("keeps every text at WCAG AA: the first screen, the result with its sections open, Check your plan, Test my plan, My stocks and Privacy", async () => {
     for (const theme of THEMES) {
       const page = await open("/", { theme });
       const problems: string[] = [];
@@ -127,6 +127,12 @@ describe("contrast in both modes", () => {
       await page.getByRole("button", { name: /^Could pay you each month/ }).click();
       await page.locator("input[type=range]").waitFor();
       await check("Could pay you");
+      // Check your plan, which shows only when something stands out: a 3-year plan.
+      const years = page.getByLabel("For how many years?", { exact: true }).first();
+      await years.fill("3");
+      await years.press("Enter");
+      await page.getByRole("region", { name: "Check your plan" }).waitFor();
+      await check("Check your plan");
       for (const [path, name] of [
         ["/test", "Test my plan"],
         ["/stocks", "My stocks"],
