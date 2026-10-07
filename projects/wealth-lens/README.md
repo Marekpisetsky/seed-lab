@@ -506,10 +506,13 @@ El PR #17 de migración no forma parte de esta continuación.
   comprobado por un test) en lugar de los datos de países enteros; y
   seed-kit crea sus formatos de fecha y la posición del euro al usarlos.
   Scripts de la portada: de 226 a 206 KB con gzip; primera visita de `/`
-  de 242,6 a 222,6 KB. Lighthouse móvil, rendimiento: `/` 98 en seis
-  pasadas seguidas y `/es` 98 en tres, con el equipo en reposo (justo
-  después de otra medición pesada salió algún 95-96); recálculo, máximo
-  11 ms.
+  de 242,6 a 222,6 KB. Lighthouse móvil, rendimiento, con el equipo en
+  reposo y en series de tres: `/` 98-98-98, 98-98-98, 97-98-96 y
+  98-99-98; `/es` 98-98-98 y 98-99-98. Justo después de otra medición
+  pesada, 94-96. Varía con el momento de la primera pintura: la
+  simulación suma al LCP los scripts que corrieron antes (de 1,0 a 2,6 s).
+  Con el CSS en línea (`experimental.inlineCss`) no mejora (96, 98, 98) y
+  cada página pesa unos 17 KB más. Recálculo, máximo 11 ms.
 - Sin credenciales de bróker ni APIs de pago — respeta la regla de
   costo cero de seed-lab.
 

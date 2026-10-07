@@ -79,10 +79,13 @@ Wealth Lens lint, types, 841 unit tests, clean build (`rm -rf .next out`)
 and 34 browser tests passed; seed-kit 66, hub 34 + 8, Cost Lens 24,
 Inflation Lens 31, Forja 7. Recalculation in the browser, 156 changes
 including typing 500%, 70% and −50%: median 0.7 ms, p95 2.2 ms, max
-11.0 ms. Lighthouse mobile performance, machine at rest: / 98 in six runs
-in a row, /es 98 in three; /how-it-works 98, /es/how-it-works 99; 100 in
-the other three categories. Measured right after another heavy run, / gave
-95 or 96 once; the series at rest is the reference. First-visit weight
+11.0 ms. Lighthouse mobile performance, machine at rest, in series of
+three: / 98-98-98, 98-98-98, 97-98-96 and 98-99-98; /es 98-98-98 and
+98-99-98; /how-it-works 98, /es/how-it-works 99; 100 in the other three
+categories. Right after another heavy run, 94-96. The score moves with when
+the first paint lands: the simulation adds to LCP the scripts that ran
+before it (1.0 to 2.6 s). Inline CSS (experimental.inlineCss) did not help
+(96, 98, 98) and adds about 17 KB a page. First-visit weight
 208–237 KB (/ 222.6 KB, was 242.6). No requests outside the site; no
 cookies or browser storage. Screenshots in docs/screenshots (p5-*, p6-*,
 r3-*).
@@ -100,6 +103,9 @@ r3-*).
   confirm that this comparison reads as information, not advice.
 - The step 3 warning over 50%: the request's sentence reordered to 12
   words, and a company of the data named when it did keep the rate.
+- Lighthouse 97 or more in three runs in a row: met in three of four
+  series at rest here (one gave 97, 98, 96). PageSpeed Insights on the
+  preview could not be reached from this session; worth a run there.
 
 Do not infer desired purchase dates, shared spending deductions, or advice
 from the wishes or the checks.
