@@ -52,7 +52,7 @@ export function calculationFor(state: AppState, today: Date, wishCountry: string
   const base = calculate(state.plan, holdings, today, null, wishCountry);
   const calc = state.whatIf ? calculate(state.plan, holdings, today, state.whatIf, wishCountry) : base;
   const rates = offeredRates(state.plan.withdrawalRate);
-  const wishes = wishesFor(calc.scenario, wishCountry);
+  const wishes = wishesFor(calc.scenario, calc.result.years, calc.goals, wishCountry);
   const bundle = { state, today, holdings, ready: planReady(state.plan, holdings), calc, base, rates, wishCountry, wishes };
   try {
     performance.measure("wealth-lens:report", { start, end: performance.now() });

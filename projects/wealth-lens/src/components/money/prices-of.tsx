@@ -19,13 +19,14 @@ export function PricesOf({ country }: { country: string }) {
     i18n,
   );
   return (
-    <span className="inline-flex items-center gap-1.5 text-sm text-muted">
+    // Wraps under its label when the text is large, never wider than the page.
+    <span className="inline-flex max-w-full flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-muted">
       <label htmlFor={id}>{i18n.m.things.pricesOf}:</label>
       <select
         id={id}
         value={country}
         onChange={(event) => setWishCountry(event.target.value)}
-        className="min-h-11 rounded-md border border-border bg-card px-2 text-sm font-medium text-foreground hover:border-accent"
+        className="min-h-11 min-w-0 max-w-full rounded-md border border-border bg-card px-2 text-sm font-medium text-foreground hover:border-accent"
       >
         {countries.map(({ code }) => (
           <option key={code} value={code}>

@@ -85,6 +85,7 @@
       "id": "wedding",
       "name": "A wedding",
       "icon": "heart",
+      "area": "celebration",
       "prices": {
         "NL": {
           "amount": 23675,
@@ -137,7 +138,7 @@
       "id": "used-car",
       "name": "A used car",
       "icon": "car",
-      "horizon": "medium",
+      "area": "mobility",
       "prices": {
         "NL": {
           "amount": 24326,
@@ -216,7 +217,7 @@
       "id": "new-car",
       "name": "A new car",
       "icon": "car-front",
-      "horizon": "medium",
+      "area": "mobility",
       "prices": {
         "NL": {
           "amount": 50026,
@@ -306,7 +307,7 @@
       "id": "weekend-capital",
       "name": "A weekend in a European capital",
       "icon": "landmark",
-      "horizon": "short",
+      "area": "experiences",
       "amount": 448,
       "estimate": true,
       "calc": { "nights": 2, "eurPerNight": 224 },
@@ -317,7 +318,7 @@
       "id": "month-southeast-asia",
       "name": "A month travelling Southeast Asia",
       "icon": "backpack",
-      "horizon": "short",
+      "area": "experiences",
       "monthsAt": { "countries": ["TH", "VN", "ID", "MY", "PH"], "months": 1 },
       "estimate": true,
       "source": "1 month at the average living cost with rent of Thailand, Vietnam, Indonesia, Malaysia and the Philippines (Numbeo + Wise, via cost-of-living.json), living like a local; the flight is not included.",
@@ -327,7 +328,7 @@
       "id": "trip-japan",
       "name": "A trip to Japan",
       "icon": "plane",
-      "horizon": "short",
+      "area": "experiences",
       "amount": 2330,
       "estimate": true,
       "calc": { "yen": 393710, "yenPerEur": 169.07 },
@@ -338,7 +339,7 @@
       "id": "home-deposit",
       "name": "A 20% deposit on an 80 m² home",
       "icon": "house",
-      "horizon": "medium",
+      "area": "housing",
       "prices": {
         "NL": {
           "amount": 75616,
@@ -426,6 +427,7 @@
       "id": "home",
       "name": "An 80 m² home, fully paid",
       "icon": "house",
+      "area": "housing",
       "prices": {
         "NL": {
           "amount": 378080,
@@ -489,6 +491,7 @@
       "id": "sabbatical",
       "name": "A year off work",
       "icon": "sun",
+      "area": "time",
       "monthsHome": { "months": 12 },
       "source": "12 months of living costs with rent in the country of the prices (Numbeo + Wise, via cost-of-living.json).",
       "referenceDate": "2026-09"
@@ -497,6 +500,7 @@
       "id": "study-year",
       "name": "A year at university",
       "icon": "graduation-cap",
+      "area": "learning",
       "monthsHome": {
         "months": 12,
         "fees": {

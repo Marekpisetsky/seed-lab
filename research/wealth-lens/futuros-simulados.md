@@ -86,6 +86,13 @@ Exacta:
 
 ## Límites
 
+- En la vista explicativa, si está seleccionada la década mala, la línea
+  gruesa es ese escenario histórico y se etiqueta así. Las líneas finas
+  y la franja siguen siendo futuros sin esa década impuesta; un texto
+  junto al gráfico lo indica. Es una comparación, no una distribución
+  condicionada a vivir esa crisis. Las cifras «1 de cada 10» describen
+  solo las líneas simuladas, no la probabilidad del escenario histórico.
+
 - Es una forma de imaginar la incertidumbre, no la incertidumbre real. Las
   probabilidades valen solo dentro del modelo.
 - Con 1000 caminos, el percentil 10 tiene un error de muestreo de algunos
@@ -122,3 +129,6 @@ Exacta:
 ## Historial
 
 - 2026-10-03: primera ficha (sin cambios en el cálculo).
+- 2026-10-05: leyenda y explicación EN/ES distinguen la década mala de
+  los futuros no condicionados. Tests de renderizado en ambos idiomas;
+  ningún cambio en las simulaciones ni en sus probabilidades.

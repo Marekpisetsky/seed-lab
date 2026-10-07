@@ -25,7 +25,7 @@ function lineFor(current: ResolvedInvestment, i18n: I18n): { text: string; warni
 
 /**
  * Step 3's field: the growth a year after rising prices, 5 to start; under
- * it one line on what the number is ("World average over the long run, after
+ * it one line on what the number is ("Long-run world average, after
  * inflation"), the same before rising prices, small, and examples to fill
  * it with one tap, the one it matches marked. Every part
  * keeps its height, whatever the language or the number.

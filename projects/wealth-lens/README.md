@@ -26,10 +26,10 @@ tabla de *Principles* del hub, `packages/seed-kit/src/tools.json`):
 | Your data never leaves your device | Cumple | Todo se calcula en el navegador; nada se guarda ni se envía. |
 | Transparent | En parte | Gratis, con método y fuentes públicos; los cambios del método aún no se publican. |
 | Truly European | Pendiente | EN y ES, pero alojada en Vercel (EE. UU.) y sin auditoría de accesibilidad hecha por personas. |
-| Light | Cumple | De 213 a 239 KB por página en la primera visita, por debajo del límite de 350 KB. |
+| Light | Cumple | De 214 a 240 KB por página en la primera visita, por debajo del límite de 350 KB. |
 | For everyone | En parte | Palabras sencillas, teclado y objetivos de 44 px; aún sin pruebas con personas reales. |
 
-**Estado actual (2026-10-03):** dos pantallas (Next.js 16 + TypeScript +
+**Estado actual (2026-10-05):** dos pantallas (Next.js 16 + TypeScript +
 Tailwind 4), exportadas como sitio estático. La principal empieza con
 **cuatro pasos numerados**, con los importes vacíos y el crecimiento en
 5 %; el resultado llega al pulsar *See my result* (solo la primera vez),
@@ -38,7 +38,7 @@ opcionales. El móvil es el diseño principal. La app no
 supone nada sobre la vida del usuario: no pregunta país, ni si alquila o
 es propietario, ni qué quiere hacer con su dinero. Nada se guarda ni se
 envía, y la app no llama a ningún servicio mientras se usa. La lógica
-vive en funciones puras con unos 700 tests unitarios (Vitest). El uso real
+vive en funciones puras con 790 tests unitarios (Vitest). El uso real
 sostenido (la condición del peldaño 1 de seed-lab) todavía no está
 demostrado. Solo se proyecta lo que tiene una
 historia larga y un rango conocido; nada se presenta como predecible, y
@@ -145,8 +145,8 @@ idiomas y con planes de todo tipo (`percentWithoutMoney` de seed-kit).
        - **My stocks today**, solo si hay acciones: lo que valen hoy, el
          cambio de los últimos 12 meses en euros y % (con signo y flecha),
          su línea pequeña y el enlace a My stocks.
-       - **My goals**: cuatro tipos combinables (*Live somewhere*, *Buy
-         something*, *Reach an amount* y *A monthly amount*), cada uno
+       - **My goals**: cinco tipos combinables (*Live without working*, *Live somewhere*, *Buy
+         something*, *My own goal* y *A monthly amount*), cada uno
          calculado por separado sobre el mismo plan, siempre con su fecha:
          "✓ from 2031, in 5 years" si llega dentro de los años del plan,
          "in 25 years (2051)" si después, o, a más de 60 años, "not at
@@ -219,6 +219,15 @@ Nasdaq-100 es solo precio. Las series de bonos y oro se introdujeron a
 mano desde las cifras publicadas (ver "Retornos").
 
 ## Arquitectura
+
+**Continuidad tras la interrupción (2026-10-05).** El contexto recuperado,
+la cadena de PR #26–#29 y lo pendiente de las fases 5 y 6 están en
+[`docs/continuity-2026-10-04.md`](docs/continuity-2026-10-04.md).
+La aportación necesaria para una meta lejana incorpora ahora la década
+mala seleccionada; la vista de futuros distingue esa curva de los futuros
+sin esa década impuesta. Las fichas de Research acompañan las correcciones.
+Lint, tipos, build, 790 tests unitarios y 28 pruebas de navegador pasan.
+El PR #17 de migración no forma parte de esta continuación.
 
 - Next.js (App Router) + TypeScript con `output: "export"`: `next build`
   genera HTML/CSS/JS estático en `out/`, servido por la CDN de Vercel sin
@@ -552,8 +561,11 @@ regla de elección y fuentes: [research/wealth-lens/deseos.md](../../research/we
 
 **Con esto podrías** (`src/lib/wishes.ts`, `components/money/wishes-line.tsx`):
 bajo el número grande, hasta tres deseos con su precio y cuándo llega el
-plan (un viaje, algo más grande, dejar de trabajar); tocar uno lo añade a
-Mis metas. **Precios de** (`src/lib/wish-country.ts`): el país de la región
+plan: primero las metas que la persona marcó como más importantes; luego un
+ejemplo por área (un viaje, una vivienda, tiempo), el más caro que el plan
+alcanza dentro de sus años o, si no, el más barato. Sin plazos fijos
+("corto, medio y largo" fue una propuesta, no una regla: `docs/direction.md`).
+Tocar un ejemplo lo añade a Mis metas como prioridad. **Precios de** (`src/lib/wish-country.ts`): el país de la región
 del idioma del navegador (seed-kit `pricesCountry`), Países Bajos si no hay
 precios de ese país; solo en memoria, nunca guardado; cambia solo deseos y
 metas.
@@ -562,7 +574,7 @@ metas.
 
 Arriba, antes de la calculadora, un titular corto que habla a la persona
 y a lo que quiere ("What could you do with your money?" / "¿Qué podrías
-hacer con tu dinero?") y una frase de apoyo ("Un viaje, una casa, dejar de
+hacer con tu dinero?") y una frase de apoyo ("Un viaje, una casa, vivir sin
 trabajar: mira cuándo llegas.")
 (`money.headline` y `money.support`). Debajo del aviso "Write your
 numbers to see your result", tres puntos de confianza en línea, con su
@@ -588,8 +600,8 @@ el navegador la convierte en un enlace de correo; ni la dirección entera
 ni `mailto` aparecen en el HTML, para que no la recojan los bots. Sin
 enlaces a GitHub en la web. Código propietario: ver `LICENSE` y `TRADEMARKS.md` en la raíz
 del repositorio. Icono de la familia de seed-lab: la semilla con brote
-del hub, que aquí lleva una línea que sube (`src/app/icon.svg`;
-`favicon.ico` y `apple-icon.png` los dibuja `hub/scripts/images.ts` a
+del hub permanece en seed-lab; Wealth Lens tiene una lente con barras propias (`src/app/icon.svg`;
+`favicon.ico` y `apple-icon.png` los dibuja `npm run images` a
 partir de él). La imagen para compartir, de 1200×630, se genera en el
 build (`src/app/og.png/route.tsx`, estática, la misma para todas las
 páginas y los dos idiomas): fondo casi negro, el icono y el lema.
@@ -1043,3 +1055,37 @@ src/
 en la nube):** este Next.js es una versión reciente con cambios
 respecto al conocimiento de entrenamiento de un modelo — leer
 `AGENTS.md` en esta misma carpeta antes de escribir código.
+
+## Metas personales y lectura (2026-10-05)
+
+«Mis prioridades» reúne las metas marcadas con la estrella y muestra una
+barra con el capital actual y cuánto falta. Las metas se calculan por separado;
+no descuentan dinero ni prometen financiar todas a la vez. «Vivir sin trabajar»
+parte de los gastos mensuales propios, incluido alojamiento. Opcionalmente se
+puede cargar y ajustar la estimación de un país. El capital necesario es
+`gastos × 12 / tasa de retiro`; junto al resultado se muestra la tasa y que
+el modelo de 30 años no es garantía. Método y límites:
+[Research: metas personales](../../research/wealth-lens/metas-personales.md).
+
+Elegir un país añade directamente la meta con alquiler incluido, sin un paso
+obligatorio adicional; el detalle permite excluirlo. Las metas de cantidad
+aceptan un nombre propio. El archivo local pasa a versión 10 y sigue leyendo
+las versiones 1–9; las metas anteriores mantienen sus resultados.
+
+La letra de apoyo pasa a 15 px y el peso base a 500, con controles de 16 px.
+Se sigue la recomendación de [Apple Typography](https://developer.apple.com/design/human-interface-guidelines/typography)
+de evitar pesos demasiado finos; los puntos nativos de iOS no se consideran una
+regla universal de píxeles CSS. Se comprueba el texto al 200% en móvil; la tabla
+de países puede desplazarse horizontalmente con teclado sin ensanchar la página.
+Las capturas EN/ES a 360 y 1366 px están en
+[docs/screenshots/personal-goals](docs/screenshots/personal-goals).
+
+Validación de esta ronda: 790 tests unitarios, 54 de seed-kit y 28 de navegador,
+sin fallos. Capturas EN/ES a 360 y 1366 px, modo oscuro y texto al 200%;
+sin peticiones a otros sitios ni errores de página en esos recorridos.
+Lighthouse 13.5.0 móvil, export estático servido localmente: `/es` obtuvo
+96 y 99 en dos pasadas (FCP 0,77–1,06 s; LCP 1,97–2,56 s; TBT 41–99 ms;
+CLS 0). La petición a `/` de la segunda pasada fue redirigida a `/es`
+por el idioma del navegador; no es una medición independiente de EN ni de
+Vercel. Estos números no acreditan una carga inferior a un segundo en todos
+los dispositivos.

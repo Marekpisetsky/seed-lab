@@ -13,7 +13,7 @@
  * monthly amount is assumed to rise with prices.
  */
 
-import { connectionsData, DEFAULT_PRICE_COUNTRY, type BuyItem, type ConnectionsDataset, type CountryPrice, type Horizon, type WishIcon } from "./connections";
+import { connectionsData, DEFAULT_PRICE_COUNTRY, type BuyItem, type ConnectionsDataset, type CountryPrice, type WishArea, type WishIcon } from "./connections";
 import { costOfLiving, type CountryCost } from "./cost-of-living";
 import { addMonths } from "./dates";
 import { futureValueWithContributions, monthlyWithdrawal, monthsToGoal, requiredCapital, requiredMonthlyContribution } from "./finance";
@@ -64,6 +64,8 @@ export interface Scenario {
    * grows at `realReturn` again. Absent: it grows at `realReturn` from today.
    */
   head?: readonly number[];
+  /** The same set start from zero capital with €1/month, for solving a different monthly amount. */
+  contributionHead?: readonly number[];
 }
 
 /** Months until the plan reaches `target`: 0 = now, Infinity = never. */
@@ -92,6 +94,20 @@ export function valueAt(scenario: Scenario, months: number): number {
   const year = Math.floor(at / 12);
   const share = at / 12 - year;
   return head[year] + (head[year + 1] - head[year]) * share;
+}
+
+/** Monthly contribution needed at the deadline, including a set historical start when present. */
+export function contributionToReach(scenario: Scenario, months: number, target: number): number {
+  const { head, contributionHead } = scenario;
+  if (!head || !contributionHead || head.length < 2) {
+    return requiredMonthlyContribution(scenario.capital, scenario.realReturn, months, target);
+  }
+  // The same historical years act linearly on capital and contributions.
+  const capitalOnly = head.map((amount, index) => Math.max(0, amount - scenario.monthly * contributionHead[index]));
+  const without = valueAt({ ...scenario, monthly: 0, head: capitalOnly }, months);
+  if (without >= target) return 0;
+  const perMonthlyEuro = valueAt({ ...scenario, capital: 0, monthly: 1, head: contributionHead }, months);
+  return perMonthlyEuro > 0 ? (target - without) / perMonthlyEuro : Infinity;
 }
 
 /**
@@ -279,7 +295,7 @@ export interface PricedItem {
   /** Months of living costs in `country` it includes (a year off work, a year at university). */
   monthsHome: number | null;
   icon: WishIcon | null;
-  horizon: Horizon | null;
+  area: WishArea | null;
 }
 
 const roundTo10 = (value: number) => Math.round(value / 10) * 10;
@@ -289,7 +305,7 @@ const roundTo10 = (value: number) => Math.round(value / 10) * 10;
  * that one has none, so a goal from a file always keeps a price.
  */
 export function priceItem(item: BuyItem, country: string, countries: ReadonlyMap<string, CountryCost>): PricedItem {
-  const base = { id: item.id, icon: item.icon ?? null, horizon: item.horizon ?? null, monthsHome: null };
+  const base = { id: item.id, icon: item.icon ?? null, area: item.area ?? null, monthsHome: null };
   if (item.prices) {
     const own = item.prices[country];
     const used = own ? country : DEFAULT_PRICE_COUNTRY;
@@ -399,6 +415,8 @@ function shapeOf(goal: Goal, items: ReadonlyMap<string, PricedItem>, countries: 
       return { kind: "once", amount: goal.amount, referenceDate: null, item: null };
     case "monthly":
       return { kind: "monthly", amount: goal.amount, referenceDate: null, item: null };
+    case "freedom":
+      return { kind: "monthly", amount: goal.amount, referenceDate: goal.estimateDate ?? null, item: null };
   }
 }
 
@@ -421,7 +439,7 @@ export function goalStatuses(
     const months = monthsTo(scenario, target);
     const reachable = withinReach(months);
     const date = reachable && months > 1e-9 ? addMonths(today, Math.ceil(months - 1e-9)) : null;
-    const needed = reachable ? null : requiredMonthlyContribution(scenario.capital, scenario.realReturn, NEEDED_WITHIN_YEARS * 12, target);
+    const needed = reachable ? null : contributionToReach(scenario, NEEDED_WITHIN_YEARS * 12, target);
     const priced = shape.item?.country ?? null;
     const otherCountry = priced !== null && priced !== country ? priced : null;
     return { goal, kind: shape.kind, amount: shape.amount, target, months, reachable, date, needed, known: true, referenceDate: shape.referenceDate, item: shape.item, otherCountry };

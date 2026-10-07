@@ -30,11 +30,12 @@ describe("connections dataset", () => {
     expect(ids).not.toContain("cushion");
   });
 
-  it("has a trip and something bigger to wish for, each with its icon", () => {
-    const by = (horizon: string) => connectionsData.buy.filter((item) => item.horizon === horizon).map((item) => item.id);
-    expect(by("short")).toEqual(["weekend-capital", "month-southeast-asia", "trip-japan"]);
-    expect(by("medium").sort()).toEqual(["home-deposit", "new-car", "used-car"]);
-    for (const item of connectionsData.buy) if (item.horizon) expect(item.icon, item.id).toBeTruthy();
+  it("has examples for each area the line shows, each with its icon", () => {
+    const by = (area: string) => connectionsData.buy.filter((item) => item.area === area).map((item) => item.id);
+    expect(by("experiences")).toEqual(["weekend-capital", "month-southeast-asia", "trip-japan"]);
+    expect(by("housing").sort()).toEqual(["home", "home-deposit"]);
+    expect(by("time")).toEqual(["sabbatical"]);
+    for (const item of connectionsData.buy) if (item.area) expect(item.icon, item.id).toBeTruthy();
   });
 
   it("names who published each country's figure, what it measures and when", () => {
@@ -88,7 +89,8 @@ describe("connections dataset", () => {
     expect(() => parseConnections(withBuy({ amount: -1 }), codes)).toThrow(/invalid amount/);
     expect(() => parseConnections(withBuy({ monthsAt: { countries: ["JP"], months: 1 } }), codes)).toThrow(/exactly one/);
     expect(() => parseConnections(withBuy({ country: "JP" }), codes)).toThrow(/country of the prices/);
-    expect(() => parseConnections(withBuy({ horizon: "short" }), codes)).toThrow(/icon/);
+    expect(() => parseConnections(withBuy({ area: "experiences" }), codes)).toThrow(/icon/);
+    expect(() => parseConnections(withBuy({ area: "soon", icon: "plane" }), codes)).toThrow(/unknown area/);
     const noNetherlands = { amount: undefined, prices: { ES: { amount: 1, basis: "survey", source: "X", note: "A note long enough", referenceDate: "2025" } } };
     expect(() => parseConnections(withBuy(noNetherlands), codes)).toThrow(/no price for NL/);
     const badBasis = { amount: undefined, prices: { NL: { amount: 1, basis: "guess", source: "X", note: "A note long enough", referenceDate: "2025" } } };

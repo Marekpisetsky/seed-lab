@@ -32,8 +32,12 @@ export type PriceBasis = (typeof PRICE_BASES)[number];
 export const WISH_ICONS = ["landmark", "backpack", "plane", "house", "car", "car-front", "heart", "sun", "graduation-cap"] as const;
 export type WishIcon = (typeof WISH_ICONS)[number];
 
-/** Where a wish sits in "With this you could": a trip soon, or something bigger in a few years (research/wealth-lens/deseos.md). */
-export type Horizon = "short" | "medium";
+/**
+ * What a wish is about, among the areas docs/direction.md asks to research:
+ * "With this you could" shows examples of the first three (lib/wishes.ts).
+ */
+export const WISH_AREAS = ["experiences", "housing", "time", "learning", "mobility", "celebration"] as const;
+export type WishArea = (typeof WISH_AREAS)[number];
 
 /** One country's figure, with its own source. */
 export interface CountryPrice {
@@ -55,7 +59,7 @@ export interface BuyItem {
   /** In English, for whoever reads the dataset; the app's names are in the messages (things.items). */
   name: string;
   icon?: WishIcon;
-  horizon?: Horizon;
+  area?: WishArea;
   /** False: kept only so goals in older files still find it; no list shows it. */
   listed?: boolean;
   /** A figure of this country only: listed when its prices are shown. */
@@ -133,8 +137,8 @@ export function parseConnections(value: unknown, countryCodes: ReadonlySet<strin
     if (!isText(entry.source)) fail(`${label}: missing source`);
     if (!isDate(entry.referenceDate)) fail(`${label}: referenceDate must be YYYY or YYYY-MM`);
     if (entry.icon !== undefined && !(WISH_ICONS as readonly unknown[]).includes(entry.icon)) fail(`${label}: unknown icon`);
-    if (entry.horizon !== undefined && entry.horizon !== "short" && entry.horizon !== "medium") fail(`${label}: unknown horizon`);
-    if (entry.horizon !== undefined && entry.icon === undefined) fail(`${label}: a wish needs an icon`);
+    if (entry.area !== undefined && !(WISH_AREAS as readonly unknown[]).includes(entry.area)) fail(`${label}: unknown area`);
+    if (entry.area !== undefined && entry.icon === undefined) fail(`${label}: a wish needs an icon`);
     if (entry.country !== undefined && !priceCountries.includes(entry.country)) fail(`${label}: country must be a country of the prices`);
     if (entry.place !== undefined && !countryCodes.has(entry.place as string)) fail(`${label}: place must be a known country code`);
     const ways = ["amount", "monthsAt", "prices", "monthsHome"].filter((key) => entry[key] !== undefined);

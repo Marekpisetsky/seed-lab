@@ -13,6 +13,9 @@ herramienta y la prueba de los principios.
 - **Dirección:** visión, modelo, escalera, misión, los cinco principios
   (con *Transparent*), ODS y "Qué NO somos", en
   [`docs/direction.md`](docs/direction.md).
+- **Retomar con un agente:** [`AGENTS.md`](AGENTS.md) y
+  [`CLAUDE.md`](CLAUDE.md) señalan la misma dirección. Abrir la sesión en
+  este repositorio; no depender de que un chat recuerde sesiones anteriores.
 - **Dónde estamos:** peldaño 1 de la escalera, herramientas que la gente
   usa. Los peldaños siguientes todavía no existen; la web los muestra solo
   en su página *Roadmap*.

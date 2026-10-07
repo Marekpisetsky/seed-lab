@@ -40,7 +40,7 @@ export function futuresSource(investment: ResolvedInvestment, scenario: Pick<Sce
   return t.normalOwn(rate, amount, f.percent(investment.volatility, { decimals: 0 }), f.eur(base * investment.volatility), f.eur(base));
 }
 
-function FuturesPlot({ samples, low, high, average, startYear, label }: { samples: number[][]; low: number[]; high: number[]; average: number[]; startYear: number; label: string }) {
+function FuturesPlot({ samples, low, high, average, startYear, label, averageLabel }: { samples: number[][]; low: number[]; high: number[]; average: number[]; startYear: number; label: string; averageLabel: string }) {
   const { m, f } = useI18n();
   const [frame, width] = useWidth<HTMLDivElement>(320);
   const clip = useId();
@@ -101,7 +101,7 @@ function FuturesPlot({ samples, low, high, average, startYear, label }: { sample
         </li>
         <li className="flex items-center gap-1.5">
           <span aria-hidden="true" className="inline-block h-[3px] w-4 bg-foreground" />
-          {m.futures.average}
+          {averageLabel}
         </li>
       </ul>
     </div>
@@ -160,10 +160,12 @@ export function FuturesView({ bundle, onClose }: { bundle: CalculationBundle; on
         low={bands.p10}
         high={bands.p90}
         average={average}
+        averageLabel={scenario.head ? m.futures.badStart : m.futures.average}
         startYear={startYear}
         label={m.futures.aria(samples.length, startYear + years, f.eur(bands.p10[years]), f.eur(bands.p90[years]))}
       />
       <div className="mt-4 space-y-2 text-base">
+        {scenario.head && <p>{m.futures.withoutDecade}</p>}
         <p>{futuresSource(investment, scenario, result.total, i18n)}</p>
         <p>{m.futures.count(f.number(FUTURES), samples.length)}</p>
         <p className="tabular-nums">{m.futures.meaning(f.number(FUTURES / 10), f.eur(bands.p10[years]))}</p>

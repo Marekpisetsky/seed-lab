@@ -84,7 +84,7 @@ describe("the code for the browser", () => {
     try {
       mkdirSync(join(dir, "src"));
       const kit = join(import.meta.dirname, "../src");
-      const fromTool = relative(join(dir, "src"), kit);
+      const fromTool = relative(join(dir, "src"), kit).replaceAll("\\", "/");
       writeFileSync(join(dir, "src", "data.json"), JSON.stringify({ rate: 0.5 }));
       writeFileSync(
         join(dir, "src", "app.ts"),

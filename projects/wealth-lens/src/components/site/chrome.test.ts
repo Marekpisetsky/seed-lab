@@ -75,5 +75,6 @@ describe("the seed-lab header and footer", () => {
     );
     expect(markup).toMatch(/<a href="\/" aria-current="true"><span class="sk-tool">Wealth Lens<\/span><span class="sk-here">/);
     expect(markup).toMatch(/<a class="sk-hub" href="https:\/\/[^"]+">/);
+    expect(markup).toContain('data-mark="wealth-lens"');
   });
 });

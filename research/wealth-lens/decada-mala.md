@@ -63,6 +63,20 @@ sigue la fórmula normal con la media g. De qué está hecha la década:
 
 ## Validación (tests)
 
+La aportación necesaria para una meta lejana usa la misma década activa.
+Se calcula el recorrido de esa década desde cero con 1 €/mes; por
+linealidad, se separa lo que viene del capital inicial de lo que viene de
+las aportaciones. Para el plazo T, si A es el valor del capital sin
+aportes y B el valor de aportar 1 €/mes, el importe necesario es
+`max(0, (meta − A) / B)`. Si B es cero y la meta no está cubierta,
+no hay una aportación finita que la alcance. Sin década se conserva la
+fórmula mensual original. Esto corrige la inversa del escenario, no cambia
+su crecimiento ni selecciona otros años históricos.
+
+`src/lib/what-if.test.ts` comprueba que aplicar la aportación propuesta,
+con la década mala todavía seleccionada, alcanza exactamente la meta a
+30 años, tanto desde cero aportes como desde una aportación ya existente.
+
 - `src/lib/decade.test.ts` (9): 2000–2009 para los índices de acciones;
   la peor década, con sus años, donde 2000–2009 fue buena (bonos
   2013–2022, oro 1988–1997); los años del plan si son menos de diez; sin
@@ -104,3 +118,7 @@ sigue la fórmula normal con la media g. De qué está hecha la década:
 ## Historial
 
 - 2026-10-03: primera ficha (sin cambios en el cálculo).
+- 2026-10-05: la aportación necesaria para metas fuera de alcance incorpora
+  la misma década histórica que el plazo de llegada. Prueba de regresión:
+  1.000 € iniciales y meta de un millón; antes la cifra propuesta dejaba
+  unos 790.322 € en 30 años, ahora alcanza la meta bajo ese escenario.

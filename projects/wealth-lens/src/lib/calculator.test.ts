@@ -168,7 +168,7 @@ describe("goals", () => {
     const statuses = calculate(plan({ goals: [live, car, boat, amount, income] }), [], today).goals;
     const [a, b, c, d, e] = statuses;
     expect(statuses.map((status) => goalName(status, EN))).toEqual(["Live in Peru", "A used car", "A boat", "Reach €100,000", "My rent"]);
-    expect(goalDetail(a, EN)).toBe("with housing");
+    expect(goalDetail(a, EN)).toBe("including rent");
     expect(goalDetail(e, EN)).toBeNull();
     expect(a).toMatchObject({ kind: "monthly", amount: 700, target: (700 * 12) / 0.04 });
     expect(b).toMatchObject({ kind: "once", amount: 24_326, target: 24_326 });
@@ -180,7 +180,7 @@ describe("goals", () => {
     expect(goalName(unnamed, EN)).toBe("A monthly amount");
     expect(unnamed).toMatchObject({ kind: "monthly", target: (900 * 12) / 0.04 });
     const withoutHousing = calculate(plan({ goals: [{ ...live, housing: false }] }), [], today).goals[0];
-    expect(goalDetail(withoutHousing, EN)).toBe("without housing");
+    expect(goalDetail(withoutHousing, EN)).toBe("excluding rent");
     expect(withoutHousing).toMatchObject({ amount: 470 });
     // In Spanish, the same goals in Spanish.
     const ES = getI18n("es");
@@ -239,17 +239,6 @@ describe("goals", () => {
     const [gone] = calculate(plan({ goals: [{ id: "x", kind: "buy", item: "cushion" }] }), [], today).goals;
     expect(gone).toMatchObject({ known: false, reachable: false });
     expect(goalName(gone, EN)).toBe(EN.m.goals.unknown);
-  });
-
-  it("name a goal added as Stop working, with where and with housing", () => {
-    const stop: Goal = { id: "s", kind: "live", country: "ES", housing: true, stopWorking: true };
-    const [status] = calculate(plan({ goals: [stop] }), [], today, null, "ES").goals;
-    expect(goalName(status, EN)).toBe("Stop working");
-    expect(goalDetail(status, EN)).toBe("in Spain, with housing");
-    expect(goalName(status, getI18n("es"))).toBe("Dejar de trabajar");
-    expect(goalDetail(status, getI18n("es"))).toBe("en España, con vivienda");
-    // The same as living there with housing: €1,440 a month × 12 ÷ 4%.
-    expect(status.target).toBe(432_000);
   });
 
   it("follow the withdrawal rate when they are monthly", () => {

@@ -1,10 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Wealth Lens: the seed-lab seed (hub/src/icons.ts) carrying a rising line. -->
-  <g fill="#00a36c">
-    <ellipse cx="16" cy="22" rx="12.5" ry="8"/>
-    <rect x="14.7" y="8.5" width="2.6" height="7" rx="1.3"/>
-    <path d="M15.6 11.4C15 7.6 12 5.2 7.6 5.4c.4 4.2 3.6 6.6 8 6z"/>
-    <path d="M16.4 9.8c.7-4 3.9-6.4 8.1-6-.5 4.2-3.9 6.4-8.1 6z"/>
-  </g>
-  <path d="M10 25l3.8-3.8 3.2 2.3 5-5.2" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="#00a36c" color="#00a36c">
+  <circle cx="13" cy="13" r="10" fill="none" stroke="#00a36c" stroke-width="4"/>
+  <path d="M21 21l8 8" fill="none" stroke="#00a36c" stroke-width="5" stroke-linecap="round"/>
+  <path d="M7 18v-4h3v4zm5 0v-7h3v7zm5 0V8h3v10z" fill="#00a36c"/>
 </svg>

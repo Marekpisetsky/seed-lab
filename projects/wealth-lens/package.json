@@ -14,6 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "update-prices": "node scripts/update-prices.mts",
+    "images": "node scripts/images.mts",
     "test:browser": "node --experimental-strip-types --test e2e/*.test.mts"
   },
   "dependencies": {
