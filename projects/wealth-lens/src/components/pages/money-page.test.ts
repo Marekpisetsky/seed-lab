@@ -22,7 +22,7 @@ describe.each(["en", "es"] as const)("My money's first screen (%s)", (locale) =>
 it("speaks to the person and what they want, as the hub promises", () => {
   const { m } = getI18n("es");
   expect(m.money.headline).toBe("¿Qué podrías hacer con tu dinero?");
-  // A trip, a home, stopping work: something for someone of 20 and of 60.
+  // A trip, a home, living without working: something for someone of 20 and of 60.
   const hub = toolById("wealth-lens").description.es;
   for (const wish of ["viaje", "casa", "sin trabajar"]) {
     expect(m.money.support).toContain(wish);

@@ -231,7 +231,7 @@ describe.each(["en", "es"] as const)("the result in levels (%s)", (locale) => {
     expect(text(line)).toContain(m.wishes.title);
     const list = line.slice(line.indexOf("<ul aria-labelledby"));
     const chips = [...list.matchAll(/<button type="button" aria-label="([^"]+)"[^>]*>(.*?)<\/button>/g)];
-    // A trip, something bigger, stopping work (or living somewhere cheaper): each with its price and when.
+    // A trip, a home and time (or the person's own priorities first): each with its price and when.
     expect(chips.length).toBeGreaterThanOrEqual(2);
     expect(chips.length).toBeLessThanOrEqual(3);
     bundle.wishes.forEach((wish, index) => {

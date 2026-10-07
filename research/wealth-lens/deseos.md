@@ -278,12 +278,6 @@ fuente y confirmar la cifra y su fecha** (ver lo pendiente al final).
 
 ## Historial
 
-- 2026-10-07 (2): la regla de la línea sigue la aclaración de Marek del 5
-  de octubre en `docs/direction.md`: primero las prioridades de la
-  persona; después un ejemplo por área (experiencias, vivienda, tiempo),
-  el más caro dentro de los años del plan; sin "corto, medio y largo" ni
-  la lista de países para vivir más barato. "Dejar de trabajar" pasa a
-  ser la meta "Vivir sin trabajar" de las [metas personales](metas-personales.md).
 - 2026-10-07: primera ficha. Los deseos ("Con esto podrías"), los precios
   por país (seis países) y "Precios de" por el idioma del navegador. Se
   dejan de listar, sin borrarlas para las metas de archivos antiguos: la
@@ -291,3 +285,9 @@ fuente y confirmar la cifra y su fecha** (ver lo pendiente al final).
   80 m² y su entrada del 20 %) y el máster en Países Bajos (ahora un año
   de universidad). La boda, el coche usado y el coche nuevo pasan de un
   precio neerlandés a uno por país.
+- 2026-10-07 (2): la regla de la línea sigue la aclaración de Marek del 5
+  de octubre en `docs/direction.md`: primero las prioridades de la
+  persona; después un ejemplo por área (experiencias, vivienda, tiempo),
+  el más caro dentro de los años del plan; sin "corto, medio y largo" ni
+  la lista de países para vivir más barato. "Dejar de trabajar" pasa a
+  ser la meta "Vivir sin trabajar" de las [metas personales](metas-personales.md).
