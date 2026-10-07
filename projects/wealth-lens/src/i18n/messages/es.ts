@@ -122,7 +122,7 @@ export const es: Messages = {
           "Bajo el resultado, hasta tres observaciones, solo cuando aplican. Cada una con sus euros. Dicen lo que hay, nunca qué hacer.",
           "Pocos años: los años de tu plan, o una meta, a menos de 5 años, con dinero que sube y baja. Cuenta cuántos de los 1000 futuros posibles acaban por debajo de lo que pones hasta entonces. Sale desde 1 de cada 10. [El método](research:wealth-lens/chequeo.md#horizonte-frente-a-riesgo).",
           "Una acción: una empresa con más de un quinto de tu mezcla o de Mi cartera, sin contar los fondos indexados. Da sus euros y su peor caída desde un máximo, sobre tu dinero. [El método](research:wealth-lens/chequeo.md#concentración).",
-          "Ahorro durante 10 años o más: lo que conserva la cuenta en dinero de hoy, frente a lo que pones. Y frente a las acciones del mundo, con las mismas cantidades. [El método](research:wealth-lens/chequeo.md#ahorro-a-largo-plazo).",
+          "Ahorro durante 10 años o más: lo que conserva la cuenta en dinero de hoy, frente a lo que pones. Y frente a las acciones del mundo, con las mismas cantidades: lo que se deja de ganar y su peor caída. [El método](research:wealth-lens/chequeo.md#ahorro-a-largo-plazo).",
         ],
       },
       {
@@ -1104,7 +1104,8 @@ export const es: Messages = {
       less: (amount: string) => `Son ${amount} menos de lo que pones.`,
       more: (amount: string) => `Son ${amount} más de lo que pones.`,
       why: "Los precios suben más que el interés del ahorro.",
-      world: (period: string, typical: string, more: string) => `Las acciones del mundo (${period}) suelen dar ${typical}: ${more} más.`,
+      world: (period: string, typical: string) => `Las acciones del mundo (${period}) suelen dar ${typical}.`,
+      bothSides: (less: string, years: string, fall: string, amount: string) => `Con Ahorro, ${less} menos; con acciones, caer como en ${years} (${fall}) = ${amount}.`,
       worldBad: (bad: string) => `Suben y bajan: 1 de cada 10 futuros acaba por debajo de ${bad}.`,
     },
   },

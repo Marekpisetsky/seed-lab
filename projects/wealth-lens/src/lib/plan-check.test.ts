@@ -136,6 +136,9 @@ describe("savings for a long time", () => {
     expect(check?.world.typical).toBeCloseTo(futureValueWithContributions(10_000, 200, INDEXES.world.averageReturn, 30), 6);
     expect(check?.world.period).toEqual([1988, 2022]);
     expect(check!.world.bad).toBeLessThan(check!.world.typical);
+    // Their worst fall in the data, the one "Test my plan" shows: 2000–2002, −46% after rising prices.
+    expect(check?.world.fall).toMatchObject({ from: 2000, to: 2002 });
+    expect(check!.world.fall!.drop).toBeCloseTo(0.4618, 4);
   });
 
   it("says nothing under 10 years, or for anything but savings", () => {
@@ -200,10 +203,19 @@ describe("Check your plan", () => {
 
   it("subtracts the euros as they are shown, so the sums on the page add up", () => {
     // €370,414.60 and €151,175.40 show as €370,415 and €151,175: the gap shown is €219,240, not €219,239.
-    const check: PlanCheck = { id: "savings", years: 30, total: 151_175.4, putIn: 164_000, world: { typical: 370_414.6, bad: 169_417, rate: 0.045, period: [1988, 2022] } };
+    const check: PlanCheck = {
+      id: "savings",
+      years: 30,
+      total: 151_175.4,
+      putIn: 164_000,
+      world: { typical: 370_414.6, bad: 169_417, rate: 0.045, period: [1988, 2022], fall: { drop: 0.4618, from: 2000, to: 2002 } },
+    };
     const { lead, details } = checkWords(check, EN);
     expect(lead).toEqual(["In 30 years, savings are worth €151,175 of today's money.", "That is €12,825 less than you put in."]);
-    expect(details).toContain("World stocks (1988–2022) typically give €370,415: €219,240 more.");
+    expect(details).toContain("World stocks (1988–2022) typically give €370,415.");
+    // Both sides in one sentence: what savings give up, and the worst fall world stocks had, on the same plan's money (46% of €370,415).
+    expect(details).toContain("With savings, €219,240 less; with stocks, a fall like 2000–2002 (−46%) = −€170,391.");
+    expect(checkWords(check, ES).details).toContain("Con Ahorro, 219.240\u00a0€ menos; con acciones, caer como en 2000–2002 (\u221246\u00a0%) = \u2212170.391\u00a0€.");
   });
 
   it("gives the last 12 months as where its euros came from, so the percent can be checked by eye", () => {

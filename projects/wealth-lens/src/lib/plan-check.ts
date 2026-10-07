@@ -9,7 +9,8 @@
  * - concentration: one stock over a fifth of the mix the plan invests in,
  *   or of My portfolio (index funds aside): its euros and its worst fall;
  * - savings: a savings account for 10 years or more: what it keeps in
- *   today's euros, against what was put in and against world stocks.
+ *   today's euros, against what was put in and against world stocks, with
+ *   both sides of them: what savings give up, and their worst fall.
  *
  * Numbers only; the words are in i18n/check-text.ts. It informs: it never
  * says what to buy, what to sell or what weights to choose (research/
@@ -19,6 +20,7 @@
 import type { AssetId } from "./assets";
 import type { Calculation, CalculatorPlan, GoalStatus } from "./calculator";
 import { futureValueWithContributions, holdingValue } from "./finance";
+import { CRISES, crisisResults } from "./history-test";
 import { resolveInvestment } from "./investment";
 import { INDEX_TRACKERS, instrumentForHolding, MARKET, type PricesFile } from "./market-data";
 import { CONCENTRATION_LIMIT, mixStock } from "./mix";
@@ -78,8 +80,19 @@ export interface SavingsCheck {
   /** What the savings account keeps after the years, in today's euros (the big number). */
   total: number;
   putIn: number;
-  /** World stocks with the same amounts: the typical result and the one 1 in 10 futures end below. */
-  world: { typical: number; bad: number; rate: number; period: [number, number] | null };
+  /**
+   * World stocks with the same amounts: the typical result, the one 1 in 10
+   * futures end below, and their worst fall in the data (its share, and its
+   * first and last calendar years).
+   */
+  world: { typical: number; bad: number; rate: number; period: [number, number] | null; fall: WorstFall | null };
+}
+
+export interface WorstFall {
+  /** 0.46 = −46%, after rising prices. */
+  drop: number;
+  from: number;
+  to: number;
 }
 
 export type PlanCheck = HorizonCheck | ConcentrationCheck | SavingsCheck;
@@ -166,6 +179,22 @@ export function concentrationCheck(calc: Calculation, holdings: readonly Holding
   };
 }
 
+let worldFall: WorstFall | null | undefined;
+
+/** World stocks' worst fall in the data: the deepest of the crashes "Test my plan" runs through (lib/history-test.ts). */
+export function worstWorldFall(): WorstFall | null {
+  if (worldFall !== undefined) return worldFall;
+  const results = Object.values(crisisResults({ parts: [{ asset: WORLD_REFERENCE, weight: 1 }], rebalance: true, savingsReturn: 0 }, { start: 1, monthly: 0 }, 1));
+  let worst: WorstFall | null = null;
+  for (const result of results) {
+    const crisis = result && CRISES.find((entry) => entry.id === result.id);
+    if (!result?.fall || !crisis || (worst && result.fall.drop <= worst.drop)) continue;
+    worst = { drop: result.fall.drop, from: crisis.year, to: crisis.year + crisis.years - 1 };
+  }
+  worldFall = worst;
+  return worst;
+}
+
 /** A savings account for many years: what it keeps, and what world stocks gave with the same amounts. */
 export function savingsCheck(calc: Calculation, plan: Pick<CalculatorPlan, "pricesOf" | "assumptions">): SavingsCheck | null {
   const { investment, scenario, result } = calc;
@@ -183,6 +212,7 @@ export function savingsCheck(calc: Calculation, plan: Pick<CalculatorPlan, "pric
       bad: bandsFor(world, amounts).p10[amounts.years],
       rate: world.realReturn,
       period: world.period,
+      fall: worstWorldFall(),
     },
   };
 }

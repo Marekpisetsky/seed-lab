@@ -99,7 +99,9 @@ y con su índice en su lugar sigue en *Para tener en cuenta*.
 **En palabras:** una cuenta de ahorro no sube ni baja, pero con los años
 los precios suben más que su interés. La app dice cuánto vale lo ahorrado
 en euros de hoy, frente a lo puesto y frente a lo que habrían dado las
-acciones del mundo con las mismas cantidades, con su caso malo.
+acciones del mundo con las mismas cantidades. Las dos caras van en la
+misma frase: lo que el ahorro deja de ganar y la peor caída de las
+acciones en los datos sobre ese dinero. Después, su caso malo.
 
 **Cuándo:** el plan invierte en Ahorro y mira 10 años o más.
 
@@ -108,12 +110,18 @@ menos la inflación de "Subida de precios en", ver
 [inflación](inflacion.md)); la referencia es el índice Mundo (MSCI World,
 1988–2022) con sus cifras de siempre y la misma inflación, con el mismo
 cálculo del número grande (típico) y su percentil 10 de los futuros
-simulados (malo).
+simulados (malo). La peor caída es la mayor de las crisis de *Probar mi
+plan* que cubren los datos del Mundo: 2000–2002, −46 % después de la
+subida de precios (de fin de 1999 a fin de 2002; 2008 fue −41 %). Se
+aplica a lo que dan típicamente al final, cuando más dinero hay: lo más
+que puede quitar una caída así. Como en todo el chequeo, los euros salen
+del porcentaje y de la cifra tal como se ven (46 % de 185.207 €).
 
 **Ejemplo:** 10.000 € y 200 € al mes durante 30 años: "En 30 años, el
 ahorro vale 75.587 € de hoy. Son 6413 € menos de lo que pones. Las
-acciones del mundo (1988–2022) suelen dar 185.207 €: 109.620 € más. Suben
-y bajan: 1 de cada 10 futuros acaba por debajo de 84.709 €."
+acciones del mundo (1988–2022) suelen dar 185.207 €. Con Ahorro, 109.620 €
+menos; con acciones, caer como en 2000–2002 (−46 %) = −85.195 €. Suben y
+bajan: 1 de cada 10 futuros acaba por debajo de 84.709 €."
 
 ## Cómo se redacta
 
@@ -137,7 +145,9 @@ test:
 - La peor caída guardada de una acción es una referencia de lo que puede
   caer, no un límite: puede caer más.
 - Las acciones del mundo de 1988–2022 son una referencia razonable para
-  comparar un ahorro a largo plazo.
+  comparar un ahorro a largo plazo. Su peor caída en esos datos
+  (2000–2002) es una referencia, no un límite: puede haber caídas
+  mayores, como la de 1929–1931 en el S&P 500.
 
 ## Fuentes
 
@@ -196,3 +206,7 @@ caída y cambio de 12 meses).
   hallazgo de concentración de *Mi cartera* (40 %) deja *Para tener en
   cuenta* y un solo umbral, el 20 %, vale para la mezcla y para *Mi
   cartera*.
+- 2026-10-07 (2): a petición de Marek, la observación del Ahorro dice en
+  una sola frase sus dos caras: lo que el ahorro deja de ganar frente a
+  las acciones del mundo y la peor caída de estas (2000–2002) sobre ese
+  dinero.

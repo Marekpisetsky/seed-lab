@@ -126,7 +126,7 @@ export const en = {
           "Under the result, up to three observations, only when they apply. Each has its euros. They say what is, never what to do.",
           "Few years: your plan's years, or a goal, under 5 years away, and money that goes up and down. It counts how many of the 1,000 possible futures end below what you put in by then. It shows from 1 in 10. [The method](research:wealth-lens/chequeo.md#horizonte-frente-a-riesgo).",
           "One stock: one company over a fifth of your mix or of My portfolio, index funds aside. It gives its euros and its worst fall from a peak, on your money. [The method](research:wealth-lens/chequeo.md#concentración).",
-          "Savings for 10 years or more: what the account keeps in today's money, against what you put in. And against world stocks, with the same amounts. [The method](research:wealth-lens/chequeo.md#ahorro-a-largo-plazo).",
+          "Savings for 10 years or more: what the account keeps in today's money, against what you put in. And against world stocks, with the same amounts: what it gives up, and their worst fall. [The method](research:wealth-lens/chequeo.md#ahorro-a-largo-plazo).",
         ],
       },
       {
@@ -1136,7 +1136,8 @@ export const en = {
       less: (amount: string) => `That is ${amount} less than you put in.`,
       more: (amount: string) => `That is ${amount} more than you put in.`,
       why: "Prices rise faster than a savings account's interest.",
-      world: (period: string, typical: string, more: string) => `World stocks (${period}) typically give ${typical}: ${more} more.`,
+      world: (period: string, typical: string) => `World stocks (${period}) typically give ${typical}.`,
+      bothSides: (less: string, years: string, fall: string, amount: string) => `With savings, ${less} less; with stocks, a fall like ${years} (${fall}) = ${amount}.`,
       worldBad: (bad: string) => `They go up and down: 1 in 10 futures end under ${bad}.`,
     },
   },
