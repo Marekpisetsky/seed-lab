@@ -169,7 +169,7 @@ describe("Custom growth", () => {
 });
 
 describe("inflation and conversions", () => {
-  it("reads the Prices of country's reference, or the typed inflation", () => {
+  it("reads the Rising prices in country's reference, or the typed inflation", () => {
     expect(inflationFor(STANDARD_SETTINGS)).toBe(0.02);
     expect(inflationFor(settings({}, "IN"))).toBe(0.04);
     expect(inflationFor(settings({ inflation: 0.035 }, "IN"))).toBe(0.035);

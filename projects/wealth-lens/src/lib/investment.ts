@@ -76,7 +76,7 @@ export interface ResolvedInvestment {
   realReturn: number;
   /** Swings a year: the standard deviation of yearly log returns (0: none). */
   volatility: number;
-  /** Inflation a year: the "Prices of" country's, or the user's. */
+  /** Inflation a year: the "Rising prices in" country's, or the user's. */
   inflation: number;
   /** The country whose prices set the inflation. */
   pricesOf: string;
@@ -109,7 +109,7 @@ export function periodText({ period }: Pick<ResolvedInvestment, "period">): stri
   return period ? `${period[0]}–${period[1]}` : "";
 }
 
-/** Inflation a year for these settings: the user's, or the "Prices of" country's reference. */
+/** Inflation a year for these settings: the user's, or the "Rising prices in" country's reference. */
 export function inflationFor(settings: ProjectionSettings): number {
   return settings.assumptions.inflation ?? referenceInflation(settings.pricesOf).rate;
 }

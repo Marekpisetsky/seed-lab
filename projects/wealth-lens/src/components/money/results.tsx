@@ -19,6 +19,7 @@ import { ResultSection, SeeMore } from "./result-section";
 import { StocksSummary } from "./stocks-summary";
 import { WhatIfIndicator, whatIfApplied, WhatIfRow } from "./what-if-row";
 import { WhereDetails } from "./where-details";
+import { WishesLine } from "./wishes-line";
 
 function Loading() {
   const { m } = useI18n();
@@ -53,7 +54,7 @@ function summaryText({ scenario, investment, result }: CalculationBundle["calc"]
   return t.summary(have, monthly, where, years);
 }
 
-/** Level 1: what the user said, then what the money is worth after the years, big. */
+/** Level 1: what the user said, then what the money is worth after the years, big, and what the person could do with it. */
 function ResultTotal({ bundle, ref }: { bundle: CalculationBundle; ref: React.Ref<HTMLElement> }) {
   const i18n = useI18n();
   const { m, f } = i18n;
@@ -79,6 +80,9 @@ function ResultTotal({ bundle, ref }: { bundle: CalculationBundle; ref: React.Re
         <Changed value={f.eur(result.total)} />
         <Help what={m.result.inYears(years)} text={m.help.total} />
       </p>
+      <div className="pt-2">
+        <WishesLine bundle={bundle} />
+      </div>
     </section>
   );
 }
@@ -141,7 +145,7 @@ export function Results({ bundle, arrive = false, onArrived }: { bundle: Calcula
         </ResultSection>
         <StocksSummary holdings={bundle.holdings} />
         <ResultSection title={m.goals.title}>
-          <GoalsSection calc={calc} today={today} inCard />
+          <GoalsSection calc={calc} today={today} wishCountry={bundle.wishCountry} inCard />
         </ResultSection>
         <ResultSection title={m.cards.where}>
           <WhereDetails bundle={bundle} />

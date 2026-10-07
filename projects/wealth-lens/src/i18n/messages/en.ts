@@ -9,7 +9,7 @@
 
 import { IN_SENTENCE as COUNTRY_IN_SENTENCE } from "@seed-kit/country-names.ts";
 import type { ProblemTexts } from "@/lib/problems";
-import type { HowItWorksFacts, ProseSection, SourceEntry } from "../page-types";
+import type { HowItWorksFacts, ItemWords, ProseSection, SourceEntry } from "../page-types";
 import { ENGLISH_SEARCH_WORDS } from "./search-words";
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
@@ -32,7 +32,7 @@ export const en = {
     footerNote: "Nothing you type is saved or sent. Not financial advice.",
   },
   meta: {
-    money: { title: "What your money can do", description: "See how your money grows and what it pays you. Free and private." },
+    money: { title: "What your money can do", description: "See what you could do with your money, and when. Free and private." },
     test: { title: "Test my plan", description: "Your plan through the market crises of history, from 1929 to 2022." },
     stocks: { title: "My stocks", description: "What you hold, what you gained, and each fund's years." },
     about: { title: "About", description: "What Wealth Lens is, who makes it, and why it is free." },
@@ -47,7 +47,8 @@ export const en = {
       {
         heading: "What it is",
         body: [
-          "Type what you have and what you add each month. Wealth Lens shows how it could grow, what it could pay you each month, and where in the world that is enough.",
+          "Type what you have and what you add each month. Wealth Lens shows how it could grow, and when you could take a trip, pay a home deposit or live without working.",
+          "It also shows what it could pay you each month, and where in the world that is enough.",
           "You can also [test your plan](/test) against big crashes from the past, and see [how your stocks did](/stocks).",
           "It is free. There is no sign-up, no ads and no tracking.",
         ],
@@ -103,6 +104,19 @@ export const en = {
           "Each month you could take out part of your money: your money × 4% ÷ 12. The slider goes from 2% to 7%.",
           "“It lasted 30 years” says in how many of 100 possible futures that amount lasted 30 years.",
           "Prudent: in 90 or more. Risky: in 75 or more. Very risky: in fewer.",
+        ],
+      },
+      {
+        heading: "What you could do with it",
+        body: [
+          "Under the big number, up to three wishes, each with when your plan gets there.",
+          "First, the goals you marked as most important in My goals. Then examples to discover: a trip, a home and time.",
+          "A home is its deposit (a fifth of 80 m²) or all of it. Time is a year off, or living without working.",
+          "Each example is the dearest your plan reaches within its years, or else the cheapest. Tap one to add it to your goals.",
+          "Living without working: what you take out each month pays a month of life with rent, in the country of your prices.",
+          "Flights to Japan or Asia are not included. Nothing is taken from your money: each wish is worked out on its own.",
+          "Prices start from your browser's language: es-ES shows Spain's. You can change them. With no prices for your country, the Netherlands'.",
+          "Each price names its source and date, and ≈ marks the roughest. [The method and every source](research:wealth-lens/deseos.md).",
         ],
       },
       {
@@ -272,7 +286,7 @@ export const en = {
   },
   privacy: {
     title: "Privacy",
-    updated: "Updated on 3 October 2026.",
+    updated: "Updated on 7 October 2026.",
     sections: [
       { heading: "In short", body: ["**Nothing you type is saved or sent.** No cookies. No tracking."] },
       {
@@ -292,6 +306,7 @@ export const en = {
           "That choice stays in this tab's session storage. Closing the tab deletes it.",
           "It is never sent. Choosing “Automatic” deletes it at once.",
           "The first time, the language comes from your browser's settings. Nothing is stored to remember it.",
+          "Prices for wishes and goals start from the same setting: es-ES shows Spain's. Your choice is not stored either.",
           "An older version saved data in the browser. If Wealth Lens finds it, it offers to load it once, then deletes it.",
         ],
       },
@@ -351,8 +366,8 @@ export const en = {
     home: "Go to Wealth Lens",
   },
   money: {
-    headline: "How much will your money grow?",
-    support: "See what your savings could become, in plain words.",
+    headline: "What could you do with your money?",
+    support: "A trip, a home, living without working: see when you get there.",
     trust: { noAccount: "No accounts", nothingSaved: "Nothing is saved", data: (years: string) => `Data from ${years}` },
   },
   stocks: {
@@ -638,7 +653,7 @@ export const en = {
   },
   growth: {
     /** Under the field: what its number is. */
-    standard: "World average over the long run, after inflation",
+    standard: "Long-run world average, after inflation",
     yours: "Your own number, after inflation",
     before: (rate: string) => `≈ ${rate} before inflation`,
     /** Inside the field, after the number: the question says "each year". */
@@ -964,7 +979,7 @@ export const en = {
       reaches: (start: string, target: string, duration: string, date: string) => `${start} ${target} in ${duration} (${date}).`,
       tooFar: (start: string, years: number, needed: string, inYears: number) => `${start} It takes more than ${years} years. To get there in ${inYears} years: ${needed} a month.`,
       liveSource: (housing: boolean, source: string) => `One person, ${housing ? "with" : "without"} housing: ${source}.`,
-      itemSource: (source: string) => `${source} (estimate)`,
+      itemSource: (source: string) => `Estimated price. ${source}`,
       ownPrice: "Your own price.",
       ownAmount: "Your own amount.",
     },
@@ -1030,7 +1045,27 @@ export const en = {
     inGoals: "In My goals",
     isInGoals: (name: string) => `${name} is in My goals`,
     add: (name: string) => `Add ${name} to My goals`,
-    note: "Typical prices in today's euros: estimates. Tap one for its source.",
+    note: "Typical prices in today's euros, all estimates; ≈ marks the roughest. Tap one for its source.",
+    /** "Prices of: Spain": the country whose prices wishes and goals use. */
+    pricesOf: "Prices of",
+    /** Beside a goal priced in another country than the one picked: "prices of the Netherlands". */
+    otherCountry: (country: string) => `prices of ${country}`,
+    /** What a published figure measures. */
+    basis: {
+      asking: "asking prices",
+      paid: "prices paid",
+      list: "list prices",
+      sales: "sales",
+      valuation: "valuations",
+      survey: "survey",
+      official: "official",
+    },
+    /** "Average price of a used car in Spain (asking prices): coches.net, 2025." */
+    figureSource: (about: string, basis: string, source: string, date: string) => `${about} (${basis}): ${source}, ${date}.`,
+    /** "12 months of living costs with rent in Spain: Numbeo and Wise, 2026-09." */
+    livingSource: (about: string, date: string) => `${about}: Numbeo and Wise, ${date}.`,
+    /** "Fees, €922: Ministerio de Ciencia…, 2024-09." */
+    feesSource: (amount: string, source: string, date: string) => `Fees, ${amount}: ${source}, ${date}.`,
     items: {
       "e-bike": { name: "An e-bike", source: "RAI Vereniging and BOVAG: average e-bike price in the Netherlands, 2025." },
       "driving-licence": { name: "A driving licence", source: "CBR: average cost of a Dutch B licence in 2025, 41 lessons and exams." },
@@ -1041,17 +1076,34 @@ export const en = {
       "six-months-portugal": { name: "Six months living in Portugal", source: "6 months of Portugal's living costs with rent (Numbeo and Wise)." },
       kitchen: { name: "A new kitchen", source: "Homedeal: a standard kitchen with appliances, installed, in the Netherlands." },
       "student-debt": { name: "Paying off an average student debt", source: "DUO: average Dutch student debt at the start of 2025." },
-      wedding: { name: "A wedding", source: "ThePerfectWedding.nl: average Dutch wedding, without the honeymoon." },
-      "used-car": { name: "A used car", source: "AutoScout24: average asking price of a used car in the Netherlands, 2025." },
       "masters-nl": { name: "A master's year in the Netherlands", source: "Tuition 2025-2026 (Rijksoverheid) plus 12 months of Dutch living costs." },
       "used-ev": { name: "A used electric car", source: "AutoScout24: average asking price of a used electric car, 2025." },
       "home-deposit-nl": { name: "A 10% deposit on a Dutch home", source: "10% of the average Dutch home price in 2025 (CBS)." },
-      "new-car": { name: "A new car", source: "RAI Vereniging: average new car price in the Netherlands, 2025." },
       "small-business": { name: "Taking over a small business", source: "Your 35% of a €200,000 price; banks often lend the rest (Brookz, Inter Actus)." },
       "flat-lima": { name: "An 80 m² flat in upscale Lima, Peru", source: "BCRP: asking prices in well-off districts only, not all of Lima. Q4 2025." },
       "flat-portugal": { name: "An 80 m² flat in Portugal", source: "INE Portugal: median bank valuation of flats, 2025." },
       "home-nl": { name: "An average Dutch home, fully paid", source: "CBS: average price of an existing Dutch home, 2025." },
-    } as Record<string, { name: string; source: string }>,
+      "weekend-capital": { name: "A weekend in a European capital", source: "Eurostat: €224 a night on short trips abroad in 2024, travel included. Two nights." },
+      "month-southeast-asia": {
+        name: "A month travelling Southeast Asia",
+        source: "A month at the average cost with rent of Thailand, Vietnam, Indonesia, Malaysia and the Philippines. Flight not included.",
+      },
+      "trip-japan": { name: "A trip to Japan", source: "Japan Tourism Agency: a visitor from Germany spent ¥393,710 in Japan in 2025, €1 = ¥169.07. Flight not included." },
+      "used-car": { name: "A used car", about: (country: string) => `Average price of a used car in ${country}` },
+      "new-car": { name: "A new car", about: (country: string) => `Average price of a new car in ${country}` },
+      wedding: { name: "A wedding", about: (country: string) => `Average cost of a wedding in ${country}` },
+      "home-deposit": { name: "A deposit on a home", about: (country: string, home: string) => `20% of an 80 m² home in ${country}, ${home}` },
+      home: { name: "An 80 m² home, fully paid", about: (country: string) => `80 m² at the average price per m² in ${country}, without taxes or fees` },
+      sabbatical: { name: "A year off work", about: (country: string) => `12 months of living costs with rent in ${country}` },
+      "study-year": { name: "A year at university", about: (country: string) => `12 months of living costs with rent in ${country}, and a year's university fees` },
+    } as Record<string, ItemWords>,
+  },
+  wishes: {
+    title: "With this you could:",
+    /** What a screen reader says for a wish: "A trip to Japan, in 2 years: ≈ €2,330. Add to My goals." */
+    add: (name: string, when: string, amount: string) => `${name}, ${when}: ${amount}. Add to My goals.`,
+    added: (name: string, when: string, amount: string) => `${name}, ${when}: ${amount}. In My goals.`,
+    perMonth: (amount: string) => `${amount} a month`,
   },
   findings: {
     title: "Good to know",

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { languageScript } from "../src/detect.ts";
+import { languageScript, pricesCountry, regionOf } from "../src/detect.ts";
 
 /** Runs the head script on an address, as a browser would, and says where it went. */
 function visit(script: string, pathname: string, { languages = ["es-ES", "en"], referrer = "", type = "navigate" } = {}) {
@@ -38,5 +38,34 @@ describe("the language script", () => {
     assert.equal(visit(plain, "/", { type: "reload" }).went, null);
     assert.equal(visit(plain, "/", { languages: ["en-GB", "es"] }).went, null);
     assert.equal(visit(plain, "/es/").went, null);
+  });
+});
+
+describe("the country of a browser language", () => {
+  it("reads the region a language names, or the one it most likely means", () => {
+    assert.equal(regionOf("es-ES"), "ES");
+    assert.equal(regionOf("nl-NL"), "NL");
+    assert.equal(regionOf("nl"), "NL");
+    assert.equal(regionOf("de"), "DE");
+    assert.equal(regionOf("en-GB"), "GB");
+    assert.equal(regionOf("en"), "US");
+    assert.equal(regionOf("pt-PT"), "PT");
+    assert.equal(regionOf("pt"), "BR");
+  });
+
+  it("names none for a region of the world or what is not a language", () => {
+    assert.equal(regionOf("es-419"), null);
+    assert.equal(regionOf(""), null);
+    assert.equal(regionOf("not a language"), null);
+  });
+
+  it("starts with the language's country when there are prices for it, and the fallback otherwise", () => {
+    const supported = ["NL", "ES", "DE", "FR", "IT", "PT"];
+    assert.equal(pricesCountry("es-ES", supported, "NL"), "ES");
+    assert.equal(pricesCountry("fr", supported, "NL"), "FR");
+    assert.equal(pricesCountry("de-AT", supported, "NL"), "NL");
+    assert.equal(pricesCountry("en-US", supported, "NL"), "NL");
+    assert.equal(pricesCountry("es-419", supported, "NL"), "NL");
+    assert.equal(pricesCountry(undefined, supported, "NL"), "NL");
   });
 });

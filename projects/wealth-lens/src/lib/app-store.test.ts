@@ -132,7 +132,7 @@ describe("the shared app state", () => {
     expect(appStore.get().plan.assumptions).toEqual(INITIAL_STATE.plan.assumptions);
   });
 
-  it("takes the country's inflation again when Prices of changes", () => {
+  it("takes the country's inflation again when Rising prices in changes", () => {
     setAssumptions({ inflation: 0.05 });
     setPricesOf("BR");
     expect(appStore.get().plan).toMatchObject({ pricesOf: "BR", assumptions: { inflation: null } });

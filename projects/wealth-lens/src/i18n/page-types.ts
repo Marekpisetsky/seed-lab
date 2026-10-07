@@ -32,3 +32,11 @@ export interface HowItWorksFacts {
   highInflation: string;
   priceYear: number;
 }
+
+/**
+ * A thing of the list in words: its name, and either its source (the same
+ * figure for everyone) or what its figure for a country is ("Average
+ * price of a used car in Spain"), told with the country in a sentence and,
+ * for a home deposit, the home's price.
+ */
+export type ItemWords = { name: string; source: string; about?: undefined } | { name: string; about: (country: string, detail: string) => string; source?: undefined };

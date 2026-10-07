@@ -151,6 +151,8 @@ type Swatches = Record<string, { x: number; y: number }>;
 async function chartPoints(page: Page): Promise<Swatches> {
   return page.evaluate(() => {
     const putIn = document.querySelector('path[fill="var(--chart-put-in)"]')!;
+    // In sight first: what is under the big number (the wishes) can push it below the fold.
+    putIn.closest("svg")!.scrollIntoView({ block: "center" });
     const svg = putIn.closest("svg")!.getBoundingClientRect();
     const x = svg.left + svg.width * 0.8;
     const runs: Record<string, number[]> = { putIn: [], growth: [] };

@@ -1,6 +1,6 @@
 import { IN_SENTENCE as COUNTRY_IN_SENTENCE } from "@seed-kit/country-names.ts";
 import type { ProblemTexts } from "@/lib/problems";
-import type { HowItWorksFacts, ProseSection, SourceEntry } from "../page-types";
+import type { HowItWorksFacts, ItemWords, ProseSection, SourceEntry } from "../page-types";
 import type { Messages } from "./en";
 
 /** Todo lo que la app dice en español: frases cortas, sin jerga (ver en.ts). */
@@ -28,7 +28,7 @@ export const es: Messages = {
     footerNote: "No se guarda ni se envía nada de lo que escribes. No es consejo financiero.",
   },
   meta: {
-    money: { title: "Lo que tu dinero puede hacer", description: "Mira cómo crece tu dinero y cuánto te paga. Gratis y privado." },
+    money: { title: "Lo que tu dinero puede hacer", description: "Mira qué podrías hacer con tu dinero, y cuándo. Gratis y privado." },
     test: { title: "Probar mi plan", description: "Tu plan en las crisis de la bolsa, de 1929 a 2022." },
     stocks: { title: "Mis acciones", description: "Lo que tienes, lo que ganaste y los años de cada fondo." },
     about: { title: "Acerca de", description: "Qué es Wealth Lens, quién lo hace y por qué es gratis." },
@@ -43,7 +43,8 @@ export const es: Messages = {
       {
         heading: "Qué es",
         body: [
-          "Escribe lo que tienes y lo que añades cada mes. Wealth Lens muestra cómo podría crecer, cuánto podría pagarte al mes y en qué lugares del mundo alcanza.",
+          "Escribe lo que tienes y lo que añades cada mes. Wealth Lens muestra cómo podría crecer y cuándo podrías hacer un viaje, pagar la entrada de una casa o vivir sin trabajar.",
+          "También muestra cuánto podría pagarte al mes y en qué lugares del mundo alcanza.",
           "También puedes [probar tu plan](/test) en grandes caídas del pasado, y ver [cómo les fue a tus acciones](/stocks).",
           "Es gratis. No hay registro, ni anuncios, ni seguimiento.",
         ],
@@ -99,6 +100,19 @@ export const es: Messages = {
           "Cada mes podrías sacar una parte de tu dinero: tu dinero × 4 % ÷ 12. El deslizador va del 2 % al 7 %.",
           "«Duró 30 años» dice en cuántos de cada 100 futuros posibles esa cantidad duró 30 años.",
           "Prudente: en 90 o más. Arriesgado: en 75 o más. Muy arriesgado: en menos.",
+        ],
+      },
+      {
+        heading: "Lo que podrías hacer con él",
+        body: [
+          "Bajo el número grande, hasta tres deseos, cada uno con cuándo llega tu plan.",
+          "Primero, las metas que marcaste como más importantes en Mis metas. Después, ejemplos para descubrir: un viaje, una vivienda y tiempo.",
+          "La vivienda es su entrada (un quinto de 80 m²) o entera. El tiempo es un año sin trabajar, o vivir sin trabajar.",
+          "Cada ejemplo es el más caro que tu plan alcanza en sus años, o si no, el más barato. Toca uno para añadirlo a tus metas.",
+          "Vivir sin trabajar: lo que retiras cada mes paga un mes de vida con alquiler, en el país de tus precios.",
+          "Los vuelos a Japón o a Asia no están incluidos. Nada se resta de tu dinero: cada deseo se calcula por separado.",
+          "Los precios parten del idioma de tu navegador: es-ES muestra los de España. Puedes cambiarlos. Sin precios para tu país, los de Países Bajos.",
+          "Cada precio dice su fuente y su fecha, y ≈ marca los más aproximados. [El método y todas las fuentes](research:wealth-lens/deseos.md).",
         ],
       },
       {
@@ -268,7 +282,7 @@ export const es: Messages = {
   },
   privacy: {
     title: "Privacidad",
-    updated: "Actualizado el 3 de octubre de 2026.",
+    updated: "Actualizado el 7 de octubre de 2026.",
     sections: [
       { heading: "En resumen", body: ["**No se guarda ni se envía nada de lo que escribes.** Sin cookies. Sin seguimiento."] },
       {
@@ -288,6 +302,7 @@ export const es: Messages = {
           "Esa elección queda en el almacenamiento de sesión de esta pestaña. Al cerrar la pestaña, se borra.",
           "Nunca se envía. Elegir «Automático» la borra al momento.",
           "La primera vez, el idioma sale de la configuración de tu navegador. No se guarda nada para recordarlo.",
+          "Los precios de deseos y metas parten del mismo ajuste: es-ES muestra los de España. Tu elección tampoco se guarda.",
           "Una versión anterior guardaba datos en el navegador. Si Wealth Lens los encuentra, ofrece cargarlos una vez y después los borra.",
         ],
       },
@@ -347,8 +362,8 @@ export const es: Messages = {
     home: "Ir a Wealth Lens",
   },
   money: {
-    headline: "¿Cuánto crecerá tu dinero?",
-    support: "Mira en qué podría convertirse tu ahorro, con palabras sencillas.",
+    headline: "¿Qué podrías hacer con tu dinero?",
+    support: "Un viaje, una casa, vivir sin trabajar: mira cuándo llegas.",
     trust: { noAccount: "Sin cuentas", nothingSaved: "No se guarda nada", data: (years: string) => `Datos de ${years}` },
   },
   stocks: {
@@ -941,7 +956,7 @@ export const es: Messages = {
       reaches: (start: string, target: string, duration: string, date: string) => `${start} ${target} en ${duration} (${date}).`,
       tooFar: (start: string, years: number, needed: string, inYears: number) => `${start} Tarda más de ${years} años. Para llegar en ${inYears} años: ${needed} al mes.`,
       liveSource: (housing: boolean, source: string) => `Una persona, ${housing ? "con" : "sin"} vivienda: ${source}.`,
-      itemSource: (source: string) => `${source} (estimación)`,
+      itemSource: (source: string) => `Precio estimado. ${source}`,
       ownPrice: "Tu propio precio.",
       ownAmount: "Tu propia cantidad.",
     },
@@ -1006,7 +1021,21 @@ export const es: Messages = {
     inGoals: "En Mis metas",
     isInGoals: (name: string) => `${name} está en Mis metas`,
     add: (name: string) => `Añadir ${name} a Mis metas`,
-    note: "Precios típicos en euros de hoy: estimaciones. Toca uno para ver su fuente.",
+    note: "Precios típicos en euros de hoy, todos estimados; ≈ marca los más aproximados. Toca uno para ver su fuente.",
+    pricesOf: "Precios de",
+    otherCountry: (country: string) => `precios de ${country}`,
+    basis: {
+      asking: "precios de anuncio",
+      paid: "precios pagados",
+      list: "precios de catálogo",
+      sales: "ventas",
+      valuation: "tasaciones",
+      survey: "encuesta",
+      official: "oficial",
+    },
+    figureSource: (about: string, basis: string, source: string, date: string) => `${about} (${basis}): ${source}, ${date}.`,
+    livingSource: (about: string, date: string) => `${about}: Numbeo y Wise, ${date}.`,
+    feesSource: (amount: string, source: string, date: string) => `Tasas, ${amount}: ${source}, ${date}.`,
     items: {
       "e-bike": { name: "Una bici eléctrica", source: "RAI Vereniging y BOVAG: precio medio de una bici eléctrica en Países Bajos, 2025." },
       "driving-licence": { name: "El carné de conducir", source: "CBR: coste medio del carné B en Países Bajos en 2025, 41 clases y exámenes." },
@@ -1017,17 +1046,33 @@ export const es: Messages = {
       "six-months-portugal": { name: "Seis meses viviendo en Portugal", source: "6 meses del coste de vida de Portugal con alquiler (Numbeo y Wise)." },
       kitchen: { name: "Una cocina nueva", source: "Homedeal: una cocina estándar con electrodomésticos, instalada, en Países Bajos." },
       "student-debt": { name: "Pagar una deuda de estudios media", source: "DUO: deuda media de estudios en Países Bajos a principios de 2025." },
-      wedding: { name: "Una boda", source: "ThePerfectWedding.nl: boda media en Países Bajos, sin luna de miel." },
-      "used-car": { name: "Un coche usado", source: "AutoScout24: precio medio pedido por un coche usado en Países Bajos, 2025." },
       "masters-nl": { name: "Un año de máster en Países Bajos", source: "Matrícula 2025-2026 (Rijksoverheid) más 12 meses de coste de vida." },
       "used-ev": { name: "Un coche eléctrico usado", source: "AutoScout24: precio medio pedido por un eléctrico usado, 2025." },
       "home-deposit-nl": { name: "La entrada del 10\u00a0% de una casa en Países Bajos", source: "10\u00a0% del precio medio de una casa en Países Bajos en 2025 (CBS)." },
-      "new-car": { name: "Un coche nuevo", source: "RAI Vereniging: precio medio de un coche nuevo en Países Bajos, 2025." },
       "small-business": { name: "Comprar un pequeño negocio", source: "Tu 35\u00a0% de un precio de 200.000\u00a0€; los bancos suelen prestar el resto (Brookz, Inter Actus)." },
       "flat-lima": { name: "Un piso de 80 m² en la Lima acomodada (Perú)", source: "BCRP: precios pedidos solo en distritos acomodados, no en toda Lima. 4.º trim. 2025." },
       "flat-portugal": { name: "Un piso de 80 m² en Portugal", source: "INE Portugal: tasación bancaria mediana de pisos, 2025." },
       "home-nl": { name: "Una casa media en Países Bajos, pagada", source: "CBS: precio medio de una casa existente en Países Bajos, 2025." },
-    } as Record<string, { name: string; source: string }>,
+      "weekend-capital": { name: "Un fin de semana en una capital europea", source: "Eurostat: 224\u00a0€ por noche en viajes cortos al extranjero en 2024, con el transporte. Dos noches." },
+      "month-southeast-asia": {
+        name: "Un mes viajando por el Sudeste Asiático",
+        source: "Un mes al coste medio con alquiler de Tailandia, Vietnam, Indonesia, Malasia y Filipinas. Sin el vuelo.",
+      },
+      "trip-japan": { name: "Un viaje a Japón", source: "Agencia de Turismo de Japón: un visitante de Alemania gastó 393.710\u00a0¥ en Japón en 2025, 1\u00a0€ = 169,07\u00a0¥. Sin el vuelo." },
+      "used-car": { name: "Un coche usado", about: (country: string) => `Precio medio de un coche usado en ${country}` },
+      "new-car": { name: "Un coche nuevo", about: (country: string) => `Precio medio de un coche nuevo en ${country}` },
+      wedding: { name: "Una boda", about: (country: string) => `Coste medio de una boda en ${country}` },
+      "home-deposit": { name: "La entrada de una vivienda", about: (country: string, home: string) => `El 20\u00a0% de una vivienda de 80 m² en ${country}, ${home}` },
+      home: { name: "Una vivienda de 80 m², pagada", about: (country: string) => `80 m² al precio medio por m² en ${country}, sin impuestos ni gastos` },
+      sabbatical: { name: "Un año sin trabajar", about: (country: string) => `12 meses del coste de vida con alquiler en ${country}` },
+      "study-year": { name: "Un año de universidad", about: (country: string) => `12 meses del coste de vida con alquiler en ${country}, y un año de tasas universitarias` },
+    } as Record<string, ItemWords>,
+  },
+  wishes: {
+    title: "Con esto podrías:",
+    add: (name: string, when: string, amount: string) => `${name}, ${when}: ${amount}. Añadir a Mis metas.`,
+    added: (name: string, when: string, amount: string) => `${name}, ${when}: ${amount}. En Mis metas.`,
+    perMonth: (amount: string) => `${amount} al mes`,
   },
   findings: {
     title: "Para tener en cuenta",

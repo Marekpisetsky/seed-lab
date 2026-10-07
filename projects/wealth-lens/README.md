@@ -26,7 +26,7 @@ tabla de *Principles* del hub, `packages/seed-kit/src/tools.json`):
 | Your data never leaves your device | Cumple | Todo se calcula en el navegador; nada se guarda ni se envía. |
 | Transparent | En parte | Gratis, con método y fuentes públicos; los cambios del método aún no se publican. |
 | Truly European | Pendiente | EN y ES, pero alojada en Vercel (EE. UU.) y sin auditoría de accesibilidad hecha por personas. |
-| Light | Cumple | De 212 a 233 KB por página en la primera visita, por debajo del límite de 350 KB. |
+| Light | Cumple | De 214 a 240 KB por página en la primera visita, por debajo del límite de 350 KB. |
 | For everyone | En parte | Palabras sencillas, teclado y objetivos de 44 px; aún sin pruebas con personas reales. |
 
 **Estado actual (2026-10-05):** dos pantallas (Next.js 16 + TypeScript +
@@ -547,18 +547,35 @@ años elegidos; los de "llegar" hablan de la primera meta cuando está a
 | Comisiones | 5+ años y la diferencia ≥ €1.000 | fondo al 1 % vs al 0,2 % |
 | Duplicación | crecimiento ≥ 2 % al año | cada cuántos años se duplica |
 
-**Compras** (`src/data/connections.json` + `src/lib/connections.ts`): 19
-compras con fuente y fecha, marcadas como estimación, ninguna calculada
-desde un "país propio" (el colchón de 6 meses y el sabático se quitaron).
-Las estancias (tres meses en Japón, un año por el sudeste asiático, seis
-meses en Portugal, un máster en NL) se calculan con el costo de vida de
-ese país, con vivienda. Importes en euros de hoy; los de USD se
-convierten con el tipo guardado en el archivo.
+**Compras y deseos** (`src/data/connections.json` + `src/lib/connections.ts`):
+26 cosas con fuente y fecha, marcadas como estimación ("≈" las más
+aproximadas). Unas tienen una cifra para todos (un fin de semana en una
+capital europea, un viaje a Japón, las estancias en Japón, el Sudeste
+Asiático o Portugal, con el coste de vida de ese país y vivienda); otras,
+una por país (coche usado y nuevo, boda, vivienda de 80 m² y su entrada
+del 20 %), o meses de vida en el país de los precios (un año sin trabajar,
+un año de universidad con sus tasas). Las neerlandesas (bici eléctrica,
+cocina…) salen solo con precios de Países Bajos; tres antiguas ya no se
+listan pero siguen valiendo para las metas de archivos viejos. Método,
+regla de elección y fuentes: [research/wealth-lens/deseos.md](../../research/wealth-lens/deseos.md).
+
+**Con esto podrías** (`src/lib/wishes.ts`, `components/money/wishes-line.tsx`):
+bajo el número grande, hasta tres deseos con su precio y cuándo llega el
+plan: primero las metas que la persona marcó como más importantes; luego un
+ejemplo por área (un viaje, una vivienda, tiempo), el más caro que el plan
+alcanza dentro de sus años o, si no, el más barato. Sin plazos fijos
+("corto, medio y largo" fue una propuesta, no una regla: `docs/direction.md`).
+Tocar un ejemplo lo añade a Mis metas como prioridad. **Precios de** (`src/lib/wish-country.ts`): el país de la región
+del idioma del navegador (seed-kit `pricesCountry`), Países Bajos si no hay
+precios de ese país; solo en memoria, nunca guardado; cambia solo deseos y
+metas.
 
 ## La primera pantalla de *My money*
 
-Arriba, antes de la calculadora, un titular corto ("How much will your
-money grow?" / "¿Cuánto crecerá tu dinero?") y una frase de apoyo
+Arriba, antes de la calculadora, un titular corto que habla a la persona
+y a lo que quiere ("What could you do with your money?" / "¿Qué podrías
+hacer con tu dinero?") y una frase de apoyo ("Un viaje, una casa, vivir sin
+trabajar: mira cuándo llegas.")
 (`money.headline` y `money.support`). Debajo del aviso "Write your
 numbers to see your result", tres puntos de confianza en línea, con su
 icono: sin cuentas, no se guarda nada y los años de los datos ("Data

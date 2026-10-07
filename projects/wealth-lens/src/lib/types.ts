@@ -98,7 +98,7 @@ export interface AssumptionOverrides {
   growth: number | null;
   /** Swings a year: the standard deviation of yearly log returns. */
   volatility: number | null;
-  /** Inflation a year, instead of the "Prices of" country's reference. */
+  /** Inflation a year, instead of the "Rising prices in" country's reference. */
   inflation: number | null;
 }
 
@@ -107,10 +107,13 @@ export const STANDARD_ASSUMPTIONS: AssumptionOverrides = { growth: null, volatil
 /**
  * A goal the user adds to "My goals": optional, as many as they like, each
  * worked out on its own against the same plan. Nothing about the user's
- * life is assumed; they say what the goal costs, or pick it from a list.
+ * life is assumed; they say what the goal costs, or pick it from a list
+ * (things of the list at the prices of the country they see, lib/
+ * wish-country.ts).
  * - live: living in a country of the cost-of-living list, with or without
  *   paying for housing there;
- * - buy: an item of the "Buy it" list (src/data/connections.json, its id);
+ * - buy: an item of the "Buy it" list (src/data/connections.json, its id),
+ *   priced for the country of the prices;
  * - buy-own: something of the user's own, at the price they give;
  * - amount: an amount to reach;
  * - monthly: a monthly amount the money should pay (expenses, a mortgage,
@@ -145,8 +148,10 @@ export interface Plan {
   /** Share of the money taken out per year for "It could pay you". */
   withdrawalRate: number;
   /**
-   * "Prices of": the country (a code of the cost-of-living list) whose
-   * reference inflation turns growth before inflation into growth after it.
+   * "Rising prices in" (More options): the country (a code of the
+   * cost-of-living list) whose reference inflation turns growth before
+   * inflation into growth after it. Not the "Prices of" of wishes and
+   * goals (lib/wish-country.ts), which is never saved.
    */
   pricesOf: string;
   /** What the user changed of the standard assumptions. */

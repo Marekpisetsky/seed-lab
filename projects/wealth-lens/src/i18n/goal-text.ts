@@ -6,6 +6,7 @@
 
 import type { I18n } from ".";
 import { countryInSentence } from "./countries";
+import { itemName, itemSource } from "./item-text";
 import { dividendNote, growthSource } from "./investment-text";
 import { MAX_YEARS, NEEDED_WITHIN_YEARS, type GoalStatus, type Scenario } from "@/lib/calculator";
 import { countryByCode } from "@/lib/cost-of-living";
@@ -17,7 +18,7 @@ function liveSource(code: string, referenceDate: string | null, { m }: I18n): st
   return level ? m.countryTable.estimatedSource(level.year) : m.countryTable.detailedSource(referenceDate ?? "");
 }
 
-/** "Live in Peru", "A used car", "Reach €100,000", "My rent" (a monthly amount's own label). */
+/** "Live in Peru", "Live without working", "A used car", "Reach €100,000", "My rent" (a monthly amount's own label). */
 export function goalName(status: GoalStatus, i18n: I18n): string {
   const { m, f } = i18n;
   if (!status.known) return m.goals.unknown;
@@ -26,7 +27,7 @@ export function goalName(status: GoalStatus, i18n: I18n): string {
     case "live":
       return m.goals.live(countryInSentence(goal.country, i18n));
     case "buy":
-      return m.things.items[goal.item]?.name ?? m.goals.unknown;
+      return m.things.items[goal.item] ? itemName(goal.item, i18n) : m.goals.unknown;
     case "buy-own":
       return goal.name;
     case "amount":
@@ -38,9 +39,11 @@ export function goalName(status: GoalStatus, i18n: I18n): string {
   }
 }
 
-/** "with housing", "without housing", or nothing. */
-export function goalDetail({ goal }: GoalStatus, { m }: I18n): string | null {
-  return goal.kind === "live" ? (goal.housing ? m.goals.withHousing : m.goals.withoutHousing) : null;
+/** "including rent", "prices of the Netherlands" (a thing priced elsewhere), or nothing. */
+export function goalDetail({ goal, otherCountry }: GoalStatus, i18n: I18n): string | null {
+  const { m } = i18n;
+  if (goal.kind === "live") return goal.housing ? m.goals.withHousing : m.goals.withoutHousing;
+  return otherCountry ? m.things.otherCountry(countryInSentence(otherCountry, i18n)) : null;
 }
 
 /** How the status is worked out: what is needed, when it gets there, and where the figures come from. */
@@ -65,8 +68,8 @@ export function goalExplain(status: GoalStatus, scenario: Scenario, investment: 
       ? m.goals.form.onePerson(countryInSentence(goal.country, i18n), goal.estimateDate)
       : goal.kind === "live"
       ? t.liveSource(goal.housing, liveSource(goal.country, status.referenceDate, i18n))
-      : goal.kind === "buy"
-        ? t.itemSource(m.things.items[goal.item]?.source ?? "")
+      : goal.kind === "buy" && status.item
+        ? t.itemSource(itemSource(status.item, i18n))
         : goal.kind === "buy-own"
           ? t.ownPrice
           : t.ownAmount;

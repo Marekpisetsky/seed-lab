@@ -27,7 +27,7 @@ src/
   tools.json         la lista de herramientas: la leen el hub y todos los lanzadores
   tools.ts           la lee, la valida y dice cuáles se muestran
   locales.ts         EN y ES, sus formatos (Intl) y direcciones por idioma
-  detect.ts          el script de idioma: no guarda nada
+  detect.ts          el script de idioma y el país del idioma del navegador: no guardan nada
   format.ts          números, dinero, porcentajes y fechas en cada idioma (con el signo menos −)
   plain-language.ts  el test de lenguaje sencillo: frases cortas, sin jerga, sin consejos (research/legal)
   checks.ts          peso por página, peticiones a otros sitios, almacenamiento
