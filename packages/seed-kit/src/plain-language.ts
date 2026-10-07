@@ -146,7 +146,11 @@ export function textBlocks(html: string): string[] {
   return [...blocks, ...labels].filter((block) => block !== "");
 }
 
-/** The blocks that show a percent and no amount in that currency. Empty when every percent has its euros. */
-export function percentWithoutMoney(blocks: readonly string[], currency = "€"): string[] {
-  return blocks.filter((block) => /\d[\s\u00a0]?%/.test(block) && !block.includes(currency));
+/**
+ * The blocks that show a percent and no amount in that currency: its symbol,
+ * or its name after a figure in words ("4,4 billones de euros", format.ts).
+ * Empty when every percent has its euros.
+ */
+export function percentWithoutMoney(blocks: readonly string[], currency = "€", name: RegExp = /\bde euros\b/): string[] {
+  return blocks.filter((block) => /\d[\s\u00a0]?%/.test(block) && !block.includes(currency) && !name.test(block));
 }

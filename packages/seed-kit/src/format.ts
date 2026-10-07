@@ -31,11 +31,17 @@ interface PercentOptions {
 export interface NumberFormats {
   /** 1234.5, "EUR" → "€1,234.50". */
   money(amount: number, currency: string, options?: MoneyOptions): string;
-  /** Whole euros: 1234.5 → "€1,235". */
+  /**
+   * Whole euros: 1234.5 → "€1,235". From a thousand million on, in words,
+   * three figures ("€1.23 billion", "1230 millones de euros"); from 10¹⁸,
+   * as a power of ten ("€4.35 × 10¹⁸"): such figures are not read in full.
+   */
   eur(amount: number, options?: { signed?: boolean }): string;
   /** Rounded the way a brief says it: €8,429 → "€8,400", €66,827 → "€67,000". */
   eurRounded(amount: number, options?: { signed?: boolean }): string;
-  /** Short, for an axis: "€1.2M", "€99K" ("1,2 M €", "99 mil €"). */
+  /** A whole count, in words and powers of ten as `eur` writes its amounts: 12346 → "12,346", 3.66e15 → "3,660 trillion". */
+  count(value: number): string;
+  /** Short, for an axis: "€1.2M", "€99K" ("1,2 M €", "99 mil €"); from 10¹⁸, "€4.4 × 10¹⁸". */
   eurCompact(amount: number): string;
   /** 0.0914 → "9.1%". */
   percent(fraction: number, options?: PercentOptions): string;
@@ -67,6 +73,31 @@ function shown(value: number, decimals: number): number {
   const rounded = Number(value.toFixed(decimals));
   return rounded === 0 ? 0 : rounded;
 }
+
+/** From here an amount is written in words, and from `POWER_FROM` as a power of ten. */
+const WORDS_FROM = 1e9;
+const POWER_FROM = 1e18;
+const SUPERSCRIPT = "⁰¹²³⁴⁵⁶⁷⁸⁹";
+
+/**
+ * The big amounts each language writes in words, largest first: English
+ * says billion (10⁹) and trillion (10¹²); Spain counts thousands of millions
+ * ("1230 millones") up to the billón (10¹²), as its press does. A language
+ * without its words here uses the power of ten from `WORDS_FROM`.
+ */
+const SCALES: Record<string, { from: number; unit: number; one: string; many: string }[]> = {
+  en: [
+    { from: 1e12, unit: 1e12, one: "trillion", many: "trillion" },
+    { from: 1e9, unit: 1e9, one: "billion", many: "billion" },
+  ],
+  es: [
+    { from: 1e12, unit: 1e12, one: "billón", many: "billones" },
+    { from: 1e9, unit: 1e6, one: "millón", many: "millones" },
+  ],
+};
+
+/** Euros beside a figure in words: "€1.2 billion"; Spanish writes the name, "1,2 billones de euros". */
+const MONEY_WORDS: Record<string, { before?: string; after?: string }> = { en: { before: "€" }, es: { after: " de euros" } };
 
 const spaces = (text: string) => text.replace(/[\u202f\u00a0]/g, "\u00a0");
 /** A formatted number: no-break spaces and the true minus sign (numbers never hold a hyphen otherwise). */
@@ -101,7 +132,40 @@ function createFormats(intl: string): NumberFormats {
         signDisplay: signed ? "exceptZero" : "auto",
       }).format(Number.isFinite(fraction) ? shown(fraction, decimals + 2) : fraction),
     );
-  const eur: NumberFormats["eur"] = (amount, { signed = false } = {}) => money(amount, "EUR", { decimals: 0, signed });
+  const language = intl.split("-")[0];
+  const currencyFirst = new Intl.NumberFormat(intl, { style: "currency", currency: "EUR" }).formatToParts(1)[0]?.type === "currency";
+  const figures = (value: number, digits: number) => typeset(numberFormat(`figures|${digits}`, { maximumSignificantDigits: digits }).format(value));
+  /** "4.35 × 10¹⁸". */
+  const power = (abs: number, digits: number) => {
+    let exponent = Math.floor(Math.log10(abs));
+    let mantissa = Number((abs / 10 ** exponent).toPrecision(digits));
+    if (mantissa >= 10) {
+      mantissa /= 10;
+      exponent += 1;
+    }
+    return `${figures(mantissa, digits)}\u00a0×\u00a010${[...String(exponent)].map((digit) => SUPERSCRIPT[Number(digit)]).join("")}`;
+  };
+  /** "4.35 × 10¹⁸" with the euro where the language puts it. */
+  const powerEur = (abs: number, sign: string, digits: number) => (currencyFirst ? `${sign}€${power(abs, digits)}` : `${sign}${power(abs, digits)}\u00a0€`);
+  /** "1.23 billion", "1230 millones", three figures; `null` where the language has no word for it (10¹⁸ and more). */
+  const inWords = (abs: number): string | null => {
+    // Rounded first, so 999,999,999,999 is "1 trillion", never "1000 billion".
+    const rounded = Number(abs.toPrecision(3));
+    const scale = SCALES[language]?.find((entry) => rounded >= entry.from);
+    if (!scale || rounded >= POWER_FROM) return null;
+    const count = rounded / scale.unit;
+    return `${figures(count, 3)}\u00a0${count === 1 ? scale.one : scale.many}`;
+  };
+  const eur: NumberFormats["eur"] = (amount, { signed = false } = {}) => {
+    const abs = Math.abs(amount);
+    if (!Number.isFinite(amount) || abs < WORDS_FROM) return money(amount, "EUR", { decimals: 0, signed });
+    const sign = amount < 0 ? "\u2212" : signed ? "+" : "";
+    const words = inWords(abs);
+    if (!words) return powerEur(abs, sign, 3);
+    const { before = "", after = "" } = MONEY_WORDS[language] ?? {};
+    // The number keeps its word; "de euros" may go to the next line.
+    return `${sign}${before}${words}${after}`;
+  };
   const monthYear = new Intl.DateTimeFormat(intl, { month: "short", year: "numeric", timeZone: "UTC" });
   const fullDate = new Intl.DateTimeFormat(intl, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
   return {
@@ -113,7 +177,13 @@ function createFormats(intl: string): NumberFormats {
       const step = abs >= 10_000 ? 1000 : abs >= 1000 ? 100 : abs >= 100 ? 10 : 1;
       return eur(Math.round(amount / step) * step, { signed });
     },
+    count(value) {
+      const abs = Math.abs(value);
+      if (!Number.isFinite(value) || abs < WORDS_FROM) return typeset(numberFormat("count", { maximumFractionDigits: 0 }).format(value));
+      return `${value < 0 ? "\u2212" : ""}${inWords(abs) ?? power(abs, 3)}`;
+    },
     eurCompact(amount) {
+      if (Number.isFinite(amount) && Math.abs(amount) >= POWER_FROM) return powerEur(Math.abs(amount), amount < 0 ? "\u2212" : "", 2);
       const digits = amount >= 1e6 && amount < 1e7 ? 1 : 0;
       return typeset(numberFormat(`compact|${digits}`, { style: "currency", currency: "EUR", notation: "compact", maximumFractionDigits: digits }).format(amount));
     },
