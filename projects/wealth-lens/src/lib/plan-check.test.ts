@@ -213,9 +213,20 @@ describe("Check your plan", () => {
     const { lead, details } = checkWords(check, EN);
     expect(lead).toEqual(["In 30 years, savings are worth €151,175 of today's money.", "That is €12,825 less than you put in."]);
     expect(details).toContain("World stocks (1988–2022) typically give €370,415.");
-    // Both sides in one sentence: what savings give up, and the worst fall world stocks had, on the same plan's money (46% of €370,415).
-    expect(details).toContain("With savings, €219,240 less; with stocks, a fall like 2000–2002 (−46%) = −€170,391.");
-    expect(checkWords(check, ES).details).toContain("Con Ahorro, 219.240\u00a0€ menos; con acciones, caer como en 2000–2002 (\u221246\u00a0%) = \u2212170.391\u00a0€.");
+    // Both sides, in two short sentences: what savings give up, then the worst fall world stocks had, on the same plan's money (46% of €370,415).
+    // "At least": the data is yearly, so within a year it may have fallen further.
+    const both = ["With savings you would end with €219,240 less than with world stocks.", "But stocks can fall: from 2000 to 2002 they fell at least 46% (−€170,391)."];
+    expect(details.slice(details.indexOf(both[0]), details.indexOf(both[0]) + 2)).toEqual(both);
+    expect(checkWords(check, ES).details).toEqual(
+      expect.arrayContaining([
+        "Con Ahorro terminarías con 219.240\u00a0€ menos que con acciones del mundo.",
+        "Pero las acciones pueden caer: entre 2000 y 2002 cayeron al menos un 46\u00a0% (\u2212170.391\u00a0€).",
+      ]),
+    );
+    // A fall within one calendar year is said with its year.
+    const one: PlanCheck = { ...check, world: { ...check.world, fall: { drop: 0.4076, from: 2008, to: 2008 } } };
+    expect(checkWords(one, EN).details).toContain("But stocks can fall: in 2008 they fell at least 41% (−€151,870).");
+    expect(checkWords(one, ES).details).toContain("Pero las acciones pueden caer: en 2008 cayeron al menos un 41\u00a0% (\u2212151.870\u00a0€).");
   });
 
   it("gives the last 12 months as where its euros came from, so the percent can be checked by eye", () => {

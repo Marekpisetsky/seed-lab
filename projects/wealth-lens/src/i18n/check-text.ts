@@ -51,15 +51,17 @@ export function checkWords(check: PlanCheck, i18n: I18n): CheckWords {
       const [total, putIn, typical] = [check.total, check.putIn, check.world.typical].map(Math.round);
       const { world } = check;
       const lead = [t.keeps(m.units.years(check.years), f.eur(total)), total < putIn ? t.less(f.eur(putIn - total)) : t.more(f.eur(total - putIn))];
-      // Both sides in one sentence: what savings give up, and world stocks' worst fall on the money they typically reach.
-      const drop = world.fall ? Math.round(world.fall.drop * 100) / 100 : null;
-      const years = world.fall ? (world.fall.from === world.fall.to ? String(world.fall.from) : `${world.fall.from}–${world.fall.to}`) : "";
-      const details = [
-        ...(total < putIn ? [t.why] : []),
-        t.world(periodText(world), f.eur(typical)),
-        ...(world.fall && drop !== null && typical > total ? [t.bothSides(f.eur(typical - total), years, f.percent(-drop, { decimals: 0 }), f.eur(-typical * drop, { signed: true }))] : []),
-        t.worldBad(f.eur(world.bad)),
-      ];
+      // Both sides, one short sentence each: what savings give up, then world stocks' worst fall on the money they typically reach.
+      const { fall } = world;
+      const drop = fall ? Math.round(fall.drop * 100) / 100 : null;
+      const sides =
+        fall && drop !== null && typical > total
+          ? [
+              t.savingsLess(f.eur(typical - total)),
+              t.stocksFall(fall.from === fall.to ? t.fallIn(fall.from) : t.fallBetween(fall.from, fall.to), f.percent(drop, { decimals: 0 }), f.eur(-typical * drop, { signed: true })),
+            ]
+          : [];
+      const details = [...(total < putIn ? [t.why] : []), t.world(periodText(world), f.eur(typical)), ...sides, t.worldBad(f.eur(world.bad))];
       return { lead, details };
     }
   }
