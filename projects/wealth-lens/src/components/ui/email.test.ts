@@ -3,7 +3,9 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { en } from "@/i18n/messages/en";
+import { enPages } from "@/i18n/messages/en-pages";
 import { es } from "@/i18n/messages/es";
+import { esPages } from "@/i18n/messages/es-pages";
 import { CONTACT } from "@/lib/site";
 import { Email } from "./email";
 
@@ -22,7 +24,7 @@ describe("contact", () => {
   });
 
   it("is the only way to write to seed-lab: no GitHub links in either language", () => {
-    for (const messages of [en, es]) {
+    for (const messages of [{ ...en, ...enPages }, { ...es, ...esPages }]) {
       const text = JSON.stringify(messages);
       expect(text).not.toMatch(/github\.com|\]\(issues\)/i);
       expect(text).toContain("](email)");

@@ -39,7 +39,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   });
   const footer = footerModel({
     locale,
-    links: FOOTER.map((page) => ({ label: m[page].title, href: localePath(PAGES[page], locale) })),
+    links: FOOTER.map((page) => ({ label: m.site.footer[page], href: localePath(PAGES[page], locale) })),
     notes: [m.site.footerNote],
   });
   return (

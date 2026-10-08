@@ -1,0 +1,355 @@
+/**
+ * Las palabras en español de las páginas que el servidor escribe enteras
+ * (ver en-pages.ts): solo en el código del servidor.
+ */
+
+import type { HowItWorksFacts, ProseSection, SourceEntry } from "../page-types";
+import { es } from "./es";
+import type { PageMessages } from "./en-pages";
+
+export const esPages: PageMessages = {
+  meta: {
+    money: { title: "Lo que tu dinero puede hacer", description: "Mira qué podrías hacer con tu dinero, y cuándo. Gratis y privado." },
+    test: { title: "Probar mi plan", description: "Tu plan en las crisis de la bolsa, de 1929 a 2022." },
+    stocks: { title: "Mis acciones", description: "Lo que tienes, lo que ganaste y los años de cada fondo." },
+    about: { title: "Acerca de", description: "Qué es Wealth Lens, quién lo hace y por qué es gratis." },
+    howItWorks: { title: "Cómo funciona", description: "El método, las cifras y todas las fuentes, con enlaces y fechas." },
+    privacy: { title: "Privacidad", description: "No se guarda ni se envía nada de lo que escribes. Sin cookies. Qué registra el alojamiento." },
+    terms: { title: "Condiciones", description: "No es consejo financiero. Sin garantía. Úsalo bajo tu responsabilidad." },
+  },
+  about: {
+    title: es.site.footer.about,
+    lead: "Wealth Lens muestra lo que puede hacer tu dinero, con palabras sencillas.",
+    sections: [
+      {
+        heading: "Qué es",
+        body: [
+          "Escribe lo que tienes y lo que añades cada mes. Wealth Lens muestra cómo podría crecer y cuándo podrías hacer un viaje, pagar la entrada de una casa o vivir sin trabajar.",
+          "También muestra cuánto podría pagarte al mes y en qué lugares del mundo alcanza.",
+          "También puedes [probar tu plan](/test) en grandes caídas del pasado, y ver [cómo les fue a tus acciones](/stocks).",
+          "Es gratis. No hay registro, ni anuncios, ni seguimiento.",
+        ],
+      },
+      {
+        heading: "Parte de seed-lab",
+        body: ["Wealth Lens es la primera herramienta de [seed-lab](hub): herramientas pequeñas y gratuitas para Europa que dejan tus datos en tu dispositivo."],
+      },
+      {
+        heading: "Quién lo hace",
+        body: [
+          "Lo hace Marek Pisetsky. Wealth Lens es de uso gratuito. Su código es de seed-lab.",
+          "¿Preguntas, ideas o un error que contar? Escribe a [email](email).",
+        ],
+      },
+      {
+        heading: "Qué no es",
+        body: [
+          "No es consejo financiero. Nunca te dice qué comprar o vender. Lee las [condiciones](/terms).",
+          "Sus cifras vienen del pasado y de fuentes públicas. Mira [cómo funciona](/how-it-works).",
+        ],
+      },
+    ] as ProseSection[],
+  },
+  howItWorks: {
+    title: es.site.footer.howItWorks,
+    lead: "Qué hace Wealth Lens con tus números, qué supone y de dónde sale cada cifra.",
+    sections: (facts: HowItWorksFacts): ProseSection[] => [
+      {
+        heading: "Tu dinero crece",
+        body: [
+          "Empiezas con una cantidad y añades algo cada mes. Cada año el dinero crece un porcentaje, y ese crecimiento también crece.",
+          "Todos los importes están en euros de hoy. Los precios suben con el tiempo, así que el crecimiento que ves es después de esa subida.",
+          "Cada aporte mensual entra al final de su mes, y sube con los precios.",
+        ],
+      },
+      {
+        heading: "Cuánto crece",
+        body: [
+          "La calculadora empieza en un 5\u00a0% al año tras subir los precios. Las acciones del mundo crecieron un 5,2\u00a0% al año de 1900 a 2024, según el anuario de UBS de 2025.",
+          "Escribe otra cifra o toca un ejemplo. La cifra de un ejemplo usa los años pasados de ese ejemplo. Cualquier otra sube y baja como las acciones del mundo.",
+          `Cada opción crece a su media de años pasados. Todas usan los mismos años, ${facts.period}, para que ninguna parezca mejor por empezar en una buena década.`,
+          "Las acciones suben y bajan. Por eso Wealth Lens calcula 1000 futuros posibles, cada uno barajando años pasados.",
+          "«Si va mal» es donde 1 de cada 10 de esos futuros termina por debajo. «Si va bien», donde 1 de cada 10 termina por encima.",
+          "«Primeros 10 años como 2000–2009» repite esa década tal como fue y después crece a la media. Bonos y oro fueron bien entonces: toman sus peores diez años.",
+          "Una mezcla crece como sus partes, según su peso. Mi cartera pesa cada posición por su valor, y cada una crece como su índice.",
+          "Una cuenta de ahorro gana su interés, menos la subida de precios. Tus propios números pueden sustituir cualquiera de estos.",
+        ],
+      },
+      {
+        heading: "Lo que puede pagarte",
+        body: [
+          "Cada mes podrías sacar una parte de tu dinero: tu dinero × 4 % ÷ 12. El deslizador va del 2 % al 7 %.",
+          "«Duró 30 años» dice en cuántos de cada 100 futuros posibles esa cantidad duró 30 años.",
+          "Prudente: en 90 o más. Arriesgado: en 75 o más. Muy arriesgado: en menos.",
+        ],
+      },
+      {
+        heading: "Lo que podrías hacer con él",
+        body: [
+          "Bajo el número grande, hasta tres deseos, cada uno con cuándo llega tu plan.",
+          "Primero, las metas que marcaste como más importantes en Mis metas. Después, ejemplos para descubrir: un viaje, una vivienda y tiempo.",
+          "La vivienda es su entrada (un quinto de 80 m²) o entera. El tiempo es un año sin trabajar, o vivir sin trabajar.",
+          "Cada ejemplo es el más caro que tu plan alcanza en sus años, o si no, el más barato. Toca uno para añadirlo a tus metas.",
+          "Vivir sin trabajar: lo que retiras cada mes paga un mes de vida con alquiler, en el país de tus precios.",
+          "Los vuelos a Japón o a Asia no están incluidos. Nada se resta de tu dinero: cada deseo se calcula por separado.",
+          "Los precios parten del idioma de tu navegador: es-ES muestra los de España. Puedes cambiarlos. Sin precios para tu país, los de Países Bajos.",
+          "Cada precio dice su fuente y su fecha, y ≈ marca los más aproximados. [El método y todas las fuentes](research:wealth-lens/deseos.md).",
+        ],
+      },
+      {
+        heading: "Chequeo de tu plan",
+        id: "check",
+        body: [
+          "Bajo el resultado, hasta tres observaciones, solo cuando aplican. Cada una con sus euros. Dicen lo que hay, nunca qué hacer.",
+          "Pocos años: los años de tu plan, o una meta, a menos de 5 años, con dinero que sube y baja. Cuenta cuántos de los 1000 futuros posibles acaban por debajo de lo que pones hasta entonces. Sale desde 1 de cada 10. [El método](research:wealth-lens/chequeo.md#horizonte-frente-a-riesgo).",
+          "Una acción: una empresa con más de un quinto de tu mezcla o de Mi cartera, sin contar los fondos indexados. Da sus euros y su peor caída desde un máximo, sobre tu dinero. [El método](research:wealth-lens/chequeo.md#concentración).",
+          "Ahorro durante 10 años o más: lo que conserva la cuenta en dinero de hoy, frente a lo que pones. Y frente a las acciones del mundo, con las mismas cantidades: lo que se deja de ganar y su peor caída. Esa caída sale de datos anuales: dentro de cada año pudo ser mayor. [El método](research:wealth-lens/chequeo.md#ahorro-a-largo-plazo).",
+        ],
+      },
+      {
+        heading: "Países",
+        body: [
+          `La tabla tiene ${facts.countries} países. En ${facts.detailed}, el coste de una persona sale de Numbeo (sin alquiler) y Wise (piso de 1 dormitorio fuera del centro).`,
+          `Los otros ${facts.estimated} se estiman con el nivel de precios de cada país, del Banco Mundial (${facts.priceYear}). Llevan la marca ≈.`,
+          "Cómo: los costes de Países Bajos × lo caro que es el país frente a Países Bajos. El alquiler × ese número al cuadrado, porque varía más.",
+          `En los ${facts.detailed} países detallados, la estimación se desvía ${facts.medianWithout} sin vivienda y ${facts.medianWith} con vivienda, en el caso del medio.`,
+          `Uno de cada diez se desvía ${facts.tenthWithout} o ${facts.tenthWith} o más. Las ciudades también cambian mucho frente a la media de su país.`,
+          `Quedan fuera: países sin datos de precios suficientes, y aquellos donde los precios subieron más del 30 % al año (${facts.leftOut}).`,
+          "✓ y un año quieren decir que lo que tu dinero paga al mes lo cubre desde ese año. Si no, la tabla dice cuándo llega tu plan.",
+        ],
+      },
+      {
+        heading: "La subida de precios de cada país",
+        body: [
+          "Cada país tiene una subida de precios anual a largo plazo: la meta que publica su banco central, revisada en septiembre de 2026.",
+          "Los países del euro usan el 2 % del Banco Central Europeo. Donde no hay meta, es más o menos la media de 2015–2024.",
+          `En ${facts.highInflation}, los precios subieron un 10 % al año o más en 2015–2024. Donde hay meta, se usa la meta igualmente.`,
+        ],
+      },
+      {
+        heading: "Probar mi plan",
+        body: [
+          "Tu plan recorre los años pasados en su orden de verdad, sin repeticiones. Las cifras son de años naturales completos.",
+          "Cada caída empieza el año anterior. La caída es lo que le hizo al dinero que tenías en lo más alto.",
+          "Una caída que se recuperó dentro del mismo año no aparece en cifras anuales. El Covid de 2020 es una de ellas.",
+        ],
+      },
+      {
+        heading: "Fondos y acciones",
+        body: [
+          "Una vez al día, el sitio descarga precios de Yahoo Finance, o de Stooq si falla. Tu navegador nunca les pregunta.",
+          "Solo publica cifras calculadas con esos precios: el último precio, el cambio en un año, la peor caída y una línea semanal.",
+          "Esa línea es el cambio de cada semana desde el inicio del periodo, partiendo de 100. Nunca es un precio.",
+          "Una acción sola nunca se proyecta: nadie puede predecir una empresa. En una mezcla o en Mi cartera, una acción crece como su índice.",
+        ],
+      },
+      {
+        heading: "Lo que no hace",
+        body: [
+          "No da consejos ni hace previsiones. Deja fuera los impuestos y la mayoría de comisiones.",
+          "No convierte monedas: solo cuentan las posiciones en euros. Las cifras en dólares o libras se pasaron a euros al cambio fijo del 28 de septiembre de 2026.",
+        ],
+      },
+    ],
+    sourcesTitle: "Fuentes",
+    sourcesIntro: "Cada fuente, qué da, hasta dónde llegan sus datos y sus condiciones.",
+    source: { link: "Abrir la fuente", date: "Datos", terms: "Condiciones" },
+    sources: [
+      {
+        name: "UBS Global Investment Returns Yearbook 2025 (Dimson, Marsh y Staunton), según Cambridge Judge Business School",
+        what: "Cuánto crecieron al año las acciones del mundo, tras subir los precios, de 1900 a 2024: 5,2\u00a0%",
+        url: "https://www.jbs.cam.ac.uk/2025/report-stocks-have-far-outperformed-over-the-past-125-years/",
+        date: "de 1900 a 2024",
+        terms: "Solo se usa esta cifra: el 5\u00a0% con el que empieza la calculadora.",
+      },
+      {
+        name: "Robert J. Shiller, Universidad de Yale",
+        what: "Crecimiento anual del S&P 500, y precios de EE. UU. hasta 2022",
+        url: "http://www.econ.yale.edu/~shiller/data.htm",
+        date: "hasta junio de 2023",
+        terms: "De uso libre citando la fuente.",
+      },
+      {
+        name: "MSCI",
+        what: "Resultados anuales del MSCI World",
+        url: "https://www.msci.com/indexes/index/990100",
+        date: "hasta diciembre de 2024",
+        terms: "Sus datos no se pueden copiar. Solo se publica el crecimiento anual calculado con ellos.",
+      },
+      {
+        name: "Nasdaq",
+        what: "Niveles del Nasdaq-100 al final de cada año",
+        url: "https://indexes.nasdaqomx.com/Index/Overview/NDX",
+        date: "hasta diciembre de 2024",
+        terms: "Sus datos no se pueden copiar. Solo se publica el crecimiento anual calculado con ellos.",
+      },
+      {
+        name: "OCDE y Deutsche Bundesbank",
+        what: "Rentabilidad del bono alemán a 10 años",
+        url: "https://www.oecd.org/en/data/indicators/long-term-interest-rates.html",
+        date: "hasta diciembre de 2024",
+        terms: "Datos de la OCDE: CC BY 4.0, de uso libre citando la fuente.",
+      },
+      {
+        name: "Destatis, la oficina de estadística alemana",
+        what: "Precios en Alemania",
+        url: "https://www.destatis.de/EN/Themes/Economy/Prices/Consumer-Price-Index/_node.html",
+        date: "hasta diciembre de 2024",
+        terms: "Licencia de datos de Alemania, atribución 2.0: de uso libre citando la fuente.",
+      },
+      {
+        name: "Oficina de Estadísticas Laborales de EE. UU.",
+        what: "Precios de EE. UU. en 2023 y 2024",
+        url: "https://www.bls.gov/cpi/",
+        date: "hasta diciembre de 2024",
+        terms: "Dominio público.",
+      },
+      {
+        name: "LBMA",
+        what: "Precio del oro al final de cada año",
+        url: "https://www.lbma.org.uk/prices-and-data/precious-metal-prices",
+        date: "hasta diciembre de 2024",
+        terms: "Sus datos no se pueden copiar. Solo se publica el crecimiento anual calculado con ellos.",
+      },
+      {
+        name: "Numbeo",
+        what: "Coste de vida sin alquiler, 30 países",
+        url: "https://www.numbeo.com/cost-of-living/",
+        date: "revisado de julio a septiembre de 2026",
+        terms: "Sus datos no se pueden copiar. Solo se publican costes redondeados en euros calculados con ellos, citando la fuente.",
+      },
+      {
+        name: "Wise",
+        what: "Alquiler de 1 dormitorio fuera del centro, 30 países",
+        url: "https://wise.com/gb/cost-of-living/",
+        date: "revisado de julio a septiembre de 2026",
+        terms: "Sus datos no se pueden copiar. Solo se publican costes redondeados en euros calculados con ellos, citando la fuente.",
+      },
+      {
+        name: "Banco Mundial, Indicadores del Desarrollo Mundial",
+        what: "Niveles de precios (ICP 2021, llevados a 2024) y la subida de precios de cada año",
+        url: "https://data.worldbank.org/indicator/PA.NUS.PPPC.RF",
+        date: "descargado el 30 de septiembre de 2026",
+        terms: "CC BY 4.0: de uso libre citando la fuente.",
+      },
+      {
+        name: "Bancos centrales",
+        what: "Sus metas de subida de precios",
+        url: "https://www.bis.org/cbanks.htm",
+        date: "revisado en septiembre de 2026",
+        terms: "Información pública.",
+      },
+      {
+        name: "Yahoo Finance",
+        what: "Precios diarios de los fondos y acciones de la lista",
+        url: "https://finance.yahoo.com",
+        date: "cada día",
+        terms: "Sus datos no se pueden copiar. Solo se publican cifras calculadas con ellos, nunca el historial de precios.",
+      },
+      {
+        name: "Stooq",
+        what: "Precios diarios, cuando Yahoo Finance falla",
+        url: "https://stooq.com",
+        date: "cada día",
+        terms: "Sus datos no se pueden copiar. Solo se publican cifras calculadas con ellos, nunca el historial de precios.",
+      },
+      {
+        name: "Unicode CLDR",
+        what: "Nombres de países en cada idioma",
+        url: "https://cldr.unicode.org",
+        date: "el que trae Node.js",
+        terms: "Licencia Unicode: de uso libre citando la fuente.",
+      },
+    ] as SourceEntry[],
+    thingsNote: "Cada cosa que podrías comprar dice su propia fuente y fecha en la app.",
+    licensesTitle: "Licencias de los datos",
+    licenses: [
+      "Algunas fuentes dejan reutilizar sus datos citándolas: el Banco Mundial, la OCDE, Destatis, la oficina de estadísticas laborales de EE. UU. y Robert Shiller.",
+      "Otras no permiten copiar sus datos: Yahoo Finance, Stooq, Numbeo, Wise, MSCI, Nasdaq y la LBMA.",
+      "De esas, Wealth Lens solo publica cifras que calcula: costes redondeados, crecimiento anual, cambios de cada año, líneas semanales desde 100 y el último precio de cada fondo.",
+      "Nunca publica sus tablas ni sus precios diarios, y siempre dice de dónde sale cada cifra.",
+      "El método y las fuentes son públicos. El código es de seed-lab. Los datos conservan los derechos de sus dueños.",
+    ],
+  },
+  privacy: {
+    title: es.site.footer.privacy,
+    updated: "Actualizado el 7 de octubre de 2026.",
+    sections: [
+      { heading: "En resumen", body: ["**No se guarda ni se envía nada de lo que escribes.** Sin cookies. Sin seguimiento."] },
+      {
+        heading: "Tus números",
+        body: [
+          "Lo que escribes se queda en esta página, en la memoria de tu navegador. Si cierras o recargas la pestaña, desaparece.",
+          "Wealth Lens no tiene cuentas, ni base de datos, ni servidor propio. Tus números nunca salen de tu dispositivo.",
+          "**Descargar mis datos** guarda un archivo en tu dispositivo. **Cargar mis datos** lee ese archivo en tu dispositivo. No se sube nada.",
+          "Los archivos que importas, como un CSV de posiciones o de precios, se leen igual, en tu dispositivo.",
+        ],
+      },
+      {
+        heading: "Cookies y almacenamiento",
+        body: [
+          "Wealth Lens no usa cookies. Por eso no hay aviso de cookies.",
+          "Guarda una sola cosa, y solo si la eliges: claro u oscuro.",
+          "Esa elección queda en el almacenamiento de sesión de esta pestaña. Al cerrar la pestaña, se borra.",
+          "Nunca se envía. Elegir «Automático» la borra al momento.",
+          "La primera vez, el idioma sale de la configuración de tu navegador. No se guarda nada para recordarlo.",
+          "Los precios de deseos y metas parten del mismo ajuste: es-ES muestra los de España. Tu elección tampoco se guarda.",
+          "Una versión anterior guardaba datos en el navegador. Si Wealth Lens los encuentra, ofrece cargarlos una vez y después los borra.",
+        ],
+      },
+      {
+        heading: "Precios",
+        body: ["Los precios de fondos y acciones los descarga el propio sitio una vez al día, no tu navegador. Tu visita no pide nada a nadie más."],
+      },
+      {
+        heading: "Alojamiento",
+        body: [
+          "El sitio está alojado en Vercel. Para servir las páginas y protegerlas, los servidores de Vercel pueden registrar datos técnicos de cada visita.",
+          "Eso puede incluir tu dirección IP, la página pedida, la hora y tu navegador. Wealth Lens no ve ni usa esos registros.",
+          "Mira la [política de privacidad de Vercel](https://vercel.com/legal/privacy-policy).",
+        ],
+      },
+      { heading: "Preguntas", body: ["Escribe a [email](email)."] },
+    ] as ProseSection[],
+  },
+  terms: {
+    title: es.site.footer.terms,
+    updated: "Actualizado el 1 de octubre de 2026.",
+    sections: [
+      {
+        heading: "No es consejo financiero",
+        body: [
+          "Wealth Lens muestra lo que hacen los números. No te dice qué comprar, vender o hacer.",
+          "No conoce toda tu situación: tus impuestos, deudas, familia o planes. Para una decisión grande, habla con un asesor autorizado.",
+        ],
+      },
+      {
+        heading: "Sin garantía",
+        body: [
+          "Cada cifra es una estimación. El crecimiento viene del pasado, y el pasado no promete el futuro.",
+          "Los costes de vida y los precios son aproximados y pueden estar desfasados. Wealth Lens puede tener errores.",
+          "Se ofrece tal cual, sin garantía de ningún tipo.",
+        ],
+      },
+      {
+        heading: "Bajo tu propia responsabilidad",
+        body: ["Tú decides qué hacer con tu dinero, y usas Wealth Lens bajo tu propia responsabilidad. Sus autores no responden de pérdidas ni decisiones basadas en él."],
+      },
+      {
+        heading: "De uso gratuito",
+        body: [
+          "Cualquiera puede usar Wealth Lens gratis, en su web.",
+          "El código es de seed-lab. Sin permiso por escrito, no se puede copiar, modificar, distribuir ni usar para crear otros productos.",
+          "Los nombres y logotipos de seed-lab y Wealth Lens son marcas. No se pueden usar sin permiso por escrito.",
+          "Los datos son de sus fuentes, que conservan sus derechos. [Cómo funciona](/how-it-works) las enumera todas.",
+        ],
+      },
+      { heading: "Cambios", body: ["Estas condiciones pueden cambiar. La fecha de arriba dice cuándo cambiaron por última vez."] },
+    ] as ProseSection[],
+  },
+  notFound: {
+    title: "Esta página no existe",
+    text: "Quizá la dirección tiene un error, o la página se mudó.",
+    home: "Ir a Wealth Lens",
+  },
+};

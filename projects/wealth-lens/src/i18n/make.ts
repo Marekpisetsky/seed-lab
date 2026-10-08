@@ -8,6 +8,7 @@ import { addMonths } from "@/lib/dates";
 import { numberFormats, type NumberFormats } from "@/lib/format";
 import { LOCALE_SETTINGS, type Locale } from "./locales";
 import type { Messages } from "./messages/en";
+import type { PageMessages } from "./messages/en-pages";
 
 export interface Formats extends NumberFormats {
   /** Months → "9 years 8 months" (partial months round up). */
@@ -37,6 +38,15 @@ export interface I18n {
   locale: Locale;
   m: Messages;
   f: Formats;
+}
+
+/**
+ * The server's words: also those of the pages it writes whole (About, How
+ * it works, Privacy, Terms, titles). The browser's `I18n` has no need of
+ * them, so they stay out of its code (messages/en-pages.ts).
+ */
+export interface PageI18n extends I18n {
+  m: Messages & PageMessages;
 }
 
 /** Beyond this a date is not a plan (calculator.ts MAX_YEARS). */

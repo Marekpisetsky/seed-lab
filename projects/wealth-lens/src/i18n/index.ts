@@ -1,25 +1,30 @@
 /**
  * The app's words and formats in one language: `m`, the dictionary
- * (messages/en.ts, messages/es.ts), and `f`, numbers, money and spans of
+ * (messages/en.ts, messages/es.ts, and the server-only pages' words in
+ * messages/en-pages.ts, es-pages.ts), and `f`, numbers, money and spans of
  * time as that language writes them. Pure and made once per language, so
  * the server (the static pages) and the browser write the same text.
  */
 
 import type { Locale } from "./locales";
-import { createI18n, type I18n } from "./make";
+import { createI18n, type PageI18n } from "./make";
 import { en, type Messages } from "./messages/en";
+import { enPages, type PageMessages } from "./messages/en-pages";
 import { es } from "./messages/es";
+import { esPages } from "./messages/es-pages";
 
-export type { Formats, I18n, Reach } from "./make";
+export type { Formats, I18n, PageI18n, Reach } from "./make";
 
 const MESSAGES: Readonly<Record<Locale, Messages>> = { en, es };
+const PAGES: Readonly<Record<Locale, PageMessages>> = { en: enPages, es: esPages };
 
-const made = new Map<Locale, I18n>();
+const made = new Map<Locale, PageI18n>();
 
-export function getI18n(locale: Locale): I18n {
+export function getI18n(locale: Locale): PageI18n {
   let i18n = made.get(locale);
   if (!i18n) {
-    i18n = createI18n(locale, MESSAGES[locale]);
+    const words = createI18n(locale, MESSAGES[locale]);
+    i18n = { ...words, m: { ...words.m, ...PAGES[locale] } };
     made.set(locale, i18n);
   }
   return i18n;

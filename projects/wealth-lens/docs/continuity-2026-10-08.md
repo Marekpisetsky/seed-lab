@@ -1,12 +1,14 @@
 # Handoff — 2026-10-08: entry points, and the figures checked before launch
 
 Base: master at c2513bd (prices of 2026-10-08). Branch
-`hermes/handoff-2026-10-08` (PR #34). Three tasks today:
+`hermes/handoff-2026-10-08` (PR #34). Four tasks today:
 - the entry points: this handoff, and the removal of the root
   `HANDOFF.md`;
 - a check of the figures before launch, findings only;
 - the corrections Marek chose from that check (data, citations and
-  texts, no logic). They are listed under "Corrections applied".
+  texts, no logic). They are listed under "Corrections applied";
+- the wedding basis, Italy's source and the first-screen words (see
+  "Third task").
 
 ## State of master
 
@@ -176,7 +178,7 @@ tests that recompute those values.
 | IT new car **29,600 €** (2025, net of discounts); no longer marked "≈" | `connections.json` (`new-car.IT`) |
 | NL solar panels **3,800 €** (10 × 435 Wp installed, Milieu Centraal). Nothing else derives from this figure (no test, no calculation). | `connections.json` (`solar-panels`) |
 | Italy housing: same 1,855 €/m² (home 148,400 €, deposit 29,680 €), source **idealista**, Nov 2025, link to the 2 Dec 2025 report | `connections.json` (`home.IT`, `home-deposit.IT`), `research/wealth-lens/deseos.md` |
-| NL wedding: method described as the sum of suppliers' rates, not a survey of couples; basis changed from `survey` to `asking`, which the app shows as "asking prices" / "precios de anuncio" | `connections.json` (`wedding.NL`), `deseos.md` |
+| NL wedding: method described as the sum of suppliers' rates, not a survey of couples; basis first changed from `survey` to `asking`, then to its own `suppliers` in the third task | `connections.json` (`wedding.NL`), `deseos.md` |
 | Italy tuition: source **MUR**, *Focus contribuzione studentesca*, academic year **2024/25** (date 2024-09), basis `official`; Federconsumatori and its dead PDF removed | `connections.json` (`study-year.fees.IT`), `deseos.md` |
 | UBS 2025: How it works links the **Cambridge Judge** note (which has the 5.2%) instead of UBS's press release; the source name says "as reported by Cambridge Judge Business School" / "según Cambridge Judge Business School" | `en.ts`, `es.ts` (`howItWorks.sources[0]`), `research/wealth-lens/valor-inicial.md` |
 | Kelly: MacLean, Thorp and Ziemba (2010), "Long-term capital growth: the good and bad properties of the Kelly and fractional Kelly capital growth criteria", *Quantitative Finance* 10(7): 681–687 | `research/educacion/kelly.md` |
@@ -199,11 +201,7 @@ Limits of what was applied:
   in every language, and `referenceDate` only takes YYYY or YYYY-MM. So it
   shows "2025-06". A localised period label needs a small change in
   `lib/connections.ts` and the messages, left for Marek to decide.
-- **NL wedding:** no basis says "suppliers' rates", so `asking` is the
-  nearest existing one. A new basis needs a change to `PRICE_BASES` in
-  `lib/connections.ts` and to both message files, also left for Marek.
-- **PT wedding (Fixando):** it is built the same way as the NL one but was
-  not in Marek's list, so it still says `survey`.
+- **NL and PT weddings:** done in the third task (next section).
 - **Citation fixes not applied** (not in Marek's list):
   - FR used car: cite La Centrale's observatory;
   - ES used car: cite coches.net;
@@ -214,16 +212,116 @@ Limits of what was applied:
   - Pástor and Stambaugh: volume and pages;
   - Shiller: data now at shillerdata.com.
 
+## Third task: wedding basis, Italy's source, first-screen words
+
+### Data and wording
+
+| Change | Files |
+| --- | --- |
+| New price basis `suppliers`: "supplier rates" / "tarifas de proveedores". It is a word in a list, not a new calculation. | `src/lib/connections.ts` (`PRICE_BASES`), `src/i18n/messages/en.ts`, `es.ts` (`things.basis`) |
+| NL wedding (ThePerfectWedding.nl) and PT wedding (Fixando) use `suppliers`. The Portuguese note now says what Fixando does: it estimates a 100-guest wedding from the average prices of services on its platform, and it is not a survey. The wedding item's own source says surveys of couples, or suppliers' rates in NL and PT. | `src/data/connections.json` (`wedding`) |
+| A test: NL and PT weddings are `suppliers`, the other four `survey` | `src/lib/connections.test.ts` |
+| IT new car: source and note now both name **Centro Studi Fleet&Mobility, *Mercato Auto a Valore 2025*** (built on Dataforce registrations, June 2026), the one that publishes the 29,600 €. ANIASA only reposts it and is no longer cited. | `connections.json` (`new-car.IT`), `research/wealth-lens/deseos.md` (link to [fleetandmobility.it](https://www.fleetandmobility.it/portfolio-posts/mercato-auto-a-valore/)) |
+| NL new car: left as it was (2025-06), as Marek asked | — |
+| Research: sources by country, "Lo discutible" point 1 (weddings now mix bases), *Historial* entry 2026-10-08 (2) | `research/wealth-lens/deseos.md` |
+
+### First-screen words (performance)
+
+What was measured. These are the first-load scripts of the static build
+(`out/`), gzip level 9, summed over the `<script src>` of each page:
+
+| | Before | After | Saved |
+| --- | --- | --- | --- |
+| `/`, all first-load scripts | 240.7 KB | 235.5 KB | **5.2 KB** |
+| `/`, the English dictionary chunk | 21.0 KB (58.9 raw) | 15.8 KB (43.4 raw) | 5.2 KB |
+| `/es`, all first-load scripts | 242.2 KB | 236.5 KB | **5.7 KB** |
+| `/es`, the Spanish dictionary chunk | 19.8 KB (56.5 raw) | 16.9 KB (46.1 raw) | 2.9 KB* |
+| `/how-it-works`, all first-load scripts | 227.2 KB | 222.0 KB | 5.2 KB |
+| HTML of each page | 6.9 / 7.0 / 14.2 KB | 6.9 / 6.9 / 14.2 KB | — |
+
+\* Before, `/es` loaded 13 scripts and now 12, so its total drops more
+than its dictionary chunk.
+
+Findings before changing anything:
+- **Only the active language was already loaded.** Each page gets one
+  dictionary (`components/i18n-en.tsx` or `i18n-es.tsx`). The English
+  page's scripts contain no Spanish words, and the reverse.
+- **The dictionary carried the text of pages the browser never draws.**
+  About, How it works (its method and every source), Privacy, Terms, the
+  404 page and the pages' titles and descriptions are written whole by
+  the server (`components/pages/*.tsx`, `i18n/metadata.ts`, not client
+  components). Still, they were in the browser's dictionary on every
+  page, about a quarter of it.
+
+What changed:
+- Those six sections (`meta`, `about`, `howItWorks`, `privacy`, `terms`,
+  `notFound`) moved to new files: `src/i18n/messages/en-pages.ts` and
+  `es-pages.ts`.
+- `getI18n` (the server's, `src/i18n/index.ts`) merges the two, and
+  returns a `PageI18n` type (`src/i18n/make.ts`). The browser's
+  `I18nProvider` still gets `en.ts` / `es.ts` alone.
+- The footer's four links read new titles, `site.footer`. The pages take
+  their titles from there, so each title is written once.
+- Changed files: `src/components/site/site-shell.tsx`, the four message
+  files, `index.ts`, `make.ts`.
+- Tests: `src/i18n/pages.test.ts` is new. It checks that the browser's
+  dictionaries lack those sections, that the providers do not import
+  them, and that the server has every word in both languages.
+  `components/plain-language.test.ts` and `components/ui/email.test.ts`
+  now read the pages' files too.
+
+What does not change:
+- The pages are the same HTML (same sizes). The footer shows the same
+  links and text.
+- The language switch works as before: it is still a navigation to the
+  other language's pages.
+- Nothing loads later, so nothing can flicker or show empty. The texts
+  are simply not sent to a browser that never shows them.
+
+Not done: lazy loading of the wishes, things, checks and findings texts.
+- **What it would save:** those sections (`things`, `findings`, `check`,
+  `wishes`, `facts`, `futures`, `countryTable`) are used only by the
+  result's code, which already loads later. Taking them out of the first
+  screen would save about **4.3 KB** more, estimated by compressing the
+  dictionary without them. That is under the 5 KB threshold Marek set.
+- **Why not:** the browser would need them before any part of the result
+  draws, in both languages and after a language switch. That means a
+  Suspense guard around every later-loaded part of the result, with a
+  real risk of an empty text or a crash if the words arrive late. Not
+  worth it for under 5 KB.
+
+Lighthouse, mobile (Lighthouse 13.5.0, default mobile settings):
+- **Method:** `npx serve` on the static build, local Chrome headless,
+  three runs per page, the same machine for before and after.
+
+| | Before (perf · a11y · bp · SEO) | After |
+| --- | --- | --- |
+| `/` | 97, 99, 99 · 100 · 100 · 100 (LCP 2.6, 2.0, 2.0 s) | 99, 98, 98 · 100 · 100 · 100 (LCP 2.0, 2.3, 2.3 s) |
+| `/es` | 98, 98, 98 · 100 · 100 · 100 (LCP 2.5 s) | 98, 98, 98 · 100 · 100 · 100 (LCP 2.5 s) |
+
+- **Transferred, `/es`:** 227 KB before, 221 KB after.
+- **Transferred, `/`:** this varied between runs in both builds, so
+  only runs that loaded the same set of files are compared: 120 KB
+  before, 114 KB after.
+- **Score:** within the noise of these runs; 5 KB does not move the
+  score here.
+- **Total blocking time:** 30–40 ms in both builds.
+
+Verification of the third task in `projects/wealth-lens`:
+- `npm run lint` and `npm run typecheck` pass.
+- `npm test`: 65 files, 844 tests.
+- A clean `npm run build` passes.
+- `npm run test:browser`: 34 browser tests pass, also after the data
+  change.
+
 ## Open for Marek
 
-1. **Review the corrections applied today** (section above). Look in
-   particular at:
-   - "RAI Vereniging, 2025-06" for the Dutch new car;
-   - "asking prices" as the basis of the Dutch wedding.
-   Both are compromises, because a label of their own needs code.
-2. **Decide whether to allow those two small code changes:** a localised
-   period label, and a "suppliers' rates" basis (also for Portugal's
-   Fixando wedding).
+1. **Review the corrections applied today** (sections above). Look in
+   particular at "RAI Vereniging, 2025-06" for the Dutch new car: a
+   label of its own («1.er semestre 2025») would need code, and Marek
+   chose to leave it.
+2. **Decide on the lazy wishes words:** they would save about 4 KB more,
+   with a Suspense guard (see "Not done" above).
 3. **Fix the remaining citations**, not in today's list:
    - FR used car: cite La Centrale;
    - ES used car: cite coches.net;
