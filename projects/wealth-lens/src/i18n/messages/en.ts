@@ -1082,6 +1082,7 @@ export const en = {
       sales: "sales",
       valuation: "valuations",
       survey: "survey",
+      suppliers: "supplier rates",
       official: "official",
     },
     /** "Average price of a used car in Spain (asking prices): coches.net, 2025." */

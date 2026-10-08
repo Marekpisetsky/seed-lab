@@ -1053,6 +1053,7 @@ export const es: Messages = {
       sales: "ventas",
       valuation: "tasaciones",
       survey: "encuesta",
+      suppliers: "tarifas de proveedores",
       official: "oficial",
     },
     figureSource: (about: string, basis: string, source: string, date: string) => `${about} (${basis}): ${source}, ${date}.`,

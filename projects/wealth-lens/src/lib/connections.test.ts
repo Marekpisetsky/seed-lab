@@ -50,6 +50,13 @@ describe("connections dataset", () => {
     }
   });
 
+  it("says when a wedding's cost is built from suppliers' rates, not asked of couples", () => {
+    const wedding = connectionsData.buy.find((item) => item.id === "wedding")!;
+    expect(wedding.prices?.NL.basis).toBe("suppliers");
+    expect(wedding.prices?.PT.basis).toBe("suppliers");
+    for (const code of ["ES", "DE", "FR", "IT"]) expect(wedding.prices?.[code].basis, code).toBe("survey");
+  });
+
   it("says it is an estimate", () => {
     expect(raw.description).toMatch(/estimates/i);
   });

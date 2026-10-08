@@ -89,7 +89,7 @@
       "prices": {
         "NL": {
           "amount": 23675,
-          "basis": "asking",
+          "basis": "suppliers",
           "source": "ThePerfectWedding.nl",
           "note": "Sum of the minimum or average rates of the wedding suppliers listed on ThePerfectWedding.nl, without the honeymoon; not a survey of couples.",
           "referenceDate": "2025"
@@ -124,14 +124,14 @@
         },
         "PT": {
           "amount": 18570,
-          "basis": "survey",
+          "basis": "suppliers",
           "source": "Fixando",
-          "note": "Estimated cost of a wedding for 100 guests, 2025.",
+          "note": "Fixando's estimate of a typical wedding for 100 guests in 2025, from the average prices of wedding services on its platform; not a survey of couples (Notícias ao Minuto, 2026).",
           "referenceDate": "2025",
           "estimate": true
         }
       },
-      "source": "Average cost of a wedding in each country, from surveys of couples (see each price).",
+      "source": "Average cost of a wedding in each country, from surveys of couples or, in the Netherlands and Portugal, from suppliers' rates (see each price).",
       "referenceDate": "2025"
     },
     {
@@ -250,8 +250,8 @@
         "IT": {
           "amount": 29600,
           "basis": "paid",
-          "source": "Fleet&Mobility Research Center / Dataforce",
-          "note": "Average value per new car registered in 2025, net of discounts (list price EUR 35,362); ANIASA, 30 June 2026.",
+          "source": "Centro Studi Fleet&Mobility, Mercato Auto a Valore 2025",
+          "note": "Centro Studi Fleet&Mobility, Mercato Auto a Valore 2025 (on Dataforce registrations, June 2026): average value per new car registered in Italy in 2025, net of discounts, EUR 29,600 (list price EUR 35,362).",
           "referenceDate": "2025"
         }
       },

@@ -144,22 +144,25 @@ Fuentes por país (la app muestra el editor, lo que mide y la fecha):
   Alemania, DAT-Report 2026, precio pagado por particulares; Francia,
   Institut Mobilités en transition y C-Ways, 2025, precio de catálogo
   (citado en [CB News](https://www.cbnews.fr/node/101453)); Italia,
-  Fleet&Mobility Research Center con matriculaciones de Dataforce, 2025,
-  valor medio por coche matriculado descontados los descuentos, 29.600 €
-  (35.362 € de catálogo; citado en
-  [ANIASA, 30 de junio de 2026](https://www.aniasa.it/aniasa/aniasa-informa/public/news/6755)).
+  Centro Studi Fleet&Mobility, *Mercato Auto a Valore 2025* (con las
+  matriculaciones de Dataforce, junio de 2026): valor medio por coche
+  matriculado descontados los descuentos, 29.600 € (35.362 € de catálogo)
+  ([Fleet&Mobility](https://www.fleetandmobility.it/portfolio-posts/mercato-auto-a-valore/)).
   Portugal: no se encontró una media publicada.
 - **Boda** (encuestas a parejas salvo Países Bajos y Portugal): Países
   Bajos, ThePerfectWedding.nl, **suma de las tarifas mínimas o medias de
   los proveedores de bodas con perfil en su web, sin luna de miel; no es
   una encuesta a parejas** y no tiene año
   ([Wat kost trouwen?](https://www.theperfectwedding.nl/artikelen/92/wat-kost-trouwen));
-  en la app figura como precios de anuncio; España, Bodas.net, *Informe de la Industria Nupcial 2026*
+  en la app, "tarifas de proveedores"; España, Bodas.net, *Informe de la Industria Nupcial 2026*
   (bodas de 2025, sin luna de miel ni anillos); Alemania, Bridebook,
   *Wedding Report 2025*; Francia, Mariages.net, *Rapport du Secteur
   Nuptial 2026* (bodas de 2025, unos 90 invitados); Italia,
   Matrimonio.com, *Rapporto 2026* (bodas de 2025, sin luna de miel);
-  Portugal, Fixando, estimación para 100 invitados, 2025.
+  Portugal, Fixando, estimación de una boda de 100 invitados en 2025 a
+  partir de los precios medios de los servicios en su plataforma (también
+  "tarifas de proveedores", no una encuesta; citado en
+  [Notícias ao Minuto](https://www.noticiasaominuto.com/economia/2985814/dizer-sim-esta-bem-mais-caro-afinal-quanto-custa-casar-em-portugal)).
 - **Vivienda, precio por m²:** Países Bajos, NVM, mediana de las viviendas
   existentes vendidas, 4.º trimestre de 2025
   ([anexo 2](https://www.nvm.nl/media/zecfiqww/bijlage-2-marktoverzicht-bestaande-bouw-nederland-4e-kwartaal-2025.pdf));
@@ -250,7 +253,8 @@ fuente y confirmar la cifra y su fecha** (ver lo pendiente al final).
 
 1. **Bases distintas por país.** España y Portugal usan tasaciones;
    Países Bajos, Alemania y Francia, ventas; Italia, anuncios. Los coches
-   mezclan anuncios, precios pagados y de catálogo. Comparar países es
+   mezclan anuncios, precios pagados y de catálogo; las bodas, encuestas
+   a parejas y tarifas de proveedores (Países Bajos y Portugal). Comparar países es
    aproximado. *Coste:* buscar una sola fuente europea por cosa (para la
    vivienda no existe en niveles, solo en índices).
 2. **Medianas y medias.** Países Bajos y Portugal publican medianas; los
@@ -324,3 +328,9 @@ fuente y confirmar la cifra y su fecha** (ver lo pendiente al final).
   Tasas de Italia: fuente MUR, curso 2024/25 (no Federconsumatori), base
   oficial. Boda en Países Bajos: tarifas de proveedores, no encuesta
   (base "precios de anuncio").
+- 2026-10-08 (2): nueva base "tarifas de proveedores" (`suppliers` en
+  `src/lib/connections.ts`), para las bodas de Países Bajos
+  (ThePerfectWedding.nl) y Portugal (Fixando), que suman precios de
+  proveedores en vez de preguntar a parejas. Coche nuevo de Italia: la
+  fuente es quien publica la cifra, el Centro Studi Fleet&Mobility
+  (*Mercato Auto a Valore 2025*), no ANIASA, que la reproduce.

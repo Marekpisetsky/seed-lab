@@ -25,7 +25,7 @@ import { costOfLiving } from "./cost-of-living";
 // ---------------------------------------------------------------------------
 
 /** What a published figure measures: the words for each are in the messages (things.basis). */
-export const PRICE_BASES = ["asking", "paid", "list", "sales", "valuation", "survey", "official"] as const;
+export const PRICE_BASES = ["asking", "paid", "list", "sales", "valuation", "survey", "suppliers", "official"] as const;
 export type PriceBasis = (typeof PRICE_BASES)[number];
 
 /** The icons a wish can have (components/money/wish-icon.tsx). */
