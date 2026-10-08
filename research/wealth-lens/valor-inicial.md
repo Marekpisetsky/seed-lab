@@ -37,11 +37,13 @@ Verificado para esta ficha (3 de octubre de 2026):
   Staunton), publicado el 4 de marzo de 2025: las acciones del mundo
   rindieron un **5,2 % real anual de 1900 a 2024** (frente a 1,7 % los
   bonos y 0,5 % las letras). Es la cifra que usa la app.
-  - Nota de prensa de UBS:
-    <https://www.ubs.com/global/en/media/display-page-ndp/en-20250304-global-investment-returns-yearbook-2025.html>
-  - Cambridge Judge Business School, "Report: stocks have far outperformed
-    over the past 125 years" (2025):
+  - Cita de las cifras (la que enlaza *Cómo funciona*): Cambridge Judge
+    Business School, "Report: stocks have far outperformed over the past
+    125 years" (7 de marzo de 2025):
     <https://www.jbs.cam.ac.uk/2025/report-stocks-have-far-outperformed-over-the-past-125-years/>
+  - Nota de prensa de UBS (confirma la edición y la fecha, pero **no**
+    publica el 5,2 %, el 1,7 % ni el 0,5 %):
+    <https://www.ubs.com/global/en/media/display-page-ndp/en-20250304-global-investment-returns-yearbook-2025.html>
 - **UBS Global Investment Returns Yearbook 2026**, publicado el 3 de marzo
   de 2026: da un **6,6 % real anual para las acciones de EE. UU. de 1900 a
   2025**, y **su resumen público no publica una cifra real para las
@@ -104,3 +106,8 @@ Verificado para esta ficha (3 de octubre de 2026):
 
 - 2026-10-03: primera ficha. Registrado lo que dicen las ediciones 2025 y
   2026 del anuario; la app no cambia.
+- 2026-10-08: comprobadas las fuentes. El 5,2 % (y 1,7 % y 0,5 %) está en
+  la nota de Cambridge Judge, no en la nota de prensa de UBS: *Cómo
+  funciona* enlaza ahora la de Cambridge Judge. El 6,6 % de EE. UU. y la
+  ausencia de una cifra real mundial en el resumen público de 2026 se
+  confirman. La cifra y el cálculo no cambian.

@@ -1,6 +1,6 @@
 # Ficha: deseos y precios por país
 
-- **App:** Wealth Lens · **Revisada:** 7 de octubre de 2026
+- **App:** Wealth Lens · **Revisada:** 8 de octubre de 2026
 - **Código** (en `projects/wealth-lens/`): `src/data/connections.json`
   (los precios), `src/lib/connections.ts` (los valida),
   `src/lib/calculator.ts` (`priceItem`, `pricedItems`, metas de una cosa),
@@ -92,14 +92,14 @@ viajes, meses de vida) y las cifras redondeadas o de una fuente débil.
 | --- | --- | --- | --- |
 | Un fin de semana en una capital europea | ≈ 448 € | 2 noches × 224 € | Eurostat, *Tourism statistics – expenditure*: gasto medio por noche de los residentes de la UE en viajes cortos (1 a 3 noches) al extranjero, 2024, transporte incluido |
 | Un mes por el Sudeste Asiático | ≈ 640 € | Media con alquiler de Tailandia (770), Vietnam (620), Indonesia (510), Malasia (710) y Filipinas (600), redondeada a 10; sin el vuelo | [Coste de vida](coste-de-vida.md), septiembre de 2026 |
-| Un viaje a Japón | ≈ 2.330 € | 393.710 ¥ / 169,07 ¥ por euro, redondeado a 10; sin el vuelo | Agencia de Turismo de Japón, *Encuesta de consumo de los visitantes extranjeros* 2025 (avance anual): gasto en Japón por visitante de Alemania. BCE: cambio medio de 2025 |
+| Un viaje a Japón | ≈ 2.320 € | 392.251 ¥ / 169,04 ¥ por euro, redondeado a 10; sin el vuelo | Agencia de Turismo de Japón, *Encuesta de consumo de los visitantes extranjeros* 2025, cifras definitivas (確報, [31 de marzo de 2026](https://www.mlit.go.jp/kankocho/content/002020046.pdf)): gasto en Japón por visitante de Alemania. BCE: cambio medio de 2025 ([serie EXR.A.JPY.EUR.SP00.A](https://data.ecb.europa.eu/data/datasets/EXR/EXR.A.JPY.EUR.SP00.A)) |
 
 ### Por país
 
 | Deseo | Países Bajos | España | Alemania | Francia | Italia | Portugal |
 | --- | --- | --- | --- | --- | --- | --- |
-| Un coche usado | 24.326 | 17.758 | 18.310 | 20.200 | 21.273 | 24.214 |
-| Un coche nuevo | 50.026 | 44.419 | 44.560 | 34.600 | ≈ 30.000 | — |
+| Un coche usado | 24.334 | 17.758 | 18.310 | 20.200 | 21.273 | 24.200 |
+| Un coche nuevo | 50.026 (1.er semestre) | 44.419 | 44.560 | 34.600 | 29.600 | — |
 | Una boda | 23.675 | 25.183 | 15.629 | 19.293 | 25.970 | ≈ 18.570 |
 | Precio por m² de vivienda | 4.726 | 2.230 | 2.300 | 3.005 | 1.855 | 2.239 |
 | Una vivienda de 80 m², pagada | ≈ 378.080 | ≈ 178.400 | ≈ 184.000 | ≈ 240.400 | ≈ 148.400 | ≈ 179.120 |
@@ -115,32 +115,54 @@ viajes, meses de vida) y las cifras redondeadas o de una fuente débil.
 Fuentes por país (la app muestra el editor, lo que mide y la fecha):
 
 - **Coche usado** (precios de anuncio salvo Alemania):
-  Países Bajos, AutoScout24 Occasion Dashboard, 2025; España, coches.net,
+  Países Bajos, AutoScout24, análisis anual 2025
+  ([Jahresanalyse 2025](https://www.autoscout24.de/unternehmen/daten/jahresanalyse-2025-europaeischer-gebrauchtwagenmarkt-zeigt-sich-stabil/));
+  España, coches.net,
   media de 2025 (citado en [Vozpópuli](https://www.vozpopuli.com/motor/el-mercado-de-segunda-mano-cerro-con-22-millones-de-coches-y-casi-18000-euros-de-media.html));
   Alemania, DAT-Report 2026, precio pagado por particulares en 2025;
   Francia, La Centrale, 3.er trimestre de 2025 (citado en
   [Auto Infos](https://www.auto-infos.fr/article/le-prix-moyen-d-une-voiture-d-occasion-se-stabilise-enfin-sous-les-20-000-euros.292679));
   Italia, AutoScout24 Italia, análisis anual 2025 (citado en
   [Auto.it](https://www.auto.it/news/attualita/2026/01/27-8601773/mercato-auto-usate-2025-analisi-autoscout24));
-  Portugal, Standvirtual, diciembre de 2025 (citado en
+  Portugal, Standvirtual, precio medio de los vendedores profesionales,
+  diciembre de 2025, 24.200 € (Automonitor/Lusa, citado en
   [Executive Digest](https://executivedigest.sapo.pt/?p=706996)).
-- **Coche nuevo:** Países Bajos, RAI Vereniging, 2025; España,
+- **Coche eléctrico usado** (solo Países Bajos): AutoScout24, media de
+  2025, 34.600 €
+  ([26 de enero de 2026](https://www.autoscout24.nl/bedrijf/occasion-dashboard/prijs-tweedehands-elektrische-auto-blijft-dalen-28-procent-goedkoper-dan-in-2022/)).
+- **Placas solares** (solo Países Bajos): Milieu Centraal, precio
+  orientativo de 10 placas de 435 Wp instaladas (placas, inversor y
+  montaje, 0 % de IVA), 3.800 €
+  ([Kosten en opbrengst zonnepanelen](https://www.milieucentraal.nl/energie-besparen/zonnepanelen/kosten-en-opbrengst-zonnepanelen/)).
+- **Coche nuevo:** Países Bajos, RAI Vereniging, **primer semestre de
+  2025** (citado en
+  [NL Times](https://nltimes.nl/2025/08/04/new-car-prices-netherlands-soar-past-eu50000-leaving-many-buyers-priced);
+  no se encontró la cifra del año completo; en la app la fecha es
+  2025-06); España,
   [Barómetro VN coches.com / Ganvam](https://images.coches.com/_news_/2026/01/2026-01-Ndp-VN-Barometro-cochescom-ganvam.pdf),
   2025, precios de los concesionarios con descuentos y sin ayudas;
   Alemania, DAT-Report 2026, precio pagado por particulares; Francia,
   Institut Mobilités en transition y C-Ways, 2025, precio de catálogo
   (citado en [CB News](https://www.cbnews.fr/node/101453)); Italia,
-  Fleet&Mobility Research Center con matriculaciones de Dataforce, 2024,
-  "más de 30.000 €" pagados con descuentos (citado en
-  [HDmotori](https://www.hdmotori.it/auto/articoli/n604343/mercato-auto-italia-prezzi-medi-2024-30-mila-euro/)).
+  Centro Studi Fleet&Mobility, *Mercato Auto a Valore 2025* (con las
+  matriculaciones de Dataforce, junio de 2026): valor medio por coche
+  matriculado descontados los descuentos, 29.600 € (35.362 € de catálogo)
+  ([Fleet&Mobility](https://www.fleetandmobility.it/portfolio-posts/mercato-auto-a-valore/)).
   Portugal: no se encontró una media publicada.
-- **Boda** (encuestas a parejas): Países Bajos, ThePerfectWedding.nl, sin
-  luna de miel; España, Bodas.net, *Informe de la Industria Nupcial 2026*
+- **Boda** (encuestas a parejas salvo Países Bajos y Portugal): Países
+  Bajos, ThePerfectWedding.nl, **suma de las tarifas mínimas o medias de
+  los proveedores de bodas con perfil en su web, sin luna de miel; no es
+  una encuesta a parejas** y no tiene año
+  ([Wat kost trouwen?](https://www.theperfectwedding.nl/artikelen/92/wat-kost-trouwen));
+  en la app, "tarifas de proveedores"; España, Bodas.net, *Informe de la Industria Nupcial 2026*
   (bodas de 2025, sin luna de miel ni anillos); Alemania, Bridebook,
   *Wedding Report 2025*; Francia, Mariages.net, *Rapport du Secteur
   Nuptial 2026* (bodas de 2025, unos 90 invitados); Italia,
   Matrimonio.com, *Rapporto 2026* (bodas de 2025, sin luna de miel);
-  Portugal, Fixando, estimación para 100 invitados, 2025.
+  Portugal, Fixando, estimación de una boda de 100 invitados en 2025 a
+  partir de los precios medios de los servicios en su plataforma (también
+  "tarifas de proveedores", no una encuesta; citado en
+  [Notícias ao Minuto](https://www.noticiasaominuto.com/economia/2985814/dizer-sim-esta-bem-mais-caro-afinal-quanto-custa-casar-em-portugal)).
 - **Vivienda, precio por m²:** Países Bajos, NVM, mediana de las viviendas
   existentes vendidas, 4.º trimestre de 2025
   ([anexo 2](https://www.nvm.nl/media/zecfiqww/bijlage-2-marktoverzicht-bestaande-bouw-nederland-4e-kwartaal-2025.pdf));
@@ -151,8 +173,9 @@ Fuentes por país (la app muestra el editor, lo que mide y la fecha):
   ([nota de prensa](https://redaktion-akoga.niedersachsen.de/download/224011/Immobilienmarktbericht_2025_Pressetext.pdf));
   Francia, FNAIM, media nacional a 1 de enero de 2026
   ([avance de enero de 2026](https://www.galivel.com/media/files/point_marche_avant_premiere_fnaim___conference_de_presse_janvier_2026.pdf));
-  Italia, Immobiliare.it Insights, precio medio de anuncio, noviembre de
-  2025; Portugal, INE, tasación bancaria mediana de pisos, 2025 (la misma
+  Italia, idealista, precio medio de anuncio, noviembre de 2025
+  ([informe del 2 de diciembre de 2025](https://www.idealista.it/news/immobiliare/residenziale/2025/12/02/296264-prezzi-delle-case-in-crescita-novembre-chiude-con-1-4-scopri-i-valori-nella-tua));
+  Portugal, INE, tasación bancaria mediana de pisos, 2025 (la misma
   cifra que "Un piso de 80 m² en Portugal").
 - **Tasas de universidad** (grado, estudiantes de la UE): Países Bajos,
   Rijksoverheid, tasa legal 2025-2026; España, Ministerio de Ciencia,
@@ -161,8 +184,10 @@ Fuentes por país (la app muestra el editor, lo que mide y la fecha):
   universidades públicas (DAAD), la cuota semestral (unos 100–400 €) no se
   incluye; Francia, tasa nacional de licence 2025-2026
   ([service-public.gouv.fr](https://www.service-public.gouv.fr/particuliers/vosdroits/F2865));
-  Italia, Federconsumatori, *Rapporto università 2025-2026*, media de quien
-  paga ([PDF](https://www.federconsumatori.it/wp-content/uploads/2025/12/rapporto-universita-2025-2026.pdf));
+  Italia, MUR (Ministerio de Universidad e Investigación), *Focus sulla
+  contribuzione studentesca*, curso 2024/25: media que paga quien paga en
+  las universidades estatales (959 € sobre todos los estudiantes; citado en
+  [Affaritaliani](https://www.affaritaliani.it/economia/cara-universita-quanto-mi-costi-tasse-affitti-borse-di-studio-e-spese-il-conto-per-le-famiglie-italiane.html));
   Portugal, propina máxima de licenciatura 2025-2026, congelada en 697 €
   desde 2021 ([RTP](https://www.rtp.pt/noticias/economia/orcamento-do-estado-oposicao-mantem-congelamento-das-propinas-no-proximo-ano-letivo_n1700397)).
 - **Meses de vida** (año sin trabajar, año de universidad, vivir sin
@@ -191,7 +216,7 @@ fuente y confirmar la cifra y su fecha** (ver lo pendiente al final).
 ## Validación (tests)
 
 - `src/lib/connections.test.ts`: cada precio calculado se rehace desde
-  sus datos (80 m² × precio por m², el 20 %, 2 × 224 €, 393.710 ¥ / 169,07,
+  sus datos (80 m² × precio por m², el 20 %, 2 × 224 €, 392.251 ¥ / 169,04,
   15,37 € × 60); cada país tiene editor, nota y fecha; Países Bajos está
   siempre; las tasas cubren los seis países; un dato mal escrito hace
   fallar la carga.
@@ -228,14 +253,16 @@ fuente y confirmar la cifra y su fecha** (ver lo pendiente al final).
 
 1. **Bases distintas por país.** España y Portugal usan tasaciones;
    Países Bajos, Alemania y Francia, ventas; Italia, anuncios. Los coches
-   mezclan anuncios, precios pagados y de catálogo. Comparar países es
+   mezclan anuncios, precios pagados y de catálogo; las bodas, encuestas
+   a parejas y tarifas de proveedores (Países Bajos y Portugal). Comparar países es
    aproximado. *Coste:* buscar una sola fuente europea por cosa (para la
    vivienda no existe en niveles, solo en índices).
 2. **Medianas y medias.** Países Bajos y Portugal publican medianas; los
    demás, medias. La media suele estar por encima. *Coste:* ninguno sin
    datos nuevos; anotarlo.
-3. **Años distintos.** Alemania (vivienda) e Italia (coche nuevo) son de
-   2024; el resto, de 2025. *Coste:* actualizar cuando salgan.
+3. **Años distintos.** Alemania (vivienda) es de 2024, las tasas de
+   Italia del curso 2024/25 y el coche nuevo de Países Bajos del primer
+   semestre de 2025; el resto, de 2025. *Coste:* actualizar cuando salgan.
 4. **80 m² y el 20 %.** En Países Bajos la vivienda media es más grande y
    los bancos prestan hasta el 100 % del valor; en España, el 80 %, y los
    impuestos de la compra rondan el 10 %. Un solo tamaño y una sola
@@ -269,12 +296,12 @@ fuente y confirmar la cifra y su fecha** (ver lo pendiente al final).
 - Abrir cada fuente de la tabla por país y confirmar cifra, fecha y lo
   que mide; en especial las leídas solo en prensa o buscadores: DAT-Report
   2026, Bridebook, Bodas.net, Mariages.net, Matrimonio.com, Fixando,
-  Immobiliare.it, el valor tasado del Ministerio de Vivienda (4.º
-  trimestre de 2025) y la tasa legal neerlandesa 2025-2026.
-- La cifra de Japón es del avance anual (enero de 2026); comprobar con la
-  definitiva de la Agencia de Turismo de Japón.
-- Eurostat (224 € por noche en viajes cortos al extranjero, 2024) y el
-  cambio medio del BCE de 2025 (169,07 ¥).
+  el valor tasado del Ministerio de Vivienda (4.º trimestre de 2025).
+  Verificado el 8 de octubre de 2026 (ver
+  `projects/wealth-lens/docs/continuity-2026-10-08.md`); siguen sin abrir
+  en su fuente primaria: la tabla del Ministerio de Vivienda, el
+  documento del MUR, el informe de Standvirtual y la cifra del año
+  completo 2025 de RAI Vereniging.
 
 ## Historial
 
@@ -291,3 +318,19 @@ fuente y confirmar la cifra y su fecha** (ver lo pendiente al final).
   el más caro dentro de los años del plan; sin "corto, medio y largo" ni
   la lista de países para vivir más barato. "Dejar de trabajar" pasa a
   ser la meta "Vivir sin trabajar" de las [metas personales](metas-personales.md).
+- 2026-10-08: correcciones tras comprobar las fuentes, sin cambiar la
+  regla. Japón: cifra definitiva (392.251 ¥) y cambio del BCE de 169,04 ¥
+  → 2.320 €. Coche usado: Países Bajos 24.334 €, Portugal 24.200 €.
+  Coche nuevo: Países Bajos marcado como primer semestre de 2025 (fecha
+  2025-06), Italia 29.600 € (2025, ya no aproximado). Eléctrico usado de
+  Países Bajos: media de 2025, 34.600 €. Placas solares: 3.800 €.
+  Vivienda en Italia: misma cifra, fuente idealista (no Immobiliare.it).
+  Tasas de Italia: fuente MUR, curso 2024/25 (no Federconsumatori), base
+  oficial. Boda en Países Bajos: tarifas de proveedores, no encuesta
+  (base "precios de anuncio").
+- 2026-10-08 (2): nueva base "tarifas de proveedores" (`suppliers` en
+  `src/lib/connections.ts`), para las bodas de Países Bajos
+  (ThePerfectWedding.nl) y Portugal (Fixando), que suman precios de
+  proveedores en vez de preguntar a parejas. Coche nuevo de Italia: la
+  fuente es quien publica la cifra, el Centro Studi Fleet&Mobility
+  (*Mercato Auto a Valore 2025*), no ANIASA, que la reproduce.

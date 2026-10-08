@@ -50,6 +50,13 @@ describe("connections dataset", () => {
     }
   });
 
+  it("says when a wedding's cost is built from suppliers' rates, not asked of couples", () => {
+    const wedding = connectionsData.buy.find((item) => item.id === "wedding")!;
+    expect(wedding.prices?.NL.basis).toBe("suppliers");
+    expect(wedding.prices?.PT.basis).toBe("suppliers");
+    for (const code of ["ES", "DE", "FR", "IT"]) expect(wedding.prices?.[code].basis, code).toBe("survey");
+  });
+
   it("says it is an estimate", () => {
     expect(raw.description).toMatch(/estimates/i);
   });
@@ -69,8 +76,8 @@ describe("connections dataset", () => {
     expect(items.get("small-business")?.amount).toBe(4 * 50000 * 0.35);
     // Two nights at Eurostat's €224 a night on short trips abroad.
     expect(items.get("weekend-capital")?.amount).toBe(2 * 224);
-    // ¥393,710 at ¥169.07 to the euro, to the nearest €10.
-    expect(items.get("trip-japan")?.amount).toBe(Math.round(393710 / 169.07 / 10) * 10);
+    // ¥392,251 at ¥169.04 to the euro, to the nearest €10.
+    expect(items.get("trip-japan")?.amount).toBe(Math.round(392251 / 169.04 / 10) * 10);
     // A home: 80 m² at each country's price per m²; its deposit, 20% of it.
     for (const [country, price] of Object.entries(items.get("home")?.prices ?? {})) {
       const perM2 = Number(price.calc?.eurPerSquareMetre);

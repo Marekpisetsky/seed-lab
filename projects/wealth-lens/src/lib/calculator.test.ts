@@ -171,7 +171,7 @@ describe("goals", () => {
     expect(goalDetail(a, EN)).toBe("including rent");
     expect(goalDetail(e, EN)).toBeNull();
     expect(a).toMatchObject({ kind: "monthly", amount: 700, target: (700 * 12) / 0.04 });
-    expect(b).toMatchObject({ kind: "once", amount: 24_326, target: 24_326 });
+    expect(b).toMatchObject({ kind: "once", amount: 24_334, target: 24_334 });
     expect(c).toMatchObject({ kind: "once", target: 15_000 });
     expect(d).toMatchObject({ kind: "once", target: 100_000 });
     expect(e).toMatchObject({ kind: "monthly", amount: 1500, target: (1500 * 12) / 0.04 });
@@ -189,7 +189,7 @@ describe("goals", () => {
 
   it("say when each is reached with the plan, and the year", () => {
     const [b] = calculate(plan({ goals: [car] }), [], today).goals;
-    const months = monthsToGoal(1000, 200, r, 24_326);
+    const months = monthsToGoal(1000, 200, r, 24_334);
     expect(b.months).toBeCloseTo(months, 9);
     expect(b.reachable).toBe(true);
     expect(b.date?.getUTCFullYear()).toBe(2033);
@@ -302,7 +302,7 @@ describe("the things to buy", () => {
     expect(car).toMatchObject({ known: true, amount: 50026, otherCountry: "NL" });
     expect(kitchen).toMatchObject({ known: true, amount: 15000, otherCountry: "NL" });
     expect(masters).toMatchObject({ known: true, amount: 12 * 2190 + 2601, otherCountry: null });
-    expect(used).toMatchObject({ amount: 24214, otherCountry: null });
+    expect(used).toMatchObject({ amount: 24200, otherCountry: null });
     expect(goalDetail(car, EN)).toBe("prices of the Netherlands");
     expect(goalDetail(used, EN)).toBeNull();
   });

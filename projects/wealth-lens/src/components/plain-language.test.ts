@@ -87,7 +87,11 @@ function dictionaryTexts(file: string): Entry[] {
   return entries;
 }
 
-const dictionaries = LOCALES.map((locale) => ({ locale, entries: dictionaryTexts(join(MESSAGES, `${locale}.ts`)) }));
+// Each language's dictionary and its pages' words (messages/en-pages.ts), read as one.
+const dictionaries = LOCALES.map((locale) => ({
+  locale,
+  entries: [`${locale}.ts`, `${locale}-pages.ts`].flatMap((file) => dictionaryTexts(join(MESSAGES, file))),
+}));
 
 describe("the dictionaries", () => {
   it("are read whole", () => {

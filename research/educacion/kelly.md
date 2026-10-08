@@ -105,9 +105,11 @@ frente a su varianza.
 - Thorp, E. O. (2006), "The Kelly Criterion in Blackjack, Sports Betting
   and the Stock Market", en *Handbook of Asset and Liability Management*,
   vol. 1, Elsevier.
-- MacLean, L. C., Thorp, E. O. y Ziemba, W. T. (2010), "Good and bad
-  properties of the Kelly criterion", y (eds., 2011) *The Kelly Capital
-  Growth Investment Criterion*, World Scientific.
+- MacLean, L. C., Thorp, E. O. y Ziemba, W. T. (2010), "Long-term capital
+  growth: the good and bad properties of the Kelly and fractional Kelly
+  capital growth criteria", *Quantitative Finance* 10(7): 681–687
+  (doi:10.1080/14697688.2010.506108); y (eds., 2011) *The Kelly Capital
+  Growth Investment Criterion: Theory and Practice*, World Scientific.
 - Los datos y supuestos, de las fichas de Wealth Lens (3 de octubre de
   2026).
 
@@ -121,3 +123,6 @@ cualquiera puede rehacerlas con una calculadora.
 ## Historial
 
 - 2026-10-03: primera ficha.
+- 2026-10-08: título y revista correctos del artículo de MacLean, Thorp y
+  Ziemba (2010); "Good and bad properties of the Kelly criterion" es el
+  título del capítulo del libro de 2011.

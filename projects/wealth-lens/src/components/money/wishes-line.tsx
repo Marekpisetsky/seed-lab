@@ -21,7 +21,7 @@ function wishName(wish: Wish, i18n: I18n): string {
   return i18n.m.goals.freedom;
 }
 
-/** "≈ €2,330", or what living without working costs a month. */
+/** "≈ €2,320", or what living without working costs a month. */
 function wishAmount(wish: Wish, i18n: I18n): string {
   if (wish.item) return itemPrice(wish.item, i18n);
   return wish.monthly ? i18n.m.wishes.perMonth(i18n.f.eur(wish.amount)) : i18n.f.eur(wish.amount);
