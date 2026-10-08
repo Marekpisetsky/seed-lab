@@ -179,9 +179,9 @@ export const en = {
     source: { link: "Open the source", date: "Data", terms: "Terms" },
     sources: [
       {
-        name: "UBS Global Investment Returns Yearbook 2025 (Dimson, Marsh and Staunton)",
+        name: "UBS Global Investment Returns Yearbook 2025 (Dimson, Marsh and Staunton), as reported by Cambridge Judge Business School",
         what: "World stocks' yearly growth after rising prices, 1900–2024: 5.2%",
-        url: "https://www.ubs.com/global/en/media/display-page-ndp/en-20250304-global-investment-returns-yearbook-2025.html",
+        url: "https://www.jbs.cam.ac.uk/2025/report-stocks-have-far-outperformed-over-the-past-125-years/",
         date: "1900 to 2024",
         terms: "Only this one figure is used: the 5% the calculator starts with.",
       },
@@ -1112,7 +1112,7 @@ export const en = {
         name: "A month travelling Southeast Asia",
         source: "A month at the average cost with rent of Thailand, Vietnam, Indonesia, Malaysia and the Philippines. Flight not included.",
       },
-      "trip-japan": { name: "A trip to Japan", source: "Japan Tourism Agency: a visitor from Germany spent ¥393,710 in Japan in 2025, €1 = ¥169.07. Flight not included." },
+      "trip-japan": { name: "A trip to Japan", source: "Japan Tourism Agency (final figures, March 2026): a visitor from Germany spent ¥392,251 in Japan in 2025, €1 = ¥169.04. Flight not included." },
       "used-car": { name: "A used car", about: (country: string) => `Average price of a used car in ${country}` },
       "new-car": { name: "A new car", about: (country: string) => `Average price of a new car in ${country}` },
       wedding: { name: "A wedding", about: (country: string) => `Average cost of a wedding in ${country}` },
@@ -1162,7 +1162,7 @@ export const en = {
   },
   wishes: {
     title: "With this you could:",
-    /** What a screen reader says for a wish: "A trip to Japan, in 2 years: ≈ €2,330. Add to My goals." */
+    /** What a screen reader says for a wish: "A trip to Japan, in 2 years: ≈ €2,320. Add to My goals." */
     add: (name: string, when: string, amount: string) => `${name}, ${when}: ${amount}. Add to My goals.`,
     added: (name: string, when: string, amount: string) => `${name}, ${when}: ${amount}. In My goals.`,
     perMonth: (amount: string) => `${amount} a month`,

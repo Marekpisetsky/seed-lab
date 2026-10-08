@@ -26,8 +26,8 @@
     {
       "id": "solar-panels",
       "name": "A set of home solar panels",
-      "amount": 5000,
-      "source": "Milieu Centraal: average price of 10 solar panels installed in the Netherlands.",
+      "amount": 3800,
+      "source": "Milieu Centraal: indicative price of 10 solar panels of 435 Wp installed in the Netherlands (panels, inverter and fitting, 0% VAT).",
       "referenceDate": "2025",
       "country": "NL"
     },
@@ -89,9 +89,9 @@
       "prices": {
         "NL": {
           "amount": 23675,
-          "basis": "survey",
+          "basis": "asking",
           "source": "ThePerfectWedding.nl",
-          "note": "Average cost of a Dutch wedding without the honeymoon.",
+          "note": "Sum of the minimum or average rates of the wedding suppliers listed on ThePerfectWedding.nl, without the honeymoon; not a survey of couples.",
           "referenceDate": "2025"
         },
         "ES": {
@@ -141,10 +141,10 @@
       "area": "mobility",
       "prices": {
         "NL": {
-          "amount": 24326,
+          "amount": 24334,
           "basis": "asking",
-          "source": "AutoScout24 Occasion Dashboard",
-          "note": "Average asking price of a used car in 2025.",
+          "source": "AutoScout24",
+          "note": "Average asking price of a used car in 2025 (AutoScout24 annual analysis 2025, 12 December 2025).",
           "referenceDate": "2025"
         },
         "ES": {
@@ -176,10 +176,10 @@
           "referenceDate": "2025"
         },
         "PT": {
-          "amount": 24214,
+          "amount": 24200,
           "basis": "asking",
           "source": "Standvirtual",
-          "note": "Average asking price of a used car, December 2025.",
+          "note": "Average asking price of professional sellers' used cars, December 2025 (Automonitor/Lusa, 19 January 2026).",
           "referenceDate": "2025-12"
         }
       },
@@ -198,8 +198,8 @@
     {
       "id": "used-ev",
       "name": "A used electric car",
-      "amount": 35047,
-      "source": "AutoScout24 occasion dashboard: average asking price of a used electric car in the Netherlands in 2025.",
+      "amount": 34600,
+      "source": "AutoScout24: average asking price of a used electric car in the Netherlands, average of 2025 (published 26 January 2026).",
       "referenceDate": "2025",
       "country": "NL"
     },
@@ -223,8 +223,8 @@
           "amount": 50026,
           "basis": "sales",
           "source": "RAI Vereniging",
-          "note": "Average price of a new car sold in 2025 (NL Times, August 2025).",
-          "referenceDate": "2025"
+          "note": "Average price of a new car sold in the first half of 2025 (NL Times and Autoweek, August 2025); no full-year 2025 figure found.",
+          "referenceDate": "2025-06"
         },
         "ES": {
           "amount": 44419,
@@ -248,12 +248,11 @@
           "referenceDate": "2025"
         },
         "IT": {
-          "amount": 30000,
+          "amount": 29600,
           "basis": "paid",
           "source": "Fleet&Mobility Research Center / Dataforce",
-          "note": "Average price paid for a new car in 2024, with discounts and incentives: over EUR 30,000; rounded.",
-          "referenceDate": "2024",
-          "estimate": true
+          "note": "Average value per new car registered in 2025, net of discounts (list price EUR 35,362); ANIASA, 30 June 2026.",
+          "referenceDate": "2025"
         }
       },
       "source": "Average price of a new car in each country (see each price).",
@@ -329,10 +328,10 @@
       "name": "A trip to Japan",
       "icon": "plane",
       "area": "experiences",
-      "amount": 2330,
+      "amount": 2320,
       "estimate": true,
-      "calc": { "yen": 393710, "yenPerEur": 169.07 },
-      "source": "Japan Tourism Agency, Consumption Trends of International Visitors 2025 (annual, preliminary): a visitor from Germany spent JPY 393,710 in Japan, the flight not included; at the ECB's 2025 average of JPY 169.07 per euro.",
+      "calc": { "yen": 392251, "yenPerEur": 169.04 },
+      "source": "Japan Tourism Agency, Consumption Trends of International Visitors 2025 (annual, final, 31 March 2026): a visitor from Germany spent JPY 392,251 in Japan, the flight not included; at the ECB's 2025 average of JPY 169.04 per euro.",
       "referenceDate": "2025"
     },
     {
@@ -396,8 +395,8 @@
         "IT": {
           "amount": 29680,
           "basis": "asking",
-          "source": "Immobiliare.it Insights",
-          "note": "Average asking price, November 2025: EUR 1,855 per m².",
+          "source": "idealista",
+          "note": "Average asking price, November 2025: EUR 1,855 per m² (idealista price report, 2 December 2025).",
           "referenceDate": "2025-11",
           "estimate": true,
           "calc": {
@@ -468,8 +467,8 @@
         "IT": {
           "amount": 148400,
           "basis": "asking",
-          "source": "Immobiliare.it Insights",
-          "note": "Average asking price, November 2025: EUR 1,855 per m².",
+          "source": "idealista",
+          "note": "Average asking price, November 2025: EUR 1,855 per m² (idealista price report, 2 December 2025).",
           "referenceDate": "2025-11",
           "estimate": true,
           "calc": { "squareMetres": 80, "eurPerSquareMetre": 1855 }
@@ -535,10 +534,10 @@
           },
           "IT": {
             "amount": 1550,
-            "basis": "survey",
-            "source": "Federconsumatori, Rapporto università 2025-2026",
-            "note": "Average yearly fees of students who pay; they depend on income and start at EUR 0.",
-            "referenceDate": "2025-09",
+            "basis": "official",
+            "source": "MUR, Focus contribuzione studentesca",
+            "note": "Average yearly fees paid by students who pay at state universities, academic year 2024/25 (EUR 959 over all students); they depend on income and start at EUR 0.",
+            "referenceDate": "2024-09",
             "estimate": true
           },
           "PT": {

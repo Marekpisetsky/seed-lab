@@ -1,10 +1,12 @@
 # Handoff — 2026-10-08: entry points, and the figures checked before launch
 
 Base: master at c2513bd (prices of 2026-10-08). Branch
-`hermes/handoff-2026-10-08` (PR #34). **No code or data changed today**:
-only this handoff and the removal of the root `HANDOFF.md`. Every
-correction below is a finding for Marek to apply (with its Research entry,
-as AGENTS.md requires), not something already done.
+`hermes/handoff-2026-10-08` (PR #34). Three tasks today:
+- the entry points: this handoff, and the removal of the root
+  `HANDOFF.md`;
+- a check of the figures before launch, findings only;
+- the corrections Marek chose from that check (data, citations and
+  texts, no logic). They are listed under "Corrections applied".
 
 ## State of master
 
@@ -151,35 +153,84 @@ publisher, not at the publisher.
 
 ## Decisions taken
 
-- No figure was changed: Marek asked for findings only. Every change goes
-  with its Research entry in the same change (AGENTS.md).
+- The check itself changed no figure: Marek asked for findings only. The
+  corrections he chose afterwards are in the next section, each with its
+  Research entry in the same change (AGENTS.md).
 - Where a primary source could not be opened, the verdict says
   "secondary" instead of being upgraded to OK.
 
+## Corrections applied (same day, second task)
+
+Marek chose which findings to apply: data, citations and wording only.
+No logic changed. The wishes rule, the calculations and the validation
+are the same; only values, sources, dates and texts changed, and the
+tests that recompute those values.
+
+| Change | Files |
+| --- | --- |
+| Japan trip: final figure ¥392,251 (JTA, 31 Mar 2026) at the ECB's ¥169.04 → **2,320 €** (was 2,330 €), source text in EN and ES | `src/data/connections.json` (`trip-japan`), `src/i18n/messages/en.ts`, `es.ts` (`things.items["trip-japan"].source`), `src/lib/connections.test.ts` (recomputes 392251 / 169.04); example comments in `en.ts`, `src/i18n/item-text.ts` and `src/components/money/wishes-line.tsx` |
+| NL used car **24,334 €**; source "AutoScout24", annual analysis 2025 | `connections.json` (`used-car.NL`), `src/lib/calculator.test.ts` (goal amount and months) |
+| PT used car **24,200 €** (professional sellers, Dec 2025) | `connections.json` (`used-car.PT`), `calculator.test.ts` |
+| NL used electric car **34,600 €**, average of 2025 | `connections.json` (`used-ev`) |
+| NL new car: no full-year 2025 figure found (RAI's 2025 total in Mobiliteit in Cijfers covers data to May, 50,110 €). Kept **50,026 €** and dated **2025-06**, so the app reads "RAI Vereniging, 2025-06"; the note and the research sheet say "first half of 2025". | `connections.json` (`new-car.NL`) |
+| IT new car **29,600 €** (2025, net of discounts); no longer marked "≈" | `connections.json` (`new-car.IT`) |
+| NL solar panels **3,800 €** (10 × 435 Wp installed, Milieu Centraal). Nothing else derives from this figure (no test, no calculation). | `connections.json` (`solar-panels`) |
+| Italy housing: same 1,855 €/m² (home 148,400 €, deposit 29,680 €), source **idealista**, Nov 2025, link to the 2 Dec 2025 report | `connections.json` (`home.IT`, `home-deposit.IT`), `research/wealth-lens/deseos.md` |
+| NL wedding: method described as the sum of suppliers' rates, not a survey of couples; basis changed from `survey` to `asking`, which the app shows as "asking prices" / "precios de anuncio" | `connections.json` (`wedding.NL`), `deseos.md` |
+| Italy tuition: source **MUR**, *Focus contribuzione studentesca*, academic year **2024/25** (date 2024-09), basis `official`; Federconsumatori and its dead PDF removed | `connections.json` (`study-year.fees.IT`), `deseos.md` |
+| UBS 2025: How it works links the **Cambridge Judge** note (which has the 5.2%) instead of UBS's press release; the source name says "as reported by Cambridge Judge Business School" / "según Cambridge Judge Business School" | `en.ts`, `es.ts` (`howItWorks.sources[0]`), `research/wealth-lens/valor-inicial.md` |
+| Kelly: MacLean, Thorp and Ziemba (2010), "Long-term capital growth: the good and bad properties of the Kelly and fractional Kelly capital growth criteria", *Quantitative Finance* 10(7): 681–687 | `research/educacion/kelly.md` |
+
+Research sheets updated with a dated *Historial* entry: `deseos.md`
+(tables, sources by country, the "Lo discutible" point on different years,
+the pending list), `valor-inicial.md` and `kelly.md`.
+
+Verification in `projects/wealth-lens`:
+- `npm run lint`, `npm run typecheck`, `npm test` (64 files, 841 tests)
+  and a clean `npm run build` (`rm -rf .next out`) passed.
+- In the built site, the new Japan figure is in the page scripts. The
+  Cambridge Judge link is on How it works, and the old UBS link is in no
+  page.
+- The browser tests (`e2e/`) were not run.
+
+Limits of what was applied:
+- **NL new car:** the app cannot say «1.er semestre 2025» in its own
+  words without a code change. The dataset's `source` is shown as it is
+  in every language, and `referenceDate` only takes YYYY or YYYY-MM. So it
+  shows "2025-06". A localised period label needs a small change in
+  `lib/connections.ts` and the messages, left for Marek to decide.
+- **NL wedding:** no basis says "suppliers' rates", so `asking` is the
+  nearest existing one. A new basis needs a change to `PRICE_BASES` in
+  `lib/connections.ts` and to both message files, also left for Marek.
+- **PT wedding (Fixando):** it is built the same way as the NL one but was
+  not in Marek's list, so it still says `survey`.
+- **Citation fixes not applied** (not in Marek's list):
+  - FR used car: cite La Centrale's observatory;
+  - ES used car: cite coches.net;
+  - FR new car: cite the IMT PDF;
+  - DE housing: cite the BBSR note;
+  - NL student debt: the publisher is CBS;
+  - ES wedding: the report's real name;
+  - Pástor and Stambaugh: volume and pages;
+  - Shiller: data now at shillerdata.com.
+
 ## Open for Marek
 
-1. **Before launch, decide on the two wrong figures:** Italy's price per
-   m² (switch to idealista, or to Immobiliare.it's 2,139 €) and the Dutch
-   solar panels (3,800 €).
-2. **Decide on the updates:**
-   - Japan, final 392,251 ¥ → 2,320 €;
-   - ECB rate 169.04;
-   - NL used car 24,334 €;
-   - PT used car 24,200 €;
-   - NL used electric car 34,600 €;
-   - NL new car: relabel it as the first half of 2025;
-   - IT new car: 29,600 € for 2025;
-   - IT tuition fees: credit the MUR, academic year 2024/25.
-3. **Fix the citations:**
+1. **Review the corrections applied today** (section above). Look in
+   particular at:
+   - "RAI Vereniging, 2025-06" for the Dutch new car;
+   - "asking prices" as the basis of the Dutch wedding.
+   Both are compromises, because a label of their own needs code.
+2. **Decide whether to allow those two small code changes:** a localised
+   period label, and a "suppliers' rates" basis (also for Portugal's
+   Fixando wedding).
+3. **Fix the remaining citations**, not in today's list:
    - FR used car: cite La Centrale;
    - ES used car: cite coches.net;
    - FR new car: cite the IMT PDF;
    - DE housing: cite the BBSR note;
-   - UBS 2025: cite Cambridge Judge for the numbers;
    - NL student debt: the publisher is CBS;
-   - NL and PT weddings: basis is supplier prices, not a survey;
    - ES wedding: the report's real name;
-   - MacLean, Thorp and Ziemba 2010: the title and journal;
    - Pástor and Stambaugh: volume and pages;
    - Shiller: shillerdata.com.
 4. **Open by hand what nobody could open from here:**

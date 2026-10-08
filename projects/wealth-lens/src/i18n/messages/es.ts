@@ -175,9 +175,9 @@ export const es: Messages = {
     source: { link: "Abrir la fuente", date: "Datos", terms: "Condiciones" },
     sources: [
       {
-        name: "UBS Global Investment Returns Yearbook 2025 (Dimson, Marsh y Staunton)",
+        name: "UBS Global Investment Returns Yearbook 2025 (Dimson, Marsh y Staunton), según Cambridge Judge Business School",
         what: "Cuánto crecieron al año las acciones del mundo, tras subir los precios, de 1900 a 2024: 5,2\u00a0%",
-        url: "https://www.ubs.com/global/en/media/display-page-ndp/en-20250304-global-investment-returns-yearbook-2025.html",
+        url: "https://www.jbs.cam.ac.uk/2025/report-stocks-have-far-outperformed-over-the-past-125-years/",
         date: "de 1900 a 2024",
         terms: "Solo se usa esta cifra: el 5\u00a0% con el que empieza la calculadora.",
       },
@@ -1080,7 +1080,7 @@ export const es: Messages = {
         name: "Un mes viajando por el Sudeste Asiático",
         source: "Un mes al coste medio con alquiler de Tailandia, Vietnam, Indonesia, Malasia y Filipinas. Sin el vuelo.",
       },
-      "trip-japan": { name: "Un viaje a Japón", source: "Agencia de Turismo de Japón: un visitante de Alemania gastó 393.710\u00a0¥ en Japón en 2025, 1\u00a0€ = 169,07\u00a0¥. Sin el vuelo." },
+      "trip-japan": { name: "Un viaje a Japón", source: "Agencia de Turismo de Japón (cifras definitivas, marzo de 2026): un visitante de Alemania gastó 392.251\u00a0¥ en Japón en 2025, 1\u00a0€ = 169,04\u00a0¥. Sin el vuelo." },
       "used-car": { name: "Un coche usado", about: (country: string) => `Precio medio de un coche usado en ${country}` },
       "new-car": { name: "Un coche nuevo", about: (country: string) => `Precio medio de un coche nuevo en ${country}` },
       wedding: { name: "Una boda", about: (country: string) => `Coste medio de una boda en ${country}` },

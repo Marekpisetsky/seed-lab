@@ -1,6 +1,6 @@
 /**
  * A thing of the list in words, in the page's language: its name, its
- * price ("≈ €2,330" for a rough one) and where that price comes from, for
+ * price ("≈ €2,320" for a rough one) and where that price comes from, for
  * the country whose prices it uses. The figures are in lib/calculator.ts.
  */
 
