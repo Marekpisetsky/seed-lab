@@ -1,3 +1,5 @@
+import { toolById } from "../../../packages/seed-kit/src/tools.ts";
+
 /**
  * Who this tool is and where it lives. One place, so moving it (another
  * address, a folder of a bigger site) touches nothing else.
@@ -5,7 +7,8 @@
 
 /** Its id in seed-kit's tool list (packages/seed-kit/src/tools.json). */
 export const ID = "inflation-lens";
-export const NAME = "Inflation Lens";
+/** Its name in each language, from the tool list: "Horalis Inflation". */
+export const NAME = toolById(ID).name;
 
 /** Where it is published, without a trailing slash (provisional until it has its own address). */
 export const SITE_URL = "https://seed-lab-inflation-lens.vercel.app";

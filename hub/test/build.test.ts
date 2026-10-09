@@ -1,3 +1,4 @@
+import { costOfLiving } from "../../packages/seed-kit/src/cost-of-living.ts";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -8,13 +9,16 @@ import { themeScript } from "../../packages/seed-kit/src/theme.ts";
 import { escape } from "../../packages/seed-kit/src/html.ts";
 import { FAVICON } from "../../packages/seed-kit/src/icons.ts";
 import { plainLanguageProblems, textsOf } from "../../packages/seed-kit/src/plain-language.ts";
-import { BLOCKS, PRINCIPLE_IDS, SHOWN_TOOLS, TOOLS, parseBlocks } from "../src/content.ts";
+import { BLOCKS, PRINCIPLE_IDS, SHOWN_TOOLS, TOOLS, parseBlocks, toolById } from "../src/content.ts";
 import { publishedTools, TYPICAL_PAGE_KB } from "../src/figures.ts";
 import { SHOTS } from "../src/shots.ts";
 import { en } from "../src/i18n/en.ts";
 import { es } from "../src/i18n/es.ts";
 import { LOCALE_SETTINGS, LOCALES, PAGES, localePath } from "../src/i18n/index.ts";
 import type { Locale } from "../src/i18n/index.ts";
+
+/** The language a built page is in. */
+const pageLocale = (text: string) => (text.match(/<html lang="(\w+)">/)?.[1] ?? "en") as Locale;
 
 const THEME_SCRIPT = themeScript({ menu: true });
 
@@ -82,7 +86,7 @@ describe("the build", () => {
     for (const { file, text } of HTML) {
       assert.doesNotMatch(text, /\bMIT\b|open[ -]source|código abierto|LICENSE/i, file);
       const lang = text.match(/<html lang="(\w+)">/)?.[1];
-      assert.match(text, lang === "es" && file !== "404.html" ? /© 2026 seed-lab\. De uso gratuito\./ : /© 2026 seed-lab\. Free to use\./, file);
+      assert.match(text, lang === "es" && file !== "404.html" ? /© 2026 Horalis\. De uso gratuito\./ : /© 2026 Horalis\. Free to use\./, file);
     }
   });
 
@@ -130,13 +134,13 @@ describe("the contact", () => {
   it("is the email address, on About in both languages", () => {
     for (const locale of LOCALES) {
       const about = readFileSync(join(DIST, localePath(PAGES.about, locale), "index.html"), "utf8");
-      assert.match(about, /<span class="email" data-user="seedlab\.eu" data-domain="proton\.me"><\/span>/, locale);
+      assert.match(about, /<span class="email" data-user="horalis" data-domain="proton\.me"><\/span>/, locale);
     }
   });
 
   it("never holds the address whole, a mail link or a GitHub link in the HTML", () => {
     for (const { file, text } of HTML) {
-      assert.doesNotMatch(text, /seedlab\.eu@|@proton\.me|mailto/i, file);
+      assert.doesNotMatch(text, /horalis@|seedlab\.eu|@proton\.me|mailto/i, file);
       assert.doesNotMatch(text, /github\.com|Open an issue|Abre un issue/i, file);
     }
   });
@@ -180,10 +184,10 @@ describe("honesty", () => {
       const page = readFileSync(join(DIST, localePath(PAGES.principles, locale), "index.html"), "utf8");
       const [commitments, table] = page.slice(page.indexOf("<main"), page.indexOf("</main>")).split('id="products"');
       assert.equal((commitments.match(/class="commitment"/g) ?? []).length, PRINCIPLE_IDS.length, locale);
-      assert.doesNotMatch(commitments, /Wealth Lens|Pending|Pendiente|Partly|En parte/, `${locale}: the principles name no product and no gap`);
+      assert.doesNotMatch(commitments, /Horalis Growth|Horalis Crecimiento|Pending|Pendiente|Partly|En parte/, `${locale}: the principles name no product and no gap`);
       assert.match(commitments, /350 KB/, `${locale}: the weight limit is published`);
       assert.equal((table.match(/<tr><th scope="row">/g) ?? []).length, live.length, locale);
-      assert.match(table, /<tr><th scope="row"><a href="[^"]+">Wealth Lens<\/a><\/th>/, `${locale}: Wealth Lens is the first row`);
+      assert.match(table, new RegExp(`<tr><th scope="row"><a href="[^"]+">${toolById("wealth-lens").name[locale]}</a></th>`), `${locale}: Horalis Growth is the first row`);
       assert.equal((table.match(/class="state (meets|partly|pending)"/g) ?? []).length, live.length * PRINCIPLE_IDS.length, locale);
     }
     for (const tool of live) assert.match(tool.principles.light.note.en, /350 KB/, `${tool.id}: weight against the limit`);
@@ -198,7 +202,7 @@ describe("honesty", () => {
     for (const locale of LOCALES) {
       const about = readFileSync(join(DIST, localePath(PAGES.about, locale), "index.html"), "utf8");
       const home = readFileSync(join(DIST, localePath(PAGES.home, locale), "index.html"), "utf8");
-      const stack = locale === "en" ? /its own technology stack/ : /su propia pila tecnológica/;
+      const stack = locale === "en" ? /no longer centralised and tracked/ : /deje de estar centralizada y rastreada/;
       assert.match(about, stack);
       assert.doesNotMatch(home, stack);
       assert.match(about, locale === "en" ? /Today we are at the first step/ : /Hoy estamos en el primer peldaño/);
@@ -245,9 +249,9 @@ describe("the layout", () => {
     for (const { file, text } of HTML) {
       const header = text.slice(text.indexOf("<header"), text.indexOf("</header>"));
       assert.match(header, /<details class="sk-launcher">/, file);
-      for (const tool of TOOLS.filter((entry) => entry.shown)) assert.match(header, new RegExp(`<a href="${tool.url}"><span class="sk-tool">${tool.name}</span>`), file);
-      for (const tool of TOOLS.filter((entry) => !entry.shown)) assert.doesNotMatch(header, new RegExp(tool.name), file);
-      assert.doesNotMatch(text, /Part of seed-lab|Parte de seed-lab/, file);
+      for (const tool of TOOLS.filter((entry) => entry.shown)) assert.match(header, new RegExp(`<a href="${tool.url}"><span class="sk-tool">${tool.name[pageLocale(text)]}</span>`), file);
+      for (const tool of TOOLS.filter((entry) => !entry.shown)) for (const name of Object.values(tool.name)) assert.doesNotMatch(header, new RegExp(name), file);
+      assert.doesNotMatch(text, /Part of Horalis|Parte de Horalis/, file);
     }
   });
 
@@ -266,7 +270,7 @@ describe("the front page", () => {
     return text.slice(start, text.indexOf("</section>\n", start));
   };
 
-  it("opens with a real screenshot of Wealth Lens, in the page's language, loaded only when needed", () => {
+  it("opens with a real screenshot of Horalis Growth, in the page's language, loaded only when needed", () => {
     for (const locale of LOCALES) {
       const opening = section(page(locale), "mission");
       const img = opening.match(/<img\b[^>]*>/)?.[0] ?? "";
@@ -290,10 +294,10 @@ describe("the front page", () => {
       for (const tool of SHOWN_TOOLS) {
         assert.match(band, new RegExp(`id="shelf-${tool.category}"`), `${locale}: ${tool.id} shelf`);
         assert.ok(band.includes(`/shots/${tool.id}-card-${locale}-`), `${locale}: ${tool.id} screenshot`);
-        assert.match(band, new RegExp(`<span>${tool.name}</span> <span class="badge ${tool.status}">`), `${locale}: ${tool.id} status`);
+        assert.match(band, new RegExp(`<span>${tool.name[locale]}</span> <span class="badge ${tool.status}">`), `${locale}: ${tool.id} status`);
         assert.ok(band.includes(`<a class="button-secondary" href="${tool.url}">`), `${locale}: ${tool.id} button`);
       }
-      for (const tool of TOOLS.filter((entry) => !entry.shown)) assert.ok(!band.includes(tool.name), `${locale}: ${tool.id} is not listed`);
+      for (const tool of TOOLS.filter((entry) => !entry.shown)) assert.ok(!band.includes(tool.name[locale]), `${locale}: ${tool.id} is not listed`);
       assert.equal((band.match(/class="shelf"/g) ?? []).length, new Set(SHOWN_TOOLS.map((tool) => tool.category)).size, `${locale}: no empty shelf`);
     }
   });
@@ -324,7 +328,7 @@ describe("the front page", () => {
     assert.equal(figures.trackers, 0);
     assert.ok(Math.max(...report.map(({ weight }) => weight.compressed)) <= figures.maxKb * 1000, "no page weighs more than the figure");
     assert.equal(figures.languages, LOCALES.length);
-    assert.equal(figures.countries, 172);
+    assert.equal(figures.countries, costOfLiving.countries.length);
     assert.equal(figures.tools, SHOWN_TOOLS.length);
     for (const locale of LOCALES) {
       const shown = [...section(page(locale), "figures").matchAll(/<dd>([^<]+)<\/dd>/g)].map(([, value]) => value);
@@ -348,7 +352,7 @@ describe("honest figures", () => {
 
   it("never names a hidden tool on any page", () => {
     for (const hidden of TOOLS.filter((entry) => !entry.shown)) {
-      for (const { file, text } of HTML) assert.ok(!text.includes(hidden.name) && !text.includes(hidden.url), `${file} names ${hidden.name}`);
+      for (const { file, text } of HTML) assert.ok(!Object.values(hidden.name).some((name) => text.includes(name)) && !text.includes(hidden.url), `${file} names ${hidden.name.en}`);
     }
   });
 

@@ -3,12 +3,12 @@
  * backed by a static dataset of annual real (after inflation) returns in
  * src/data/:
  *
- * - S&P 500: total return, 1928 onwards (Robert Shiller, Yale).
- * - MSCI World: net total return in USD, 1988 onwards (MSCI factsheets).
- * - Nasdaq-100: price return in USD, 1986 onwards (Nasdaq year-end closes).
- * - Euro government bonds: a 10-year German Bund, total return in euros
- *   after German inflation, 1988 onwards (OECD / Bundesbank yields, Destatis).
- * - Gold: in USD after US inflation, 1988 onwards (LBMA year-end prices).
+ * - US stocks: the S&P Composite, total return, 1928 onwards (Robert
+ *   Shiller, Yale).
+ * - German government bonds: a 10-year Bund, total return in euros after
+ *   German inflation, 1988 onwards (OECD / Bundesbank yields, Destatis).
+ * - Gold: in USD after US inflation, 1988 onwards (World Bank Pink Sheet,
+ *   December averages).
  *
  * All five are compared over the same years: the longest period every
  * dataset covers (COMMON_PERIOD). Those years feed the expected return
@@ -22,8 +22,6 @@
 
 import euroBonds from "@/data/euro-bonds-real-returns.json";
 import gold from "@/data/gold-real-returns.json";
-import msciWorld from "@/data/msci-world-real-returns.json";
-import nasdaq100 from "@/data/nasdaq100-real-returns.json";
 import sp500 from "@/data/sp500-real-returns.json";
 import { INDEX_IDS, SERIES_IDS, type IndexId, type SeriesId } from "./index-ids";
 
@@ -47,8 +45,6 @@ export interface IndexInfo extends ReturnSeries {
   id: SeriesId;
   /** Short name for the UI: "S&P 500". */
   name: string;
-  /** A well-known European ETF (or ETC, for gold) that holds it, as shown in the UI. */
-  etf: string;
   /** What the returns include, in plain words. */
   returnType: string;
   /** True when dividends are not in the figures (they understate the index). */
@@ -101,30 +97,18 @@ function series(years: readonly AnnualReturn[]): ReturnSeries {
 type IndexDescription = Omit<IndexInfo, keyof ReturnSeries | "dataset">;
 
 const DATASETS: readonly [IndexDescription, Dataset][] = [
-  [
-    { id: "sp500", name: "S&P 500", etf: "VUAA", returnType: "dividends reinvested", priceOnly: false, sourceName: "Robert Shiller, Yale" },
-    sp500,
-  ],
-  [
-    { id: "world", name: "World", etf: "VWCE", returnType: "MSCI World, dividends reinvested", priceOnly: false, sourceName: "MSCI" },
-    msciWorld,
-  ],
-  [
-    { id: "nasdaq100", name: "Nasdaq-100", etf: "EQQQ", returnType: "price only, without dividends", priceOnly: true, sourceName: "Nasdaq" },
-    nasdaq100,
-  ],
+  [{ id: "sp500", name: "US stocks", returnType: "S&P Composite, dividends reinvested", priceOnly: false, sourceName: "Robert Shiller, Yale" }, sp500],
   [
     {
       id: "bonds",
-      name: "Euro government bonds",
-      etf: "IEGA",
+      name: "German government bonds",
       returnType: "10-year German Bund, interest reinvested",
       priceOnly: false,
       sourceName: "OECD, Bundesbank and Destatis",
     },
     euroBonds,
   ],
-  [{ id: "gold", name: "Gold", etf: "4GLD", returnType: "price in US dollars", priceOnly: false, sourceName: "LBMA" }, gold],
+  [{ id: "gold", name: "Gold", returnType: "price in US dollars", priceOnly: false, sourceName: "World Bank" }, gold],
 ];
 
 /** The longest run of years every dataset covers. */
@@ -140,7 +124,7 @@ const parsed = DATASETS.map(([info, data]) => [info, parseReturns(info.name, dat
 /** The years every asset is compared over, e.g. [1988, 2022]. */
 export const COMMON_PERIOD: readonly [number, number] = commonPeriod(parsed.map(([, years]) => years));
 
-/** Every asset with a history: the stock indexes, euro government bonds and gold. */
+/** Every asset with a history: US stocks, German government bonds and gold. */
 export const SERIES = Object.fromEntries(
   parsed.map(([info, years]) => [
     info.id,
@@ -154,16 +138,5 @@ export const SERIES = Object.fromEntries(
 
 if (SERIES_IDS.some((id) => !SERIES[id])) throw new Error("A series has no dataset");
 
-/** The three stock indexes. */
+/** The stock index. */
 export const INDEXES = Object.fromEntries(INDEX_IDS.map((id) => [id, SERIES[id]])) as Readonly<Record<IndexId, IndexInfo>>;
-
-/**
- * US consumer prices, December to December, by year (from the Nasdaq-100
- * dataset, which records the inflation it deflates by): used to put a
- * stock's calendar-year price changes in the same after-inflation terms.
- */
-export const US_INFLATION: ReadonlyMap<number, number> = new Map(
-  (nasdaq100.years as { year: number; inflation?: number }[])
-    .filter((entry): entry is { year: number; inflation: number } => typeof entry.inflation === "number")
-    .map((entry) => [entry.year, entry.inflation]),
-);

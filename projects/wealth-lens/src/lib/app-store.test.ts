@@ -8,26 +8,10 @@ import {
   replaceState,
   resetAssumptions,
   setAssumptions,
-  setHoldingReference,
-  setHoldings,
   setInvestment,
   setPricesOf,
-  setUploadedPrices,
   updatePlan,
 } from "./app-store";
-import type { Holding } from "./types";
-
-const holding: Holding = {
-  id: "1",
-  ticker: "VWCE",
-  quantity: 10,
-  costBasis: 1000,
-  currency: "EUR",
-  currentPrice: null,
-  priceSource: "auto",
-  priceDate: null,
-};
-
 afterEach(() => replaceState(INITIAL_STATE));
 
 describe("createStore", () => {
@@ -80,7 +64,7 @@ describe("the shared app state", () => {
 
   it("adds goals at the end and removes one without reordering the rest", () => {
     addGoal({ kind: "amount", amount: 100_000 }, "a");
-    addGoal({ kind: "live", country: "PE", housing: true }, "b");
+    addGoal({ kind: "live", country: "PE" }, "b");
     addGoal({ kind: "monthly", amount: 1500, label: null }, "c");
     expect(appStore.get().plan.goals.map((goal) => goal.id)).toEqual(["a", "b", "c"]);
     removeGoal("b");
@@ -88,24 +72,8 @@ describe("the shared app state", () => {
       { id: "a", kind: "amount", amount: 100_000 },
       { id: "c", kind: "monthly", amount: 1500, label: null },
     ]);
-    addGoal({ kind: "buy", item: "used-car" }, "d");
+    addGoal({ kind: "buy-own", name: "A car", amount: 20_000 }, "d");
     expect(appStore.get().plan.goals.map((goal) => goal.id)).toEqual(["a", "c", "d"]);
-  });
-
-  it("keeps holdings apart from the plan", () => {
-    setHoldings([holding]);
-    expect(appStore.get().holdings).toEqual([holding]);
-    setHoldings((previous) => previous.filter((item) => item.id !== "1"));
-    expect(appStore.get().holdings).toEqual([]);
-    expect(appStore.get().plan).toBe(INITIAL_STATE.plan);
-  });
-
-  it("adds and removes uploaded prices per ticker", () => {
-    const prices = { fileName: "x.csv", points: [{ time: "2026-09-25", close: 10 }] };
-    setUploadedPrices("XYZ", prices);
-    setUploadedPrices("ABC", prices);
-    setUploadedPrices("XYZ", null);
-    expect(appStore.get().uploadedPrices).toEqual({ ABC: prices });
   });
 
   it("fills in the standard figures of a new choice, keeping a typed inflation", () => {
@@ -136,15 +104,6 @@ describe("the shared app state", () => {
     setAssumptions({ inflation: 0.05 });
     setPricesOf("BR");
     expect(appStore.get().plan).toMatchObject({ pricesOf: "BR", assumptions: { inflation: null } });
-  });
-
-  it("sets and clears what a holding grows like", () => {
-    setHoldings([holding, { ...holding, id: "2", ticker: "XYZ" }]);
-    setHoldingReference("2", "gold");
-    expect(appStore.get().holdings[1].reference).toBe("gold");
-    expect(appStore.get().holdings[0]).toBe(appStore.get().holdings[0]);
-    setHoldingReference("2", null);
-    expect("reference" in appStore.get().holdings[1]).toBe(false);
   });
 
   it("tells every screen about a change", () => {

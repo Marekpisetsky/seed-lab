@@ -10,13 +10,11 @@ import { Help } from "@/components/ui/help";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { byCountryName, countryName, matchesCountry } from "@/i18n/countries";
 import { goalDetail, goalExplain, goalName } from "@/i18n/goal-text";
-import { itemName, itemPrice } from "@/i18n/item-text";
 import { addGoal, removeGoal, updateGoal } from "@/lib/app-store";
-import { NEEDED_WITHIN_YEARS, pricedItems, type Calculation, type GoalStatus } from "@/lib/calculator";
+import { NEEDED_WITHIN_YEARS, type Calculation, type GoalStatus } from "@/lib/calculator";
 import { costOfLiving } from "@/lib/cost-of-living";
 import type { Goal, NewGoal } from "@/lib/types";
 import { MAX_AMOUNT } from "@/lib/validation";
-import { PricesOf } from "./prices-of";
 
 function GoalRow({ status, calc, today }: { status: GoalStatus; calc: Calculation; today: Date }) {
   const i18n = useI18n();
@@ -28,9 +26,7 @@ function GoalRow({ status, calc, today }: { status: GoalStatus; calc: Calculatio
   const reached = status.reachable && reach.reached;
   const name = goalName(status, i18n);
   const detail = goalDetail(status, i18n);
-  // A thing of the list keeps its "≈" when its price is a rough estimate, as everywhere else.
-  const once = status.item ? itemPrice(status.item, i18n) : f.eur(status.amount);
-  const amountLine = !status.known ? "" : status.kind === "once" ? once : m.goals.perMonthNeeded(f.eur(status.amount), f.eur(status.target));
+  const amountLine = !status.known ? "" : status.kind === "once" ? f.eur(status.amount) : m.goals.perMonthNeeded(f.eur(status.amount), f.eur(status.target));
   const remaining = Math.max(0, status.target - calc.scenario.capital);
   const saved = Math.min(status.target, Math.max(0, calc.scenario.capital));
   return (
@@ -86,12 +82,6 @@ function GoalRow({ status, calc, today }: { status: GoalStatus; calc: Calculatio
       {status.goal.kind === "freedom" && <p className="px-1 text-sm font-medium text-muted">{m.goals.freedomAssumption(f.rate(calc.scenario.withdrawalRate))}</p>}
       {open && (
         <div id={panel} className="mt-1 space-y-2 rounded-md bg-background px-3 py-2 text-sm text-muted">
-        {status.goal.kind === "live" && (
-          <label className="flex min-h-11 items-center gap-2 font-medium">
-            <input type="checkbox" checked={status.goal.housing} onChange={(event) => updateGoal(status.goal.id, (goal) => goal.kind === "live" ? { ...goal, housing: event.target.checked } : goal)} />
-            {m.goals.withHousing}
-          </label>
-        )}
         {status.goal.kind === "freedom" && <FreedomForm initial={status.goal} onAdd={(next) => updateGoal(status.goal.id, () => ({ ...next, id: status.goal.id, ...(status.goal.important ? { important: true } : {}) }))} />}
         <ol className="space-y-1">
           {goalExplain(status, calc.scenario, calc.investment, i18n).map((line) => (
@@ -109,7 +99,7 @@ const KINDS: readonly Kind[] = ["freedom", "live", "amount", "buy", "monthly"];
 const validAmount = (amount: number | null): amount is number => amount !== null && amount > 0 && amount <= MAX_AMOUNT;
 
 /** The form behind "+ Add a goal": only the fields the chosen goal needs. */
-function AddGoal({ onDone, wishCountry }: { onDone: () => void; wishCountry: string }) {
+function AddGoal({ onDone }: { onDone: () => void }) {
   const { m } = useI18n();
   const [kind, setKind] = useState<Kind | null>(null);
   const add = (goal: NewGoal) => {
@@ -130,7 +120,7 @@ function AddGoal({ onDone, wishCountry }: { onDone: () => void; wishCountry: str
       />
       {kind === "freedom" && <FreedomForm onAdd={add} />}
       {kind === "live" && <LiveForm onAdd={add} />}
-      {kind === "buy" && <BuyForm onAdd={add} country={wishCountry} />}
+      {kind === "buy" && <BuyForm onAdd={add} />}
       {kind === "amount" && <AmountForm onAdd={add} />}
       {kind === "monthly" && <MonthlyForm onAdd={add} />}
       <Button variant="ghost" onClick={onDone}>
@@ -140,7 +130,7 @@ function AddGoal({ onDone, wishCountry }: { onDone: () => void; wishCountry: str
   );
 }
 
-/** Country selection gives an immediate answer; rent remains editable in the goal. */
+/** Choosing a country adds the goal at once, at what an average person there lives on. */
 function LiveForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
   const i18n = useI18n();
   const { m } = i18n;
@@ -154,7 +144,7 @@ function LiveForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
         <span className="font-medium">{t.where}</span>
         <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.search} className={inputClass} />
       </label>
-      <select aria-label={t.chooseCountry} className={inputClass} value="" onChange={(event) => onAdd({ kind: "live", country: event.target.value, housing: true })}>
+      <select aria-label={t.chooseCountry} className={inputClass} value="" onChange={(event) => onAdd({ kind: "live", country: event.target.value })}>
         <option value="" disabled>
           {t.chooseCountry}
         </option>
@@ -164,7 +154,7 @@ function LiveForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
           </option>
         ))}
       </select>
-      <p className="text-sm font-medium text-muted">{t.includesRent}</p>
+      <p className="text-sm font-medium text-muted">{t.liveNote}</p>
     </div>
   );
 }
@@ -196,8 +186,8 @@ function FreedomForm({ onAdd, initial }: { onAdd: (goal: NewGoal) => void; initi
           const selected = countries.find((entry) => entry.code === event.target.value);
           if (selected) {
             setCountry(selected.code);
-            setAmount(selected.monthlyCostEur.withRent);
-            setEstimateDate(selected.priceLevel ? String(selected.priceLevel.year) : selected.referenceDate);
+            setAmount(selected.monthlyCostEur);
+            setEstimateDate(selected.referenceDate);
           }
         }}>
           <option value="" disabled>{t.chooseCountry}</option>
@@ -213,47 +203,38 @@ function FreedomForm({ onAdd, initial }: { onAdd: (goal: NewGoal) => void; initi
   );
 }
 
-/** A thing of the list at the prices of `country`, or one of the user's own at their price. */
-function BuyForm({ onAdd, country }: { onAdd: (goal: NewGoal) => void; country: string }) {
-  const i18n = useI18n();
-  const { m } = i18n;
+/**
+ * Something of the user's own, at the price they give: no price list, only
+ * an example in grey of the kind of figure.
+ */
+function BuyForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
+  const { m } = useI18n();
   const t = m.goals.form;
-  const items = useMemo(() => [...pricedItems(country)].sort((a, b) => a.amount - b.amount || a.id.localeCompare(b.id)), [country]);
   const [name, setName] = useState("");
   const [amount, setAmount] = useState<number | null>(null);
   const valid = name.trim() !== "" && validAmount(amount);
   return (
-    <div className="space-y-3">
-      <label className="block space-y-1 text-sm">
-        <span className="font-medium">{t.fromList}</span>
-        <select className={inputClass} value="" onChange={(event) => event.target.value && onAdd({ kind: "buy", item: event.target.value })}>
-          <option value="" disabled>
-            {t.chooseThing}
-          </option>
-          {items.map((item) => (
-            <option key={item.id} value={item.id}>
-              {t.thingOption(itemName(item.id, i18n), itemPrice(item, i18n))}
-            </option>
-          ))}
-        </select>
-      </label>
-      <form
-        className="space-y-2"
-        onSubmit={(event) => {
-          event.preventDefault();
-          if (valid) onAdd({ kind: "buy-own", name: name.trim().slice(0, 60), amount });
-        }}
-      >
-        <p className="text-sm font-medium">{t.orOwn}</p>
-        <div className="grid grid-cols-2 gap-2">
-          <input aria-label={t.what} value={name} onChange={(event) => setName(event.target.value)} maxLength={60} placeholder={t.whatShort} className={inputClass} />
-          <LiveNumberInput aria-label={t.price} value={amount} onValue={setAmount} placeholder={t.pricePlaceholder} />
-        </div>
-        <Button type="submit" variant="primary" disabled={!valid}>
-          <Plus aria-hidden="true" className="size-4" /> {t.add}
-        </Button>
-      </form>
-    </div>
+    <form
+      className="space-y-2"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (valid) onAdd({ kind: "buy-own", name: name.trim().slice(0, 60), amount });
+      }}
+    >
+      <div className="grid grid-cols-2 gap-2">
+        <label className="block space-y-1 text-sm">
+          <span className="font-medium">{t.what}</span>
+          <input value={name} onChange={(event) => setName(event.target.value)} maxLength={60} placeholder={t.whatPlaceholder} className={inputClass} />
+        </label>
+        <label className="block space-y-1 text-sm">
+          <span className="font-medium">{t.price}</span>
+          <LiveNumberInput value={amount} onValue={setAmount} placeholder={t.pricePlaceholder} />
+        </label>
+      </div>
+      <Button type="submit" variant="primary" disabled={!valid}>
+        <Plus aria-hidden="true" className="size-4" /> {t.add}
+      </Button>
+    </form>
   );
 }
 
@@ -323,7 +304,7 @@ function MonthlyForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
  * row that stays where it was added, with its status against the same
  * plan; tapping it shows the calculation, × removes it.
  */
-export function GoalsSection({ calc, today, wishCountry, inCard = false }: { calc: Calculation; today: Date; wishCountry: string; inCard?: boolean }) {
+export function GoalsSection({ calc, today, inCard = false }: { calc: Calculation; today: Date; inCard?: boolean }) {
   const { m } = useI18n();
   const [adding, setAdding] = useState(false);
   const { goals } = calc;
@@ -333,10 +314,7 @@ export function GoalsSection({ calc, today, wishCountry, inCard = false }: { cal
     // Under a section titled "My goals" (inCard) it needs no name of its own: two places with one name confuse a screen reader.
     <section aria-labelledby={goals.length > 0 && !inCard ? "goals-title" : undefined} aria-label={goals.length > 0 || inCard ? undefined : m.goals.title} className="space-y-2">
       {inCard && (
-        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-          <p className="text-sm font-medium text-muted">{goals.length ? m.help.goals : m.goals.empty}</p>
-          <PricesOf country={wishCountry} />
-        </div>
+        <p className="text-sm font-medium text-muted">{goals.length ? m.help.goals : m.goals.empty}</p>
       )}
       {goals.length > 0 && (
         <>
@@ -358,7 +336,7 @@ export function GoalsSection({ calc, today, wishCountry, inCard = false }: { cal
         </>
       )}
       {adding ? (
-        <AddGoal onDone={() => setAdding(false)} wishCountry={wishCountry} />
+        <AddGoal onDone={() => setAdding(false)} />
       ) : (
         <button
           type="button"

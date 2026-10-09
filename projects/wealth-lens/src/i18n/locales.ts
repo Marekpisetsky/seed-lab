@@ -3,8 +3,8 @@
  * here and a dictionary in src/i18n/messages/: every page exists under
  * /<prefix>/ for it (app/[lang]/), and no component changes.
  *
- * English lives at the site's root ("/", "/stocks"); every other language
- * under its prefix ("/es", "/es/stocks").
+ * English lives at the site's root ("/", "/test"); every other language
+ * under its prefix ("/es", "/es/test").
  */
 
 export const LOCALES = ["en", "es"] as const;
@@ -37,7 +37,6 @@ export function isLocale(value: unknown): value is Locale {
 export const PAGES = {
   money: "/",
   test: "/test",
-  stocks: "/stocks",
   about: "/about",
   howItWorks: "/how-it-works",
   privacy: "/privacy",
@@ -45,13 +44,13 @@ export const PAGES = {
 } as const;
 export type PageId = keyof typeof PAGES;
 
-/** A page's address in a language: ("/stocks", "es") → "/es/stocks"; ("/", "es") → "/es". */
+/** A page's address in a language: ("/test", "es") → "/es/test"; ("/", "es") → "/es". */
 export function localePath(path: string, locale: Locale): string {
   if (locale === DEFAULT_LOCALE) return path;
   return path === "/" ? `/${locale}` : `/${locale}${path}`;
 }
 
-/** The language of an address and the page without its prefix: "/es/stocks" → es, "/stocks". */
+/** The language of an address and the page without its prefix: "/es/test" → es, "/test". */
 export function splitPath(pathname: string): { locale: Locale; path: string } {
   const [, first, ...rest] = pathname.split("/");
   if (isLocale(first) && first !== DEFAULT_LOCALE) return { locale: first, path: `/${rest.join("/")}`.replace(/\/$/, "") || "/" };

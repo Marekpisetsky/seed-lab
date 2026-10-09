@@ -1,6 +1,6 @@
 # Ficha: tasa de retiro
 
-- **App:** Wealth Lens · **Revisada:** 3 de octubre de 2026
+- **App:** Horalis Crecimiento · **Revisada:** 3 de octubre de 2026
 - **Código** (en `projects/wealth-lens/`): `src/lib/monte-carlo.ts`
   (`survives`, `successRates`, `yearsLasting`), `src/lib/withdrawal.ts`
   (pasos del deslizador y zonas), `src/lib/success-table.ts` (tasas
@@ -40,12 +40,10 @@ Lo que dan los datos (duró 30 años en N de cada 100, según la tasa):
 
 | Activo | 2 % | 4 % | 7 % |
 | --- | --- | --- | --- |
-| S&P 500 | 99,6 | 92,9 | 62,1 |
-| Mundo | 96,1 | 76,6 | 33,4 |
-| Nasdaq-100 | 96,3 | 85,8 | 63,6 |
-| Bonos del euro | 99,7 | 74,5 | 1,3 |
-| Oro | 91,6 | 44,6 | 4,9 |
-| Plan de partida (5 %, oscilación del Mundo) | 97,8 | 79,5 | 36,9 |
+| Acciones de EE. UU. (S&P 500) | 99,6 | 92,9 | 62,1 |
+| Bonos alemanes | 99,7 | 74,5 | 1,3 |
+| Oro | 91,5 | 44,3 | 4,9 |
+| Plan de partida (5 %, oscilación de las acciones de EE. UU.) | 98,6 | 81,8 | 36,2 |
 
 Con el plan de partida, el 4 % cae en "arriesgado".
 
@@ -98,7 +96,8 @@ Con el plan de partida, el 4 % cae en "arriesgado".
 ## Lo discutible
 
 1. **Depende mucho del periodo.** Con 1988–2022, el S&P 500 da 92,9 % al
-   4 %; el Mundo, 76,6 %. El *Trinity study* (EE. UU., 1926–1995) da un 95 %
+   4 %; las acciones del mundo (MSCI World, retiradas en la fase A2) daban
+   76,6 %. El *Trinity study* (EE. UU., 1926–1995) da un 95 %
    o más para 30 años al 4 % con la mitad o más en acciones; Pfau (2010) muestra que fuera
    de EE. UU. el 4 % falló a menudo. Las cifras de la app son coherentes
    con eso, pero muy sensibles al activo y a los años. *Coste:* va con la
@@ -129,3 +128,10 @@ Con el plan de partida, el 4 % cae en "arriesgado".
 
 - 2026-10-03: primera ficha (sin cambios en el cálculo; dos comentarios
   del código alineados con lo que hace).
+- 2026-10-09 (fase A2): sin las acciones del mundo ni el Nasdaq-100 (sus
+  datos no son abiertos). El plan de partida se mueve ahora con la
+  oscilación de las acciones de EE. UU. (16,4 % en lugar de 17,8 %): al
+  4 % dura en 81,8 de cada 100 (antes 79,5), sigue en "arriesgado". El oro
+  sale de la Pink Sheet del Banco Mundial (medias de diciembre): 44,3 al
+  4 % (antes 44,6). La tabla precalculada se recalculó
+  (`src/lib/success-table.ts`, test `success-table.test.ts`).

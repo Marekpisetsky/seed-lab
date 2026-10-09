@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 import euroBonds from "@/data/euro-bonds-real-returns.json";
 import gold from "@/data/gold-real-returns.json";
-import msciWorld from "@/data/msci-world-real-returns.json";
-import nasdaq100 from "@/data/nasdaq100-real-returns.json";
 import { annualizedReturn, COMMON_PERIOD, commonPeriod, INDEXES, INDEX_IDS, parseReturns, SERIES, SERIES_IDS } from "./indexes";
 
 describe("annualizedReturn", () => {
@@ -50,44 +48,33 @@ describe("commonPeriod", () => {
 });
 
 describe("INDEXES", () => {
-  it("has the three ETFs a European investor knows best", () => {
-    expect(INDEX_IDS.map((id) => INDEXES[id].etf)).toEqual(["VUAA", "VWCE", "EQQQ"]);
+  it("is US stocks alone: the one stock series whose data may be published", () => {
+    expect(INDEX_IDS).toEqual(["sp500"]);
+    expect(INDEXES.sp500.priceOnly).toBe(false);
   });
 
-  it("keeps each whole dataset: decades of history", () => {
+  it("keeps the whole dataset: decades of history", () => {
     expect([INDEXES.sp500.dataset.firstYear, INDEXES.sp500.dataset.lastYear]).toEqual([1928, 2022]);
-    expect([INDEXES.world.dataset.firstYear, INDEXES.world.dataset.lastYear]).toEqual([1988, 2024]);
-    expect([INDEXES.nasdaq100.dataset.firstYear, INDEXES.nasdaq100.dataset.lastYear]).toEqual([1986, 2024]);
     expect(INDEXES.sp500.dataset.averageReturn).toBeCloseTo(0.0658, 3);
-    expect(INDEXES.world.dataset.averageReturn).toBeCloseTo(0.0512, 3);
-    expect(INDEXES.nasdaq100.dataset.averageReturn).toBeCloseTo(0.1082, 3);
   });
 
-  it("compares all three over the longest period they share", () => {
+  it("compares every series over the longest period they share", () => {
     expect(COMMON_PERIOD).toEqual([1988, 2022]);
-    for (const id of INDEX_IDS) {
-      expect([INDEXES[id].firstYear, INDEXES[id].lastYear], id).toEqual([1988, 2022]);
-      expect(INDEXES[id].years, id).toHaveLength(35);
-      expect(INDEXES[id].averageReturn, id).toBeCloseTo(annualizedReturn(INDEXES[id].years.map((entry) => entry.realReturn)), 12);
+    for (const id of SERIES_IDS) {
+      expect([SERIES[id].firstYear, SERIES[id].lastYear], id).toEqual([1988, 2022]);
+      expect(SERIES[id].years, id).toHaveLength(35);
+      expect(SERIES[id].averageReturn, id).toBeCloseTo(annualizedReturn(SERIES[id].years.map((entry) => entry.realReturn)), 12);
     }
   });
 
-  it("gives real averages over 1988–2022 in the expected ranges", () => {
+  it("gives US stocks a real average over 1988–2022 in the expected range", () => {
     expect(INDEXES.sp500.averageReturn).toBeCloseTo(0.0754, 3);
-    expect(INDEXES.world.averageReturn).toBeCloseTo(0.0445, 3);
-    expect(INDEXES.nasdaq100.averageReturn).toBeCloseTo(0.099, 3);
-  });
-
-  it("says which figures leave dividends out", () => {
-    expect(INDEX_IDS.filter((id) => INDEXES[id].priceOnly)).toEqual(["nasdaq100"]);
   });
 
   it("reflects the big crashes", () => {
-    const real = (id: keyof typeof INDEXES, year: number) =>
-      INDEXES[id].years.find((entry) => entry.year === year)?.realReturn;
-    expect(real("world", 2008)).toBeLessThan(-0.4);
-    expect(real("nasdaq100", 2000)).toBeLessThan(-0.35);
-    expect(real("nasdaq100", 2022)).toBeLessThan(-0.35);
+    const real = (year: number) => INDEXES.sp500.dataset.years.find((entry) => entry.year === year)?.realReturn;
+    expect(real(1931)).toBeLessThan(-0.35);
+    expect(real(2008)).toBeLessThan(-0.35);
   });
 });
 
@@ -106,45 +93,9 @@ const compounded = (returns: ReadonlyMap<number, number>, from: number, to: numb
   return growth - 1;
 };
 
-describe("MSCI World dataset", () => {
-  it("publishes only real returns and the inflation behind them", () => {
-    for (const entry of msciWorld.years) expect(Object.keys(entry).sort()).toEqual(["inflation", "realReturn", "year"]);
-  });
-
-  it("compounds to the annualized returns printed on MSCI's factsheets", () => {
-    const nominal = beforeInflation(msciWorld.years);
-    const annualized = (from: number, to: number) => {
-      const returns = [];
-      for (let year = from; year <= to; year++) returns.push(nominal.get(year) ?? NaN);
-      return annualizedReturn(returns);
-    };
-    // Factsheet of December 2024: 3, 5 and 10 years (to about 0.01 point: real returns keep 4 decimals).
-    expect(annualized(2022, 2024)).toBeCloseTo(0.0634, 3);
-    expect(annualized(2020, 2024)).toBeCloseTo(0.1117, 3);
-    expect(annualized(2015, 2024)).toBeCloseTo(0.0995, 3);
-    // Factsheets of December 2019 and December 2014.
-    expect(annualized(2010, 2019)).toBeCloseTo(0.0947, 3);
-    expect(annualized(2005, 2014)).toBeCloseTo(0.0603, 3);
-  });
-});
-
-describe("Nasdaq-100 dataset", () => {
-  it("publishes only real returns and the inflation behind them", () => {
-    for (const entry of nasdaq100.years) expect(Object.keys(entry).sort()).toEqual(["inflation", "realReturn", "year"]);
-  });
-
-  it("matches well-known moves of the index", () => {
-    const nominal = beforeInflation(nasdaq100.years);
-    // The dot-com crash: from the 1999 close to the 2002 close, about −73.5%.
-    expect(compounded(nominal, 2000, 2002)).toBeCloseTo(-0.7345, 2);
-    // 2008: about −41.9%.
-    expect(nominal.get(2008)).toBeCloseTo(-0.4189, 3);
-  });
-});
-
 describe("SERIES: the other assets with a history", () => {
-  it("has euro government bonds and gold beside the three indexes, over the same years", () => {
-    expect(SERIES_IDS).toEqual(["sp500", "world", "nasdaq100", "bonds", "gold"]);
+  it("has German government bonds and gold beside US stocks, over the same years", () => {
+    expect(SERIES_IDS).toEqual(["sp500", "bonds", "gold"]);
     for (const id of SERIES_IDS) {
       expect([SERIES[id].firstYear, SERIES[id].lastYear], id).toEqual([1988, 2022]);
       expect(SERIES[id].years, id).toHaveLength(35);
@@ -155,11 +106,8 @@ describe("SERIES: the other assets with a history", () => {
 
   it("gives bonds a modest real return and gold a low one, both below stocks", () => {
     expect(SERIES.bonds.averageReturn).toBeCloseTo(0.0247, 3);
-    expect(SERIES.gold.averageReturn).toBeCloseTo(0.0106, 3);
-    for (const id of INDEX_IDS) {
-      expect(SERIES.bonds.averageReturn).toBeLessThan(INDEXES[id].averageReturn);
-      expect(SERIES.gold.averageReturn).toBeLessThan(INDEXES[id].averageReturn);
-    }
+    expect(SERIES.gold.averageReturn).toBeLessThan(SERIES.bonds.averageReturn);
+    expect(SERIES.bonds.averageReturn).toBeLessThan(INDEXES.sp500.averageReturn);
   });
 });
 
@@ -203,13 +151,18 @@ describe("Euro government bonds dataset", () => {
 });
 
 describe("Gold dataset", () => {
-  it("publishes only real returns and the inflation behind them", () => {
+  it("publishes only real returns and the inflation behind them, with its World Bank source and licence", () => {
     for (const entry of gold.years) expect(Object.keys(entry).sort()).toEqual(["inflation", "realReturn", "year"]);
+    expect(gold.source).toMatch(/^World Bank, Commodity Price Data/);
+    expect(gold.license).toMatch(/CC BY 4\.0/);
   });
 
-  it("deflates by the same US inflation as the index datasets", () => {
-    const us = new Map(nasdaq100.years.map((entry) => [entry.year, entry.inflation]));
-    for (const { year, inflation } of gold.years) expect(inflation, String(year)).toBe(us.get(year));
+  it("recomputes every year from the December prices kept beside it", () => {
+    const prices = gold.decemberPrices as Record<string, number>;
+    for (const { year, inflation, realReturn } of gold.years) {
+      const nominal = prices[String(year)] / prices[String(year - 1)] - 1;
+      expect(realReturn, String(year)).toBeCloseTo((1 + nominal) / (1 + inflation) - 1, 4);
+    }
   });
 
   it("shows gold's long flat spells and big swings", () => {
@@ -217,19 +170,9 @@ describe("Gold dataset", () => {
     const real = new Map(gold.years.map((entry) => [entry.year, entry.realReturn]));
     // Under its end-of-1987 price for about twenty years, then the 2013 crash.
     expect(compounded(nominal, 1988, 1999)).toBeLessThan(0);
-    expect(compounded(nominal, 1988, 2005)).toBeGreaterThan(0);
+    expect(compounded(nominal, 1988, 2007)).toBeGreaterThan(0);
     expect(real.get(2013)).toBeLessThan(-0.25);
-    // From the end of 2000 to the end of 2011, the price rose about 5.6 times (×5.62).
-    expect(compounded(nominal, 2001, 2011)).toBeCloseTo(4.615, 1);
-  });
-});
-
-describe("inflation shared by both datasets", () => {
-  it("uses the same US CPI figure for the same year", () => {
-    const world = new Map(msciWorld.years.map((entry) => [entry.year, entry.inflation]));
-    for (const { year, inflation } of nasdaq100.years) {
-      if (world.has(year)) expect(inflation, String(year)).toBe(world.get(year));
-    }
-    expect(world.get(2021)).toBeCloseTo(0.07, 2); // 7.0 % in 2021 (BLS)
+    // From the end of 2000 to the end of 2011, the price rose about six times.
+    expect(compounded(nominal, 2001, 2011)).toBeGreaterThan(4);
   });
 });

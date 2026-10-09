@@ -22,7 +22,7 @@ function about(amount: number, locale: Locale): string {
   return `≈\u00a0${formatsFor(locale).eurRounded(amount)}`;
 }
 
-/** The sentence: what you would need there to live the same, with housing and without. */
+/** The sentence: what you would need there to live the same. */
 export function resultHtml(choice: Choice, countries: readonly Country[], locale: Locale): Html {
   const words = WORDS[locale].home;
   const from = byCode(choice.from, countries);
@@ -30,10 +30,8 @@ export function resultHtml(choice: Choice, countries: readonly Country[], locale
   const need = from && to ? equivalent(choice.amount, from, to) : null;
   if (!from || !to || !need) return html`<p class="sk-sentence">${words.invalid}</p>`;
   const formats = formatsFor(locale);
-  return html`<p class="sk-big">${about(need.withRent, locale)}</p>
-<p class="sk-sentence">${words.sentence(formats.eur(choice.amount), from.sentence, to.sentence, about(need.withRent, locale))}</p>
-<p class="sk-muted">${words.withoutRent(about(need.withoutRent, locale))}</p>
-${from.estimated || to.estimated ? html`<p class="sk-small">${words.estimatedNote}</p>` : ""}`;
+  return html`<p class="sk-big">${about(need, locale)}</p>
+<p class="sk-sentence">${words.sentence(formats.eur(choice.amount), from.sentence, to.sentence, about(need, locale))}</p>`;
 }
 
 function rows(ranked: readonly Ranked[], locale: Locale): Html {
@@ -41,11 +39,11 @@ function rows(ranked: readonly Ranked[], locale: Locale): Html {
   const times = (value: number) => words.times(formatsFor(locale).fixed(value, 1));
   return html`${ranked.map(
     ({ country, reach }) =>
-      html`<tr><th scope="row">${country.estimated ? html`<abbr title="${words.estimated}">≈</abbr>${"\u00a0"}` : ""}${country.name}</th><td>${times(reach.withRent)}</td><td>${times(reach.withoutRent)}</td></tr>`,
+      html`<tr><th scope="row">${country.name}</th><td>${times(reach)}</td></tr>`,
   )}`;
 }
 
-/** Where the amount goes furthest and least far, with housing and without, side by side. */
+/** Where the amount goes furthest and least far. */
 export function listsHtml(choice: Choice, countries: readonly Country[], locale: Locale): Html {
   const words = WORDS[locale].home;
   const from = byCode(choice.from, countries);
@@ -55,7 +53,7 @@ export function listsHtml(choice: Choice, countries: readonly Country[], locale:
   const table = (title: string, ranked: readonly Ranked[], id: string) => html`<section class="sk-card rank" aria-labelledby="${id}">
 <h2 id="${id}">${title}</h2>
 <table>
-<thead><tr><th scope="col">${words.country}</th><th scope="col">${words.withRent}</th><th scope="col">${words.withoutRentShort}</th></tr></thead>
+<thead><tr><th scope="col">${words.country}</th><th scope="col">${words.goesFurther}</th></tr></thead>
 <tbody>${rows(ranked, locale)}</tbody>
 </table>
 </section>`;

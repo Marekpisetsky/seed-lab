@@ -122,7 +122,6 @@ describe("the formulas undo each other", () => {
 const today = parseIsoDate("2026-09-30");
 const assets = fc.constantFrom<CalculatorPlan["investment"]>(
   { kind: "asset", asset: "sp500" },
-  { kind: "asset", asset: "world" },
   { kind: "asset", asset: "bonds" },
   { kind: "asset", asset: "gold" },
   { kind: "asset", asset: "savings" },
@@ -140,7 +139,7 @@ describe("the whole calculation", () => {
   it("adds up: put in, growth, income and the growth line agree with the total", () => {
     fc.assert(
       fc.property(plans, (patch) => {
-        const { result } = calculate(planOf(patch), [], today);
+        const { result } = calculate(planOf(patch), today);
         const putIn = patch.invested + patch.monthlyContribution * 12 * patch.years;
         const multiple = multipleOf(result);
         const share = gainedShareOf(result);
@@ -158,9 +157,9 @@ describe("the whole calculation", () => {
   it("never gives less with more each month or more to start with", () => {
     fc.assert(
       fc.property(plans, fc.integer({ min: 1, max: 5000 }), (patch, more) => {
-        const base = calculate(planOf(patch), [], today).result.total;
-        const moreMonthly = calculate(planOf({ ...patch, monthlyContribution: patch.monthlyContribution + more }), [], today).result.total;
-        const moreStart = calculate(planOf({ ...patch, invested: patch.invested + more }), [], today).result.total;
+        const base = calculate(planOf(patch), today).result.total;
+        const moreMonthly = calculate(planOf({ ...patch, monthlyContribution: patch.monthlyContribution + more }), today).result.total;
+        const moreStart = calculate(planOf({ ...patch, invested: patch.invested + more }), today).result.total;
         return moreMonthly >= base && moreStart >= base;
       }),
       { numRuns: 40 },
@@ -170,9 +169,9 @@ describe("the whole calculation", () => {
   it("marks a country ✓ exactly when the income after the chosen years pays it", () => {
     fc.assert(
       fc.property(plans, (patch) => {
-        const { result, countries } = calculate(planOf(patch), [], today);
+        const { result, countries } = calculate(planOf(patch), today);
         return countries.every((row) =>
-          [row.withoutHousing, row.withHousing].every((cell) => {
+          [row.cost].every((cell) => {
             // Right at the edge, rounding may fall either way.
             if (Math.abs(result.income - cell.amount) < 1e-6 * cell.amount) return true;
             return cell.covered === result.income >= cell.amount;
@@ -186,7 +185,7 @@ describe("the whole calculation", () => {
   it("gives each What if…? the sign it should have", () => {
     fc.assert(
       fc.property(plans, (patch) => {
-        const effects = Object.fromEntries(whatIfEffects(calculate(planOf(patch), [], today)).map((effect) => [effect.id, effect]));
+        const effects = Object.fromEntries(whatIfEffects(calculate(planOf(patch), today)).map((effect) => [effect.id, effect]));
         const growthCounts = patch.invested + patch.monthlyContribution > 0;
         return (
           effects["monthly-50"].change >= 0 &&
@@ -204,7 +203,7 @@ describe("the growth a year shown", () => {
   it("is the plan's own growth without a set start", () => {
     fc.assert(
       fc.property(plans, (patch) => {
-        const { result, scenario } = calculate(planOf(patch), [], today);
+        const { result, scenario } = calculate(planOf(patch), today);
         return result.growthRate === scenario.realReturn;
       }),
       { numRuns: 30 },
@@ -214,7 +213,7 @@ describe("the growth a year shown", () => {
   it("after a bad first decade, turns the same money into the same total", () => {
     fc.assert(
       fc.property(plans, (patch) => {
-        const calc = calculate(planOf({ ...patch, investment: { kind: "asset", asset: "sp500" } }), [], today, "bad-decade");
+        const calc = calculate(planOf({ ...patch, investment: { kind: "asset", asset: "sp500" } }), today, "bad-decade");
         const { scenario, result } = calc;
         if (scenario.capital + scenario.monthly === 0) return result.growthRate === scenario.realReturn;
         const again = futureValueWithContributions(scenario.capital, scenario.monthly, result.growthRate, result.years);
@@ -267,8 +266,8 @@ describe("found by these properties, kept as plain examples", () => {
 
   it("does not mark ✓ a country the money pays today but not after the chosen years", () => {
     // €75,000 in savings shrinks 0.5% a year: after a year it pays a little less than today.
-    const calc = calculate(planOf({ invested: 75_000, monthlyContribution: 0, years: 1, investment: { kind: "asset", asset: "savings" } }), [], today);
-    const between = calc.countries.flatMap((row) => [row.withoutHousing, row.withHousing]).filter((cell) => cell.target <= 75_000 && cell.target > calc.result.total);
+    const calc = calculate(planOf({ invested: 75_000, monthlyContribution: 0, years: 1, investment: { kind: "asset", asset: "savings" } }), today);
+    const between = calc.countries.map((row) => row.cost).filter((cell) => cell.target <= 75_000 && cell.target > calc.result.total);
     expect(between.length).toBeGreaterThan(0);
     for (const cell of between) {
       expect(cell.covered).toBe(false);

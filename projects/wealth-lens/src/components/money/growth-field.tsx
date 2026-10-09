@@ -99,7 +99,7 @@ export function GrowthField({ id, current, compact, onEnter }: { id: string; cur
                 key={example}
                 type="button"
                 aria-pressed={pressed}
-                aria-label={t.example(name, rate)}
+                aria-label={t.example(t.examplesSaid[example], rate)}
                 onClick={() => pickExample(example)}
                 className="flex min-h-11 min-w-11 flex-col items-start justify-center rounded-md px-1 text-left leading-tight hover:bg-border/40"
               >

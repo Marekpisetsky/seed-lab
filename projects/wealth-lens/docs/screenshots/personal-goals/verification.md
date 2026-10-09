@@ -1,6 +1,6 @@
 ﻿# Personal goals verification — 2026-10-05
 
-- Wealth Lens: lint, typecheck, 790 unit tests, static build passed.
+- Horalis Crecimiento: lint, typecheck, 790 unit tests, static build passed.
 - seed-kit: lint, typecheck, 54 tests passed.
 - Browser: 28 tests passed, no skips. EN/ES, 360/1366/1920px, contrast,
   colour vision, controls, motion, CLS and new personal-goal flows.

@@ -1,8 +1,8 @@
 /**
- * The 172 countries by name, in each language: as a table lists them
+ * Every country by name, in each language: as a table lists them
  * ("Netherlands", "Países Bajos") and as a sentence says them ("the
  * Netherlands", "los Países Bajos"). The names come from
- * data/country-names.json (projects/wealth-lens/scripts/country-names.mts).
+ * data/country-names.json (scripts/country-names.ts, from Node's CLDR).
  */
 
 import names from "./data/country-names.json" with { type: "json" };

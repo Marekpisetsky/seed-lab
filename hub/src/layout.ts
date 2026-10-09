@@ -90,7 +90,7 @@ export function layout(page: PageInput, weight: Weight): string {
   const footer = footerModel({
     locale,
     links: [
-      ...SHOWN_TOOLS.map((tool) => ({ label: tool.name, href: tool.url })),
+      ...SHOWN_TOOLS.map((tool) => ({ label: tool.name[locale], href: tool.url })),
       { label: m.site.nav.principles, href: localePath(PAGES.principles, locale) },
       { label: m.site.nav.about, href: localePath(PAGES.about, locale) },
       { label: m.site.roadmap, href: localePath(PAGES.roadmap, locale), current: id === "roadmap" },
@@ -118,7 +118,7 @@ ${LOCALES.map((other) => html`<link rel="alternate" hreflang="${other}" href="${
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#0a0a0a">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="seed-lab">
+<meta property="og:site_name" content="Horalis">
 <meta property="og:title" content="${page.title}">
 <meta property="og:description" content="${page.description}">
 <meta property="og:locale" content="${LOCALE_SETTINGS[locale].intl.replace("-", "_")}">

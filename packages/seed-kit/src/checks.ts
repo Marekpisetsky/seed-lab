@@ -1,5 +1,5 @@
 /**
- * The checks every seed-lab page passes, for an app's tests (they run in
+ * The checks every Horalis page passes, for an app's tests (they run in
  * Node, not in the page):
  *
  * - its weight, measured the way a first visit downloads it (gzip);

@@ -26,7 +26,7 @@ export function whatIfsFor(bundle: CalculationBundle): WhatIfEffect[] {
 
 const mixes = new WeakMap<CalculationBundle, MixFigures | null>();
 
-/** For a mix or the portfolio: its range, worst year and concentration, with the S&P 500 alone beside them; worked out when shown. */
+/** For a mix: its range and worst year, with US stocks alone beside them; worked out when shown. */
 export function mixFiguresFor(bundle: CalculationBundle): MixFigures | null {
   let kept = mixes.get(bundle);
   if (kept === undefined) {
@@ -42,7 +42,7 @@ let lastFindings: { bundle: CalculationBundle; i18n: I18n; findings: Finding[] }
 /** The findings of a calculation in the page's language, worked out only when their section is open. */
 export function findingsFor(bundle: CalculationBundle, i18n: I18n): Finding[] {
   if (lastFindings?.bundle === bundle && lastFindings.i18n === i18n) return lastFindings.findings;
-  const findings = topFindings({ calc: bundle.base, inflation: bundle.base.investment.inflation, today: bundle.today, holdings: bundle.holdings, i18n });
+  const findings = topFindings({ calc: bundle.base, inflation: bundle.base.investment.inflation, today: bundle.today, i18n });
   lastFindings = { bundle, i18n, findings };
   return findings;
 }

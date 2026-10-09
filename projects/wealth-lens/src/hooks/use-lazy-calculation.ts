@@ -35,18 +35,14 @@ const subscribe = (listener: () => void) => {
 };
 // The same on the server: the static export never loads it, so the first screen's HTML has no bundle.
 const current = () => engine;
-const noCountry = () => "";
-const quiet = () => () => {};
 
 /** Everything the page shows, once the calculation's code is in (`wanted` asks for it); `null` before. */
 export function useLazyCalculation(wanted: boolean): CalculationBundle | null {
   const state = useAppState();
   const today = useToday();
   const loaded = useSyncExternalStore(subscribe, current, current);
-  const store = loaded?.wishCountryStore;
-  const wishCountry = useSyncExternalStore(store?.subscribe ?? quiet, store?.get ?? noCountry, store?.getServerSnapshot ?? noCountry);
   useEffect(() => {
     if (wanted) void loadCalculation();
   }, [wanted]);
-  return loaded ? loaded.calculationFor(state, today, wishCountry) : null;
+  return loaded ? loaded.calculationFor(state, today) : null;
 }

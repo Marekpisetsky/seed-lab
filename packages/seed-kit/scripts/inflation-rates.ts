@@ -1,7 +1,8 @@
 /**
  * Writes src/data/inflation-rates.json: each country's reference inflation
- * rate, taken from the cost-of-living datasets (src/data/cost-of-living.json
- * and src/data/estimated-countries.json). Run after changing either:
+ * rate alone, from src/data/inflation-reference.json (with its basis and
+ * date), so a page's first screen does not load the bases. Run after
+ * changing the reference:
  *
  *   node --experimental-strip-types scripts/inflation-rates.ts
  *
@@ -9,12 +10,12 @@
  */
 
 import { writeFileSync } from "node:fs";
-import { costOfLiving } from "../src/cost-of-living.ts";
+import { REFERENCE_INFLATION } from "../src/cost-of-living.ts";
 
-const rates = Object.fromEntries(costOfLiving.countries.map((country) => [country.code, country.inflation.rate]));
+const rates = Object.fromEntries(Object.entries(REFERENCE_INFLATION).map(([code, reference]) => [code, reference.rate]));
 const file = {
   description:
-    "Each country's reference inflation rate, the same as in cost-of-living.json and estimated-countries.json, so a page can turn growth after rising prices into growth before them without loading the whole dataset. Written by scripts/inflation-rates.ts.",
+    "Each country's reference inflation rate, the same as in inflation-reference.json, so a page can turn growth after rising prices into growth before them without loading the bases. Written by scripts/inflation-rates.ts.",
   rates,
 };
 writeFileSync(new URL("../src/data/inflation-rates.json", import.meta.url), `${JSON.stringify(file, null, 2)}\n`);

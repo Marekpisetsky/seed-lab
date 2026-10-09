@@ -6,58 +6,9 @@ import {
   GROWTH_LIMITS,
   parseAssumptions,
   parseGoal,
-  parseHoldings,
   parseInvestment,
   parsePlan,
-  parseUploadedPrices,
 } from "./validation";
-
-describe("parseHoldings", () => {
-  const valid = {
-    id: "1",
-    ticker: "AAPL",
-    quantity: 2,
-    costBasis: 300,
-    currency: "USD",
-    currentPrice: null,
-  };
-
-  it("accepts valid holdings", () => {
-    expect(parseHoldings([valid, { ...valid, id: "2", currentPrice: 180 }])).toHaveLength(2);
-  });
-
-  it("drops invalid entries but keeps the valid ones", () => {
-    const parsed = parseHoldings([
-      valid,
-      { ...valid, id: "bad-quantity", quantity: -1 },
-      { ...valid, id: "bad-currency", currency: "euro" },
-      { ...valid, id: "missing-price", currentPrice: undefined },
-      "not an object",
-    ]);
-    expect(parsed).toEqual([{ ...valid, priceSource: "auto", priceDate: null }]);
-  });
-
-  it("reads holdings saved before automatic prices existed", () => {
-    // A typed price stays manual; a missing one is filled automatically.
-    expect(parseHoldings([{ ...valid, currentPrice: 180 }])?.[0]).toMatchObject({ priceSource: "manual", priceDate: null });
-    expect(parseHoldings([valid])?.[0]).toMatchObject({ priceSource: "auto", priceDate: null });
-  });
-
-  it("keeps the date of an automatic price only", () => {
-    const auto = { ...valid, currentPrice: 180, priceSource: "auto", priceDate: "2026-09-25" };
-    expect(parseHoldings([auto])?.[0].priceDate).toBe("2026-09-25");
-    expect(parseHoldings([{ ...auto, priceSource: "manual" }])?.[0].priceDate).toBeNull();
-  });
-
-  it("rejects non-arrays", () => {
-    expect(parseHoldings({})).toBeNull();
-  });
-
-  it("keeps what a holding grows like when it is an asset on the list", () => {
-    expect(parseHoldings([{ ...valid, reference: "gold" }])?.[0].reference).toBe("gold");
-    expect(parseHoldings([{ ...valid, reference: "silver" }])?.[0]).not.toHaveProperty("reference");
-  });
-});
 
 describe("parseGoal", () => {
   it("keeps a valid goal", () => {
@@ -79,16 +30,27 @@ describe("parseInvestment", () => {
   it("accepts the kinds of investment", () => {
     expect(parseInvestment({ kind: "asset", asset: "bonds" })).toEqual({ kind: "asset", asset: "bonds" });
     expect(parseInvestment({ kind: "asset", asset: "savings" })).toEqual({ kind: "asset", asset: "savings" });
-    expect(parseInvestment({ kind: "portfolio", extra: 1 })).toEqual({ kind: "portfolio" });
     expect(parseInvestment({ kind: "custom" })).toEqual({ kind: "custom" });
     // Versions 1 to 5 named an index this way.
-    expect(parseInvestment({ kind: "index", index: "world" })).toEqual({ kind: "asset", asset: "world" });
+    expect(parseInvestment({ kind: "index", index: "sp500" })).toEqual({ kind: "asset", asset: "sp500" });
+  });
+
+  it("reads what the app no longer offers as US stocks, with a notice", () => {
+    const said = (value: unknown) => {
+      const notices: Parameters<typeof parseInvestment>[1] = [];
+      return { investment: parseInvestment(value, notices), codes: notices.map((notice) => notice.code) };
+    };
+    // World stocks and the Nasdaq-100: no open data.
+    expect(said({ kind: "index", index: "world" })).toEqual({ investment: { kind: "asset", asset: "sp500" }, codes: ["series-retired"] });
+    expect(said({ kind: "asset", asset: "nasdaq100" })).toEqual({ investment: { kind: "asset", asset: "sp500" }, codes: ["series-retired"] });
+    // A single stock (version 5) and My portfolio (versions 6 to 10).
+    expect(said({ kind: "stock", id: "NVDA" })).toEqual({ investment: { kind: "asset", asset: "sp500" }, codes: ["stocks-now-us"] });
+    expect(said({ kind: "portfolio", extra: 1 })).toEqual({ investment: { kind: "asset", asset: "sp500" }, codes: ["portfolio-retired"] });
   });
 
   it("rejects unknown assets and kinds, and silver or any other commodity", () => {
     expect(parseInvestment({ kind: "index", index: "dax" })).toBeNull();
     expect(parseInvestment({ kind: "asset", asset: "silver" })).toBeNull();
-    expect(parseInvestment({ kind: "stock", id: "" })).toBeNull();
     expect(parseInvestment({ kind: "crypto" })).toBeNull();
     expect(parseInvestment("index")).toBeNull();
   });
@@ -133,14 +95,13 @@ describe("parsePlan", () => {
   const full = {
     invested: 20_000,
     monthlyContribution: 500,
-    investment: { kind: "asset", asset: "nasdaq100" },
+    investment: { kind: "asset", asset: "gold" },
     years: 25,
     withdrawalRate: 0.035,
     pricesOf: "DE",
     assumptions: { growth: null, volatility: 0.2, inflation: 0.025 },
     goals: [
-      { id: "a", kind: "live", country: "PE", housing: false },
-      { id: "b", kind: "buy", item: "used-car" },
+      { id: "a", kind: "live", country: "PE" },
       { id: "c", kind: "buy-own", name: "Boat", amount: 15_000 },
       { id: "d", kind: "amount", amount: 100_000 },
       { id: "e", kind: "monthly", amount: 1500, label: null },
@@ -182,7 +143,7 @@ describe("parsePlan", () => {
 
   it("keeps the goals in their order, and drops broken and repeated ones", () => {
     const goals = (value: unknown[]) => parsePlan({ ...full, goals: value })?.goals;
-    expect(goals([...full.goals].reverse())?.map((goal) => goal.id)).toEqual(["e", "d", "c", "b", "a"]);
+    expect(goals([...full.goals].reverse())?.map((goal) => goal.id)).toEqual(["e", "d", "c", "a"]);
     expect(goals([{ id: "a", kind: "buy-own", name: " A boat ", amount: 15_000 }])).toEqual([
       { id: "a", kind: "buy-own", name: "A boat", amount: 15_000 },
     ]);
@@ -195,7 +156,6 @@ describe("parsePlan", () => {
       goals([
         { id: "a", kind: "amount", amount: 2e9 },
         { id: "b", kind: "live", country: "Portugal", housing: true },
-        { id: "c", kind: "live", country: "PT" },
         { id: "d", kind: "buy", item: "../x" },
         { id: "e", kind: "buy-own", name: "", amount: 10 },
         { id: "f", kind: "monthly", amount: -1, label: null },
@@ -211,16 +171,17 @@ describe("parsePlan", () => {
   it("turns a version 1 goal into a goal: the goal country, or else the euro goal", () => {
     const v1 = { invested: 20_000, monthlyContribution: 500, goal: { amount: 250_000, targetDate: null }, goalCountry: null };
     expect(parsePlan(v1)?.goals).toEqual([{ id: "g1", kind: "amount", amount: 250_000 }]);
-    expect(parsePlan({ ...v1, goalCountry: "PT" })?.goals).toEqual([{ id: "g1", kind: "live", country: "PT", housing: true }]);
+    expect(parsePlan({ ...v1, goalCountry: "PT" })?.goals).toEqual([{ id: "g1", kind: "live", country: "PT" }]);
     expect(parsePlan({ invested: 1 })?.goals).toEqual([]);
   });
 
   it("turns a version 2 pinned connection into the first goal, and own items into the next ones", () => {
     const v2 = (pinned: string | null, customConnections: unknown[] = [], extra: Record<string, unknown> = {}) =>
       parsePlan({ invested: 1, pinned, customConnections, ...extra })?.goals;
-    expect(v2("life:stop-working", [], { homeCountry: "ES", housing: "own" })).toEqual([{ id: "g1", kind: "live", country: "ES", housing: false }]);
-    expect(v2("country:PT")).toEqual([{ id: "g1", kind: "live", country: "PT", housing: true }]);
-    expect(v2("buy:used-car")).toEqual([{ id: "g1", kind: "buy", item: "used-car" }]);
+    expect(v2("life:stop-working", [], { homeCountry: "ES", housing: "own" })).toEqual([{ id: "g1", kind: "live", country: "ES" }]);
+    expect(v2("country:PT")).toEqual([{ id: "g1", kind: "live", country: "PT" }]);
+    // A thing of the old price list: the user gives their own price now.
+    expect(v2("buy:used-car")).toEqual([]);
     const boat = { id: "b1", name: "Boat", kind: "buy", amount: 15_000 };
     const rent = { id: "k1", name: "Rent", kind: "live", amount: 900 };
     expect(v2("custom:b1", [rent, boat])).toEqual([
@@ -242,19 +203,6 @@ describe("parsePlan", () => {
   it("rejects non-objects", () => {
     expect(parsePlan(null)).toBeNull();
     expect(parsePlan([])).toBeNull();
-  });
-});
-
-describe("parseUploadedPrices", () => {
-  it("keeps valid points and rejects empty series", () => {
-    expect(
-      parseUploadedPrices({
-        fileName: "vwce.csv",
-        points: [{ time: "2026-09-25", close: 131.5 }, { time: "bad", close: 1 }, { time: "2026-09-26", close: -1 }],
-      }),
-    ).toEqual({ fileName: "vwce.csv", points: [{ time: "2026-09-25", close: 131.5 }] });
-    expect(parseUploadedPrices({ fileName: "x.csv", points: [] })).toBeNull();
-    expect(parseUploadedPrices(null)).toBeNull();
   });
 });
 

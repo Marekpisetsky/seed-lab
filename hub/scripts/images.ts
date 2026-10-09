@@ -4,7 +4,7 @@
  *
  *   hub/static/apple-touch-icon.png       180 × 180, the seed on near-black
  *   hub/static/og.png                     1200 × 630, the picture a shared link shows
- *   wealth-lens/src/app/apple-icon.png    180 × 180, its icon on near-black
+ *   wealth-lens/src/app/apple-icon.png    180 × 180, the seed on near-black (Horalis Growth)
  *   wealth-lens/src/app/favicon.ico       16, 32 and 48 px
  *
  * Draws with Playwright's Chromium (a dev dependency): `npm run images`
@@ -14,6 +14,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
 import { BRAND, INK, SEED_MARK, TOUCH_ICON } from "../../packages/seed-kit/src/icons.ts";
+import { BRAND_NAME, MOTTO } from "../../packages/seed-kit/src/site.ts";
 import { messages } from "../src/i18n/index.ts";
 
 const root = new URL("../../", import.meta.url);
@@ -60,20 +61,19 @@ for (const size of sizes) favicons.push({ size, data: await png(svgAt(WEALTH_LEN
 writeFileSync(at("projects/wealth-lens/src/app/favicon.ico"), ico(favicons));
 
 const en = messages("en");
-const es = messages("es");
 const og = `
 <div style="box-sizing:border-box;width:1200px;height:630px;padding:76px 80px;display:flex;flex-direction:column;justify-content:space-between;background:${INK};color:#fafafa;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif">
   <div style="display:flex;align-items:center;gap:28px">
     <svg width="120" height="120" viewBox="0 0 32 32"><g fill="${BRAND}">${SEED_MARK}</g></svg>
-    <div style="font-size:92px;font-weight:800;letter-spacing:-3px">seed-lab</div>
+    <div style="font-size:92px;font-weight:800;letter-spacing:-3px">${BRAND_NAME}</div>
   </div>
   <div>
-    <div style="font-size:58px;font-weight:800;letter-spacing:-1.5px;line-height:1.08;max-width:980px">${en.home.title}</div>
-    <div style="font-size:36px;color:#a3a3a3;margin-top:18px">${es.home.title}</div>
+    <div style="font-size:58px;font-weight:800;letter-spacing:-1.5px;line-height:1.08;max-width:980px">${MOTTO.en}</div>
+    <div style="font-size:36px;color:#a3a3a3;margin-top:18px">${MOTTO.es}</div>
   </div>
   <div style="display:flex;justify-content:space-between;gap:24px;font-size:28px;color:#a3a3a3;white-space:nowrap"><span>${en.og.footer}</span><span style="color:${BRAND};font-weight:700">${en.og.tool}</span></div>
 </div>`;
 writeFileSync(at("hub/static/og.png"), await png(og, 1200, 630));
 
 await browser.close();
-console.log("Wrote the touch icons, the Wealth Lens favicon and the hub's share image.");
+console.log("Wrote the touch icons, the Horalis Growth favicon and the hub's share image.");

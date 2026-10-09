@@ -27,7 +27,7 @@ export function home(locale: Locale, figures: Figures): PageInput {
   if (!hero) throw new Error(`home: ${HERO} is not in the tool list`);
   const number = (value: number) => new Intl.NumberFormat(LOCALE_SETTINGS[locale].intl).format(value);
   const shelves = CATEGORIES.map((category) => ({ category, tools: SHOWN_TOOLS.filter((tool) => tool.category === category) })).filter(({ tools }) => tools.length > 0);
-  const platform = [t.diagram.hub, ...SHOWN_TOOLS.map((tool) => tool.name)];
+  const platform = [t.diagram.hub, ...SHOWN_TOOLS.map((tool) => tool.name[locale])];
 
   const body = html`
 ${band(
@@ -64,12 +64,12 @@ ${shelves.map(
 <ul class="cards">
 ${tools.map(
   (tool) => html`<li class="card">
-${shotHtml(tool.id, "card", locale, t.cardAlt(tool.name), "(min-width: 48rem) 34rem, calc(100vw - 2.5rem)")}
+${shotHtml(tool.id, "card", locale, t.cardAlt(tool.name[locale]), "(min-width: 48rem) 34rem, calc(100vw - 2.5rem)")}
 <div class="card-body">
-<p class="card-title"><span>${tool.name}</span> <span class="badge ${tool.status}">${t.status[tool.status === "live" ? "live" : "beta"]}</span></p>
+<p class="card-title"><span>${tool.name[locale]}</span> <span class="badge ${tool.status}">${t.status[tool.status === "live" ? "live" : "beta"]}</span></p>
 <p class="card-text">${tool.tagline[locale]}</p>
 <p class="muted card-meta">${t.languages}: ${tool.languages.map((code) => LOCALE_SETTINGS[code].name).join(", ")}</p>
-<p><a class="button-secondary" href="${tool.url}">${t.open(tool.name)}</a></p>
+<p><a class="button-secondary" href="${tool.url}">${t.open(tool.name[locale])}</a></p>
 </div>
 </li>`,
 )}

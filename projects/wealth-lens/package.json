@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "UNLICENSED",
-  "description": "Wealth Lens, the first seed-lab tool: what your money can do, in plain words. Free to use; your data never leaves your device.",
+  "description": "Horalis Growth (Horalis Crecimiento): what your money can do, in plain words. Free to use; your data never leaves your device.",
   "type": "module",
   "scripts": {
     "dev": "next dev",
@@ -13,12 +13,10 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "update-prices": "node scripts/update-prices.mts",
     "images": "node scripts/images.mts",
     "test:browser": "node --experimental-strip-types --test e2e/*.test.mts"
   },
   "dependencies": {
-    "lightweight-charts": "^5.2.1",
     "lucide-react": "^1.48.0",
     "next": "16.3.7",
     "react": "19.2.8",

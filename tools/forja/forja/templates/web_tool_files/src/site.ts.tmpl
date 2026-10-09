@@ -5,7 +5,8 @@
 
 /** Its id in seed-kit's tool list (packages/seed-kit/src/tools.json). */
 export const ID = "__ID__";
-export const NAME = "__NAME__";
+/** Its name in each language, the brand first, as in the tool list ("Horalis Cost of Living"). */
+export const NAME = { en: "__NAME__", es: "__NAME__" } as const;
 
 /** Where it is published, without a trailing slash (provisional until it has its own address). */
 export const SITE_URL = "__URL__";

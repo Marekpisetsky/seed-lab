@@ -40,7 +40,7 @@ class TestMoldes(unittest.TestCase):
         # Una herramienta de seed-lab: bilingue, sobre seed-kit, con su cabecera y pie, con tests y README.
         for ruta in ["package.json", "README.md", "src/calc.ts", "src/i18n.ts", "src/build.ts", "test/site.test.ts", ".gitignore"]:
             self.assertIn(ruta, archivos)
-        self.assertIn('export const NAME = "Demo Lens";', archivos["src/site.ts"])
+        self.assertIn('export const NAME = { en: "Horalis Demo Lens", es: "Horalis Demo Lens" } as const;', archivos["src/site.ts"])
         self.assertIn("LIMIT_KB = 50", archivos["src/site.ts"])
         self.assertIn("seed-kit/src/chrome-html.ts", archivos["src/build.ts"])
         self.assertNotIn("__", "".join(archivos.values()).replace("__dirname", ""), "quedo una marca sin sustituir")
@@ -67,7 +67,7 @@ class TestWebTool(unittest.TestCase):
             despues = json.loads(lista.read_text(encoding="utf-8"))
             self.assertEqual(despues[:-1], antes)
             nueva = despues[-1]
-            self.assertEqual((nueva["id"], nueva["name"], nueva["status"], nueva["listed"], nueva["category"]), ("demo-lens", "Demo Lens", "beta", False, "life"))
+            self.assertEqual((nueva["id"], nueva["name"], nueva["status"], nueva["listed"], nueva["category"]), ("demo-lens", {"en": "Horalis Demo Lens", "es": "Horalis Demo Lens"}, "beta", False, "life"))
             self.assertEqual(nueva["url"], "https://seed-lab-demo-lens.vercel.app")
             self.assertFalse(web_tool.registrar("demo-lens", "life", lista))
             self.assertEqual(len(json.loads(lista.read_text(encoding="utf-8"))), len(despues))

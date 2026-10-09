@@ -11,19 +11,19 @@ describe("personal priorities", () => {
   const plan = { ...INITIAL_STATE.plan, invested: 60_000, monthlyContribution: 500, withdrawalRate: 0.04, goals: [freedom] };
 
   it("uses personal expenses, not an arbitrary generic target: EUR 1,200/month at 4% needs EUR 360,000", () => {
-    const status = calculate(plan, [], new Date("2026-10-05")).goals[0];
+    const status = calculate(plan, new Date("2026-10-05")).goals[0];
     expect(status).toMatchObject({ known: true, kind: "monthly", amount: 1200, target: 360_000 });
     expect(status.months).toBeGreaterThan(0);
     expect(goalName(status, EN)).toBe("Live without working");
     expect(goalName(status, getI18n("es"))).toBe("Vivir sin trabajar");
-    const at3 = calculate({ ...plan, withdrawalRate: 0.03 }, [], new Date()).goals[0];
+    const at3 = calculate({ ...plan, withdrawalRate: 0.03 }, new Date()).goals[0];
     expect(at3.target).toBe(480_000);
     expect(at3.months).toBeGreaterThan(status.months);
   });
 
   it("recognises an already funded goal and an unreachable one", () => {
-    expect(calculate({ ...plan, invested: 360_000 }, [], new Date()).goals[0].months).toBe(0);
-    const unreachable = calculate({ ...plan, invested: 0, monthlyContribution: 0 }, [], new Date()).goals[0];
+    expect(calculate({ ...plan, invested: 360_000 }, new Date()).goals[0].months).toBe(0);
+    const unreachable = calculate({ ...plan, invested: 0, monthlyContribution: 0 }, new Date()).goals[0];
     expect(unreachable).toMatchObject({ reachable: false, months: Infinity });
   });
 

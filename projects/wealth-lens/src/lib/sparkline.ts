@@ -1,43 +1,23 @@
-/** Geometry and figures for the small line charts in the Charts summary list. */
-
-import type { PricePoint } from "./prices";
+/** Geometry for the small line charts (Test my plan's paths). */
 
 /**
- * SVG polyline points ("x,y x,y …") fitting the closes into a width × height
- * box, oldest on the left, highest price at the top. A flat series is drawn
+ * SVG polyline points ("x,y x,y …") fitting the values into a width × height
+ * box, oldest on the left, highest at the top. A flat series is drawn
  * through the middle.
  */
-export function sparklinePoints(closes: readonly number[], width: number, height: number): string {
-  if (closes.length === 0) return "";
-  const min = Math.min(...closes);
-  const max = Math.max(...closes);
+export function sparklinePoints(values: readonly number[], width: number, height: number): string {
+  if (values.length === 0) return "";
+  const min = Math.min(...values);
+  const max = Math.max(...values);
   const span = max - min;
-  const step = closes.length > 1 ? width / (closes.length - 1) : 0;
-  return closes
-    .map((close, index) => {
+  const step = values.length > 1 ? width / (values.length - 1) : 0;
+  return values
+    .map((value, index) => {
       const x = index * step;
-      const y = span === 0 ? height / 2 : height - ((close - min) / span) * height;
+      const y = span === 0 ? height / 2 : height - ((value - min) / span) * height;
       return `${round(x)},${round(y)}`;
     })
     .join(" ");
 }
 
 const round = (value: number) => Math.round(value * 10) / 10;
-
-/** Points from the last `days` calendar days of the series. */
-export function lastDays(points: readonly PricePoint[], days: number): PricePoint[] {
-  const last = points.at(-1);
-  if (!last) return [];
-  const from = new Date(`${last.time}T00:00:00Z`);
-  from.setUTCDate(from.getUTCDate() - days);
-  const start = from.toISOString().slice(0, 10);
-  return points.filter((point) => point.time >= start);
-}
-
-/** Change from the first to the last point, as a fraction; `null` if undefined. */
-export function periodChange(points: readonly PricePoint[]): number | null {
-  const first = points[0];
-  const last = points.at(-1);
-  if (!first || !last || first === last || first.close <= 0) return null;
-  return last.close / first.close - 1;
-}

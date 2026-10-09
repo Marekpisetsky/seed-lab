@@ -8,14 +8,13 @@
 import { describe, expect, it } from "vitest";
 import { EN, getI18n, type I18n } from "@/i18n";
 import { goalExplain, goalName } from "@/i18n/goal-text";
-import { calculate, itemStatuses, type Calculation, type CalculatorPlan } from "./calculator";
+import { calculate, type Calculation, type CalculatorPlan } from "./calculator";
 import { parseIsoDate } from "./dates";
 import { allFindings } from "./findings";
 import { planChecks } from "./plan-check";
 import { checkWords } from "@/i18n/check-text";
 import { timesPutInText } from "./growth";
 import { bandsFor, samplesFor } from "./projections";
-import { wishesFor } from "./wishes";
 import { STANDARD_ASSUMPTIONS, type Goal } from "./types";
 
 const ES = getI18n("es");
@@ -38,8 +37,8 @@ const plan = (overrides: Partial<CalculatorPlan> = {}): CalculatorPlan => ({
 
 /** One goal of each kind. */
 const goals: Goal[] = [
-  { id: "a", kind: "live", country: "PE", housing: true },
-  { id: "b", kind: "buy", item: "used-car" },
+  { id: "a", kind: "live", country: "PE" },
+  { id: "b", kind: "freedom", amount: 2000, country: null },
   { id: "c", kind: "buy-own", name: "Boat", amount: 15_000 },
   { id: "d", kind: "amount", amount: 100_000 },
   { id: "e", kind: "monthly", amount: 1500, label: null },
@@ -60,9 +59,8 @@ function texts(calc: Calculation, i18n: I18n): string[] {
       f.eur(status.needed ?? 0),
       ...goalExplain(status, calc.scenario, calc.investment, i18n),
     ]),
-    ...calc.countries.flatMap((row) => [row.withoutHousing, row.withHousing].map((cell) => f.when(cell.months))),
-    ...itemStatuses(calc.scenario).map((status) => f.when(status.months)),
-    ...allFindings({ calc, inflation: 0.02, today, holdings: [], i18n }).flatMap((finding) => [finding.value, finding.text, ...finding.calculation]),
+    ...calc.countries.map((row) => f.when(row.cost.months)),
+    ...allFindings({ calc, inflation: 0.02, today, i18n }).flatMap((finding) => [finding.value, finding.text, ...finding.calculation]),
   ];
 }
 
@@ -77,7 +75,7 @@ function expectSensible(calc: Calculation) {
 }
 
 describe("€1 invested, nothing added", () => {
-  const calc = calculate(plan({ invested: 1, monthlyContribution: 0, goals }), [], today);
+  const calc = calculate(plan({ invested: 1, monthlyContribution: 0, goals }), today);
 
   it("pays 'under €1' a month, not €0", () => {
     expect(formatSmallEur(calc.result.income)).toBe("under €1");
@@ -89,13 +87,13 @@ describe("€1 invested, nothing added", () => {
       expect(whenText(status.months, today)).toBe("not at this pace");
       expect(status.needed, goalName(status, EN)).toBeGreaterThan(0);
     }
-    expect(calc.countries.every((row) => whenText(row.withHousing.months) === "not at this pace")).toBe(true);
+    expect(calc.countries.every((row) => whenText(row.cost.months) === "not at this pace")).toBe(true);
     expectSensible(calc);
   });
 });
 
 describe("nothing invested, nothing added", () => {
-  const calc = calculate(plan({ invested: 0, monthlyContribution: 0, goals }), [], today);
+  const calc = calculate(plan({ invested: 0, monthlyContribution: 0, goals }), today);
 
   it("has €0, pays €0 and reaches nothing", () => {
     expect(calc.result).toMatchObject({ total: 0, putIn: 0, growth: 0, income: 0 });
@@ -104,31 +102,31 @@ describe("nothing invested, nothing added", () => {
   });
 
   it("has no '-€0' bad-decade card", () => {
-    expect(allFindings({ calc, inflation: 0.02, today, holdings: [], i18n: EN }).map((finding) => finding.id)).not.toContain("sequence");
+    expect(allFindings({ calc, inflation: 0.02, today, i18n: EN }).map((finding) => finding.id)).not.toContain("sequence");
     expectSensible(calc);
   });
 });
 
 describe("€10,000,000 invested", () => {
-  const calc = calculate(plan({ invested: 10_000_000, goals }), [], today);
+  const calc = calculate(plan({ invested: 10_000_000, goals }), today);
 
   it("has every goal already", () => {
     expect(calc.goals.every((status) => status.months === 0 && whenText(status.months) === "now")).toBe(true);
-    expect(calc.countries.every((row) => row.withHousing.covered)).toBe(true);
+    expect(calc.countries.every((row) => row.cost.covered)).toBe(true);
   });
 
   it("has no findings about reaching a goal, and stays sensible", () => {
-    const ids = allFindings({ calc, inflation: 0.02, today, holdings: [], i18n: EN }).map((finding) => finding.id);
+    const ids = allFindings({ calc, inflation: 0.02, today, i18n: EN }).map((finding) => finding.id);
     // About the result instead: the first goal is already there.
     expect(ids).toContain("inflation");
-    for (const finding of allFindings({ calc, inflation: 0.02, today, holdings: [], i18n: EN })) expect(finding.text).not.toMatch(/first goal/);
+    for (const finding of allFindings({ calc, inflation: 0.02, today, i18n: EN })) expect(finding.text).not.toMatch(/first goal/);
     expectSensible(calc);
   });
 });
 
 describe("€1,000,000 added a month", () => {
   it("gets there in a month", () => {
-    const calc = calculate(plan({ invested: 0, monthlyContribution: 1_000_000, goals: [goals[3]] }), [], today);
+    const calc = calculate(plan({ invested: 0, monthlyContribution: 1_000_000, goals: [goals[3]] }), today);
     expect(whenText(calc.goals[0].months, today)).toBe("in 1 month (2026)");
     expectSensible(calc);
   });
@@ -136,7 +134,7 @@ describe("€1,000,000 added a month", () => {
 
 describe("the longest and shortest horizons", () => {
   it("stay within 60 years", () => {
-    for (const years of [1, 60]) expectSensible(calculate(plan({ years, goals }), [], today));
+    for (const years of [1, 60]) expectSensible(calculate(plan({ years, goals }), today));
   });
 });
 
@@ -144,14 +142,14 @@ describe("no growth, or a loss, every year", () => {
   it("stays sensible at 0% and at -2% a year", () => {
     for (const rate of [0, -0.02]) {
       const assumptions = { ...STANDARD_ASSUMPTIONS, growth: rate };
-      const calc = calculate(plan({ investment: { kind: "custom" }, assumptions, goals }), [], today);
+      const calc = calculate(plan({ investment: { kind: "custom" }, assumptions, goals }), today);
       expect(calc.result.total).toBeGreaterThan(0);
       expectSensible(calc);
     }
   });
 
   it("stays sensible in a savings account, which loses a little to inflation and never swings", () => {
-    const calc = calculate(plan({ investment: { kind: "asset", asset: "savings" }, goals }), [], today);
+    const calc = calculate(plan({ investment: { kind: "asset", asset: "savings" }, goals }), today);
     expect(calc.investment.realReturn).toBeLessThan(0);
     expect(calc.investment.volatility).toBe(0);
     expect(calc.result.lasted === 0 || calc.result.lasted === 1).toBe(true);
@@ -160,7 +158,7 @@ describe("no growth, or a loss, every year", () => {
 
   it("stays sensible with no swings at all, or huge ones", () => {
     for (const volatility of [0, 0.9]) {
-      const calc = calculate(plan({ investment: { kind: "asset", asset: "gold" }, assumptions: { ...STANDARD_ASSUMPTIONS, volatility }, goals }), [], today);
+      const calc = calculate(plan({ investment: { kind: "asset", asset: "gold" }, assumptions: { ...STANDARD_ASSUMPTIONS, volatility }, goals }), today);
       expectSensible(calc);
     }
   });
@@ -174,7 +172,7 @@ describe("growth from −50% to 500% a year, the whole range of step 3", () => {
     it(`stays sensible at ${growth * 100}% a year, over 1, 20 and 60 years`, () => {
       for (const years of [1, 20, 60]) {
         const p = custom(growth, years);
-        const calc = calculate(p, [], today);
+        const calc = calculate(p, today);
         for (const value of [calc.result.total, calc.result.putIn, calc.result.growth, calc.result.income]) expect(Number.isFinite(value), `${growth} ${years}`).toBe(true);
         const amounts = { start: calc.scenario.capital, monthly: calc.scenario.monthly, years };
         const bands = bandsFor(calc.investment, amounts);
@@ -186,8 +184,8 @@ describe("growth from −50% to 500% a year, the whole range of step 3", () => {
             i18n.f.eur(calc.result.total),
             i18n.f.eur(bands.p90[years]),
             timesPutInText(calc.result, i18n) ?? "",
-            ...planChecks(calc, p, []).flatMap((check) => [...checkWords(check, i18n).lead, ...checkWords(check, i18n).details]),
-            ...wishesFor(calc.scenario, years, calc.goals).map((wish) => i18n.f.when(wish.months, today)),
+            ...planChecks(calc, p).flatMap((check) => [...checkWords(check, i18n).lead, ...checkWords(check, i18n).details]),
+            ...calc.goals.map((goal) => i18n.f.when(goal.months, today)),
           ];
           for (const text of shown) {
             expect(text).not.toMatch(/NaN|Infinity|undefined|e\+|E\d/);
@@ -201,14 +199,14 @@ describe("growth from −50% to 500% a year, the whole range of step 3", () => {
 
   it("gives figures one can check at the edges", () => {
     // 0%: what is put in, €1,000 and €200 a month for 20 years.
-    expect(calculate(custom(0, 20), [], today).result.total).toBeCloseTo(49_000, 6);
+    expect(calculate(custom(0, 20), today).result.total).toBeCloseTo(49_000, 6);
     // −50% a year: €1,000 alone halves every year.
-    expect(calculate({ ...custom(-0.5, 2), monthlyContribution: 0 }, [], today).result.total).toBeCloseTo(250, 6);
+    expect(calculate({ ...custom(-0.5, 2), monthlyContribution: 0 }, today).result.total).toBeCloseTo(250, 6);
     // 70% for 20 years: €1,000 alone becomes 1.7^20 times as much, in full.
-    expect(calculate({ ...custom(0.7, 20), monthlyContribution: 0 }, [], today).result.total).toBeCloseTo(1000 * 1.7 ** 20, 0);
+    expect(calculate({ ...custom(0.7, 20), monthlyContribution: 0 }, today).result.total).toBeCloseTo(1000 * 1.7 ** 20, 0);
     expect(EN.f.eur(1000 * 1.7 ** 20)).toBe("€40,642,314");
     // 500% for 20 years: €1,000 alone is 6^20 times as much, a power of ten.
-    const huge = calculate({ ...custom(5, 20), monthlyContribution: 0 }, [], today).result.total;
+    const huge = calculate({ ...custom(5, 20), monthlyContribution: 0 }, today).result.total;
     expect(huge / (1000 * 6 ** 20)).toBeCloseTo(1, 9);
     expect(EN.f.eur(huge)).toBe("€3.66\u00a0×\u00a010¹⁸");
     expect(ES.f.eur(huge)).toBe("3,66\u00a0×\u00a010¹⁸\u00a0€");

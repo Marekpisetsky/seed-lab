@@ -46,8 +46,7 @@ describe("data saved by earlier versions", () => {
         assumptions: { growth: 0.05, volatility: FORMER_CUSTOM_VOLATILITY, inflation: null },
         withdrawalRate: 0.035,
       },
-      holdings: [{ ...holding, priceSource: "auto", priceDate: null }],
-      uploadedPrices: { XYZ: { fileName: "x.csv", points: [{ time: "2026-09-25", close: 3 }] } },
+      // Holdings and price files are no longer kept: only the plan.
       whatIf: null,
     });
   });

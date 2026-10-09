@@ -3,7 +3,7 @@
  * countries it compares travel inside the page, as JSON), the privacy
  * and terms page (seed-kit's words), and one "not found" page for every
  * language. Each says its title, description, content and scripts; the
- * build puts seed-lab's header and footer around it.
+ * build puts Horalis's header and footer around it.
  */
 
 import { formatsFor } from "../../../packages/seed-kit/src/format.ts";
@@ -44,14 +44,13 @@ export function home(locale: Locale): Page {
   const choice = { ...DEFAULTS };
   const select = (name: "from" | "to") =>
     html`<div class="sk-field"><label for="${name}">${t[name]}</label><select class="sk-input" id="${name}" name="${name}">${countries.map(
-      (country) => html`<option value="${country.code}"${country.code === choice[name] ? raw(" selected") : ""}>${country.estimated ? "≈\u00a0" : ""}${country.name}</option>`,
+      (country) => html`<option value="${country.code}"${country.code === choice[name] ? raw(" selected") : ""}>${country.name}</option>`,
     )}</select></div>`;
   const facts = {
-    detailed: formats.number(DATA.detailed),
-    estimated: formats.number(DATA.estimated),
-    month: formats.monthYear(new Date(`${DATA.detailedMonth}-01T00:00:00Z`)),
+    surveys: `${DATA.surveyFrom}–${DATA.surveyTo}`,
     year: String(DATA.priceYear),
     compiled: formats.date(DATA.compiledOn),
+    provisional: DATA.provisional,
   };
   return {
     id: "home",
@@ -83,12 +82,12 @@ ${select("to")}
 }
 
 export function privacy(locale: Locale): Page {
-  const page = legalPage(locale, NAME);
+  const page = legalPage(locale, NAME[locale]);
   const link = legalLink(locale);
   return {
     id: "privacy",
     locale,
-    title: `${page.title} · ${NAME}`,
+    title: `${page.title} · ${NAME[locale]}`,
     description: page.description,
     scripts: [],
     main: html`<div class="sk-prose">
@@ -104,7 +103,7 @@ export function notFound(): Page {
   return {
     id: null,
     locale: first,
-    title: `${LOCALES.map((locale) => WORDS[locale].notFound.title).join(" · ")} · ${NAME}`,
+    title: `${LOCALES.map((locale) => WORDS[locale].notFound.title).join(" · ")} · ${NAME[first]}`,
     description: WORDS[first].notFound.text,
     scripts: [],
     main: html`${LOCALES.map((locale, index) => {

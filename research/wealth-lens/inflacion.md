@@ -1,6 +1,6 @@
 # Ficha: inflación
 
-- **App:** Wealth Lens · **Revisada:** 3 de octubre de 2026
+- **App:** Horalis Crecimiento · **Revisada:** 3 de octubre de 2026
 - **Código** (en `projects/wealth-lens/`): `src/lib/investment.ts`
   (`inflationFor`, `toNominal`, `toReal`), `src/lib/assets.ts`
   (`SAVINGS_RATE`, `savingsRealReturn`), `src/lib/assumptions.ts`
@@ -62,8 +62,10 @@ La inflación de partida es la de "Subida de precios en" (Más opciones; Países
   ahorro, su interés menos la inflación del país (puede ser negativo); la
   inflación de "Subida de precios en" o la escrita; escribir solo la inflación no
   cambia el crecimiento de un activo.
-- `src/lib/cost-of-living.test.ts` ("reference inflation"): cada país con
-  su referencia, su base y su fecha.
+- `packages/seed-kit/test/cost-of-living.test.ts` ("the inflation rates on
+  their own"): cada país con su referencia; la del país por defecto para
+  cualquier otro código. La tabla vive en
+  `packages/seed-kit/src/data/inflation-reference.json`.
 - `src/lib/assumptions.test.ts` (9): cómo se dice la inflación y la línea
   "como lo dan los bancos".
 - `src/lib/finance.test.ts`: `nominalReturn`.
@@ -101,3 +103,9 @@ La inflación de partida es la de "Subida de precios en" (Más opciones; Países
 - 2026-10-07: el ajuste se nombra por su etiqueta, "Subida de precios en",
   para no confundirlo con "Precios de" de los deseos
   ([deseos](deseos.md)). Sin cambios en el cálculo.
+- 2026-10-09 (fase A2): la inflación de referencia de cada país pasa a su
+  propio archivo de seed-kit (`data/inflation-reference.json`), separada
+  del coste de vida, que ya sale solo de datos oficiales. Es la única
+  tabla escrita a mano que queda (objetivos de los bancos centrales,
+  septiembre de 2026); la fase A3 decide cómo mantenerla. Sin cambios en
+  el cálculo.

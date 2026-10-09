@@ -1,6 +1,6 @@
 # Ficha: crecimiento
 
-- **App:** Wealth Lens · **Revisada:** 3 de octubre de 2026
+- **App:** Horalis Crecimiento · **Revisada:** 3 de octubre de 2026
 - **Código** (en `projects/wealth-lens/`): `src/lib/finance.ts`
   (`futureValueWithContributions`, `monthlyRate`), `src/lib/calculator.ts`
   (`valueAt`, `resultOf`, `yearlyPath`), `src/lib/investment.ts`
@@ -30,9 +30,9 @@ De dónde sale g:
 
 | Elección | g | Cómo |
 | --- | --- | --- |
-| Un índice (S&P 500, Mundo, Nasdaq-100, bonos, oro) | 7,54 %, 4,45 %, 9,90 %, 2,47 %, 1,06 % | Media geométrica de sus rendimientos reales anuales de 1988 a 2022 (los mismos años para todos) |
+| Un activo (acciones de EE. UU., bonos alemanes, oro) | 7,54 %, 2,47 %, 1,04 % | Media geométrica de sus rendimientos reales anuales de 1988 a 2022 (los mismos años para todos) |
 | Ahorro | (1 + 1,5 %) / (1 + inflación) − 1: −0,49 % con el 2 % del euro | Interés fijo de 1,5 % menos la inflación de "Subida de precios en" |
-| Una mezcla o Mi cartera | Media ponderada de las g de sus partes | Ver [mezclas](mezclas-y-acciones.md) |
+| Una mezcla | Media ponderada de las g de sus partes | Ver [mezclas](mezclas-y-acciones.md) |
 | Crecimiento propio ("Mi %") | El que se escribe; 5 % al empezar | Ver [valor inicial](valor-inicial.md) |
 
 Un "¿Y si…?" de +1 % o −1 % suma o resta un punto a g. "Una mala primera
@@ -59,15 +59,13 @@ década" sustituye los diez primeros años por los de una década real (ver
 
 - S&P 500: Robert J. Shiller, Yale, *Online Data* (`ie_data.xls`), datos
   hasta junio de 2023, rendimiento total real de enero a enero.
-- MSCI World: fichas de MSCI, rendimiento neto en USD por año natural,
-  hasta diciembre de 2024, deflactado con el IPC de EE. UU. (Shiller hasta
-  2022, BLS después).
-- Nasdaq-100: cierres de fin de año de Nasdaq, **solo precio** (sin
-  dividendos, ~1 % al año), hasta diciembre de 2024.
-- Bonos del euro: Bund alemán a 10 años con vencimiento constante (OCDE /
+- Bonos alemanes: Bund a 10 años con vencimiento constante (OCDE /
   Bundesbank y Destatis), hasta diciembre de 2024.
-- Oro: LBMA, precio de fin de año en USD, deflactado con el IPC de EE. UU.,
-  hasta diciembre de 2024.
+- Oro: Banco Mundial, *Commodity Price Data* (Pink Sheet), media de
+  diciembre de cada año en USD, CC BY 4.0, deflactada con el IPC de EE. UU.
+  (Shiller hasta 2022, BLS después), hasta diciembre de 2024. Leída del
+  espejo público `github.com/datasets/gold-prices` (sus precios desde 1960
+  son los del Banco Mundial), compilada el 9 de octubre de 2026.
 - Datos compilados el 29 de septiembre de 2026 (`src/data/*.json`, campo
   `compiledOn`). Periodo común 1988–2022: el más largo que cubren todos.
 
@@ -183,7 +181,7 @@ test de lenguaje sencillo, con las mismas palabras.
    decidir cuál es "el" resultado y unificar el paso.
 7. **Mezclas que se reequilibran.** La media ponderada de medias
    geométricas subestima el crecimiento de una mezcla reequilibrada: un
-   60/40 Mundo/Bonos crece 3,66 % en la proyección y 4,09 % reequilibrado
+   60/40 acciones de EE. UU./bonos alemanes crece 5,51 % en la proyección y 5,87 % reequilibrado
    año a año con los mismos datos (ver [mezclas](mezclas-y-acciones.md)).
 
 ## Historial
@@ -195,3 +193,18 @@ test de lenguaje sencillo, con las mismas palabras.
   hasta 50 %), con un aviso más fuerte y en euros por encima del 50 %, y
   las cifras enormes en palabras o potencias de diez. Sin cambios en el
   cálculo.
+- 2026-10-09 (fase A2): **se quitan las acciones del mundo (MSCI World) y
+  el Nasdaq-100.** Sus condiciones no permiten publicar sus datos, y no hay
+  una serie oficial abierta de acciones del mundo con historia larga (la
+  OCDE y el Banco Mundial publican índices de precios de las bolsas de cada
+  país, pero sin dividendos ni una media mundial). Consecuencias:
+  - el oro pasa de la LBMA (condiciones restrictivas) a la Pink Sheet del
+    Banco Mundial (CC BY 4.0): media 1988–2022 del 1,06 % al 1,04 %;
+  - el crecimiento propio ("Mi %") se mueve con la oscilación de las
+    acciones de EE. UU. (16,4 %) en lugar de la del Mundo (17,8 %);
+  - las plantillas 100 %, 80/20 y 60/40 usan acciones de EE. UU.;
+  - un archivo con Mundo o Nasdaq-100 se lee como acciones de EE. UU., con
+    un aviso.
+  El 5 % del arranque sigue citando el 5,2 % mundial de UBS (ver
+  [valor inicial](valor-inicial.md)); la fase B2 quita el crecimiento
+  preseleccionado.

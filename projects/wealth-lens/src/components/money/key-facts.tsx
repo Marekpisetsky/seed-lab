@@ -59,7 +59,7 @@ function factsOf(bundle: CalculationBundle, i18n: I18n): Fact[] {
     {
       id: "lives",
       value: dearest ? countryName(dearest.code, i18n) : t.none,
-      from: lives ? (dearest ? t.livesFrom : t.livesNone)(countryName(lives.code, i18n), f.eur(lives.withoutHousing.amount), paid) : "",
+      from: lives ? (dearest ? t.livesFrom : t.livesNone)(countryName(lives.code, i18n), f.eur(lives.cost.amount), paid) : "",
     },
   ];
 }

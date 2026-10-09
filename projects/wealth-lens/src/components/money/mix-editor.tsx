@@ -8,21 +8,19 @@ import { RadioGroup } from "@/components/ui/radio-group";
 import { setInvestment } from "@/lib/app-store";
 import { SAVINGS_RATE } from "@/lib/assets";
 import type { I18n } from "@/i18n";
-import { mixPartName, stockPartDetail } from "@/i18n/investment-text";
+import { mixPartName } from "@/i18n/investment-text";
 import { SERIES } from "@/lib/indexes";
-import { MAX_PARTS, mixPartKey, mixStock, splitEvenly, sumsTo100, TEMPLATES, templateOf } from "@/lib/mix";
+import { MAX_PARTS, mixPartKey, splitEvenly, sumsTo100, TEMPLATES, templateOf } from "@/lib/mix";
 import type { MixPart } from "@/lib/types";
 import { HowThisMixWorks } from "./explainers";
 
 type Mix = { kind: "mix"; parts: MixPart[]; rebalance: boolean };
 
-function partDetail({ asset, stock }: MixPart, i18n: I18n): string {
+function partDetail({ asset }: MixPart, i18n: I18n): string {
   const { m, f } = i18n;
-  const instrument = mixStock(stock);
-  if (instrument) return stockPartDetail(instrument, i18n);
   if (asset === "savings") return m.mix.part.savings(f.rate(SAVINGS_RATE));
-  if (asset === "gold") return m.mix.part.gold(SERIES.gold.etf);
-  return m.mix.part.asset(f.rate(SERIES[asset].averageReturn), SERIES[asset].etf);
+  if (asset === "gold") return m.mix.part.gold;
+  return m.mix.part.asset(f.rate(SERIES[asset].averageReturn));
 }
 
 function Total({ parts }: { parts: readonly MixPart[] }) {

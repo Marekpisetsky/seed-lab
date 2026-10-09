@@ -1,20 +1,20 @@
 /**
  * Turns untrusted JSON (a data file the user loads) into valid values.
  * Everything is checked field by field: a bad field falls back to its
- * default without resetting the others, and invalid holdings are dropped
- * while the valid ones are kept.
+ * default without resetting the others. What earlier versions had and the
+ * app no longer does (stocks, My portfolio, a price list) becomes the
+ * nearest thing it does, with a notice.
  */
 
 import { isAssetId } from "./assets";
 import { DEFAULT_PRICES_OF, isPriceCountry, referenceRate } from "@seed-kit/inflation-rates.ts";
-import { isIndexId, type IndexId } from "./indexes";
+import { isIndexId, RETIRED_SERIES } from "./index-ids";
 import { resolveInvestment, toReal } from "./investment";
-import { instrumentById, instrumentForHolding } from "./market-data";
-import { MAX_PARTS, mixPartKey, mixStock } from "./mix";
+import { MAX_PARTS, mixPartKey } from "./mix";
 import { problem, type Problem } from "./problems";
-import type { PricePoint } from "./prices";
 import { snapWithdrawal } from "./withdrawal";
-import { STANDARD_ASSUMPTIONS, type AssumptionOverrides, type Goal, type Holding, type Investment, type LegacyGoal, type MixPart, type NewGoal, type Plan } from "./types";
+import type { AssetId } from "./assets";
+import { STANDARD_ASSUMPTIONS, type AssumptionOverrides, type Goal, type Investment, type LegacyGoal, type MixPart, type NewGoal, type Plan } from "./types";
 
 /** The euro goal of version 1 files, which becomes the goal "reach an amount". */
 export const DEFAULT_GOAL: LegacyGoal = { amount: 100_000, targetDate: null };
@@ -25,8 +25,8 @@ export const MAX_AMOUNT = 1e9;
 /**
  * The growth step 3 starts with, after rising prices: world stocks grew
  * 5.2 % a year from 1900 to 2024 (UBS Global Investment Returns Yearbook
- * 2025, Dimson, Marsh and Staunton), rounded down. Custom growth, with the
- * ups and downs of world stocks.
+ * 2025, Dimson, Marsh and Staunton, a published average), rounded down.
+ * Custom growth, with the ups and downs of US stocks.
  */
 export const STARTING_GROWTH = 0.05;
 
@@ -73,12 +73,6 @@ export const MAX_YEARS_AHEAD = 60;
 /** At most this many goals are read from a file. */
 export const MAX_GOALS = 50;
 
-/** Price series a user uploaded for a ticker without downloaded prices. */
-export interface UploadedPrices {
-  fileName: string;
-  points: PricePoint[];
-}
-
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -101,48 +95,13 @@ function isGrowth(value: unknown): value is number {
   return isFiniteNumber(value) && value >= GROWTH_LIMITS.min && value <= GROWTH_LIMITS.max;
 }
 
-const CURRENCY_PATTERN = /^[A-Z]{3}$/;
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const COUNTRY_PATTERN = /^[A-Z]{2}$/;
-
-export function isCurrencyCode(value: unknown): value is string {
-  return typeof value === "string" && CURRENCY_PATTERN.test(value);
-}
 
 export function isIsoDate(value: unknown): value is string {
   if (typeof value !== "string" || !ISO_DATE_PATTERN.test(value)) return false;
   const date = new Date(`${value}T00:00:00Z`);
   return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value);
-}
-
-export function parseHolding(value: unknown): Holding | null {
-  if (!isRecord(value)) return null;
-  const { id, ticker, quantity, costBasis, currency, currentPrice, priceSource, priceDate } = value;
-  if (typeof id !== "string" || id === "") return null;
-  if (typeof ticker !== "string" || ticker.trim() === "") return null;
-  if (!isNonNegativeNumber(quantity) || !isNonNegativeNumber(costBasis)) return null;
-  if (!isCurrencyCode(currency)) return null;
-  if (currentPrice !== null && !isNonNegativeNumber(currentPrice)) return null;
-  // No source recorded: a typed price stays manual.
-  const source =
-    priceSource === "auto" || priceSource === "manual" ? priceSource : currentPrice === null ? "auto" : "manual";
-  return {
-    id,
-    ticker,
-    quantity,
-    costBasis,
-    currency,
-    currentPrice,
-    priceSource: source,
-    priceDate: source === "auto" && isIsoDate(priceDate) ? priceDate : null,
-    ...(isAssetId(value.reference) ? { reference: value.reference } : {}),
-  };
-}
-
-/** Keeps every valid holding and drops the ones that fail validation. */
-export function parseHoldings(value: unknown): Holding[] | null {
-  if (!Array.isArray(value)) return null;
-  return value.map(parseHolding).filter((holding): holding is Holding => holding !== null);
 }
 
 export function parseGoal(value: unknown): LegacyGoal | null {
@@ -156,70 +115,72 @@ export function parseGoal(value: unknown): LegacyGoal | null {
 /** One-line notices for things a file had that the app no longer does, said once it is loaded. */
 export type Notices = Problem[];
 
-/** The index a stock of the list grows like, or `null` for a ticker not on the list. */
-function stockIndex(id: unknown): { name: string; index: IndexId } | null {
-  const instrument = typeof id === "string" ? instrumentById(id) : undefined;
-  return instrument ? { name: instrument.name, index: instrument.index } : null;
+/** An asset of this version, or one an earlier version offered and what it becomes (with a notice). */
+function readAsset(value: unknown, notices: Notices): AssetId | null {
+  if (isAssetId(value)) return value;
+  if (typeof value === "string" && value in RETIRED_SERIES) {
+    if (!notices.some((notice) => notice.code === "series-retired")) notices.push(problem("series-retired", { series: value }));
+    return RETIRED_SERIES[value];
+  }
+  return null;
+}
+
+/** A single stock (any version): US stocks now, said once. */
+function stockAsUs(notices: Notices): AssetId {
+  if (!notices.some((notice) => notice.code === "stocks-now-us")) notices.push(problem("stocks-now-us"));
+  return "sp500";
 }
 
 /**
- * The parts of a mix: assets, and (version 7) stocks of the list, each
- * growing like its index; a stock no longer on the list is left out.
- * Version 5 named them "index:sp500" or "stock:NVDA" and projected a stock
- * on its own: such a stock counts as its index (weights of the same asset
- * add up), with a notice.
+ * The parts of a mix: assets. Earlier versions also had stocks of a list
+ * ("stock": "NVDA" in version 7, "ref": "stock:NVDA" in version 5) and
+ * world stocks or the Nasdaq-100: they count as US stocks now (weights of
+ * the same asset add up), with a notice.
  */
 function parseMixParts(value: unknown[], notices: Notices): MixPart[] {
   const parts = new Map<string, MixPart>();
-  let hadStock = false;
   for (const part of value) {
     if (!isRecord(part) || !isFiniteNumber(part.weight) || part.weight < 0 || part.weight > 100) continue;
-    let read: MixPart | null = null;
-    if (part.stock !== undefined) {
-      const stock = typeof part.stock === "string" ? mixStock(part.stock) : null;
-      read = stock ? { asset: stock.index, weight: part.weight, stock: stock.id } : null;
-    } else if (isAssetId(part.asset)) {
-      read = { asset: part.asset, weight: part.weight };
-    } else if (typeof part.ref === "string") {
+    let asset: AssetId | null = null;
+    if (part.stock !== undefined) asset = stockAsUs(notices);
+    else if (part.asset !== undefined) asset = readAsset(part.asset, notices);
+    else if (typeof part.ref === "string") {
       const [kind, id] = part.ref.split(":");
-      if (kind === "index" && isIndexId(id)) read = { asset: id, weight: part.weight };
-      const stock = kind === "stock" ? stockIndex(id) : null;
-      if (stock) {
-        read = { asset: stock.index, weight: part.weight };
-        hadStock = true;
-      }
+      if (kind === "index") asset = readAsset(id, notices);
+      if (kind === "stock") asset = stockAsUs(notices);
     }
-    if (!read) continue;
+    if (!asset) continue;
+    const read: MixPart = { asset, weight: part.weight };
     const key = mixPartKey(read);
     const kept = parts.get(key);
     if (kept) kept.weight = Math.min(100, kept.weight + read.weight);
     else if (parts.size < MAX_PARTS) parts.set(key, read);
   }
-  if (hadStock) notices.push(problem("mix-had-stocks"));
   return [...parts.values()];
 }
 
 /**
  * What the plan invests in. Also reads earlier versions: an index (versions
- * 1 to 5) is that asset; a single stock (version 5) becomes My portfolio
- * when the file holds it, else its index, with a notice.
+ * 1 to 5) is that asset; world stocks or the Nasdaq-100, a single stock
+ * (version 5) and My portfolio (versions 6 to 10) become US stocks, each
+ * with a notice.
  */
-export function parseInvestment(value: unknown, holdings: readonly Holding[] = [], notices: Notices = []): Investment | null {
+export function parseInvestment(value: unknown, notices: Notices = []): Investment | null {
   if (!isRecord(value)) return null;
   switch (value.kind) {
-    case "asset":
-      return isAssetId(value.asset) ? { kind: "asset", asset: value.asset } : null;
-    case "index":
-      return isIndexId(value.index) ? { kind: "asset", asset: value.index } : null;
-    case "stock": {
-      const stock = stockIndex(value.id);
-      if (!stock) return null;
-      const held = holdings.some((holding) => instrumentForHolding(holding.ticker, holding.currency)?.id === value.id);
-      notices.push(held ? problem("stock-now-portfolio", { name: stock.name }) : problem("stock-now-index", { name: stock.name, index: stock.index }));
-      return held ? { kind: "portfolio" } : { kind: "asset", asset: stock.index };
+    case "asset": {
+      const asset = readAsset(value.asset, notices);
+      return asset ? { kind: "asset", asset } : null;
     }
+    case "index": {
+      const asset = isIndexId(value.index) ? value.index : readAsset(value.index, notices);
+      return asset ? { kind: "asset", asset } : null;
+    }
+    case "stock":
+      return { kind: "asset", asset: stockAsUs(notices) };
     case "portfolio":
-      return { kind: "portfolio" };
+      notices.push(problem("portfolio-retired"));
+      return { kind: "asset", asset: "sp500" };
     case "mix": {
       if (!Array.isArray(value.parts)) return null;
       const parts = parseMixParts(value.parts, notices);
@@ -234,7 +195,7 @@ export function parseInvestment(value: unknown, holdings: readonly Holding[] = [
 
 /** The data file version whose plans store the growth after rising prices as one number (see parseAssumptions). */
 const GROWTH_AFTER_PRICES_SINCE = 8;
-/** Since version 9, Custom growth moves like world stocks and a plan starts at Custom growth of 5 %; before, like the S&P 500, and a plan started on it. */
+/** Since version 9 a plan starts at Custom growth of 5 %; before, on the S&P 500. (From 9 to 10 Custom growth moved like world stocks; since 11, like US stocks.) */
 const CUSTOM_LIKE_WORLD_SINCE = 9;
 
 /** Growth before rising prices as the growth after them with this inflation: the very same result. */
@@ -272,17 +233,28 @@ function startingInvestment(version: number): Investment {
 }
 
 /** The ups and downs Custom growth had until version 8: the S&P 500's. */
-export const FORMER_CUSTOM_VOLATILITY = resolveInvestment({ kind: "asset", asset: "sp500" }, []).volatility;
+export const FORMER_CUSTOM_VOLATILITY = resolveInvestment({ kind: "asset", asset: "sp500" }).volatility;
+
+/**
+ * The ups and downs Custom growth had in versions 9 and 10: world stocks'
+ * (MSCI World, 1988–2022), kept as a number since that series was removed
+ * (9 October 2026), so a file of those versions gives the same result.
+ */
+export const WORLD_CUSTOM_VOLATILITY = 0.178217;
+/** The data file version since which Custom growth moves like US stocks. */
+const CUSTOM_LIKE_US_SINCE = 11;
+/** The data file version since which a country's cost is one official figure (World Bank). */
+const OFFICIAL_COSTS_SINCE = 11;
 
 /**
  * Since version 8 a typed growth is "My %", Custom growth: the calculator
  * shows one number and its chips are investments. A file that changed the
- * growth of an asset, a mix or the portfolio becomes Custom growth with that
- * growth and the ups and downs it had, so its result does not change.
+ * growth of an asset or a mix becomes Custom growth with that growth and
+ * the ups and downs it had, so its result does not change.
  */
-function withGrowthAsCustom(investment: Investment, assumptions: AssumptionOverrides, pricesOf: string, holdings: readonly Holding[]): { investment: Investment; assumptions: AssumptionOverrides } {
+function withGrowthAsCustom(investment: Investment, assumptions: AssumptionOverrides, pricesOf: string): { investment: Investment; assumptions: AssumptionOverrides } {
   if (assumptions.growth === null || investment.kind === "custom") return { investment, assumptions };
-  const volatility = resolveInvestment(investment, holdings, { pricesOf, assumptions: { ...assumptions, growth: null } }).volatility;
+  const volatility = resolveInvestment(investment, { pricesOf, assumptions: { ...assumptions, growth: null } }).volatility;
   return { investment: { kind: "custom" }, assumptions: { ...assumptions, volatility } };
 }
 
@@ -292,19 +264,19 @@ const isName = (value: unknown): value is string => typeof value === "string" &&
 const isYears = (value: unknown): value is number =>
   Number.isInteger(value) && (value as number) >= MIN_YEARS && (value as number) <= MAX_YEARS_AHEAD;
 
-/** One goal of "My goals", or `null` when it is not a valid one. */
-export function parseGoalItem(value: unknown): Goal | null {
+/** One goal of "My goals", or `null` when it is not a valid one. A thing of the old price list ("buy") is no longer one: `retired` counts it. */
+export function parseGoalItem(value: unknown, retired?: { count: number }): Goal | null {
   if (!isRecord(value) || typeof value.id !== "string" || !ID_PATTERN.test(value.id)) return null;
   if (value.important !== undefined && typeof value.important !== "boolean") return null;
   const { id } = value;
   const base = { id, ...(value.important === true ? { important: true as const } : {}) };
   switch (value.kind) {
     case "live":
-      return typeof value.country === "string" && COUNTRY_PATTERN.test(value.country) && typeof value.housing === "boolean"
-        ? { ...base, kind: "live", country: value.country, housing: value.housing }
-        : null;
+      // Until version 10 a country came with or without housing: one figure now, housing included.
+      return typeof value.country === "string" && COUNTRY_PATTERN.test(value.country) ? { ...base, kind: "live", country: value.country } : null;
     case "buy":
-      return typeof value.item === "string" && ID_PATTERN.test(value.item) ? { ...base, kind: "buy", item: value.item } : null;
+      if (retired) retired.count += 1;
+      return null;
     case "buy-own":
       return isName(value.name) && isAmount(value.amount) ? { ...base, kind: "buy-own", name: value.name.trim(), amount: value.amount } : null;
     case "amount":
@@ -330,18 +302,20 @@ export function parseGoalItem(value: unknown): Goal | null {
   }
 }
 
-/** The goals of a file, in their order; invalid and repeated ones are dropped. */
-function parseGoals(value: unknown): Goal[] {
+/** The goals of a file, in their order; invalid and repeated ones are dropped, and things of the old price list said once. */
+function parseGoals(value: unknown, notices: Notices): Goal[] {
   if (!Array.isArray(value)) return [];
   const goals: Goal[] = [];
   const ids = new Set<string>();
+  const retired = { count: 0 };
   for (const entry of value) {
-    const goal = parseGoalItem(entry);
+    const goal = parseGoalItem(entry, retired);
     if (!goal || ids.has(goal.id)) continue;
     ids.add(goal.id);
     goals.push(goal);
     if (goals.length === MAX_GOALS) break;
   }
+  if (retired.count > 0) notices.push(problem("goal-items-retired", { count: retired.count }));
   return goals;
 }
 
@@ -369,31 +343,34 @@ function ownAsGoal(item: OwnItem): NewGoal {
 }
 
 /** The one goal a version 3 mission, a version 2 pinned connection or a version 1 goal named. */
-function chosenGoal(value: Record<string, unknown>, own: OwnItem[]): { goal: NewGoal; ownId: string | null } | null {
+function chosenGoal(value: Record<string, unknown>, own: OwnItem[], notices: Notices): { goal: NewGoal; ownId: string | null } | null {
+  const listed = () => {
+    notices.push(problem("goal-items-retired", { count: 1 }));
+    return null;
+  };
   const home = typeof value.homeCountry === "string" && COUNTRY_PATTERN.test(value.homeCountry) ? value.homeCountry : "NL";
-  const housing = value.housing !== "own";
   const isCountry = (code: unknown): code is string => typeof code === "string" && COUNTRY_PATTERN.test(code);
   const found = (goal: NewGoal, ownId: string | null = null) => ({ goal, ownId });
   if (isRecord(value.mission)) {
     const mission = value.mission;
-    if (mission.kind === "stop-working") return found({ kind: "live", country: home, housing });
-    if (mission.kind === "live-abroad" && isCountry(mission.country)) return found({ kind: "live", country: mission.country, housing });
-    if (mission.kind === "buy" && typeof mission.item === "string" && ID_PATTERN.test(mission.item)) return found({ kind: "buy", item: mission.item });
+    if (mission.kind === "stop-working") return found({ kind: "live", country: home });
+    if (mission.kind === "live-abroad" && isCountry(mission.country)) return found({ kind: "live", country: mission.country });
     if (mission.kind === "buy-own" && isName(mission.name) && isAmount(mission.amount)) {
       return found({ kind: "buy-own", name: mission.name.trim(), amount: mission.amount });
     }
     if (mission.kind === "amount" && isAmount(mission.amount)) return found({ kind: "amount", amount: mission.amount });
+    if (mission.kind === "buy" && typeof mission.item === "string") return listed();
     return null;
   }
   if ("pinned" in value) {
     const [group, id] = typeof value.pinned === "string" ? value.pinned.split(":") : [];
-    if (group === "life" && id === "stop-working") return found({ kind: "live", country: home, housing });
-    if (group === "country" && isCountry(id)) return found({ kind: "live", country: id, housing });
-    if (group === "buy" && id && ID_PATTERN.test(id)) return found({ kind: "buy", item: id });
+    if (group === "life" && id === "stop-working") return found({ kind: "live", country: home });
+    if (group === "country" && isCountry(id)) return found({ kind: "live", country: id });
+    if (group === "buy" && id) return listed();
     const item = group === "custom" ? own.find((entry) => entry.id === id) : undefined;
     return item ? found(ownAsGoal(item), item.id) : null;
   }
-  if (isCountry(value.goalCountry)) return found({ kind: "live", country: value.goalCountry, housing });
+  if (isCountry(value.goalCountry)) return found({ kind: "live", country: value.goalCountry });
   const goal = parseGoal(value.goal);
   return goal && isAmount(goal.amount) ? found({ kind: "amount", amount: goal.amount }) : null;
 }
@@ -403,14 +380,14 @@ function chosenGoal(value: Record<string, unknown>, own: OwnItem[]): { goal: New
  * mission) and items of the user's own; all of them become goals of "My
  * goals", the chosen one first. The "home country" and housing those
  * versions asked for only matter here: stopping work at home becomes living
- * there, with housing if they rented. Anything else ("the app chose",
- * working 4 days...) is left out.
+ * there. Anything else ("the app chose", working 4 days...) is left out; a
+ * thing of the old price list too, with a notice.
  */
-function goalsFromEarlierVersions(value: Record<string, unknown>): Goal[] {
+function goalsFromEarlierVersions(value: Record<string, unknown>, notices: Notices): Goal[] {
   const own = Array.isArray(value.customConnections)
     ? value.customConnections.map(parseOwnItem).filter((item): item is OwnItem => item !== null)
     : [];
-  const chosen = chosenGoal(value, own);
+  const chosen = chosenGoal(value, own, notices);
   const goals = [...(chosen ? [chosen.goal] : []), ...own.filter((item) => item.id !== chosen?.ownId).map(ownAsGoal)];
   return goals.slice(0, MAX_GOALS).map((goal, index) => ({ ...goal, id: `g${index + 1}` }) as Goal);
 }
@@ -420,10 +397,10 @@ function goalsFromEarlierVersions(value: Record<string, unknown>): Goal[] {
  * Amounts missing from a file are 0, never the example values of a first
  * visit. Also reads the plans of versions 1 to 5 (see above): their
  * inflation, when it was not the old 2 % default, and a custom growth rate
- * become changed assumptions. `holdings` are the file's, and what the
- * app no longer does is said in `notices`.
+ * become changed assumptions. What the app no longer does is said in
+ * `notices`.
  */
-export function parsePlan(value: unknown, holdings: readonly Holding[] = [], notices: Notices = [], version: number = CUSTOM_LIKE_WORLD_SINCE): Plan | null {
+export function parsePlan(value: unknown, notices: Notices = [], version: number = CUSTOM_LIKE_WORLD_SINCE): Plan | null {
   if (!isRecord(value)) return null;
   const pick = <K extends keyof Plan>(key: K, parse: (v: unknown) => Plan[K] | null | undefined): Plan[K] =>
     parse(value[key]) ?? DEFAULT_PLAN[key];
@@ -437,11 +414,15 @@ export function parsePlan(value: unknown, holdings: readonly Holding[] = [], not
     const growth = investment.kind === "custom" && isGrowth(investment.realReturn) ? investment.realReturn : null;
     assumptions = { growth, volatility: null, inflation };
   }
-  const chosen = withGrowthAsCustom(parseInvestment(value.investment, holdings, notices) ?? startingInvestment(version), assumptions, pricesOf, holdings);
-  // Custom growth of an earlier version keeps the S&P 500's ups and downs it had, so its result does not change.
-  if (version < CUSTOM_LIKE_WORLD_SINCE && chosen.investment.kind === "custom" && chosen.assumptions.volatility === null) {
-    chosen.assumptions = { ...chosen.assumptions, volatility: FORMER_CUSTOM_VOLATILITY };
+  const chosen = withGrowthAsCustom(parseInvestment(value.investment, notices) ?? startingInvestment(version), assumptions, pricesOf);
+  // Custom growth of an earlier version keeps the ups and downs it had, so its result does not change:
+  // the S&P 500's until version 8, world stocks' in versions 9 and 10.
+  if (version < CUSTOM_LIKE_US_SINCE && chosen.investment.kind === "custom" && chosen.assumptions.volatility === null) {
+    chosen.assumptions = { ...chosen.assumptions, volatility: version < CUSTOM_LIKE_WORLD_SINCE ? FORMER_CUSTOM_VOLATILITY : WORLD_CUSTOM_VOLATILITY };
   }
+  const goals = "goals" in value ? parseGoals(value.goals, notices) : goalsFromEarlierVersions(value, notices);
+  // A country's cost changed source (World Bank surveys, one figure with housing): said once.
+  if (version < OFFICIAL_COSTS_SINCE && goals.some((goal) => goal.kind === "live")) notices.push(problem("country-costs-official"));
   return {
     invested: amount(value.invested),
     monthlyContribution: amount(value.monthlyContribution),
@@ -452,15 +433,6 @@ export function parsePlan(value: unknown, holdings: readonly Holding[] = [], not
     withdrawalRate: pick("withdrawalRate", (v) => (isRate(v) && v > 0 ? snapWithdrawal(v) : null)),
     pricesOf,
     assumptions: chosen.assumptions,
-    goals: "goals" in value ? parseGoals(value.goals) : goalsFromEarlierVersions(value),
+    goals,
   };
-}
-
-export function parseUploadedPrices(value: unknown): UploadedPrices | null {
-  if (!isRecord(value) || typeof value.fileName !== "string" || !Array.isArray(value.points)) return null;
-  const points = value.points.filter(
-    (point): point is PricePoint =>
-      isRecord(point) && isIsoDate(point.time) && isFiniteNumber(point.close) && point.close > 0,
-  );
-  return points.length > 0 ? { fileName: value.fileName, points } : null;
 }

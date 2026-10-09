@@ -7,7 +7,6 @@ import { useI18n } from "@/components/i18n";
 import { useAppState } from "@/hooks/use-app";
 import type { CalculationBundle } from "@/hooks/use-calculation";
 import { useLazyCalculation } from "@/hooks/use-lazy-calculation";
-import { priceHoldings } from "@/lib/auto-price";
 import { COMMON_PERIOD } from "@/lib/indexes";
 import { planReady } from "@/lib/plan";
 import { CalculatorCard, MoreOptionsLink } from "./calculator-card";
@@ -48,9 +47,9 @@ function TrustPoints() {
 function PlanBar({ bundle, sheet, onEdit, button }: { bundle: CalculationBundle; sheet: string; onEdit: () => void; button: React.Ref<HTMLButtonElement> }) {
   const { m, f } = useI18n();
   const t = m.calculator;
-  const { plan, holdings } = bundle.state;
+  const { plan } = bundle.state;
   const amount = (value: number | null) => (value === null ? "–" : f.eur(value));
-  const have = holdings.length > 0 ? f.eur(bundle.base.capital.amount) : amount(plan.invested);
+  const have = amount(plan.invested);
   const summary = t.summary(have, amount(plan.monthlyContribution), f.rate(bundle.base.investment.realReturn), m.units.years(plan.years));
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card px-4 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgb(0_0_0/0.08)] motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out motion-safe:starting:translate-y-full lg:hidden">
@@ -97,9 +96,9 @@ function PlanBar({ bundle, sheet, onEdit, button }: { bundle: CalculationBundle;
  */
 export function MoneyModule({ header }: { header?: React.ReactNode }) {
   const { m } = useI18n();
-  const { plan, holdings, uploadedPrices } = useAppState();
+  const { plan } = useAppState();
   // Both amounts in: there is a result to show. Worked out without the calculation's code, which comes when wanted.
-  const ready = planReady(plan, priceHoldings(holdings, uploadedPrices));
+  const ready = planReady(plan);
   const asked = useFirstResultAsked();
   const bundle = useLazyCalculation(ready || asked);
   const [arriving, setArriving] = useState(false);

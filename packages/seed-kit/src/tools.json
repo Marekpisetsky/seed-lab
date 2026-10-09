@@ -1,7 +1,10 @@
 [
   {
     "id": "wealth-lens",
-    "name": "Wealth Lens",
+    "name": {
+      "en": "Horalis Growth",
+      "es": "Horalis Crecimiento"
+    },
     "status": "live",
     "listed": true,
     "category": "money",
@@ -58,7 +61,10 @@
   },
   {
     "id": "cost-lens",
-    "name": "Cost Lens",
+    "name": {
+      "en": "Horalis Cost of Living",
+      "es": "Horalis Coste de vida"
+    },
     "status": "beta",
     "listed": false,
     "category": "life",
@@ -72,8 +78,8 @@
       "es": "Lo que vale tu dinero en otro país."
     },
     "description": {
-      "en": "Type what you earn and where you live. See what you would need in another country to live the same, and where your money goes furthest, with and without housing. Nothing is saved or sent.",
-      "es": "Escribe lo que ganas y dónde vives. Mira cuánto necesitarías en otro país para vivir igual, y dónde rinde más tu dinero, con y sin vivienda. No se guarda ni se envía nada."
+      "en": "Type what you earn and where you live. See what you would need in another country to live the same, and where your money goes furthest, housing included. Nothing is saved or sent.",
+      "es": "Escribe lo que ganas y dónde vives. Mira cuánto necesitarías en otro país para vivir igual, y dónde rinde más tu dinero, vivienda incluida. No se guarda ni se envía nada."
     },
     "principles": {
       "device": {
@@ -115,7 +121,10 @@
   },
   {
     "id": "inflation-lens",
-    "name": "Inflation Lens",
+    "name": {
+      "en": "Horalis Inflation",
+      "es": "Horalis Inflación"
+    },
     "status": "beta",
     "listed": false,
     "category": "money",
