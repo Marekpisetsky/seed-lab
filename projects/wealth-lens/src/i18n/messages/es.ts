@@ -22,7 +22,7 @@ const to = (name: string) => (name.startsWith("el ") ? `al ${name.slice(3)}` : `
 
 export const es: Messages = {
   site: {
-    name: "Wealth Lens",
+    name: "Horalis Crecimiento",
     tagline: "Lo que tu dinero puede hacer, en palabras simples.",
     nav: { money: "Mi dinero", test: "Probar mi plan", stocks: "Mis acciones" },
     footer: { about: "Acerca de", howItWorks: "Cómo funciona", privacy: "Privacidad", terms: "Condiciones" },
@@ -212,7 +212,7 @@ export const es: Messages = {
   data: {
     download: "Descargar mis datos",
     load: "Cargar mis datos",
-    loadLabel: "Cargar un archivo de datos de Wealth Lens",
+    loadLabel: "Cargar un archivo de datos de Horalis Crecimiento",
     legacy: "Una versión anterior guardó tus datos en este navegador. La app ya no guarda nada.",
     useIt: "Usarlos y borrarlos",
     deleteIt: "Borrarlos",
@@ -237,9 +237,9 @@ export const es: Messages = {
     oversold: ({ ticker, shares, held }) => `${ticker}: vende ${shares}, pero solo había ${held}. ¿Faltan operaciones antiguas?`,
     "prices-no-columns": () => "El archivo necesita una columna de fecha y otra de precio.",
     "prices-no-rows": () => "No hay filas con fecha y un precio mayor que 0.",
-    "data-not-json": () => "Esto no es un archivo de datos de Wealth Lens.",
-    "data-not-ours": () => "Esto no es un archivo de datos de Wealth Lens.",
-    "data-newer": () => "Este archivo es de un Wealth Lens más nuevo.",
+    "data-not-json": () => "Esto no es un archivo de datos de Horalis Crecimiento.",
+    "data-not-ours": () => "Esto no es un archivo de datos de Horalis Crecimiento.",
+    "data-newer": () => "Este archivo es de una versión más nueva de Horalis Crecimiento.",
     "stock-now-portfolio": ({ name }) => `Tu archivo proyectaba ${name} sola. Una acción ya no se proyecta sola. Ahora usa Mi cartera.`,
     "stock-now-index": ({ name, index }) => `Tu archivo proyectaba ${name} sola. Una acción ya no se proyecta sola. Ahora crece como ${IN_SENTENCE[index]}.`,
     "mix-had-stocks": () => "Tu mezcla tenía acciones sueltas. Cada una cuenta ahora como su índice.",
@@ -818,7 +818,7 @@ export const es: Messages = {
       text: (year: number, shown: string, today: string) => `En ${year} tu cuenta mostrará ~${shown}. Son ${today} de dinero de hoy.`,
       factor: (rate: string, years: number, factor: string, then: string) => `Precios subiendo un ${rate} al año durante ${years} años: × ${factor}, así 1\u00a0€ pasa a ${then}.`,
       times: (today: string, factor: string, shown: string, year: number) => `${today} × ${factor} = ${shown} en euros de ${year}.`,
-      todays: (year: number) => `Wealth Lens muestra euros de hoy. Tu banco mostrará euros de ${year}.`,
+      todays: (year: number) => `Horalis Crecimiento muestra euros de hoy. Tu banco mostrará euros de ${year}.`,
       assumption: (rate: string, example: string) => `Los precios suben un ${rate} al año: lo que hoy cuesta 100\u00a0€ costará ${example} el año que viene.`,
       afterPrices: "El crecimiento aquí ya descuenta la subida de precios.",
     },
@@ -834,7 +834,7 @@ export const es: Messages = {
       value: (count: number) => `${count} monedas`,
       line: (money: string, code: string) => `${money} en ${code}: no se cuenta.`,
       counted: (amount: string) => `Se cuenta: ${amount} en euros.`,
-      assumption: "Wealth Lens no convierte monedas. Solo usa tus posiciones en euros.",
+      assumption: "Horalis Crecimiento no convierte monedas. Solo usa tus posiciones en euros.",
       and: " y ",
       names: { USD: "dólares", GBP: "libras", GBX: "peniques", CHF: "francos suizos", JPY: "yenes", PLN: "esloti", SEK: "coronas suecas", NOK: "coronas noruegas", DKK: "coronas danesas", CAD: "dólares canadienses" } as Record<string, string>,
     },

@@ -1,5 +1,5 @@
 /**
- * Every word of Cost Lens, in each language, with the same shape (a test
+ * Every word of Horalis Cost of Living, in each language, with the same shape (a test
  * checks it) and in plain words (seed-kit's check: no jargon, short
  * sentences). The header, the footer's links and the privacy page bring
  * their own words from seed-kit.
@@ -9,7 +9,7 @@ import type { Locale } from "../../../packages/seed-kit/src/locales.ts";
 
 const en = {
   meta: {
-    title: "Cost Lens: what your money is worth in another country",
+    title: "Horalis Cost of Living: what your money is worth in another country",
     description: "Compare the cost of living in 172 countries, with and without housing. Free, and nothing is saved.",
   },
   home: {
@@ -50,7 +50,7 @@ const en = {
   notFound: {
     title: "This page does not exist",
     text: "Maybe the address has a typo, or the page moved.",
-    home: "Go to Cost Lens",
+    home: "Go to Horalis Cost of Living",
   },
 };
 
@@ -58,7 +58,7 @@ export type Words = typeof en;
 
 const es: Words = {
   meta: {
-    title: "Cost Lens: lo que vale tu dinero en otro país",
+    title: "Horalis Coste de vida: lo que vale tu dinero en otro país",
     description: "Compara el coste de vida en 172 países, con y sin vivienda. Gratis, y no se guarda nada.",
   },
   home: {
@@ -99,7 +99,7 @@ const es: Words = {
   notFound: {
     title: "Esta página no existe",
     text: "Quizá la dirección tiene un error, o la página se mudó.",
-    home: "Ir a Cost Lens",
+    home: "Ir a Horalis Coste de vida",
   },
 };
 

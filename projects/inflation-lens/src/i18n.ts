@@ -1,5 +1,5 @@
 /**
- * Every word of Inflation Lens, in each language, with the same shape (a
+ * Every word of Horalis Inflation, in each language, with the same shape (a
  * test checks it) and in plain words (seed-kit's check: no jargon, short
  * sentences). The header, the footer's links and the privacy page bring
  * their own words from seed-kit.
@@ -9,7 +9,7 @@ import type { Locale } from "../../../packages/seed-kit/src/locales.ts";
 
 const en = {
   meta: {
-    title: "Inflation Lens: what your euros from back then are worth today",
+    title: "Horalis Inflation: what your euros from back then are worth today",
     description: "How prices rose in each EU country and the euro area. Data from Eurostat. Free, and nothing is saved.",
   },
   groups: {
@@ -59,7 +59,7 @@ const en = {
   notFound: {
     title: "This page does not exist",
     text: "Maybe the address has a typo, or the page moved.",
-    home: "Go to Inflation Lens",
+    home: "Go to Horalis Inflation",
   },
 };
 
@@ -67,7 +67,7 @@ export type Words = typeof en;
 
 const es: Words = {
   meta: {
-    title: "Inflation Lens: lo que valen hoy tus euros de entonces",
+    title: "Horalis Inflación: lo que valen hoy tus euros de entonces",
     description: "Cómo subieron los precios en la UE y la zona euro. Datos de Eurostat. Gratis, y no se guarda nada.",
   },
   groups: {
@@ -117,7 +117,7 @@ const es: Words = {
   notFound: {
     title: "Esta página no existe",
     text: "Quizá la dirección tiene un error, o la página se mudó.",
-    home: "Ir a Inflation Lens",
+    home: "Ir a Horalis Inflación",
   },
 };
 

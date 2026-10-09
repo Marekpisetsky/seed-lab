@@ -1,4 +1,4 @@
-# seed-lab
+# Horalis
 
 @AGENTS.md
 

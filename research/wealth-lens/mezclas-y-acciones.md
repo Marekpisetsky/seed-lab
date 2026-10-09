@@ -1,6 +1,6 @@
 # Ficha: mezclas y volatilidad de acciones
 
-- **App:** Wealth Lens · **Revisada:** 3 de octubre de 2026
+- **App:** Horalis Crecimiento · **Revisada:** 3 de octubre de 2026
 - **Código** (en `projects/wealth-lens/`): `src/lib/mix.ts` (`mixModel`,
   `mixPercentiles`, `mixSuccessRates`, `worstYear`, `concentration`,
   `TEMPLATES`, `CONCENTRATION_LIMIT`), `src/lib/volatility.ts`

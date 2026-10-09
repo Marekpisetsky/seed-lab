@@ -80,11 +80,11 @@ describe("data file", () => {
     expect(typed.ok && typed.state.plan.assumptions.volatility).toBe(0.1);
   });
 
-  it("refuses files that are not Wealth Lens data", () => {
+  it("refuses files that are not Horalis Growth data", () => {
     expect(parseDataFile("not json")).toEqual({ ok: false, error: { code: "data-not-json" } });
     expect(parseDataFile('{"holdings": []}')).toEqual({ ok: false, error: { code: "data-not-ours" } });
     expect(parseDataFile('{"kind": "wealth-lens-data", "version": 11}')).toEqual({ ok: false, error: { code: "data-newer" } });
-    expect(problemText({ code: "data-newer" }, EN.m.problems)).toBe("A newer Wealth Lens made this file.");
+    expect(problemText({ code: "data-newer" }, EN.m.problems)).toBe("A newer Horalis Growth made this file.");
   });
 
   it("reads version 1 files: the euro goal becomes a goal 'reach an amount'", () => {

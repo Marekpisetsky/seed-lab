@@ -5,7 +5,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: "Wealth Lens", template: "%s · Wealth Lens" },
+  title: { default: "Horalis Growth", template: "%s · Horalis Growth" },
 };
 
 /**

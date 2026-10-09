@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "UNLICENSED",
-  "description": "seed-lab's shared kit: tokens, header and footer, the list of tools, language helpers and the checks every tool passes. No runtime dependencies; apps import it from the code.",
+  "description": "Horalis's shared kit (internal): tokens, header and footer, the list of tools, language helpers and the checks every tool passes. No runtime dependencies; apps import it from the code.",
   "type": "module",
   "engines": {
     "node": "22.x"

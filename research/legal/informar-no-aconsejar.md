@@ -1,9 +1,9 @@
 # Ficha legal: informar, no aconsejar
 
-- **Para:** todas las apps de seed-lab · **Revisada:** 3 de octubre de 2026
+- **Para:** todas las apps de Horalis · **Revisada:** 3 de octubre de 2026
 
 > **Esto no es asesoramiento legal.** Es el criterio de trabajo de
-> seed-lab, escrito a partir de los textos públicos de la normativa
+> Horalis, escrito a partir de los textos públicos de la normativa
 > europea. Antes de lanzar, conviene que lo revise un profesional (un
 > abogado especializado en regulación de servicios financieros de la UE y
 > de cada país donde se publique), y que lo vuelva a revisar cuando cambie
@@ -12,7 +12,7 @@
 ## La pregunta
 
 ¿Dónde está el límite entre **dar información general** (lo que hace
-seed-lab) y **asesorar sobre inversiones**, un servicio reservado en la UE
+Horalis) y **asesorar sobre inversiones**, un servicio reservado en la UE
 a empresas autorizadas?
 
 ## El límite, según MiFID II
@@ -52,7 +52,7 @@ a empresas autorizadas?
   Directrices sobre determinados aspectos de los requisitos de idoneidad
   de MiFID II (ESMA35-43-3172, 2023).
 
-## Dónde está Wealth Lens
+## Dónde está Horalis Crecimiento
 
 **Lo que hace (información):** calcula, con las cifras que escribe la
 persona, consecuencias de un plan (cuánto podría tener, cómo se movió,
@@ -137,11 +137,11 @@ De criterio (las revisa quien escribe y quien revisa):
 - `packages/seed-kit/test/plain-language.test.ts`: el test de las
   palabras de consejo (EN y ES), que también deja pasar los avisos ("no
   te dice qué comprar ni qué vender").
-- Cada app pasa su texto entero por ese test: Wealth Lens
+- Cada app pasa su texto entero por ese test: Horalis Crecimiento
   (`src/components/plain-language.test.ts`), el hub (`test/build.test.ts`),
-  Cost Lens e Inflation Lens (`test/site.test.ts`).
+  Horalis Coste de vida e Horalis Inflación (`test/site.test.ts`).
 - Al aplicarlo, el único texto que incumplía era el título "What you
-  should know" de Wealth Lens: ahora "Good to know" ("Para tener en
+  should know" de Horalis Crecimiento: ahora "Good to know" ("Para tener en
   cuenta").
 - El chequeo de tu plan tiene además su propio test de redacción
   (`projects/wealth-lens/src/lib/plan-check.test.ts`): sin palabras de

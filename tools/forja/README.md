@@ -1,26 +1,26 @@
 # Forja
 
-**Qué es:** una herramienta interna de seed-lab, no un producto. Genera
+**Qué es:** una herramienta interna de Horalis, no un producto. Genera
 proyectos que nacen funcionando: código real, tests que pasan y
 verificación en el momento de crearlos, para empezar una idea en segundos
 sobre una base probada. Con su molde `web-tool` crea las herramientas web
-de seed-lab sobre [seed-kit](../../packages/seed-kit/README.md); con los
+de Horalis sobre [seed-kit](../../packages/seed-kit/README.md); con los
 demás, proyectos de Python.
 
 No se publica ni se ofrece fuera del repositorio.
 
 ## La plataforma: seed-kit + Forja
 
-seed-lab construye como NVIDIA: cada producto nuevo se levanta sobre
+Horalis construye como NVIDIA: cada producto nuevo se levanta sobre
 infraestructura propia y nunca empieza de cero. Esa infraestructura tiene
 dos piezas:
 
 - **seed-kit** (`packages/seed-kit`) es lo que comparten todas las apps:
-  colores, cabecera y pie de seed-lab, lista de herramientas, idiomas,
+  colores, cabecera y pie de Horalis, lista de herramientas, idiomas,
   privacidad y las comprobaciones de cada página. Se importa desde el
   código, no se copia.
 - **Forja** crea una herramienta nueva ya conectada a seed-kit, con todo
-  lo que pide seed-lab desde el primer minuto.
+  lo que pide Horalis desde el primer minuto.
 
 **Todo producto nuevo nace de esta plataforma.** Ver "Cómo construimos"
 en [`docs/direction.md`](../../docs/direction.md).
@@ -68,7 +68,7 @@ repositorio, en `projects/<id>/`, sin git propio.
 
 | Molde | Que genera |
 |-------|------------|
-| `web-tool` | Una herramienta web de seed-lab en `projects/<id>/`, estatica y sin framework, sobre seed-kit (ver abajo). |
+| `web-tool` | Una herramienta web de Horalis en `projects/<id>/`, estatica y sin framework, sobre seed-kit (ver abajo). |
 | `cli` | Un comando que cuenta lineas/palabras/caracteres de un archivo. |
 | `lib` | Una libreria con `slugify(texto)`. |
 | `api` | Un servidor HTTP stdlib con `/health`. |
@@ -85,9 +85,9 @@ seed-kit desde el codigo:
 
 - **EN y ES**, con el script de idioma de seed-kit, que no guarda nada,
   y numeros escritos a la manera de cada idioma.
-- **La cabecera y el pie de seed-lab**: la semilla con su nombre, EN/ES,
+- **La cabecera y el pie de Horalis**: la semilla con su nombre, EN/ES,
   el lanzador de herramientas, privacidad y condiciones, "Parte de
-  seed-lab".
+  Horalis".
 - **Una pagina de ejemplo con un calculo real**: cuanto cambio un numero
   de antes a despues, en cantidad y en porcentaje. Se ve con resultado
   antes de escribir nada (y sin scripts), y el navegador lo recalcula al
@@ -106,7 +106,7 @@ anade a `packages/seed-kit/src/tools.json` como beta oculta (`"status":
 "beta"`, `"listed": false`, con `--categoria money` o `life`), con textos
 provisionales y los principios "pendiente". `--sin-registro` omite ese
 paso. El id debe ir en minusculas con guiones (`cost-lens`); el nombre
-visible sale de el (`Cost Lens`).
+visible sale de el (`Horalis Coste de vida`).
 
 Las plantillas viven en `forja/templates/web_tool_files/` (con `.tmpl`
 para que nada las tome por codigo) y llevan cuatro marcas: `__NAME__`,

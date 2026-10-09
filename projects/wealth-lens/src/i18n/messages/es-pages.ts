@@ -12,32 +12,32 @@ export const esPages: PageMessages = {
     money: { title: "Lo que tu dinero puede hacer", description: "Mira qué podrías hacer con tu dinero, y cuándo. Gratis y privado." },
     test: { title: "Probar mi plan", description: "Tu plan en las crisis de la bolsa, de 1929 a 2022." },
     stocks: { title: "Mis acciones", description: "Lo que tienes, lo que ganaste y los años de cada fondo." },
-    about: { title: "Acerca de", description: "Qué es Wealth Lens, quién lo hace y por qué es gratis." },
+    about: { title: "Acerca de", description: "Qué es Horalis Crecimiento, quién lo hace y por qué es gratis." },
     howItWorks: { title: "Cómo funciona", description: "El método, las cifras y todas las fuentes, con enlaces y fechas." },
     privacy: { title: "Privacidad", description: "No se guarda ni se envía nada de lo que escribes. Sin cookies. Qué registra el alojamiento." },
     terms: { title: "Condiciones", description: "No es consejo financiero. Sin garantía. Úsalo bajo tu responsabilidad." },
   },
   about: {
     title: es.site.footer.about,
-    lead: "Wealth Lens muestra lo que puede hacer tu dinero, con palabras sencillas.",
+    lead: "Horalis Crecimiento muestra lo que puede hacer tu dinero, con palabras sencillas.",
     sections: [
       {
         heading: "Qué es",
         body: [
-          "Escribe lo que tienes y lo que añades cada mes. Wealth Lens muestra cómo podría crecer y cuándo podrías hacer un viaje, pagar la entrada de una casa o vivir sin trabajar.",
+          "Escribe lo que tienes y lo que añades cada mes. Horalis Crecimiento muestra cómo podría crecer y cuándo podrías hacer un viaje, pagar la entrada de una casa o vivir sin trabajar.",
           "También muestra cuánto podría pagarte al mes y en qué lugares del mundo alcanza.",
           "También puedes [probar tu plan](/test) en grandes caídas del pasado, y ver [cómo les fue a tus acciones](/stocks).",
           "Es gratis. No hay registro, ni anuncios, ni seguimiento.",
         ],
       },
       {
-        heading: "Parte de seed-lab",
-        body: ["Wealth Lens es la primera herramienta de [seed-lab](hub): herramientas pequeñas y gratuitas para Europa que dejan tus datos en tu dispositivo."],
+        heading: "Parte de Horalis",
+        body: ["Horalis Crecimiento es la primera herramienta de [Horalis](hub): herramientas pequeñas y gratuitas, útiles en cualquier país, que dejan tus datos en tu dispositivo."],
       },
       {
         heading: "Quién lo hace",
         body: [
-          "Lo hace Marek Pisetsky. Wealth Lens es de uso gratuito. Su código es de seed-lab.",
+          "Lo hace Marek Pisetsky. Horalis Crecimiento es de uso gratuito. Su código es de Horalis.",
           "¿Preguntas, ideas o un error que contar? Escribe a [email](email).",
         ],
       },
@@ -52,7 +52,7 @@ export const esPages: PageMessages = {
   },
   howItWorks: {
     title: es.site.footer.howItWorks,
-    lead: "Qué hace Wealth Lens con tus números, qué supone y de dónde sale cada cifra.",
+    lead: "Qué hace Horalis Crecimiento con tus números, qué supone y de dónde sale cada cifra.",
     sections: (facts: HowItWorksFacts): ProseSection[] => [
       {
         heading: "Tu dinero crece",
@@ -68,7 +68,7 @@ export const esPages: PageMessages = {
           "La calculadora empieza en un 5\u00a0% al año tras subir los precios. Las acciones del mundo crecieron un 5,2\u00a0% al año de 1900 a 2024, según el anuario de UBS de 2025.",
           "Escribe otra cifra o toca un ejemplo. La cifra de un ejemplo usa los años pasados de ese ejemplo. Cualquier otra sube y baja como las acciones del mundo.",
           `Cada opción crece a su media de años pasados. Todas usan los mismos años, ${facts.period}, para que ninguna parezca mejor por empezar en una buena década.`,
-          "Las acciones suben y bajan. Por eso Wealth Lens calcula 1000 futuros posibles, cada uno barajando años pasados.",
+          "Las acciones suben y bajan. Por eso Horalis Crecimiento calcula 1000 futuros posibles, cada uno barajando años pasados.",
           "«Si va mal» es donde 1 de cada 10 de esos futuros termina por debajo. «Si va bien», donde 1 de cada 10 termina por encima.",
           "«Primeros 10 años como 2000–2009» repite esa década tal como fue y después crece a la media. Bonos y oro fueron bien entonces: toman sus peores diez años.",
           "Una mezcla crece como sus partes, según su peso. Mi cartera pesa cada posición por su valor, y cada una crece como su índice.",
@@ -266,9 +266,9 @@ export const esPages: PageMessages = {
     licenses: [
       "Algunas fuentes dejan reutilizar sus datos citándolas: el Banco Mundial, la OCDE, Destatis, la oficina de estadísticas laborales de EE. UU. y Robert Shiller.",
       "Otras no permiten copiar sus datos: Yahoo Finance, Stooq, Numbeo, Wise, MSCI, Nasdaq y la LBMA.",
-      "De esas, Wealth Lens solo publica cifras que calcula: costes redondeados, crecimiento anual, cambios de cada año, líneas semanales desde 100 y el último precio de cada fondo.",
+      "De esas, Horalis Crecimiento solo publica cifras que calcula: costes redondeados, crecimiento anual, cambios de cada año, líneas semanales desde 100 y el último precio de cada fondo.",
       "Nunca publica sus tablas ni sus precios diarios, y siempre dice de dónde sale cada cifra.",
-      "El método y las fuentes son públicos. El código es de seed-lab. Los datos conservan los derechos de sus dueños.",
+      "El método y las fuentes son públicos. El código es de Horalis. Los datos conservan los derechos de sus dueños.",
     ],
   },
   privacy: {
@@ -280,7 +280,7 @@ export const esPages: PageMessages = {
         heading: "Tus números",
         body: [
           "Lo que escribes se queda en esta página, en la memoria de tu navegador. Si cierras o recargas la pestaña, desaparece.",
-          "Wealth Lens no tiene cuentas, ni base de datos, ni servidor propio. Tus números nunca salen de tu dispositivo.",
+          "Horalis Crecimiento no tiene cuentas, ni base de datos, ni servidor propio. Tus números nunca salen de tu dispositivo.",
           "**Descargar mis datos** guarda un archivo en tu dispositivo. **Cargar mis datos** lee ese archivo en tu dispositivo. No se sube nada.",
           "Los archivos que importas, como un CSV de posiciones o de precios, se leen igual, en tu dispositivo.",
         ],
@@ -288,13 +288,13 @@ export const esPages: PageMessages = {
       {
         heading: "Cookies y almacenamiento",
         body: [
-          "Wealth Lens no usa cookies. Por eso no hay aviso de cookies.",
+          "Horalis Crecimiento no usa cookies. Por eso no hay aviso de cookies.",
           "Guarda una sola cosa, y solo si la eliges: claro u oscuro.",
           "Esa elección queda en el almacenamiento de sesión de esta pestaña. Al cerrar la pestaña, se borra.",
           "Nunca se envía. Elegir «Automático» la borra al momento.",
           "La primera vez, el idioma sale de la configuración de tu navegador. No se guarda nada para recordarlo.",
           "Los precios de deseos y metas parten del mismo ajuste: es-ES muestra los de España. Tu elección tampoco se guarda.",
-          "Una versión anterior guardaba datos en el navegador. Si Wealth Lens los encuentra, ofrece cargarlos una vez y después los borra.",
+          "Una versión anterior guardaba datos en el navegador. Si Horalis Crecimiento los encuentra, ofrece cargarlos una vez y después los borra.",
         ],
       },
       {
@@ -305,7 +305,7 @@ export const esPages: PageMessages = {
         heading: "Alojamiento",
         body: [
           "El sitio está alojado en Vercel. Para servir las páginas y protegerlas, los servidores de Vercel pueden registrar datos técnicos de cada visita.",
-          "Eso puede incluir tu dirección IP, la página pedida, la hora y tu navegador. Wealth Lens no ve ni usa esos registros.",
+          "Eso puede incluir tu dirección IP, la página pedida, la hora y tu navegador. Horalis Crecimiento no ve ni usa esos registros.",
           "Mira la [política de privacidad de Vercel](https://vercel.com/legal/privacy-policy).",
         ],
       },
@@ -319,7 +319,7 @@ export const esPages: PageMessages = {
       {
         heading: "No es consejo financiero",
         body: [
-          "Wealth Lens muestra lo que hacen los números. No te dice qué comprar, vender o hacer.",
+          "Horalis Crecimiento muestra lo que hacen los números. No te dice qué comprar, vender o hacer.",
           "No conoce toda tu situación: tus impuestos, deudas, familia o planes. Para una decisión grande, habla con un asesor autorizado.",
         ],
       },
@@ -327,20 +327,20 @@ export const esPages: PageMessages = {
         heading: "Sin garantía",
         body: [
           "Cada cifra es una estimación. El crecimiento viene del pasado, y el pasado no promete el futuro.",
-          "Los costes de vida y los precios son aproximados y pueden estar desfasados. Wealth Lens puede tener errores.",
+          "Los costes de vida y los precios son aproximados y pueden estar desfasados. Horalis Crecimiento puede tener errores.",
           "Se ofrece tal cual, sin garantía de ningún tipo.",
         ],
       },
       {
         heading: "Bajo tu propia responsabilidad",
-        body: ["Tú decides qué hacer con tu dinero, y usas Wealth Lens bajo tu propia responsabilidad. Sus autores no responden de pérdidas ni decisiones basadas en él."],
+        body: ["Tú decides qué hacer con tu dinero, y usas Horalis Crecimiento bajo tu propia responsabilidad. Sus autores no responden de pérdidas ni decisiones basadas en él."],
       },
       {
         heading: "De uso gratuito",
         body: [
-          "Cualquiera puede usar Wealth Lens gratis, en su web.",
-          "El código es de seed-lab. Sin permiso por escrito, no se puede copiar, modificar, distribuir ni usar para crear otros productos.",
-          "Los nombres y logotipos de seed-lab y Wealth Lens son marcas. No se pueden usar sin permiso por escrito.",
+          "Cualquiera puede usar Horalis Crecimiento gratis, en su web.",
+          "El código es de Horalis. Sin permiso por escrito, no se puede copiar, modificar, distribuir ni usar para crear otros productos.",
+          "Los nombres y logotipos de Horalis y sus herramientas son marcas. No se pueden usar sin permiso por escrito.",
           "Los datos son de sus fuentes, que conservan sus derechos. [Cómo funciona](/how-it-works) las enumera todas.",
         ],
       },
@@ -350,6 +350,6 @@ export const esPages: PageMessages = {
   notFound: {
     title: "Esta página no existe",
     text: "Quizá la dirección tiene un error, o la página se mudó.",
-    home: "Ir a Wealth Lens",
+    home: "Ir a Horalis Crecimiento",
   },
 };

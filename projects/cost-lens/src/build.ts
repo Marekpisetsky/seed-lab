@@ -33,14 +33,14 @@ function kb(bytes: number, locale: Locale): string {
   return new Intl.NumberFormat(LOCALE_SETTINGS[locale].intl, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(bytes / 1000);
 }
 
-/** A whole page: seed-lab's header and footer around it, and what it weighs. `modules`: the browser code its scripts load. */
+/** A whole page: Horalis's header and footer around it, and what it weighs. `modules`: the browser code its scripts load. */
 function render(page: Page, weight: Weight, modules: readonly string[]): string {
   const { locale, id } = page;
   const words = WORDS[locale];
   const path = id === null ? null : PAGES[id];
   const header = headerModel({
     locale,
-    name: NAME,
+    name: NAME[locale],
     homeHref: pagePath("/", locale, BASE_PATH),
     homeCurrent: id === "home",
     languageHrefs: Object.fromEntries(LOCALES.map((other) => [other, pagePath(path ?? "/", other, BASE_PATH)])) as Record<Locale, string>,
@@ -48,7 +48,7 @@ function render(page: Page, weight: Weight, modules: readonly string[]): string 
   });
   const footer = footerModel({
     locale,
-    links: [{ label: legalPage(locale, NAME).title, href: pagePath(PAGES.privacy, locale, BASE_PATH), current: id === "privacy" }],
+    links: [{ label: legalPage(locale, NAME[locale]).title, href: pagePath(PAGES.privacy, locale, BASE_PATH), current: id === "privacy" }],
     notes: [words.footer.note, words.footer.weight(kb(weight.compressed, locale))],
   });
   return documentHtml({

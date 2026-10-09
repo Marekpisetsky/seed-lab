@@ -4,14 +4,15 @@ import { CATEGORIES, PRINCIPLE_IDS, SHOWN_TOOLS, TOOLS, parseTools, toolById } f
 
 const note = { en: "N", es: "N" };
 const tool = {
-  id: "t", name: "T", status: "live", category: "money", url: "https://example.org", languages: ["en"],
+  id: "t", name: { en: "Horalis T", es: "Horalis T" }, status: "live", category: "money", url: "https://example.org", languages: ["en"],
   tagline: { en: "T", es: "T" }, description: { en: "T", es: "T" },
   principles: Object.fromEntries(PRINCIPLE_IDS.map((id) => [id, { status: "meets", note }])),
 };
 
 describe("the list of tools", () => {
-  it("is one file, read by the hub and every launcher, with Wealth Lens live", () => {
+  it("is one file, read by the hub and every launcher, with Horalis Growth live", () => {
     assert.equal(toolById("wealth-lens").status, "live");
+    assert.deepEqual(toolById("wealth-lens").name, { en: "Horalis Growth", es: "Horalis Crecimiento" });
     assert.ok(SHOWN_TOOLS.some((entry) => entry.id === "wealth-lens"));
     for (const entry of TOOLS) assert.ok(CATEGORIES.includes(entry.category), entry.id);
   });
@@ -32,6 +33,7 @@ describe("the list of tools", () => {
     assert.throws(() => parseTools([{ ...tool, url: "http://example.org" }]), /https/);
     assert.throws(() => parseTools([{ ...tool, listed: "yes" }]), /listed/);
     assert.throws(() => parseTools([tool, tool]), /share an id/);
+    assert.throws(() => parseTools([{ ...tool, name: { en: "T", es: "Horalis T" } }]), /starts with "Horalis "/);
     assert.throws(() => parseTools([{ ...tool, principles: { ...tool.principles, light: { status: "almost", note } } }]), /status for the light principle/);
   });
 });

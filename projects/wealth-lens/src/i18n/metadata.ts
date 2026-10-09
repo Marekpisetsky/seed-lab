@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BRAND_NAME } from "@seed-kit/site.ts";
 import { getI18n } from ".";
 import { LOCALE_SETTINGS, LOCALES, localePath, PAGES, type Locale, type PageId } from "./locales";
 
@@ -6,7 +7,7 @@ import { LOCALE_SETTINGS, LOCALES, localePath, PAGES, type Locale, type PageId }
 export const SITE_URL = "https://seed-lab-omega.vercel.app";
 
 /** The sharing picture (app/og.png/route.tsx), the same for every page and language. */
-const SHARE_IMAGE = { url: "/og.png", width: 1200, height: 630, alt: "Wealth Lens" };
+const SHARE_IMAGE = { url: "/og.png", width: 1200, height: 630, alt: "Horalis Growth" };
 
 /** A page's title, description, languages and sharing card, in `locale`. */
 export function pageMetadata(locale: Locale, page: PageId): Metadata {
@@ -23,7 +24,7 @@ export function pageMetadata(locale: Locale, page: PageId): Metadata {
     },
     openGraph: {
       type: "website",
-      siteName: m.site.name,
+      siteName: BRAND_NAME,
       title: fullTitle,
       description,
       url: path,

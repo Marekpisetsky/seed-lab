@@ -1,11 +1,11 @@
 # Ficha: coste de vida por países
 
-- **App:** Wealth Lens (y Cost Lens, que usa los mismos datos) ·
+- **App:** Horalis Crecimiento (y Horalis Coste de vida, que usa los mismos datos) ·
   **Revisada:** 3 de octubre de 2026
 - **Código:** `packages/seed-kit/src/cost-of-living.ts` y
   `packages/seed-kit/src/data/` (`cost-of-living.json`,
   `estimated-countries.json`); `projects/wealth-lens/scripts/estimate-countries.mts`
-  (la estimación); en Wealth Lens, `src/lib/calculator.ts`
+  (la estimación); en Horalis Crecimiento, `src/lib/calculator.ts`
   (`countryRows`, `dearestCovered`, `featuredRows`, metas de un país) y
   `pricedItems` (meses de vida en un país); `src/lib/wishes.ts` (vivir sin trabajar,
   ver [deseos](deseos.md))

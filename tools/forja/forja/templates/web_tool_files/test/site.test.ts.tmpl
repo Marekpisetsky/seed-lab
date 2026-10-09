@@ -15,8 +15,8 @@ import { ID, LIMIT_KB, SITE_URL } from "../src/site.ts";
 import { resultHtml } from "../src/view.ts";
 
 /**
- * What seed-lab promises for every tool, checked on the built site: both
- * languages, seed-lab's header and footer, nothing from other sites,
+ * What Horalis promises for every tool, checked on the built site: both
+ * languages, Horalis's header and footer, nothing from other sites,
  * nothing stored, under the weight limit, plain words.
  */
 
@@ -43,13 +43,13 @@ describe("the site", () => {
     for (const file of ["404.html", "favicon.svg", "js/app.js", "robots.txt", "sitemap.xml"]) assert.ok(existsSync(join(DIST, file)), file);
   });
 
-  it("wears seed-lab's header and footer: the name, EN/ES, the tools, privacy, Part of seed-lab", () => {
+  it("wears Horalis's header and footer: the name, EN/ES, the tools, privacy, Part of Horalis", () => {
     for (const { file, text } of HTML) {
       assert.match(text, /<header class="sk-header">[\s\S]*<a class="sk-brand"/, file);
       assert.match(text, /<nav class="sk-langs"[\s\S]*hreflang="en"[\s\S]*hreflang="es"/, file);
       assert.match(text, /<details class="sk-launcher">/, file);
-      assert.match(text, /<footer class="sk-footer">[\s\S]*\/privacy\/"[\s\S]*(?:Part of seed-lab|Parte de seed-lab)/, file);
-      assert.match(text, /© 2026 seed-lab/, file);
+      assert.match(text, /<footer class="sk-footer">[\s\S]*\/privacy\/"[\s\S]*(?:Part of Horalis|Parte de Horalis)/, file);
+      assert.match(text, /© 2026 Horalis/, file);
     }
   });
 

@@ -1,6 +1,6 @@
 # Ficha: chequeo de tu plan
 
-- **App:** Wealth Lens · **Revisada:** 7 de octubre de 2026
+- **App:** Horalis Crecimiento · **Revisada:** 7 de octubre de 2026
 - **Código** (en `projects/wealth-lens/`): `src/lib/plan-check.ts` (cuándo
   aparece cada observación y sus cifras), `src/i18n/check-text.ts` (sus
   palabras), `src/components/money/plan-check.tsx` (la sección),

@@ -1,5 +1,5 @@
 /**
- * The privacy and terms page every static seed-lab tool publishes (the
+ * The privacy and terms page every static Horalis tool publishes (the
  * ones Forja makes): the same promises, in the same words, for each
  * tool. A tool with more to say (files, prices it downloads) writes its
  * own page instead. Texts use "**bold**" and "[words](address)" (html.ts,
@@ -71,11 +71,11 @@ const PAGES: Readonly<Record<Locale, (name: string) => LegalPage>> = {
         heading: "Free to use",
         body: [
           `Anyone can use ${name} for free, on its website.`,
-          "The code belongs to seed-lab. Without written permission, it may not be copied, changed, shared or used to make other products.",
+          "The code belongs to Horalis. Without written permission, it may not be copied, changed, shared or used to make other products.",
           "The data belongs to its sources, which keep their rights. Each one is named next to its figures.",
         ],
       },
-      { heading: "Questions", body: [`${name} is part of [seed-lab](hub). How to reach us is on [its About page](hub-about).`] },
+      { heading: "Questions", body: [`${name} is part of [Horalis](hub). How to reach us is on [its About page](hub-about).`] },
     ],
   }),
   es: (name) => ({
@@ -121,11 +121,11 @@ const PAGES: Readonly<Record<Locale, (name: string) => LegalPage>> = {
         heading: "De uso gratuito",
         body: [
           `Cualquiera puede usar ${name} gratis, en su web.`,
-          "El código es de seed-lab. Sin permiso por escrito, no se puede copiar, modificar, distribuir ni usar para crear otros productos.",
+          "El código es de Horalis. Sin permiso por escrito, no se puede copiar, modificar, distribuir ni usar para crear otros productos.",
           "Los datos son de sus fuentes, que conservan sus derechos. Cada una aparece junto a sus cifras.",
         ],
       },
-      { heading: "Preguntas", body: [`${name} es parte de [seed-lab](hub). Cómo escribirnos está en [su página Acerca de](hub-about).`] },
+      { heading: "Preguntas", body: [`${name} es parte de [Horalis](hub). Cómo escribirnos está en [su página Acerca de](hub-about).`] },
     ],
   }),
 };

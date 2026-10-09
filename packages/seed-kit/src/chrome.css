@@ -1,5 +1,5 @@
 /*
- * seed-lab's header and footer (chrome.ts, chrome-html.ts, react/chrome.tsx),
+ * Horalis's header and footer (chrome.ts, chrome-html.ts, react/chrome.tsx),
  * for every app: only the tokens' colours, 44 px targets, mobile first.
  * An app can set --sk-width (its content width) and --sk-gutter.
  */
@@ -51,6 +51,13 @@ html { scroll-padding-top: calc(var(--sk-header-space) + .5rem); }
 
 .sk-brand { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; margin-right: auto; font-size: 1.125rem; font-weight: 800; letter-spacing: -.01em; }
 .sk-seed { display: inline-flex; color: var(--brand); }
+/* "Horalis Growth": the brand, then the tool's own name; on a phone the tool's name goes under the brand. */
+.sk-name { line-height: 1.15; }
+.sk-product { font-weight: 600; }
+@media (max-width: 47.999rem) {
+  .sk-name:has(.sk-product) { font-size: 1rem; }
+  .sk-product { display: block; color: var(--muted); font-size: .8125rem; }
+}
 
 .sk-nav { order: 3; width: 100%; margin: 0 -.25rem; overflow-x: auto; }
 .sk-nav ul, .sk-langs ul, .sk-links, .sk-panel ul { margin: 0; padding: 0; list-style: none; }
@@ -76,7 +83,7 @@ html { scroll-padding-top: calc(var(--sk-header-space) + .5rem); }
  * The theme menu (theme.ts): only where the head script ran (it sets
  * data-theme), since it needs it. Its button shows the mode chosen. Up to
  * 424 px there is no room beside EN/ES for every app's name on one line
- * (Inflation Lens is the longest): its choices are at the foot of the
+ * (Horalis Cost of Living is the longest): its choices are at the foot of the
  * launcher's panel instead, and only one copy is ever shown.
  */
 .sk-theme, .sk-panel-theme, .sk-mode-auto, .sk-mode-light, .sk-mode-dark { display: none; }
