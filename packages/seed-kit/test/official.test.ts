@@ -244,7 +244,7 @@ describe("the yearly workflow", () => {
 
   it("only opens a pull request, with the report, and keeps the data if anything fails", () => {
     assert.match(workflow, /gh pr create .*--body-file src\/data\/official\/REPORT\.md/);
-    assert.match(workflow, /git checkout -- src\/data\/official\/\*\.json/);
+    assert.match(workflow, /git checkout -- src\/data\/official\/\*\.json src\/data\/living-costs\.json/);
     assert.doesNotMatch(workflow, /git push origin (master|main)|gh pr merge/);
   });
 });

@@ -11,7 +11,7 @@ const plan = (patch: Partial<CalculatorPlan> = {}): CalculatorPlan => ({ ...SP50
 
 describe("the growth line under the result", () => {
   it("says how much the money grows a year, after rising prices, with the figure before them beside it", () => {
-    const { investment } = calculate(plan(), [], today);
+    const { investment } = calculate(plan(), today);
     expect(growsText(investment.realReturn, EN)).toBe("Grows about 7.5% a year");
     expect(EN.m.growth.before(EN.f.rate(toNominal(investment.realReturn, investment.inflation)))).toBe("≈ 9.7% before inflation");
     expect(growsText(-0.0049, EN)).toBe("Shrinks about 0.5% a year");
@@ -20,7 +20,7 @@ describe("the growth line under the result", () => {
 
   it("gives ×Z, the end total over what was put in, never a percent that grows huge", () => {
     // EUR 1,000 + EUR 200 a month for 20 years in the S&P 500: EUR 49,000 put in.
-    const { result } = calculate(plan(), [], today);
+    const { result } = calculate(plan(), today);
     const multiple = result.total / 49_000;
     expect(result.putIn).toBe(49_000);
     expect(multipleOf(result)).toBeCloseTo(multiple, 12);
@@ -55,12 +55,12 @@ describe("the growth line under the result", () => {
 });
 
 describe("the chart's labels", () => {
-  const calc = calculate(plan(), [], today);
+  const calc = calculate(plan(), today);
   const points = yearlyPath(calc.scenario, 20);
 
   it("put what the money became at the end of the curve, as a multiple: no “+5,411%”", () => {
     expect(timesPutInText(points[20], EN)).toBe("×2.3 what you put in");
-    const long = calculate(plan({ years: 60, invested: 1_000, monthlyContribution: 0 }), [], today);
+    const long = calculate(plan({ years: 60, invested: 1_000, monthlyContribution: 0 }), today);
     expect(timesPutInText(long.result, EN)).toMatch(/^×\d+(\.\d)? what you put in$/);
   });
 

@@ -10,16 +10,14 @@ import { byCountryName, countryName } from "@/i18n/countries";
 import { investmentName } from "@/i18n/investment-text";
 import { resetAssumptions, setAssumptions, setInvestment, setPricesOf } from "@/lib/app-store";
 import { historicalRiskText, optionsChanged, upsAndDownsExample } from "@/lib/assumptions";
-import { costOfLiving, referenceInflation } from "@/lib/cost-of-living";
+import { REFERENCE_INFLATION, referenceInflation } from "@/lib/cost-of-living";
 import type { ResolvedInvestment } from "@/lib/investment";
-import { mixPartKey, mixStock } from "@/lib/mix";
-import { portfolioAllocation } from "@/lib/portfolio";
-import type { Holding, Investment } from "@/lib/types";
+import { mixPartKey } from "@/lib/mix";
+import type { Investment } from "@/lib/types";
 import { MAX_VOLATILITY } from "@/lib/validation";
 import { HowTheSimulationsWork } from "./explainers";
 import { InvestmentPicker, type PickChoice } from "./investment-picker";
 import { MixEditor } from "./mix-editor";
-import { PortfolioEditor } from "./portfolio-editor";
 
 const labelClass = "block text-sm font-medium";
 /** Percent with at most two decimals, as a field shows it. */
@@ -79,7 +77,7 @@ function PercentField({
   );
 }
 
-/** The picker's key for the plan's choice: "asset:sp500", "portfolio", "mix", "custom". */
+/** The picker's key for the plan's choice: "asset:sp500", "mix", "custom". */
 function keyOf(investment: Investment): string {
   return investment.kind === "asset" ? `asset:${investment.asset}` : investment.kind;
 }
@@ -88,12 +86,8 @@ function keyOf(investment: Investment): string {
 function investmentFor(choice: PickChoice, current: Investment): Investment {
   switch (choice.kind) {
     case "asset":
-    case "portfolio":
     case "custom":
       return choice;
-    // Offered only for a mix's parts.
-    case "stock":
-      return current;
     case "mix": {
       if (current.kind === "mix") return current;
       return { kind: "mix", parts: [{ asset: current.kind === "asset" ? current.asset : "sp500", weight: 100 }], rebalance: false };
@@ -102,15 +96,17 @@ function investmentFor(choice: PickChoice, current: Investment): Investment {
 }
 
 const EMPTY: readonly string[] = [];
+/** Every country with a reference inflation, for "Rising prices in". */
+const PRICE_COUNTRIES = Object.keys(REFERENCE_INFLATION).map((code) => ({ code }));
 
 /**
  * "More options", folded under the calculator and loaded when opened:
- * any other investment (an index, gold, a mix of your own, My portfolio),
+ * any other investment (US stocks, bonds, gold, a mix of your own),
  * how much it can go up or down, and how fast prices rise. A changed
  * figure marks it "Custom"; "Reset to standard" brings the standard ones
  * back.
  */
-export function MoreOptions({ current, priced }: { current: ResolvedInvestment; priced: readonly Holding[] }) {
+export function MoreOptions({ current }: { current: ResolvedInvestment }) {
   const i18n = useI18n();
   const { m, f } = i18n;
   const t = m.assumptions;
@@ -131,7 +127,6 @@ export function MoreOptions({ current, priced }: { current: ResolvedInvestment; 
     setPicker({ mode, top: target.bottom - (box?.top ?? 0) + 4 });
   };
   const mix = plan.investment.kind === "mix" ? plan.investment : null;
-  const holdingsCount = portfolioAllocation(priced).entries.length;
   const { standard, inflation } = current;
   const reference = referenceInflation(current.pricesOf);
   const isCustomGrowth = current.investment.kind === "custom";
@@ -158,7 +153,6 @@ export function MoreOptions({ current, priced }: { current: ResolvedInvestment; 
         </button>
       </div>
       {mix && <MixEditor mix={mix} onAddPart={(anchor) => open("add", anchor)} />}
-      {current.investment.kind === "portfolio" && current.allocation && <PortfolioEditor allocation={current.allocation} model={current.model} />}
 
       <div className="space-y-2">
         <h3 className="text-sm font-semibold">{m.more.upsTitle}</h3>
@@ -198,7 +192,7 @@ export function MoreOptions({ current, priced }: { current: ResolvedInvestment; 
             onChange={(event) => setPricesOf(event.target.value)}
             className="min-h-11 w-full rounded-md border border-border bg-card px-3 py-2 text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
           >
-            {byCountryName(costOfLiving.countries, i18n).map((country) => (
+            {byCountryName(PRICE_COUNTRIES, i18n).map((country) => (
               <option key={country.code} value={country.code}>
                 {countryName(country.code, i18n)}
               </option>
@@ -233,16 +227,12 @@ export function MoreOptions({ current, priced }: { current: ResolvedInvestment; 
           top={picker.top}
           label={picker.mode === "add" ? m.calculator.addToMix : m.more.other}
           selected={picker.mode === "add" ? null : keyOf(plan.investment)}
-          hasPortfolio={picker.mode === "choose" && holdingsCount > 0}
-          holdingsCount={holdingsCount}
           onlyAssets={picker.mode === "add"}
           exclude={picker.mode === "add" && mix ? mix.parts.map(mixPartKey) : EMPTY}
           onClose={close}
           onPick={(choice) => {
             if (picker.mode === "add" && mix) {
-              const stock = choice.kind === "stock" ? mixStock(choice.stock) : null;
               if (choice.kind === "asset") setInvestment({ ...mix, parts: [...mix.parts, { asset: choice.asset, weight: 0 }] });
-              if (stock) setInvestment({ ...mix, parts: [...mix.parts, { asset: stock.index, weight: 0, stock: stock.id }] });
             } else {
               setInvestment(investmentFor(choice, plan.investment));
             }

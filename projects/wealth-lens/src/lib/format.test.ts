@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseNumber } from "@seed-kit/format.ts";
 import { EN, getI18n } from "@/i18n";
-import { parseLooseNumber } from "./csv";
+import { parseLooseNumber } from "./number";
 
 const ES = getI18n("es");
 const {

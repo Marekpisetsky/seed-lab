@@ -18,7 +18,7 @@ export interface Figures {
   /** The heaviest page of this site, compressed, in whole KB, rounded up. */
   maxKb: number;
   languages: number;
-  /** Countries in the cost-of-living data: the detailed ones and the estimated ones. */
+  /** Countries in the cost-of-living data: those the official data can price. */
   countries: number;
   /** Tools built on seed-kit that people can find and use: the shown ones, never a hidden beta. */
   tools: number;

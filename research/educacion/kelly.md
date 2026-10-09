@@ -126,3 +126,8 @@ cualquiera puede rehacerlas con una calculadora.
 - 2026-10-08: título y revista correctos del artículo de MacLean, Thorp y
   Ziemba (2010); "Good and bad properties of the Kelly criterion" es el
   título del capítulo del libro de 2011.
+- 2026-10-09 (fase A2): la tabla de arriba se calculó con las acciones del
+  mundo (MSCI World), que la app ya no usa (sus datos no son abiertos), y
+  con la oscilación de entonces del plan de partida (17,82 %; hoy, la de
+  las acciones de EE. UU., 16,39 %). Se deja como ejemplo: la conclusión
+  (Kelly da apalancamientos que la app no recomienda) no cambia.

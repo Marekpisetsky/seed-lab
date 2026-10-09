@@ -6,13 +6,11 @@
  */
 
 import type { I18n } from "@/i18n";
-import { dividendNote, isStartingGrowth } from "@/i18n/investment-text";
+import { isStartingGrowth } from "@/i18n/investment-text";
 import { SAVINGS_RATE } from "./assets";
 import { periodText, toNominal, type ResolvedInvestment } from "./investment";
 import { futureValueWithContributions } from "./finance";
 import type { SeriesId } from "./indexes";
-import { MARKET } from "./market-data";
-import type { PricesFile } from "./market-format";
 import { BEST_20_YEARS, beyondHistory, closestHistory, keptRecords, STRONG_GROWTH, type BestRun } from "./realism";
 import type { Plan } from "./types";
 
@@ -61,17 +59,16 @@ export function strongGrowthWarning(
   realReturn: number,
   plan: { years: number; invested: number; monthly: number },
   { m, f }: I18n,
-  market: PricesFile = MARKET,
 ): string | null {
   if (!(realReturn > STRONG_GROWTH)) return null;
   const t = m.growth.strong;
   const rate = f.rate(realReturn);
   const span = m.units.years(plan.years);
-  const kept = keptRecords(plan.years, market).filter((record) => record.growth >= realReturn);
+  const kept = keptRecords(plan.years).filter((record) => record.growth >= realReturn);
   const top = kept[0];
   let first = t.none(rate, span);
   if (top) {
-    const name = top.kind === "index" ? m.assets.inSentence[top.id as SeriesId] : top.id;
+    const name = m.assets.inSentence[top.id as SeriesId];
     const period = top.from === top.to ? String(top.from) : `${top.from}–${top.to}`;
     const one = kept.length === 1;
     first = top.years < plan.years ? (one ? t.onlyFewer : t.fewFewer)(rate, span, name, m.units.years(top.years), period) : (one ? t.only : t.few)(rate, span, name, period);
@@ -141,14 +138,12 @@ export function assumptionsLine(investment: ResolvedInvestment, i18n: I18n, mone
   return [growth, moves, sourceText(investment, i18n)].filter(Boolean).join(" · ");
 }
 
-/** The short note under the line: what matters about this choice (My portfolio's label sits over its holdings). */
+/** The short note under the line: what matters about this choice. */
 export function assumptionsNote(investment: ResolvedInvestment, i18n: I18n): string {
   const { notes } = i18n.m.assumptions;
   const said: string[] = [];
   const { investment: chosen } = investment;
   if (chosen.kind === "asset" && chosen.asset === "gold") said.push(notes.gold);
-  const dividends = dividendNote(investment, i18n);
-  if (dividends) said.push(`${dividends.charAt(0).toUpperCase()}${dividends.slice(1)}.`);
   said.push(isStartingGrowth(investment) ? notes.world : investment.custom ? notes.yours : investment.period ? notes.past : notes.notPromise);
   said.push(notes.todaysEuros);
   return said.join(" ");

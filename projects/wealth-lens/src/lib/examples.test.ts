@@ -8,7 +8,7 @@ import { DEFAULT_PLAN, STARTING_GROWTH } from "./validation";
 
 const ES = getI18n("es");
 const plan = () => appStore.get().plan;
-const resolved = () => resolveInvestment(plan().investment, [], plan());
+const resolved = () => resolveInvestment(plan().investment, plan());
 const rates = () => exampleRates(plan());
 /** What typing a growth in step 3's field does, from what the field showed. */
 const type = (growth: number) => setGrowth(growth, resolved().realReturn, rates(), plan().investment);
@@ -23,9 +23,9 @@ describe("step 3's starting value", () => {
     expect(fieldPercent(resolved().realReturn)).toBe(5);
   });
 
-  it("moves like world stocks: their ups and downs", () => {
-    expect(CUSTOM_BASE).toBe("world");
-    expect(resolved().volatility).toBe(resolveInvestment({ kind: "asset", asset: "world" }, []).volatility);
+  it("moves like US stocks: their ups and downs", () => {
+    expect(CUSTOM_BASE).toBe("sp500");
+    expect(resolved().volatility).toBe(resolveInvestment({ kind: "asset", asset: "sp500" }).volatility);
     expect(resolved().volatility).toBeGreaterThan(0);
   });
 
@@ -37,19 +37,15 @@ describe("step 3's starting value", () => {
 describe("the examples under step 3", () => {
   it("are what each one invests in, and back", () => {
     for (const id of EXAMPLE_IDS) expect(exampleOf(exampleInvestment(id))).toBe(id);
-    expect(exampleInvestment("60-40")).toMatchObject({ kind: "mix", parts: [{ asset: "world", weight: 60 }, { asset: "bonds", weight: 40 }] });
+    expect(exampleInvestment("60-40")).toMatchObject({ kind: "mix", parts: [{ asset: "sp500", weight: 60 }, { asset: "bonds", weight: 40 }] });
     expect(exampleOf({ kind: "custom" })).toBeNull();
-    expect(exampleOf({ kind: "asset", asset: "nasdaq100" })).toBeNull();
-    expect(exampleOf({ kind: "portfolio" })).toBeNull();
-    expect(exampleOf({ kind: "mix", parts: [{ asset: "world", weight: 80 }, { asset: "bonds", weight: 20 }], rebalance: true })).toBeNull();
+    expect(exampleOf({ kind: "mix", parts: [{ asset: "sp500", weight: 80 }, { asset: "bonds", weight: 20 }], rebalance: true })).toBeNull();
   });
 
-  it("show the S&P 500 at 7.5 % and World at 4.5 %, after rising prices, in both languages", () => {
+  it("show US stocks at 7.5 %, after rising prices, in both languages", () => {
     expect(EN.f.rate(rates().sp500)).toBe("7.5%");
-    expect(EN.f.rate(rates().world)).toBe("4.5%");
     expect(ES.f.rate(rates().sp500)).toBe("7,5 %");
     expect(rates().sp500).toBeCloseTo(indexRate("sp500"), 12);
-    expect(rates().world).toBeCloseTo(indexRate("world"), 12);
   });
 
   it("each fill the field with their growth, invest in it with its own past years, and drop a typed growth", () => {
@@ -68,16 +64,16 @@ describe("typing in step 3's field", () => {
     type(0.075);
     expect(plan().investment).toEqual({ kind: "asset", asset: "sp500" });
     expect(resolved().custom).toBe(false);
-    type(Math.round(rates().world * 1000) / 1000);
-    expect(plan().investment).toEqual({ kind: "asset", asset: "world" });
+    type(Math.round(rates().bonds * 1000) / 1000);
+    expect(plan().investment).toEqual({ kind: "asset", asset: "bonds" });
   });
 
-  it("is Custom growth at any other number, with world stocks' ups and downs", () => {
+  it("is Custom growth at any other number, with US stocks' ups and downs", () => {
     pickExample("sp500");
     type(0.06);
     expect(plan().investment).toEqual({ kind: "custom" });
     expect(resolved().realReturn).toBe(0.06);
-    expect(resolved().volatility).toBe(resolveInvestment({ kind: "asset", asset: "world" }, []).volatility);
+    expect(resolved().volatility).toBe(resolveInvestment({ kind: "asset", asset: "sp500" }).volatility);
   });
 
   it("keeps ups and downs typed in More options while it stays Custom growth", () => {
@@ -87,9 +83,10 @@ describe("typing in step 3's field", () => {
   });
 
   it("changes nothing when the number is the one shown, so leaving the field keeps a choice from More options", () => {
-    setInvestment({ kind: "asset", asset: "nasdaq100" });
+    const mix = { kind: "mix" as const, parts: [{ asset: "sp500" as const, weight: 70 }, { asset: "gold" as const, weight: 30 }], rebalance: true };
+    setInvestment(mix);
     type(resolved().realReturn);
-    expect(plan().investment).toEqual({ kind: "asset", asset: "nasdaq100" });
+    expect(plan().investment).toEqual(mix);
   });
 
   it("is the one number typed: growth after rising prices, whatever the country's inflation", () => {

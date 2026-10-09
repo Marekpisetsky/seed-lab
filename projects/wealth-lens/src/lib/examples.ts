@@ -1,10 +1,10 @@
 /**
  * Step 3, "How much does it grow a year?": one field, a growth a year after
  * rising prices, 5 % to start (STARTING_GROWTH, lib/validation.ts).
- * Under it, examples to fill it with one tap: the S&P 500, World, 60/40,
- * bonds and savings. A number that is an example's (to a tenth of a
+ * Under it, examples to fill it with one tap: US stocks, 60/40, German
+ * bonds, gold and savings. A number that is an example's (to a tenth of a
  * percent) invests in it, with its own past years; any other number is
- * Custom growth, with the ups and downs of world stocks.
+ * Custom growth, with the ups and downs of US stocks.
  */
 
 import { setAssumptions, setInvestment } from "./app-store";
@@ -13,20 +13,19 @@ import { resolveInvestment, type ProjectionSettings } from "./investment";
 import { TEMPLATES, templateOf } from "./mix";
 import type { Investment } from "./types";
 
-export const EXAMPLE_IDS = ["sp500", "world", "60-40", "bonds", "savings"] as const;
+export const EXAMPLE_IDS = ["sp500", "60-40", "bonds", "gold", "savings"] as const;
 export type ExampleId = (typeof EXAMPLE_IDS)[number];
 
-/** The example an investment is, or `null` (Custom growth, Nasdaq-100, gold, another mix, My portfolio). */
+/** The example an investment is, or `null` (Custom growth, another mix). */
 export function exampleOf(investment: Investment): ExampleId | null {
   switch (investment.kind) {
     case "asset": {
       const { asset } = investment;
-      return asset === "sp500" || asset === "world" || asset === "bonds" || asset === "savings" ? asset : null;
+      return asset;
     }
     case "mix":
       return templateOf(investment.parts)?.id === "60-40" ? "60-40" : null;
     case "custom":
-    case "portfolio":
       return null;
   }
 }
@@ -38,8 +37,8 @@ export function exampleInvestment(id: ExampleId): Investment {
   return id === "60-40" ? { kind: "mix", parts: (SIXTY_FORTY?.parts ?? []).map((part) => ({ ...part })), rebalance: false } : { kind: "asset", asset: id };
 }
 
-/** The S&P 500's and World's growth a year after rising prices: their average over the shared years. */
-export function indexRate(id: "sp500" | "world"): number {
+/** US stocks' growth a year after rising prices: their average over the shared years. */
+export function indexRate(id: "sp500"): number {
   return SERIES[id].averageReturn;
 }
 
@@ -50,7 +49,7 @@ export function indexRate(id: "sp500" | "world"): number {
  */
 export function exampleRates(settings: Pick<ProjectionSettings, "pricesOf" | "assumptions">): Record<ExampleId, number> {
   const standard = { pricesOf: settings.pricesOf, assumptions: { growth: null, volatility: null, inflation: settings.assumptions.inflation } };
-  return Object.fromEntries(EXAMPLE_IDS.map((id) => [id, resolveInvestment(exampleInvestment(id), [], standard).realReturn])) as Record<ExampleId, number>;
+  return Object.fromEntries(EXAMPLE_IDS.map((id) => [id, resolveInvestment(exampleInvestment(id), standard).realReturn])) as Record<ExampleId, number>;
 }
 
 /** Two growths the field shows the same: equal to a tenth of a percent. */
@@ -67,7 +66,7 @@ export function fieldPercent(growth: number): number {
  * The field's number, once typed: the example with that growth if there is
  * one (its own past years), or Custom growth at it. A number equal to what
  * the field already showed changes nothing, so leaving the field keeps
- * Nasdaq-100 or a mix chosen in More options.
+ * a mix chosen in More options.
  */
 export function setGrowth(growth: number, shown: number, rates: Record<ExampleId, number>, investment: Investment): void {
   if (sameTenth(growth, shown)) return;

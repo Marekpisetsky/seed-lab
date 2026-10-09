@@ -37,9 +37,9 @@ describe("the five scenarios", () => {
   });
 
   it("each show exactly what applying them changes at the end", () => {
-    const base = calculate(plan(), [], today);
+    const base = calculate(plan(), today);
     for (const entry of whatIfEffects(base)) {
-      const applied = calculate(plan(), [], today, entry.id);
+      const applied = calculate(plan(), today, entry.id);
       expect(applied.whatIf, entry.id).toBe(entry.id);
       expect(applied.result.total - base.result.total, entry.id).toBeCloseTo(entry.change, 6);
     }
@@ -47,12 +47,12 @@ describe("the five scenarios", () => {
 });
 
 describe("Grows 1% more / less", () => {
-  const base = calculate(plan(), [], today);
+  const base = calculate(plan(), today);
   const r = SERIES.sp500.averageReturn;
 
   it("grows 1% more or less a year after rising prices, with the same ups and downs", () => {
-    const more = calculate(plan(), [], today, "grow-more");
-    const less = calculate(plan(), [], today, "grow-less");
+    const more = calculate(plan(), today, "grow-more");
+    const less = calculate(plan(), today, "grow-less");
     expect(more.investment.realReturn).toBeCloseTo(r + 0.01, 12);
     expect(less.investment.realReturn).toBeCloseTo(r - 0.01, 12);
     expect(more.result.total).toBeCloseTo(futureValueWithContributions(10_000, 300, r + 0.01, 20), 6);
@@ -62,16 +62,16 @@ describe("Grows 1% more / less", () => {
   });
 
   it("moves the simulations too: the withdrawal lasts more often with more growth", () => {
-    const more = calculate(plan(), [], today, "grow-more");
+    const more = calculate(plan(), today, "grow-more");
     expect(more.result.lasted).toBeGreaterThan(base.result.lasted);
     const band = bandsFor(more.investment, { start: 10_000, monthly: 300, years: 20 });
     expect(band.p50[20]).toBeGreaterThan(bandsFor(base.investment, { start: 10_000, monthly: 300, years: 20 }).p50[20]);
   });
 
   it("works for a mix, whose parts are simulated together", () => {
-    const mix = plan({ investment: { kind: "mix", parts: [{ asset: "world", weight: 60 }, { asset: "bonds", weight: 40 }], rebalance: false } });
-    const plain = calculate(mix, [], today);
-    const more = calculate(mix, [], today, "grow-more");
+    const mix = plan({ investment: { kind: "mix", parts: [{ asset: "sp500", weight: 60 }, { asset: "bonds", weight: 40 }], rebalance: false } });
+    const plain = calculate(mix, today);
+    const more = calculate(mix, today, "grow-more");
     expect(more.investment.realReturn).toBeCloseTo(plain.investment.realReturn + 0.01, 12);
     expect(more.investment.growthFactor).toBeGreaterThan(1);
     expect(successRatesFor(more.investment, [0.04])[0]).toBeGreaterThan(successRatesFor(plain.investment, [0.04])[0]);
@@ -79,31 +79,31 @@ describe("Grows 1% more / less", () => {
 });
 
 describe("+€50 a month and 5 more years", () => {
-  const base = calculate(plan(), [], today);
+  const base = calculate(plan(), today);
 
   it("adds €50 to every month", () => {
-    const more = calculate(plan(), [], today, "monthly-50");
+    const more = calculate(plan(), today, "monthly-50");
     expect(more.scenario.monthly).toBe(350);
     expect(more.result.putIn).toBe(base.result.putIn + 50 * 240);
     expect(effect(base, "monthly-50")?.change).toBeCloseTo(futureValueWithContributions(0, 50, SERIES.sp500.averageReturn, 20), 6);
   });
 
   it("looks five years further, up to 60", () => {
-    const later = calculate(plan(), [], today, "years-5");
+    const later = calculate(plan(), today, "years-5");
     expect(later.result.years).toBe(25);
     expect(effect(base, "years-5")?.change).toBeCloseTo(valueAt(base.scenario, 300) - base.result.total, 6);
-    const long = calculate(plan({ years: 56 }), [], today);
+    const long = calculate(plan({ years: 56 }), today);
     expect(effect(long, "years-5")).toEqual({ id: "years-5", change: 0, available: false });
-    expect(calculate(plan({ years: 56 }), [], today, "years-5")).toMatchObject({ whatIf: null, result: { years: 56 } });
-    expect(effect(calculate(plan({ years: 55 }), [], today), "years-5")?.available).toBe(true);
+    expect(calculate(plan({ years: 56 }), today, "years-5")).toMatchObject({ whatIf: null, result: { years: 56 } });
+    expect(effect(calculate(plan({ years: 55 }), today), "years-5")?.available).toBe(true);
   });
 });
 
 describe("A bad first decade", () => {
-  const base = calculate(plan(), [], today);
+  const base = calculate(plan(), today);
 
   it("takes the real years 2000–2009 of the S&P 500 for ten years, then grows at the average", () => {
-    const bad = calculate(plan(), [], today, "bad-decade");
+    const bad = calculate(plan(), today, "bad-decade");
     const years = new Map(SERIES.sp500.years.map((entry) => [entry.year, entry.realReturn]));
     const expected = [10_000];
     for (let year = 2000; year <= 2009; year++) expected.push(futureValueWithContributions(expected[expected.length - 1], 300, years.get(year) ?? NaN, 1));
@@ -122,36 +122,36 @@ describe("A bad first decade", () => {
 
   it("delays goals and the country table the same way", () => {
     const withGoal = plan({ goals: [{ id: "a", kind: "amount", amount: 150_000 }] });
-    const plain = calculate(withGoal, [], today);
-    const bad = calculate(withGoal, [], today, "bad-decade");
+    const plain = calculate(withGoal, today);
+    const bad = calculate(withGoal, today, "bad-decade");
     expect(bad.goals[0].months).toBeGreaterThan(plain.goals[0].months);
     expect(bad.goals[0].months).toBeCloseTo(monthsTo(bad.scenario, 150_000), 9);
-    const peru = (calc: typeof bad) => calc.countries.find((row) => row.code === "PE")?.withHousing.months ?? 0;
+    const peru = (calc: typeof bad) => calc.countries.find((row) => row.code === "PE")?.cost.months ?? 0;
     expect(peru(bad)).toBeGreaterThan(peru(plain));
   });
 
   it.each([0, 10])("the amount needed in 30 years includes the bad decade (starting contribution %s)", (monthlyContribution) => {
     const original = plan({ invested: 1000, monthlyContribution, goals: [{ id: "far", kind: "amount", amount: 1_000_000 }] });
-    const bad = calculate(original, [], today, "bad-decade");
+    const bad = calculate(original, today, "bad-decade");
     expect(bad.goals[0].reachable).toBe(false);
     const needed = bad.goals[0].needed;
     expect(needed).not.toBeNull();
-    const adjusted = calculate({ ...original, monthlyContribution: needed }, [], today, "bad-decade");
+    const adjusted = calculate({ ...original, monthlyContribution: needed }, today, "bad-decade");
     expect(valueAt(adjusted.scenario, 30 * 12)).toBeCloseTo(1_000_000, 5);
   });
 
   it.each([false, true])("solves the same bad decade for a mix from zero capital (rebalance %s)", (rebalance) => {
-    const original = plan({ invested: 0, monthlyContribution: 10, investment: { kind: "mix", parts: [{ asset: "world", weight: 60 }, { asset: "bonds", weight: 40 }], rebalance }, goals: [{ id: "far", kind: "amount", amount: 1_000_000 }] });
-    const bad = calculate(original, [], today, "bad-decade");
+    const original = plan({ invested: 0, monthlyContribution: 10, investment: { kind: "mix", parts: [{ asset: "sp500", weight: 60 }, { asset: "bonds", weight: 40 }], rebalance }, goals: [{ id: "far", kind: "amount", amount: 1_000_000 }] });
+    const bad = calculate(original, today, "bad-decade");
     expect(bad.goals[0].reachable).toBe(false);
     const needed = bad.goals[0].needed;
     expect(needed).not.toBeNull();
-    const adjusted = calculate({ ...original, monthlyContribution: needed }, [], today, "bad-decade");
+    const adjusted = calculate({ ...original, monthlyContribution: needed }, today, "bad-decade");
     expect(valueAt(adjusted.scenario, 30 * 12)).toBeCloseTo(1_000_000, 5);
   });
 
   it("lasts the plan's years when they are fewer than ten", () => {
-    const short = calculate(plan({ years: 6 }), [], today, "bad-decade");
+    const short = calculate(plan({ years: 6 }), today, "bad-decade");
     expect(short.scenario.head).toHaveLength(7);
     expect(short.result.total).toBeCloseTo(short.scenario.head?.[6] ?? NaN, 6);
   });
@@ -159,16 +159,16 @@ describe("A bad first decade", () => {
   it("uses the ups and downs typed, when they are the user's", () => {
     const calm = plan({ assumptions: { ...STANDARD_ASSUMPTIONS, volatility: 0.05 } });
     const wild = plan({ assumptions: { ...STANDARD_ASSUMPTIONS, volatility: 0.3 } });
-    const change = (p: CalculatorPlan) => effect(calculate(p, [], today), "bad-decade")?.change ?? 0;
+    const change = (p: CalculatorPlan) => effect(calculate(p, today), "bad-decade")?.change ?? 0;
     expect(change(wild)).toBeLessThan(change(calm));
     expect(change(calm)).toBeLessThan(0);
   });
 
   it("does not exist with no ups and downs", () => {
-    const savings = calculate(plan({ investment: { kind: "asset", asset: "savings" } }), [], today);
+    const savings = calculate(plan({ investment: { kind: "asset", asset: "savings" } }), today);
     expect(effect(savings, "bad-decade")).toEqual({ id: "bad-decade", change: 0, available: false });
     expect(badStartHead(savings.investment, 10_000, 300, 20)).toBeNull();
-    expect(calculate(plan({ investment: { kind: "asset", asset: "savings" } }), [], today, "bad-decade").whatIf).toBeNull();
+    expect(calculate(plan({ investment: { kind: "asset", asset: "savings" } }), today, "bad-decade").whatIf).toBeNull();
   });
 });
 
@@ -191,7 +191,7 @@ describe("applying a scenario", () => {
     updatePlan({ monthlyContribution: 500 });
     const { plan: current, whatIf } = appStore.get();
     expect(whatIf).toBe("monthly-50");
-    expect(calculate(current, [], today, whatIf).scenario.monthly).toBe(550);
+    expect(calculate(current, today, whatIf).scenario.monthly).toBe(550);
   });
 
   it("goes away when the plan can no longer take it, and does not come back on its own", () => {

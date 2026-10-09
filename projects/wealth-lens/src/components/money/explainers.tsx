@@ -2,8 +2,6 @@
 
 import { useI18n } from "@/components/i18n";
 import { COMMON_PERIOD } from "@/lib/indexes";
-import { stockTerms, usesFallback, type MixModel } from "@/lib/mix";
-import { FALLBACK_FACTOR, MIN_DATA_YEARS } from "@/lib/volatility";
 
 /**
  * The folded "i" explanations: how the figures are worked out, for whoever
@@ -52,35 +50,9 @@ export function HowThisMixWorks() {
     <Explainer title={mix.title} className="group rounded-md">
       <p>{withPeriod(mix.growth)}</p>
       <p>{withPeriod(mix.ups)}</p>
-      <p>{mix.stocks}</p>
-      <p>{mix.concentration}</p>
       <p>{mix.weights}</p>
       <p>{mix.worst}</p>
       <p>{mix.advice}</p>
-    </Explainer>
-  );
-}
-
-/** Under My portfolio: how it is simulated, with each stock's figures. */
-export function HowMyPortfolioWorks({ model }: { model: MixModel | null }) {
-  const { m, f } = useI18n();
-  const { portfolio } = m.explain;
-  const stocks = model ? stockTerms(model) : [];
-  return (
-    <Explainer title={portfolio.title}>
-      <p>{portfolio.weighting}</p>
-      <p>{portfolio.stocks}</p>
-      <p>
-        {portfolio.own} {model && usesFallback(model) && portfolio.fallback(MIN_DATA_YEARS, FALLBACK_FACTOR)}
-      </p>
-      {stocks.length > 0 && (
-        <ul className="space-y-0.5">
-          {stocks.map((term) => (
-            <li key={term.name}>{portfolio.term(term.name, f.percent(term.volatility, { decimals: 0 }), f.number(term.correlation, 2))}</li>
-          ))}
-        </ul>
-      )}
-      <p>{portfolio.drift}</p>
     </Explainer>
   );
 }

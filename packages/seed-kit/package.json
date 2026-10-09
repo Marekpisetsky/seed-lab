@@ -13,7 +13,9 @@
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test test/*.test.ts",
     "check": "npm run lint && npm run typecheck && npm test",
-    "official-data": "node --experimental-strip-types scripts/official-data.ts"
+    "official-data": "node --experimental-strip-types scripts/official-data.ts",
+    "living-costs": "node --experimental-strip-types scripts/living-costs.ts",
+    "country-names": "node --experimental-strip-types scripts/country-names.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

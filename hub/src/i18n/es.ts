@@ -183,7 +183,6 @@ export const es: Messages = {
       "Una auditoría WCAG hecha por personas y una declaración de accesibilidad pública.",
       "Pruebas con personas reales, niños y mayores incluidos.",
       "Una lista pública de los cambios en cada método.",
-      "Sustituir las fuentes que no permiten compartir sus datos, como Yahoo Finance, Numbeo y MSCI.",
     ],
     blocksTitle: "Herramientas gratuitas para desarrolladores",
     blocksIntro: "Horalis Crecimiento está hecha de piezas que otras herramientas podrían reutilizar. Queremos publicarlas una a una. Todavía no hay ninguna publicada.",

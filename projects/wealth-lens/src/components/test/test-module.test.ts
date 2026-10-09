@@ -28,7 +28,7 @@ const decode = (html: string) => html.replace(/&#x27;/g, "'").replace(/&quot;/g,
 const text = (html: string) => decode(html.replace(/<[^>]+>/g, " ")).replace(/[ \t\r\n]+/g, " ");
 
 const sp500: Plan = { ...EXAMPLE_PLAN, invested: 1_100, monthlyContribution: 100, investment: { kind: "asset", asset: "sp500" } };
-const mix: Plan = { ...sp500, investment: { kind: "mix", parts: [{ asset: "world", weight: 60 }, { asset: "bonds", weight: 40 }], rebalance: true } };
+const mix: Plan = { ...sp500, investment: { kind: "mix", parts: [{ asset: "sp500", weight: 60 }, { asset: "bonds", weight: 40 }], rebalance: true } };
 
 function render(locale: Locale, plan: Plan, element: React.ReactElement): string {
   app.state = { ...INITIAL_STATE, plan };
@@ -47,7 +47,7 @@ describe.each(["en", "es"] as const)("Test my plan (%s)", (locale) => {
   });
 
   it("shows each crisis as a big card with its year, a small line and one figure in the user's euros", () => {
-    const calc = calculate(sp500, [], today);
+    const calc = calculate(sp500, today);
     const source = historySource(calc.investment);
     const cards = decode(page).split('aria-pressed="false"').slice(1);
     expect(cards).toHaveLength(CRISES.length);
@@ -66,7 +66,7 @@ describe.each(["en", "es"] as const)("Test my plan (%s)", (locale) => {
   });
 
   it("opens a crisis with what happened, its chart and how long it took, the rest behind “See more”", () => {
-    const calc = calculate(sp500, [], today);
+    const calc = calculate(sp500, today);
     const source = historySource(calc.investment)!;
     const result = crisisResult(source, { start: 1_100, monthly: 100 }, calc.result.years, "financial")!;
     const html = render(locale, sp500, createElement(CrisisPanel, { result, source, amounts: { start: 1_100, monthly: 100 }, scenario: calc.scenario, planYears: calc.result.years, name: "S&P 500" }));
@@ -79,7 +79,7 @@ describe.each(["en", "es"] as const)("Test my plan (%s)", (locale) => {
 
   it("never shows a percent without its euros", () => {
     for (const plan of [sp500, mix]) {
-      const calc = calculate(plan, [], today);
+      const calc = calculate(plan, today);
       const source = historySource(calc.investment)!;
       const panels = CRISES.map((crisis) => crisisResult(source, { start: 1_100, monthly: 100 }, calc.result.years, crisis.id))
         .filter((result) => result !== null)

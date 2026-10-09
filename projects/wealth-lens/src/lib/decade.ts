@@ -14,11 +14,9 @@
  *
  * What the decade is made of:
  * - an asset with a history: its own years;
- * - a mix or My portfolio: its parts' years, at their weights (back at
- *   them each January, or drifting, as the mix says); a single stock
- *   counts as the index it grows like, as it does on average in the
- *   simulations (lib/mix.ts);
- * - Custom growth: world stocks' years (CUSTOM_BASE);
+ * - a mix: its parts' years, at their weights (back at them each
+ *   January, or drifting, as the mix says);
+ * - Custom growth: US stocks' years (CUSTOM_BASE);
  * - growth or ups and downs the user typed: the same years, in log terms
  *   moved to the typed growth and stretched to the typed ups and downs, so
  *   the decade keeps its shape: log(1 + r') = log(1 + g') + (σ' / σ) ×
@@ -73,8 +71,7 @@ function strandOf(asset: AssetId, weight: number, savingsReturn: number): Strand
 /** What the decade is made of. */
 function strandsOf(investment: ResolvedInvestment): { strands: Strand[]; rebalance: boolean } | null {
   const { model } = investment;
-  if (model && (investment.investment.kind === "mix" || investment.investment.kind === "portfolio")) {
-    // A stock part counts as its index: on average it grows like it.
+  if (model && investment.investment.kind === "mix") {
     return { strands: model.parts.map((part) => strandOf(part.asset, part.weight, model.savingsReturn)), rebalance: model.rebalance };
   }
   const asset = investment.investment.kind === "asset" ? investment.investment.asset : CUSTOM_BASE;
@@ -147,7 +144,7 @@ export function historicalDecade(investment: ResolvedInvestment, start: number, 
   const head = [start];
   const data = dataFigures(made.strands);
   const typed = investment.custom || investment.investment.kind === "custom";
-  // Typed figures (or Custom growth, on world stocks' years): the decade moved to the plan's growth and stretched to its ups and downs.
+  // Typed figures (or Custom growth, on US stocks' years): the decade moved to the plan's growth and stretched to its ups and downs.
   if (typed || investment.growthFactor !== 1 || made.strands.length === 1 || made.rebalance) {
     const ratio = typed && data.spread > 0 ? investment.volatility / data.spread : 1;
     const target = typed ? Math.log1p(investment.realReturn) : data.growth;

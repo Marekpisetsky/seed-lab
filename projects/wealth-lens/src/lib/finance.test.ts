@@ -1,21 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
-  averageCost,
   futureValue,
   futureValueWithContributions,
-  gainLoss,
-  holdingGain,
-  holdingValue,
   monthlyRate,
   monthsToGoal,
   nominalReturn,
   requiredCapital,
   requiredMonthlyContribution,
-  summarizeByCurrency,
   sustainableAnnualIncome,
   yearsToGoal,
 } from "./finance";
-import type { Holding } from "./types";
 
 /** Month-by-month simulation, used as an independent check of the closed forms. */
 function simulateMonthsToGoal(pv: number, pmt: number, annualRate: number, goal: number): number {
@@ -28,20 +22,6 @@ function simulateMonthsToGoal(pv: number, pmt: number, annualRate: number, goal:
     if (months > 12 * 200) return Infinity;
   }
   return months;
-}
-
-function holding(overrides: Partial<Holding>): Holding {
-  return {
-    id: "h",
-    ticker: "TEST",
-    quantity: 1,
-    costBasis: 100,
-    currency: "EUR",
-    currentPrice: null,
-    priceSource: "manual",
-    priceDate: null,
-    ...overrides,
-  };
 }
 
 describe("monthlyRate", () => {
@@ -201,73 +181,5 @@ describe("requiredCapital", () => {
 
   it("rejects a zero withdrawal rate", () => {
     expect(() => requiredCapital(20_000, 0)).toThrow(RangeError);
-  });
-});
-
-describe("gainLoss", () => {
-  it("computes absolute and percentage gain", () => {
-    expect(gainLoss(1000, 1250)).toEqual({ absolute: 250, percent: 0.25 });
-  });
-
-  it("computes losses as negative numbers", () => {
-    expect(gainLoss(1000, 800)).toEqual({ absolute: -200, percent: -0.2 });
-  });
-
-  it("has no percentage for a zero cost basis", () => {
-    expect(gainLoss(0, 10)).toEqual({ absolute: 10, percent: null });
-  });
-});
-
-describe("holding helpers", () => {
-  it("computes average cost per share", () => {
-    expect(averageCost({ costBasis: 1500, quantity: 10 })).toBe(150);
-    expect(averageCost({ costBasis: 0, quantity: 0 })).toBeNull();
-  });
-
-  it("values a holding at its current price", () => {
-    expect(holdingValue({ quantity: 2.5, currentPrice: 40 })).toBe(100);
-    expect(holdingValue({ quantity: 2.5, currentPrice: null })).toBeNull();
-  });
-
-  it("computes the gain of a single holding", () => {
-    expect(holdingGain(holding({ quantity: 10, costBasis: 1500, currentPrice: 180 }))).toEqual({
-      absolute: 300,
-      percent: 0.2,
-    });
-    expect(holdingGain(holding({ currentPrice: null }))).toBeNull();
-  });
-});
-
-describe("summarizeByCurrency", () => {
-  it("totals each currency separately and skips unpriced holdings in money totals", () => {
-    const summaries = summarizeByCurrency([
-      holding({ id: "a", currency: "EUR", quantity: 10, costBasis: 1000, currentPrice: 120 }),
-      holding({ id: "b", currency: "EUR", quantity: 5, costBasis: 500, currentPrice: 80 }),
-      holding({ id: "c", currency: "EUR", quantity: 1, costBasis: 999, currentPrice: null }),
-      holding({ id: "d", currency: "USD", quantity: 2, costBasis: 300, currentPrice: 100 }),
-    ]);
-
-    expect(summaries).toEqual([
-      {
-        currency: "EUR",
-        holdingCount: 3,
-        pricedCount: 2,
-        costBasis: 1500,
-        value: 1600,
-        gain: { absolute: 100, percent: 100 / 1500 },
-      },
-      {
-        currency: "USD",
-        holdingCount: 1,
-        pricedCount: 1,
-        costBasis: 300,
-        value: 200,
-        gain: { absolute: -100, percent: -1 / 3 },
-      },
-    ]);
-  });
-
-  it("returns an empty list for an empty portfolio", () => {
-    expect(summarizeByCurrency([])).toEqual([]);
   });
 });

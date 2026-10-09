@@ -1,0 +1,883 @@
+{
+ "description": "Each country's reference inflation, a long-run figure for its consumer prices: the inflation target its central bank publishes (the middle of a range), or, without one, about the 2015–2024 average of consumer price inflation (World Bank, FP.CPI.TOTL.ZG). Typed by hand from the central banks' pages and checked in September 2026; recentAverage marks countries whose prices rose 10% a year or more on average in 2015–2024. Used only to turn growth after rising prices into growth before them; the user can overwrite it.",
+ "note": "Each country's inflation is a long-run reference for each country's consumer prices: the inflation target its central bank publishes (the middle of a range), as of September 2026. Long-run forecasts such as the IMF World Economic Outlook's five-year projections mostly converge on these targets. Where a central bank has no numeric target, the figure is about the 2015–2024 average. Only used to turn growth before inflation into growth after inflation; the user can overwrite it. The same criterion as the detailed countries: the ECB's 2% in the euro area, the central bank's published target where listed, otherwise about the 2015–2024 average of consumer price inflation. recentAverage marks countries whose prices rose 10% a year or more on average in 2015–2024.",
+ "checkedOn": "2026-09-30",
+ "countries": {
+  "IN": {
+   "rate": 0.04,
+   "basis": "Reserve Bank of India target: 4%, within 2–6%",
+   "asOf": "2026-09"
+  },
+  "EG": {
+   "rate": 0.07,
+   "basis": "Central Bank of Egypt target: 7% ± 2 by the end of 2026",
+   "asOf": "2026-09"
+  },
+  "ID": {
+   "rate": 0.025,
+   "basis": "Bank Indonesia target: 2.5% ± 1",
+   "asOf": "2026-09"
+  },
+  "KE": {
+   "rate": 0.05,
+   "basis": "Central Bank of Kenya target: 5% ± 2.5",
+   "asOf": "2026-09"
+  },
+  "PH": {
+   "rate": 0.03,
+   "basis": "Bangko Sentral ng Pilipinas target: 3% ± 1",
+   "asOf": "2026-09"
+  },
+  "VN": {
+   "rate": 0.045,
+   "basis": "State Bank of Vietnam target: at most about 4.5% (the National Assembly's yearly ceiling)",
+   "asOf": "2026-09"
+  },
+  "MA": {
+   "rate": 0.02,
+   "basis": "Bank Al-Maghrib has no numeric inflation target; about the 2015–2024 average of consumer price inflation (IMF World Economic Outlook)",
+   "asOf": "2026-09"
+  },
+  "PE": {
+   "rate": 0.02,
+   "basis": "Central Reserve Bank of Peru target: 2% ± 1",
+   "asOf": "2026-09"
+  },
+  "MY": {
+   "rate": 0.02,
+   "basis": "Bank Negara Malaysia has no numeric inflation target; about the 2015–2024 average of consumer price inflation (IMF World Economic Outlook)",
+   "asOf": "2026-09"
+  },
+  "BR": {
+   "rate": 0.03,
+   "basis": "Central Bank of Brazil target: 3% (continuous target since 2025)",
+   "asOf": "2026-09"
+  },
+  "TH": {
+   "rate": 0.02,
+   "basis": "Bank of Thailand target: 1–3%, the middle of the range",
+   "asOf": "2026-09"
+  },
+  "RO": {
+   "rate": 0.025,
+   "basis": "National Bank of Romania target: 2.5% ± 1",
+   "asOf": "2026-09"
+  },
+  "CL": {
+   "rate": 0.03,
+   "basis": "Central Bank of Chile target: 3%",
+   "asOf": "2026-09"
+  },
+  "CO": {
+   "rate": 0.03,
+   "basis": "Banco de la República (Colombia) target: 3%",
+   "asOf": "2026-09"
+  },
+  "ZA": {
+   "rate": 0.03,
+   "basis": "South African Reserve Bank target: 3% (from November 2025; 3–6% before)",
+   "asOf": "2026-09"
+  },
+  "JP": {
+   "rate": 0.02,
+   "basis": "Bank of Japan target: 2% (since 2013)",
+   "asOf": "2026-09"
+  },
+  "MX": {
+   "rate": 0.03,
+   "basis": "Banco de México target: 3% ± 1",
+   "asOf": "2026-09"
+  },
+  "GR": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "PL": {
+   "rate": 0.025,
+   "basis": "National Bank of Poland target: 2.5% ± 1",
+   "asOf": "2026-09"
+  },
+  "PT": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "CR": {
+   "rate": 0.03,
+   "basis": "Central Bank of Costa Rica target: 3% ± 1",
+   "asOf": "2026-09"
+  },
+  "ES": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "IT": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "FR": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "DE": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "GB": {
+   "rate": 0.02,
+   "basis": "Bank of England target: 2% (consumer prices)",
+   "asOf": "2026-09"
+  },
+  "NL": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "US": {
+   "rate": 0.02,
+   "basis": "Federal Reserve target: 2% (personal consumption prices, since 2012)",
+   "asOf": "2026-09"
+  },
+  "IE": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "CH": {
+   "rate": 0.01,
+   "basis": "Swiss National Bank: price stability means 0–2%, the middle of the range",
+   "asOf": "2026-09"
+  },
+  "AE": {
+   "rate": 0.015,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.5% a year",
+   "asOf": "2026-09"
+  },
+  "AF": {
+   "rate": 0.025,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.3% a year",
+   "asOf": "2026-09"
+  },
+  "AG": {
+   "rate": 0.025,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.7% a year",
+   "asOf": "2026-09"
+  },
+  "AL": {
+   "rate": 0.03,
+   "basis": "Bank of Albania target: 3%",
+   "asOf": "2026-09"
+  },
+  "AM": {
+   "rate": 0.025,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.6% a year",
+   "asOf": "2026-09"
+  },
+  "AO": {
+   "rate": 0.215,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 21.6% a year",
+   "asOf": "2026-09",
+   "recentAverage": 0.216
+  },
+  "AT": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "AU": {
+   "rate": 0.025,
+   "basis": "Reserve Bank of Australia target: 2–3%, the middle of the range",
+   "asOf": "2026-09"
+  },
+  "AZ": {
+   "rate": 0.04,
+   "basis": "Central Bank of Azerbaijan target: 4% ± 2",
+   "asOf": "2026-09"
+  },
+  "BA": {
+   "rate": 0.025,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.3% a year",
+   "asOf": "2026-09"
+  },
+  "BB": {
+   "rate": 0.02,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.0% a year",
+   "asOf": "2026-09"
+  },
+  "BD": {
+   "rate": 0.07,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 6.8% a year",
+   "asOf": "2026-09"
+  },
+  "BE": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "BF": {
+   "rate": 0.025,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.5% a year",
+   "asOf": "2026-09"
+  },
+  "BG": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "BH": {
+   "rate": 0.01,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.1% a year",
+   "asOf": "2026-09"
+  },
+  "BI": {
+   "rate": 0.1,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 10.2% a year",
+   "asOf": "2026-09",
+   "recentAverage": 0.102
+  },
+  "BJ": {
+   "rate": 0.01,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.1% a year",
+   "asOf": "2026-09"
+  },
+  "BN": {
+   "rate": 0.005,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 0.6% a year",
+   "asOf": "2026-09"
+  },
+  "BO": {
+   "rate": 0.025,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.6% a year",
+   "asOf": "2026-09"
+  },
+  "BS": {
+   "rate": 0.02,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.0% a year",
+   "asOf": "2026-09"
+  },
+  "BT": {
+   "rate": 0.045,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 4.4% a year",
+   "asOf": "2026-09"
+  },
+  "BW": {
+   "rate": 0.045,
+   "basis": "Bank of Botswana objective: 3–6%, the middle of the range",
+   "asOf": "2026-09"
+  },
+  "BY": {
+   "rate": 0.08,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 8.2% a year",
+   "asOf": "2026-09"
+  },
+  "BZ": {
+   "rate": 0.02,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.8% a year",
+   "asOf": "2026-09"
+  },
+  "CA": {
+   "rate": 0.02,
+   "basis": "Bank of Canada target: 2%, within 1–3%",
+   "asOf": "2026-09"
+  },
+  "CF": {
+   "rate": 0.03,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 3.1% a year",
+   "asOf": "2026-09"
+  },
+  "CG": {
+   "rate": 0.025,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.4% a year",
+   "asOf": "2026-09"
+  },
+  "CI": {
+   "rate": 0.025,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.3% a year",
+   "asOf": "2026-09"
+  },
+  "CM": {
+   "rate": 0.03,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 3.0% a year",
+   "asOf": "2026-09"
+  },
+  "CN": {
+   "rate": 0.015,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.6% a year",
+   "asOf": "2026-09"
+  },
+  "CV": {
+   "rate": 0.015,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.7% a year",
+   "asOf": "2026-09"
+  },
+  "CY": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "CZ": {
+   "rate": 0.02,
+   "basis": "Czech National Bank target: 2% ± 1",
+   "asOf": "2026-09"
+  },
+  "DJ": {
+   "rate": 0.015,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.7% a year",
+   "asOf": "2026-09"
+  },
+  "DK": {
+   "rate": 0.02,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.8% a year",
+   "asOf": "2026-09"
+  },
+  "DM": {
+   "rate": 0.015,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.6% a year",
+   "asOf": "2026-09"
+  },
+  "DO": {
+   "rate": 0.04,
+   "basis": "Central Bank of the Dominican Republic target: 4% ± 1",
+   "asOf": "2026-09"
+  },
+  "DZ": {
+   "rate": 0.055,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 5.5% a year",
+   "asOf": "2026-09"
+  },
+  "EC": {
+   "rate": 0.015,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.3% a year",
+   "asOf": "2026-09"
+  },
+  "EE": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "ET": {
+   "rate": 0.185,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 18.6% a year",
+   "asOf": "2026-09",
+   "recentAverage": 0.186
+  },
+  "FI": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "FJ": {
+   "rate": 0.025,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.7% a year",
+   "asOf": "2026-09"
+  },
+  "FM": {
+   "rate": 0.015,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.5% a year",
+   "asOf": "2026-09"
+  },
+  "GA": {
+   "rate": 0.025,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.3% a year",
+   "asOf": "2026-09"
+  },
+  "GD": {
+   "rate": 0.01,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.0% a year",
+   "asOf": "2026-09"
+  },
+  "GE": {
+   "rate": 0.03,
+   "basis": "National Bank of Georgia target: 3%",
+   "asOf": "2026-09"
+  },
+  "GH": {
+   "rate": 0.08,
+   "basis": "Bank of Ghana target: 8% ± 2",
+   "asOf": "2026-09",
+   "recentAverage": 0.17
+  },
+  "GM": {
+   "rate": 0.09,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 8.9% a year",
+   "asOf": "2026-09"
+  },
+  "GN": {
+   "rate": 0.1,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 9.8% a year",
+   "asOf": "2026-09"
+  },
+  "GQ": {
+   "rate": 0.02,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.2% a year",
+   "asOf": "2026-09"
+  },
+  "GT": {
+   "rate": 0.04,
+   "basis": "Bank of Guatemala target: 4% ± 1",
+   "asOf": "2026-09"
+  },
+  "GW": {
+   "rate": 0.03,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.9% a year",
+   "asOf": "2026-09"
+  },
+  "GY": {
+   "rate": 0.025,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.3% a year",
+   "asOf": "2026-09"
+  },
+  "HK": {
+   "rate": 0.02,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.0% a year",
+   "asOf": "2026-09"
+  },
+  "HN": {
+   "rate": 0.04,
+   "basis": "Central Bank of Honduras target: 4% ± 1",
+   "asOf": "2026-09"
+  },
+  "HR": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "HT": {
+   "rate": 0.195,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 19.4% a year",
+   "asOf": "2026-09",
+   "recentAverage": 0.194
+  },
+  "HU": {
+   "rate": 0.03,
+   "basis": "Magyar Nemzeti Bank target: 3% ± 1",
+   "asOf": "2026-09"
+  },
+  "IL": {
+   "rate": 0.02,
+   "basis": "Bank of Israel target: 1–3%, the middle of the range",
+   "asOf": "2026-09"
+  },
+  "IQ": {
+   "rate": 0.02,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.1% a year",
+   "asOf": "2026-09"
+  },
+  "IR": {
+   "rate": 0.27,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 27.2% a year",
+   "asOf": "2026-09",
+   "recentAverage": 0.272
+  },
+  "IS": {
+   "rate": 0.025,
+   "basis": "Central Bank of Iceland target: 2.5%",
+   "asOf": "2026-09"
+  },
+  "JM": {
+   "rate": 0.05,
+   "basis": "Bank of Jamaica target: 4–6%, the middle of the range",
+   "asOf": "2026-09"
+  },
+  "JO": {
+   "rate": 0.015,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.6% a year",
+   "asOf": "2026-09"
+  },
+  "KG": {
+   "rate": 0.06,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 6.0% a year",
+   "asOf": "2026-09"
+  },
+  "KH": {
+   "rate": 0.025,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.6% a year",
+   "asOf": "2026-09"
+  },
+  "KI": {
+   "rate": 0.025,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.3% a year",
+   "asOf": "2026-09"
+  },
+  "KM": {
+   "rate": 0.03,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 3.2% a year",
+   "asOf": "2026-09"
+  },
+  "KN": {
+   "rate": 0.005,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 0.3% a year",
+   "asOf": "2026-09"
+  },
+  "KR": {
+   "rate": 0.02,
+   "basis": "Bank of Korea target: 2%",
+   "asOf": "2026-09"
+  },
+  "KW": {
+   "rate": 0.025,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.6% a year",
+   "asOf": "2026-09"
+  },
+  "KZ": {
+   "rate": 0.05,
+   "basis": "National Bank of Kazakhstan medium-term target: 5%",
+   "asOf": "2026-09"
+  },
+  "LA": {
+   "rate": 0.09,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 9.0% a year",
+   "asOf": "2026-09"
+  },
+  "LC": {
+   "rate": 0.01,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.1% a year",
+   "asOf": "2026-09"
+  },
+  "LK": {
+   "rate": 0.05,
+   "basis": "Central Bank of Sri Lanka target: 5%",
+   "asOf": "2026-09"
+  },
+  "LR": {
+   "rate": 0.13,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 12.8% a year",
+   "asOf": "2026-09",
+   "recentAverage": 0.128
+  },
+  "LS": {
+   "rate": 0.055,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 5.6% a year",
+   "asOf": "2026-09"
+  },
+  "LT": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "LU": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "LV": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "LY": {
+   "rate": 0.08,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 8.2% a year",
+   "asOf": "2026-09"
+  },
+  "MD": {
+   "rate": 0.05,
+   "basis": "National Bank of Moldova target: 5% ± 1.5",
+   "asOf": "2026-09"
+  },
+  "ME": {
+   "rate": 0.035,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 3.3% a year",
+   "asOf": "2026-09"
+  },
+  "MG": {
+   "rate": 0.07,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 7.2% a year",
+   "asOf": "2026-09"
+  },
+  "MK": {
+   "rate": 0.035,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 3.4% a year",
+   "asOf": "2026-09"
+  },
+  "ML": {
+   "rate": 0.02,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.9% a year",
+   "asOf": "2026-09"
+  },
+  "MN": {
+   "rate": 0.06,
+   "basis": "Bank of Mongolia target: 6% ± 2",
+   "asOf": "2026-09"
+  },
+  "MO": {
+   "rate": 0.015,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.7% a year",
+   "asOf": "2026-09"
+  },
+  "MR": {
+   "rate": 0.035,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 3.5% a year",
+   "asOf": "2026-09"
+  },
+  "MT": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "MU": {
+   "rate": 0.035,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 3.7% a year",
+   "asOf": "2026-09"
+  },
+  "MV": {
+   "rate": 0.01,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.0% a year",
+   "asOf": "2026-09"
+  },
+  "MW": {
+   "rate": 0.175,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 17.4% a year",
+   "asOf": "2026-09",
+   "recentAverage": 0.174
+  },
+  "MZ": {
+   "rate": 0.075,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 7.3% a year",
+   "asOf": "2026-09"
+  },
+  "NA": {
+   "rate": 0.045,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 4.6% a year",
+   "asOf": "2026-09"
+  },
+  "NE": {
+   "rate": 0.03,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.8% a year",
+   "asOf": "2026-09"
+  },
+  "NG": {
+   "rate": 0.17,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 17.0% a year",
+   "asOf": "2026-09",
+   "recentAverage": 0.17
+  },
+  "NI": {
+   "rate": 0.055,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 5.4% a year",
+   "asOf": "2026-09"
+  },
+  "NO": {
+   "rate": 0.02,
+   "basis": "Norges Bank target: 2% (since 2018)",
+   "asOf": "2026-09"
+  },
+  "NP": {
+   "rate": 0.06,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 5.8% a year",
+   "asOf": "2026-09"
+  },
+  "NZ": {
+   "rate": 0.02,
+   "basis": "Reserve Bank of New Zealand target: 1–3%, aiming at 2%",
+   "asOf": "2026-09"
+  },
+  "OM": {
+   "rate": 0.01,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 0.9% a year",
+   "asOf": "2026-09"
+  },
+  "PA": {
+   "rate": 0.005,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 0.7% a year",
+   "asOf": "2026-09"
+  },
+  "PG": {
+   "rate": 0.045,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 4.4% a year",
+   "asOf": "2026-09"
+  },
+  "PK": {
+   "rate": 0.06,
+   "basis": "State Bank of Pakistan medium-term target: 5–7%, the middle of the range",
+   "asOf": "2026-09",
+   "recentAverage": 0.106
+  },
+  "PS": {
+   "rate": 0.055,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 5.7% a year",
+   "asOf": "2026-09"
+  },
+  "PW": {
+   "rate": 0.035,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 3.3% a year",
+   "asOf": "2026-09"
+  },
+  "PY": {
+   "rate": 0.04,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 4.2% a year",
+   "asOf": "2026-09"
+  },
+  "QA": {
+   "rate": 0.015,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.3% a year",
+   "asOf": "2026-09"
+  },
+  "RS": {
+   "rate": 0.03,
+   "basis": "National Bank of Serbia target: 3% ± 1.5",
+   "asOf": "2026-09"
+  },
+  "RU": {
+   "rate": 0.04,
+   "basis": "Bank of Russia target: 4%",
+   "asOf": "2026-09"
+  },
+  "RW": {
+   "rate": 0.05,
+   "basis": "National Bank of Rwanda target: 5%, within 2–8%",
+   "asOf": "2026-09"
+  },
+  "SA": {
+   "rate": 0.015,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.7% a year",
+   "asOf": "2026-09"
+  },
+  "SB": {
+   "rate": 0.025,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.4% a year",
+   "asOf": "2026-09"
+  },
+  "SC": {
+   "rate": 0.025,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.4% a year",
+   "asOf": "2026-09"
+  },
+  "SE": {
+   "rate": 0.02,
+   "basis": "Sveriges Riksbank target: 2%",
+   "asOf": "2026-09"
+  },
+  "SG": {
+   "rate": 0.015,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.6% a year",
+   "asOf": "2026-09"
+  },
+  "SI": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "SK": {
+   "rate": 0.02,
+   "basis": "European Central Bank target for the euro area: 2%, symmetric (strategy of July 2021)",
+   "asOf": "2026-09"
+  },
+  "SL": {
+   "rate": 0.19,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 19.0% a year",
+   "asOf": "2026-09",
+   "recentAverage": 0.19
+  },
+  "SM": {
+   "rate": 0.015,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.7% a year",
+   "asOf": "2026-09"
+  },
+  "SN": {
+   "rate": 0.025,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.5% a year",
+   "asOf": "2026-09"
+  },
+  "ST": {
+   "rate": 0.1,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 10.2% a year",
+   "asOf": "2026-09",
+   "recentAverage": 0.102
+  },
+  "SV": {
+   "rate": 0.015,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.7% a year",
+   "asOf": "2026-09"
+  },
+  "TD": {
+   "rate": 0.035,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 3.4% a year",
+   "asOf": "2026-09"
+  },
+  "TG": {
+   "rate": 0.025,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.6% a year",
+   "asOf": "2026-09"
+  },
+  "TL": {
+   "rate": 0.025,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.5% a year",
+   "asOf": "2026-09"
+  },
+  "TN": {
+   "rate": 0.065,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 6.3% a year",
+   "asOf": "2026-09"
+  },
+  "TO": {
+   "rate": 0.04,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 4.0% a year",
+   "asOf": "2026-09"
+  },
+  "TR": {
+   "rate": 0.05,
+   "basis": "Central Bank of the Republic of Türkiye medium-term target: 5%",
+   "asOf": "2026-09",
+   "recentAverage": 0.256
+  },
+  "TT": {
+   "rate": 0.025,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 2.5% a year",
+   "asOf": "2026-09"
+  },
+  "TZ": {
+   "rate": 0.04,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 4.1% a year",
+   "asOf": "2026-09"
+  },
+  "UA": {
+   "rate": 0.05,
+   "basis": "National Bank of Ukraine target: 5% ± 1",
+   "asOf": "2026-09",
+   "recentAverage": 0.142
+  },
+  "UG": {
+   "rate": 0.05,
+   "basis": "Bank of Uganda target: 5% (core inflation)",
+   "asOf": "2026-09"
+  },
+  "UY": {
+   "rate": 0.045,
+   "basis": "Central Bank of Uruguay target: 3–6%, the middle of the range",
+   "asOf": "2026-09"
+  },
+  "UZ": {
+   "rate": 0.05,
+   "basis": "Central Bank of Uzbekistan target: 5%",
+   "asOf": "2026-09",
+   "recentAverage": 0.117
+  },
+  "VC": {
+   "rate": 0.02,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 1.8% a year",
+   "asOf": "2026-09"
+  },
+  "VU": {
+   "rate": 0.04,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 3.8% a year",
+   "asOf": "2026-09"
+  },
+  "WS": {
+   "rate": 0.03,
+   "basis": "About the 2015–2024 average of consumer price inflation (World Bank): 3.1% a year",
+   "asOf": "2026-09"
+  },
+  "ZM": {
+   "rate": 0.07,
+   "basis": "Bank of Zambia target: 6–8%, the middle of the range",
+   "asOf": "2026-09",
+   "recentAverage": 0.125
+  }
+ }
+}

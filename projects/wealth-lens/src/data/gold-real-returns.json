@@ -1,47 +1,237 @@
 {
-  "description": "Annual real (after US inflation) returns of gold in US dollars, calendar years, worked out from year-end prices as (price / previous price) / (1 + inflation) - 1. Gold pays no income: the whole return is the change in price.",
-  "source": "LBMA Gold Price (formerly the London gold fixing), US dollars per troy ounce, the last fixing of each year (the morning one on 31 December when no afternoon fixing was held), as published by the London Bullion Market Association (lbma.org.uk, Prices and data) and tabulated by the World Gold Council (gold.org, Goldhub, Gold prices).",
-  "inflationSource": "US CPI-U, not seasonally adjusted, December to December: Robert J. Shiller, Online Data (ie_data.xls, CPI column, as distributed in the stock-market-data npm package v2.3.0) through December 2022; U.S. Bureau of Labor Statistics CPI-U index (December 2023: 306.746, December 2024: 315.605) after that. The same figures as the MSCI World and Nasdaq-100 datasets.",
+  "description": "Annual real (after US inflation) returns of gold in US dollars, calendar years, worked out from the December average prices as (December price / previous December price) / (1 + inflation) - 1. Gold pays no income: the whole return is the change in price.",
+  "source": "World Bank, Commodity Price Data (the Pink Sheet), monthly prices: Gold (UK), 99.5% fine, London afternoon fixing, average of daily rates, US dollars per troy ounce, the December average of each year. Licence CC BY 4.0. Read from the public mirror github.com/datasets/gold-prices (data/monthly.csv, whose prices from 1960 are the World Bank's), because the World Bank's site could not be reached from the session that compiled this.",
+  "sourceUrl": "https://www.worldbank.org/en/research/commodity-markets",
+  "license": "CC BY 4.0 (World Bank Commodity Price Data)",
+  "inflationSource": "US CPI-U, not seasonally adjusted, December to December: Robert J. Shiller, Online Data (ie_data.xls, CPI column, as distributed in the stock-market-data npm package v2.3.0) through December 2022; U.S. Bureau of Labor Statistics CPI-U index (December 2023: 306.746, December 2024: 315.605) after that. The same inflation as the S&P 500 dataset until 2022.",
   "dataThrough": "2024-12",
-  "compiledOn": "2026-09-30",
-  "note": "Worked out from the published year-end prices. A year where the morning and afternoon fixings differ may be off by about 1%. Only the real returns worked out from them are published here, never the source's own figures (its terms do not allow redistributing them); src/lib/indexes.test.ts checks them against well-known published results.",
+  "compiledOn": "2026-10-09",
+  "note": "Replaces the earlier LBMA year-end fixings (their terms restrict redistribution). December averages smooth the year-end move, so a year can differ by a few points from close-to-close figures. The December prices used are kept beside the returns (decemberPrices), so src/lib/indexes.test.ts recomputes every return.",
+  "decemberPrices": {
+    "1987": 486.0,
+    "1988": 419.0,
+    "1989": 409.39,
+    "1990": 377.0,
+    "1991": 362.0,
+    "1992": 335.0,
+    "1993": 383.0,
+    "1994": 379.0,
+    "1995": 387.0,
+    "1996": 369.0,
+    "1997": 289.0,
+    "1998": 292.0,
+    "1999": 283.0,
+    "2000": 271.0,
+    "2001": 276.0,
+    "2002": 332.0,
+    "2003": 407.0,
+    "2004": 442.0,
+    "2005": 510.0,
+    "2006": 630.0,
+    "2007": 803.0,
+    "2008": 816.0,
+    "2009": 1135.0,
+    "2010": 1391.0,
+    "2011": 1640.0,
+    "2012": 1685.0,
+    "2013": 1222.0,
+    "2014": 1201.0,
+    "2015": 1076.0,
+    "2016": 1157.0,
+    "2017": 1264.0,
+    "2018": 1250.0,
+    "2019": 1479.0,
+    "2020": 1858.0,
+    "2021": 1790.0,
+    "2022": 1798.0,
+    "2023": 2026.0,
+    "2024": 2648.0
+  },
   "years": [
-    { "year":  1988, "inflation":  0.0442, "realReturn":  -0.1924 },
-    { "year":  1989, "inflation":  0.0465, "realReturn":  -0.066 },
-    { "year":  1990, "inflation":  0.0611, "realReturn":  -0.0924 },
-    { "year":  1991, "inflation":  0.0306, "realReturn":  -0.1127 },
-    { "year":  1992, "inflation":  0.029, "realReturn":  -0.0829 },
-    { "year":  1993, "inflation":  0.0275, "realReturn":  0.1441 },
-    { "year":  1994, "inflation":  0.0267, "realReturn":  -0.0471 },
-    { "year":  1995, "inflation":  0.0254, "realReturn":  -0.0152 },
-    { "year":  1996, "inflation":  0.0332, "realReturn":  -0.0765 },
-    { "year":  1997, "inflation":  0.017, "realReturn":  -0.2272 },
-    { "year":  1998, "inflation":  0.0161, "realReturn":  -0.024 },
-    { "year":  1999, "inflation":  0.0268, "realReturn":  -0.0178 },
-    { "year":  2000, "inflation":  0.0339, "realReturn":  -0.0914 },
-    { "year":  2001, "inflation":  0.0155, "realReturn":  -0.0014 },
-    { "year":  2002, "inflation":  0.0238, "realReturn":  0.2108 },
-    { "year":  2003, "inflation":  0.0188, "realReturn":  0.1949 },
-    { "year":  2004, "inflation":  0.0326, "realReturn":  0.011 },
-    { "year":  2005, "inflation":  0.0342, "realReturn":  0.1387 },
-    { "year":  2006, "inflation":  0.0254, "realReturn":  0.2015 },
-    { "year":  2007, "inflation":  0.0408, "realReturn":  0.2675 },
-    { "year":  2008, "inflation":  0.0009, "realReturn":  0.0422 },
-    { "year":  2009, "inflation":  0.0272, "realReturn":  0.2173 },
-    { "year":  2010, "inflation":  0.015, "realReturn":  0.2733 },
-    { "year":  2011, "inflation":  0.0296, "realReturn":  0.058 },
-    { "year":  2012, "inflation":  0.0174, "realReturn":  0.0641 },
-    { "year":  2013, "inflation":  0.015, "realReturn":  -0.284 },
-    { "year":  2014, "inflation":  0.0076, "realReturn":  -0.0063 },
-    { "year":  2015, "inflation":  0.0073, "realReturn":  -0.1274 },
-    { "year":  2016, "inflation":  0.0207, "realReturn":  0.0591 },
-    { "year":  2017, "inflation":  0.0211, "realReturn":  0.108 },
-    { "year":  2018, "inflation":  0.0191, "realReturn":  -0.032 },
-    { "year":  2019, "inflation":  0.0229, "realReturn":  0.1641 },
-    { "year":  2020, "inflation":  0.0136, "realReturn":  0.2228 },
-    { "year":  2021, "inflation":  0.0704, "realReturn":  -0.1062 },
-    { "year":  2022, "inflation":  0.0645, "realReturn":  -0.0572 },
-    { "year":  2023, "inflation":  0.0335, "realReturn":  0.1011 },
-    { "year":  2024, "inflation":  0.0289, "realReturn":  0.2295 }
+    {
+      "year": 1988,
+      "inflation": 0.0442,
+      "realReturn": -0.1744
+    },
+    {
+      "year": 1989,
+      "inflation": 0.0465,
+      "realReturn": -0.0664
+    },
+    {
+      "year": 1990,
+      "inflation": 0.0611,
+      "realReturn": -0.1321
+    },
+    {
+      "year": 1991,
+      "inflation": 0.0306,
+      "realReturn": -0.0683
+    },
+    {
+      "year": 1992,
+      "inflation": 0.029,
+      "realReturn": -0.1007
+    },
+    {
+      "year": 1993,
+      "inflation": 0.0275,
+      "realReturn": 0.1127
+    },
+    {
+      "year": 1994,
+      "inflation": 0.0267,
+      "realReturn": -0.0362
+    },
+    {
+      "year": 1995,
+      "inflation": 0.0254,
+      "realReturn": -0.0042
+    },
+    {
+      "year": 1996,
+      "inflation": 0.0332,
+      "realReturn": -0.0772
+    },
+    {
+      "year": 1997,
+      "inflation": 0.017,
+      "realReturn": -0.2299
+    },
+    {
+      "year": 1998,
+      "inflation": 0.0161,
+      "realReturn": -0.0056
+    },
+    {
+      "year": 1999,
+      "inflation": 0.0268,
+      "realReturn": -0.0561
+    },
+    {
+      "year": 2000,
+      "inflation": 0.0339,
+      "realReturn": -0.0738
+    },
+    {
+      "year": 2001,
+      "inflation": 0.0155,
+      "realReturn": 0.0029
+    },
+    {
+      "year": 2002,
+      "inflation": 0.0238,
+      "realReturn": 0.1749
+    },
+    {
+      "year": 2003,
+      "inflation": 0.0188,
+      "realReturn": 0.2033
+    },
+    {
+      "year": 2004,
+      "inflation": 0.0326,
+      "realReturn": 0.0517
+    },
+    {
+      "year": 2005,
+      "inflation": 0.0342,
+      "realReturn": 0.1157
+    },
+    {
+      "year": 2006,
+      "inflation": 0.0254,
+      "realReturn": 0.2047
+    },
+    {
+      "year": 2007,
+      "inflation": 0.0408,
+      "realReturn": 0.2246
+    },
+    {
+      "year": 2008,
+      "inflation": 0.0009,
+      "realReturn": 0.0153
+    },
+    {
+      "year": 2009,
+      "inflation": 0.0272,
+      "realReturn": 0.3541
+    },
+    {
+      "year": 2010,
+      "inflation": 0.015,
+      "realReturn": 0.2074
+    },
+    {
+      "year": 2011,
+      "inflation": 0.0296,
+      "realReturn": 0.1451
+    },
+    {
+      "year": 2012,
+      "inflation": 0.0174,
+      "realReturn": 0.0099
+    },
+    {
+      "year": 2013,
+      "inflation": 0.015,
+      "realReturn": -0.2855
+    },
+    {
+      "year": 2014,
+      "inflation": 0.0076,
+      "realReturn": -0.0246
+    },
+    {
+      "year": 2015,
+      "inflation": 0.0073,
+      "realReturn": -0.1106
+    },
+    {
+      "year": 2016,
+      "inflation": 0.0207,
+      "realReturn": 0.0535
+    },
+    {
+      "year": 2017,
+      "inflation": 0.0211,
+      "realReturn": 0.0699
+    },
+    {
+      "year": 2018,
+      "inflation": 0.0191,
+      "realReturn": -0.0296
+    },
+    {
+      "year": 2019,
+      "inflation": 0.0229,
+      "realReturn": 0.1567
+    },
+    {
+      "year": 2020,
+      "inflation": 0.0136,
+      "realReturn": 0.2394
+    },
+    {
+      "year": 2021,
+      "inflation": 0.0704,
+      "realReturn": -0.1
+    },
+    {
+      "year": 2022,
+      "inflation": 0.0645,
+      "realReturn": -0.0564
+    },
+    {
+      "year": 2023,
+      "inflation": 0.0335,
+      "realReturn": 0.0903
+    },
+    {
+      "year": 2024,
+      "inflation": 0.0289,
+      "realReturn": 0.2703
+    }
   ]
 }

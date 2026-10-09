@@ -8,10 +8,8 @@ import type { I18n } from ".";
 import type { AssetId } from "@/lib/assets";
 import { periodText, type ResolvedInvestment } from "@/lib/investment";
 import { SAVINGS_RATE } from "@/lib/assets";
-import { MARKET, type Instrument } from "@/lib/market-data";
-import { mixStock, templateOf, type MixPart } from "@/lib/mix";
+import { templateOf, type MixPart } from "@/lib/mix";
 import { STARTING_GROWTH } from "@/lib/validation";
-import { stockVolatility } from "@/lib/volatility";
 
 export function assetLabel(asset: AssetId, { m }: I18n): string {
   return m.assets.name[asset];
@@ -22,24 +20,16 @@ export function assetShortLabel(asset: AssetId, { m }: I18n): string {
   return m.assets.short[asset];
 }
 
-/** "grows like the Nasdaq-100 · moves ±50% a year": how a stock in a mix is worked out, in small type beside it. */
-export function stockPartDetail(stock: Instrument, { m, f }: I18n): string {
-  const own = stockVolatility(stock, MARKET, stock.index);
-  return m.mix.part.stock(m.assets.inSentence[stock.index], f.percent(own.volatility, { decimals: 0 }), own.fallback);
-}
-
-/** A part of a mix by name: "World", "NVIDIA". */
+/** A part of a mix by name: "US stocks", "Gold". */
 export function mixPartName(part: MixPart, { m }: I18n): string {
-  return mixStock(part.stock)?.name ?? m.assets.name[part.asset];
+  return m.assets.name[part.asset];
 }
 
-/** "S&P 500", "Gold", "Savings account", "Mix 60/40", "My portfolio", "Custom growth". */
+/** "US stocks", "Gold", "Savings account", "Mix 60/40", "Custom growth". */
 export function investmentName({ investment }: Pick<ResolvedInvestment, "investment">, { m }: I18n): string {
   switch (investment.kind) {
     case "asset":
       return m.assets.name[investment.asset];
-    case "portfolio":
-      return m.invest.portfolio;
     case "custom":
       return m.invest.custom;
     case "mix": {
@@ -57,8 +47,6 @@ export function investedInText({ investment, realReturn }: Pick<ResolvedInvestme
       return t.asset(m.assets.inSentence[investment.asset]);
     case "mix":
       return t.mix;
-    case "portfolio":
-      return t.portfolio;
     case "custom":
       return realReturn < 0 ? t.customLoss(f.rate(-realReturn)) : t.custom(f.rate(realReturn));
   }
@@ -86,7 +74,7 @@ export function selectorName(investment: Pick<ResolvedInvestment, "investment" |
 }
 
 /**
- * Step 3's starting value as it is: Custom growth at 5 %, with world
+ * Step 3's starting value as it is: Custom growth at 5 %, with US
  * stocks' ups and downs. Not the user's own number: the world's long-run
  * average, and said so.
  */
@@ -108,13 +96,13 @@ export function decadeSource(investment: Pick<ResolvedInvestment, "investment" |
   const t = m.invest.decade;
   const chosen = investment.investment;
   if (chosen.kind === "custom") return t.custom;
-  const what = chosen.kind === "asset" ? m.assets.inSentence[chosen.asset] : chosen.kind === "mix" ? t.mix : t.portfolio;
+  const what = chosen.kind === "asset" ? m.assets.inSentence[chosen.asset] : t.mix;
   return investment.custom ? t.typed(what) : what;
 }
 
 /** Where the growth figure comes from: "S&P 500, 1988–2022 average", "1.5% interest minus 2% rising prices". */
 export function growthSource(
-  investment: Pick<ResolvedInvestment, "investment" | "custom" | "allocation" | "inflation" | "period" | "realReturn" | "volatility" | "standard" | "shift">,
+  investment: Pick<ResolvedInvestment, "investment" | "custom" | "inflation" | "period" | "realReturn" | "volatility" | "standard" | "shift">,
   i18n: I18n,
 ): string {
   const { m, f } = i18n;
@@ -126,11 +114,5 @@ export function growthSource(
     if (chosen.asset === "savings") return m.invest.source.savings(f.rate(SAVINGS_RATE), f.rate(investment.inflation));
     return m.invest.source.asset(m.assets.name[chosen.asset], period);
   }
-  return investment.allocation ? m.invest.source.portfolio(period) : m.invest.source.mix(period);
-}
-
-/** Said next to a growth figure that leaves dividends out; `null` when they are in. */
-export function dividendNote({ withoutDividends }: Pick<ResolvedInvestment, "withoutDividends">, { m }: I18n): string | null {
-  if (withoutDividends <= 0) return null;
-  return withoutDividends >= 1 ? m.invest.dividends.all : m.invest.dividends.part;
+  return m.invest.source.mix(period);
 }

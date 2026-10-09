@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import sp500 from "@/data/sp500-real-returns.json";
-import { INDEXES } from "./indexes";
+import { INDEXES, SERIES } from "./indexes";
 import { mulberry32, successRate, successRates, survives, yearsLasting } from "./monte-carlo";
 
 const HISTORICAL_REAL_RETURNS = INDEXES.sp500.years.map((entry) => entry.realReturn);
@@ -82,11 +82,11 @@ describe("successRate", () => {
     expect(Math.abs(other - successRate({ withdrawalRate: 0.05, returns: HISTORICAL_REAL_RETURNS }))).toBeLessThan(0.03);
   });
 
-  it("differs by index: the Nasdaq-100's history lasts more often than the World's", () => {
-    const returns = (id: keyof typeof INDEXES) => INDEXES[id].years.map((entry) => entry.realReturn);
-    const world = successRate({ withdrawalRate: 0.05, returns: returns("world") });
-    const nasdaq = successRate({ withdrawalRate: 0.05, returns: returns("nasdaq100") });
-    expect(nasdaq).toBeGreaterThan(world);
+  it("differs by history: US stocks' years last more often than gold's", () => {
+    const returns = (id: keyof typeof SERIES) => SERIES[id].years.map((entry) => entry.realReturn);
+    const stocks = successRate({ withdrawalRate: 0.05, returns: returns("sp500") });
+    const gold = successRate({ withdrawalRate: 0.05, returns: returns("gold") });
+    expect(stocks).toBeGreaterThan(gold);
   });
 
   it("rejects an empty pool of returns", () => {

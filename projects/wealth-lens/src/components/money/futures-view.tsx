@@ -25,7 +25,7 @@ const PERIOD = `${COMMON_PERIOD[0]}–${COMMON_PERIOD[1]}`;
 /**
  * Where each possible future comes from, in one sentence: an asset's real
  * years shuffled; a mix's, for all its parts at once; or, for a growth of
- * one's own, years drawn at random near it, with world stocks' ups and
+ * one's own, years drawn at random near it, with US stocks' ups and
  * downs or the ones typed (in euros on the user's money).
  */
 export function futuresSource(investment: ResolvedInvestment, scenario: Pick<Scenario, "capital">, total: number, { m, f }: I18n): string {

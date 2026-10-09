@@ -39,16 +39,21 @@ src/
   browser.ts         el código de una herramienta para el navegador, sin bundler
   icons.ts           la semilla, el favicon, el lanzador, el tema, ▲/▼ y los iconos de principios
   site.ts            la dirección del hub y el contacto
-  cost-of-living.ts  el coste de vida de 172 países (data/): precios, alquiler e inflación
+  cost-of-living.ts  lo que vive una persona media en cada país, vivienda incluida (data/living-costs.json,
+                     de los datos oficiales del Banco Mundial), con la inflación de referencia de cada país
+                     (data/inflation-reference.json)
   inflation-rates.ts solo la inflación de referencia de cada país (3 KB), para una primera pantalla ligera
-  country-names.ts   los nombres de los 172 países, EN/ES, en tabla y en frase
+  country-names.ts   los nombres de los países, EN/ES (y NL, oculto), en tabla y en frase
   official/          los datos oficiales: forma, lista de series y comprobaciones (series.ts),
-                     lectores del Banco Mundial, Eurostat y CLDR, y el acceso en el build (data.ts)
+                     lectores del Banco Mundial, Eurostat y CLDR, el acceso en el build (data.ts)
+                     y el método del coste de vida (living-costs.ts; solo en el build)
   data/official/     las series oficiales, cada una con fuente, URL, licencia, fecha de descarga
                      y año de los datos, y REPORT.md (el informe de la última descarga)
 scripts/             official-data.ts descarga y comprueba los datos oficiales (una vez al año);
                      official-data.workflow.yml es su workflow, para copiar a .github/workflows/;
-                     inflation-rates.ts escribe data/inflation-rates.json desde el coste de vida
+                     living-costs.ts escribe data/living-costs.json desde los datos oficiales;
+                     country-names.ts, data/country-names.json (CLDR de Node);
+                     inflation-rates.ts escribe data/inflation-rates.json desde la inflación de referencia
 test/                los tests del kit (node --test)
 ```
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n";
-import { parseLooseNumber } from "@/lib/csv";
+import { parseLooseNumber } from "@/lib/number";
 import { createSettler, type Settler } from "@/lib/settle";
 
 export const inputClass =

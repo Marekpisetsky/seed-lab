@@ -17,16 +17,14 @@
 
 import type { I18n } from "@/i18n";
 import { goalName } from "@/i18n/goal-text";
-import { decadeSource, dividendNote, growthSource } from "@/i18n/investment-text";
+import { decadeSource, growthSource } from "@/i18n/investment-text";
 import { monthsTo, valueAt, withinReach, type Calculation, type GoalStatus, type Scenario } from "./calculator";
 import { addMonths } from "./dates";
 import { DECADE_YEARS, historicalDecade } from "./decade";
-import { holdingValue, monthsToGoal } from "./finance";
+import { monthsToGoal } from "./finance";
 import type { ResolvedInvestment } from "./investment";
-import { MARKET, type PricesFile } from "./market-data";
-import { BASE_CURRENCY, type Holding } from "./types";
 
-export type FindingId = "lever" | "waiting" | "inflation" | "fees" | "currency" | "sequence" | "doubling";
+export type FindingId = "lever" | "waiting" | "inflation" | "fees" | "sequence" | "doubling";
 
 export interface Finding {
   id: FindingId;
@@ -46,9 +44,6 @@ export interface FindingContext {
   /** Expected yearly inflation. */
   inflation: number;
   today: Date;
-  /** Priced holdings. */
-  holdings: readonly Holding[];
-  market: PricesFile;
   i18n: I18n;
 }
 
@@ -56,7 +51,6 @@ export const MAX_FINDINGS = 3;
 
 /** The order findings are shown in: risks first, then what moves the plan, general facts last. */
 export const ORDER: readonly FindingId[] = [
-  "currency",
   "lever",
   "sequence",
   "inflation",
@@ -90,8 +84,7 @@ export function firstYearGrowth(scenario: Scenario, extra = 0): number {
 }
 
 function growthAssumption(scenario: Scenario, investment: ResolvedInvestment, i18n: I18n): string {
-  const dividends = dividendNote(investment, i18n);
-  const source = growthSource(investment, i18n) + (dividends ? ` (${dividends})` : "");
+  const source = growthSource(investment, i18n);
   const { f } = i18n;
   return i18n.m.findings.growthAssumption(f.rate(scenario.realReturn), f.eur(firstYearGrowth(scenario), { signed: true }), source, Boolean(investment.period));
 }
@@ -241,32 +234,6 @@ export function feesFinding(context: FindingContext): Finding | null {
   };
 }
 
-/** Holdings in another currency, which are left out of every figure. */
-export function currencyFinding({ holdings, i18n }: FindingContext): Finding | null {
-  const { m, f } = i18n;
-  const t = m.findings.currency;
-  const sums = new Map<string, number>();
-  for (const holding of holdings) {
-    if (holding.currency === BASE_CURRENCY) continue;
-    sums.set(holding.currency, (sums.get(holding.currency) ?? 0) + (holdingValue(holding) ?? holding.costBasis));
-  }
-  if (sums.size === 0) return null;
-  const counted = holdings
-    .filter((holding) => holding.currency === BASE_CURRENCY)
-    .reduce((sum, holding) => sum + (holdingValue(holding) ?? 0), 0);
-  const [[currency, amount]] = [...sums].sort((a, b) => b[1] - a[1]);
-  const money = f.money(amount, currency, { decimals: 0 });
-  const single = sums.size === 1;
-  return {
-    id: "currency",
-    value: single ? money : t.value(sums.size),
-    text: single ? t.one(money, t.names[currency] ?? currency) : t.many([...sums.keys()].join(t.and)),
-    tone: "warning",
-    calculation: [...[...sums].map(([code, value]) => t.line(f.money(value, code, { decimals: 0 }), code)), t.counted(f.eur(counted))],
-    assumptions: [t.assumption],
-  };
-}
-
 /**
  * A bad first decade from history (lib/decade.ts: 2000–2009, or the
  * investment's worst): for the first goal, or for the result. The same
@@ -337,7 +304,6 @@ export function doublingFinding({ calc, i18n }: FindingContext): Finding | null 
 }
 
 const RULES: Record<FindingId, (context: FindingContext) => Finding | null> = {
-  currency: currencyFinding,
   lever: leverFinding,
   sequence: sequenceFinding,
   inflation: inflationFinding,
@@ -347,12 +313,11 @@ const RULES: Record<FindingId, (context: FindingContext) => Finding | null> = {
 };
 
 /** Every finding that matters for this plan, in the fixed order. */
-export function allFindings(context: Omit<FindingContext, "market"> & { market?: PricesFile }): Finding[] {
-  const full: FindingContext = { ...context, market: context.market ?? MARKET };
-  return ORDER.map((id) => RULES[id](full)).filter((finding): finding is Finding => finding !== null);
+export function allFindings(context: FindingContext): Finding[] {
+  return ORDER.map((id) => RULES[id](context)).filter((finding): finding is Finding => finding !== null);
 }
 
 /** The ones the page shows: at most three. */
-export function topFindings(context: Omit<FindingContext, "market"> & { market?: PricesFile }): Finding[] {
+export function topFindings(context: FindingContext): Finding[] {
   return allFindings(context).slice(0, MAX_FINDINGS);
 }

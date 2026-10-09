@@ -12,8 +12,6 @@
  *   grows the same way whether it is compounded monthly or yearly.
  */
 
-import type { CurrencyCode, Holding } from "./types";
-
 function assertFiniteNumber(value: number, name: string): void {
   if (!Number.isFinite(value)) {
     throw new RangeError(`${name} must be a finite number, got ${value}`);
@@ -189,73 +187,4 @@ export function requiredCapital(annualExpenses: number, withdrawalRate: number):
     throw new RangeError(`withdrawalRate must be positive, got ${withdrawalRate}`);
   }
   return annualExpenses / withdrawalRate;
-}
-
-export interface GainLoss {
-  absolute: number;
-  /** Relative to cost basis; `null` when the cost basis is zero. */
-  percent: number | null;
-}
-
-export function gainLoss(costBasis: number, currentValue: number): GainLoss {
-  assertFiniteNumber(costBasis, "costBasis");
-  assertFiniteNumber(currentValue, "currentValue");
-  const absolute = currentValue - costBasis;
-  return { absolute, percent: costBasis === 0 ? null : absolute / costBasis };
-}
-
-/** Average price paid per share; `null` for an empty position. */
-export function averageCost(holding: Pick<Holding, "costBasis" | "quantity">): number | null {
-  return holding.quantity > 0 ? holding.costBasis / holding.quantity : null;
-}
-
-/** Market value at the user's current price; `null` if the price is unknown. */
-export function holdingValue(holding: Pick<Holding, "quantity" | "currentPrice">): number | null {
-  return holding.currentPrice === null ? null : holding.quantity * holding.currentPrice;
-}
-
-export function holdingGain(holding: Holding): GainLoss | null {
-  const value = holdingValue(holding);
-  return value === null ? null : gainLoss(holding.costBasis, value);
-}
-
-export interface CurrencySummary {
-  currency: CurrencyCode;
-  holdingCount: number;
-  /** Holdings with a known current price, the only ones in the totals below. */
-  pricedCount: number;
-  /** Cost basis of the priced holdings, so it is comparable to `value`. */
-  costBasis: number;
-  value: number;
-  gain: GainLoss;
-}
-
-/**
- * Totals per currency. Amounts in different currencies are never added
- * together, and holdings without a current price are counted but left out of
- * the money totals (so the gain is not distorted by a missing price).
- */
-export function summarizeByCurrency(holdings: readonly Holding[]): CurrencySummary[] {
-  const byCurrency = new Map<CurrencyCode, CurrencySummary>();
-  for (const holding of holdings) {
-    const summary = byCurrency.get(holding.currency) ?? {
-      currency: holding.currency,
-      holdingCount: 0,
-      pricedCount: 0,
-      costBasis: 0,
-      value: 0,
-      gain: { absolute: 0, percent: null },
-    };
-    summary.holdingCount += 1;
-    const value = holdingValue(holding);
-    if (value !== null) {
-      summary.pricedCount += 1;
-      summary.costBasis += holding.costBasis;
-      summary.value += value;
-    }
-    byCurrency.set(holding.currency, summary);
-  }
-  return [...byCurrency.values()]
-    .map((summary) => ({ ...summary, gain: gainLoss(summary.costBasis, summary.value) }))
-    .sort((a, b) => a.currency.localeCompare(b.currency));
 }

@@ -114,7 +114,7 @@ describe("the theme menu", () => {
 });
 
 describe("contrast in both modes", () => {
-  it("keeps every text at WCAG AA: the first screen, the result with its sections open, Check your plan, Test my plan, My stocks and Privacy", async () => {
+  it("keeps every text at WCAG AA: the first screen, the result with its sections open, Check your plan, Test my plan and Privacy", async () => {
     for (const theme of THEMES) {
       const page = await open("/", { theme });
       const problems: string[] = [];
@@ -135,7 +135,6 @@ describe("contrast in both modes", () => {
       await check("Check your plan");
       for (const [path, name] of [
         ["/test", "Test my plan"],
-        ["/stocks", "My stocks"],
         ["/privacy", "Privacy"],
       ] as const) {
         await page.getByRole("link", { name, exact: true }).first().click();
@@ -157,7 +156,7 @@ type Swatches = Record<string, { x: number; y: number }>;
 async function chartPoints(page: Page): Promise<Swatches> {
   return page.evaluate(() => {
     const putIn = document.querySelector('path[fill="var(--chart-put-in)"]')!;
-    // In sight first: what is under the big number (the wishes) can push it below the fold.
+    // In sight first: what is under the big number can push it below the fold.
     putIn.closest("svg")!.scrollIntoView({ block: "center" });
     const svg = putIn.closest("svg")!.getBoundingClientRect();
     const x = svg.left + svg.width * 0.8;

@@ -7,7 +7,7 @@
  * Each year, half of the year's monthly amounts go in at its start and half
  * at its end, as in the simulations (lib/simulation.ts). A mix follows each
  * part's own history, rebalanced to its weights every year when it is
- * rebalanced; a stock of My portfolio follows its index's history. A
+ * rebalanced. A
  * savings part earns its fixed rate. Numbers only: the words are in
  * the dictionaries (`test`).
  */
@@ -54,9 +54,9 @@ export interface Amounts {
 }
 
 /**
- * The history of an investment: its asset, or a mix's or the portfolio's
- * parts (a stock follows its index). Custom growth (the starting 5 % among
- * them) moves like world stocks, so it is tested with their real years.
+ * The history of an investment: its asset, or a mix's parts. Custom growth
+ * (the starting 5 % among them) moves like US stocks, so it is tested with
+ * their real years.
  * `null` for a savings account or growth with no ups and downs.
  */
 export function historySource(investment: Pick<ResolvedInvestment, "investment" | "model" | "custom" | "volatility">): HistorySource | null {

@@ -97,9 +97,9 @@ describe("the site", () => {
   it("names its sources, with dates, on the page", () => {
     for (const locale of LOCALES) {
       const page = readFileSync(join(DIST, localePath(PAGES.home, locale), "index.html"), "utf8");
-      assert.match(page, /Numbeo/, locale);
-      assert.match(page, /Wise/, locale);
-      assert.match(page, locale === "en" ? /World Bank, 20\d\d/ : /Banco Mundial, 20\d\d/, locale);
+      assert.doesNotMatch(page, /Numbeo|Wise/, locale);
+      assert.match(page, locale === "en" ? /World Bank(?:'|&#39;)s household surveys \(20\d\d–20\d\d/ : /encuestas de hogares del Banco Mundial \(20\d\d–20\d\d/, locale);
+      assert.match(page, /CC BY 4\.0/, locale);
     }
   });
 });

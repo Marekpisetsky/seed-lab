@@ -5,47 +5,23 @@
  * its own way; this code never writes a sentence.
  */
 
-import type { IndexId } from "./index-ids";
-
 type None = Record<never, never>;
 
 export interface ProblemValues {
   // Any file.
   "file-unreadable": { file: string };
-  "file-empty": None;
-  "file-no-rows": None;
-  "file-unknown": { columns: string };
-  // Holdings files.
-  "holdings-missing-columns": { columns: string; expected: string };
-  "t212-missing-columns": { columns: string };
-  "t212-unsupported": { action: string };
-  "missing-ticker": None;
-  "bad-quantity": { ticker: string; raw: string };
-  "bad-cost": { ticker: string };
-  "bad-currency": { ticker: string; raw: string };
-  "negative-price": { ticker: string };
-  "bad-price": { ticker: string; raw: string };
-  "bad-shares": { ticker: string; raw: string };
-  "bad-share-price": { ticker: string; raw: string };
-  "currency-differs": { ticker: string; currency: string; earlier: string };
-  oversold: { ticker: string; shares: number; held: number };
-  // Price files.
-  "prices-no-columns": None;
-  "prices-no-rows": None;
   // Data files.
   "data-not-json": None;
   "data-not-ours": None;
   "data-newer": None;
-  "stock-now-portfolio": { name: string };
-  "stock-now-index": { name: string; index: IndexId };
-  "mix-had-stocks": None;
-  // The holding form.
-  "form-ticker-empty": None;
-  "form-ticker-long": None;
-  "form-quantity": None;
-  "form-cost": None;
-  "form-currency": None;
-  "form-price": None;
+  /** A single stock or a stock in a mix (versions 5 to 10): counted as US stocks now. */
+  "stocks-now-us": None;
+  /** World stocks or the Nasdaq-100 (versions 1 to 10): no open data, so US stocks now. */
+  "series-retired": { series: string };
+  /** My portfolio (versions 6 to 10): holdings are no longer kept. */
+  "portfolio-retired": None;
+  /** Goals that were things of the old price list: there is no list any more. */
+  "goal-items-retired": { count: number };
 }
 
 export type ProblemCode = keyof ProblemValues;

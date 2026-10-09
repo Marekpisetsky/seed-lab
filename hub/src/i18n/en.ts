@@ -188,7 +188,6 @@ export const en = {
       "A WCAG audit by people, and a public accessibility statement.",
       "Tests with real people, children and older people included.",
       "A public list of changes to each method.",
-      "Replace the sources that do not allow sharing their data, like Yahoo Finance, Numbeo and MSCI.",
     ],
     blocksTitle: "Free tools for developers",
     blocksIntro: "Horalis Growth is made of pieces other tools could reuse. We plan to publish them one by one. None is published yet.",

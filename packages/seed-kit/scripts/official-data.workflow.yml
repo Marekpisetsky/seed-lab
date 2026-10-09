@@ -50,16 +50,16 @@ jobs:
           echo "status=$?" >> "$GITHUB_OUTPUT"
           cp "$RUNNER_TEMP/REPORT.md" src/data/official/REPORT.md || printf '# Official data\n\nThe download crashed before writing its report. See the run: %s\n' "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > src/data/official/REPORT.md
 
-      - name: Test seed-kit with the new data
+      - name: Rebuild the tables made from it, then test seed-kit with the new data
         id: tests
         if: steps.data.outputs.status == '0'
         continue-on-error: true
-        run: npm ci && npm test
+        run: npm ci && npm run living-costs && npm run country-names && npm test
 
       - name: Keep the old data if the tests failed
         if: steps.data.outputs.status == '0' && steps.tests.outcome == 'failure'
         run: |
-          git checkout -- src/data/official/*.json
+          git checkout -- src/data/official/*.json src/data/living-costs.json src/data/country-names.json
           printf '\n## The tests failed with the new data\n\nThe data was put back as it was. See the run: %s\n' "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> src/data/official/REPORT.md
 
       - name: Open a pull request
@@ -72,7 +72,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b "$branch"
-          git add src/data/official
+          git add src/data
           git commit -m "$title"
           git push origin "$branch"
           gh pr create --head "$branch" --title "$title" --body-file src/data/official/REPORT.md

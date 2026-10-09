@@ -64,14 +64,12 @@ operación sobre un instrumento concreto**. Dice que no es asesoramiento
 
 **Lo que hay que vigilar (de más a menos riesgo):**
 
-1. **Nombres de fondos junto a un índice.** El selector muestra "p. ej.
-   VUAA" junto al S&P 500, "VWCE" junto al Mundo, etc. No dice "compra",
-   pero pone un instrumento concreto al lado de un resultado calculado con
-   las cifras de la persona: es lo más cercano al límite que tiene la app
-   y, según el Reglamento de abuso de mercado, podría leerse como una
-   sugerencia implícita. *Opciones:* nombrar varios fondos, o el índice y
-   su proveedor, o explicar que es solo un ejemplo de lo que sigue el
-   índice. **Para revisar con el profesional.**
+1. **Nombres de fondos junto a un índice** (resuelto en la fase A2, 9 de
+   octubre de 2026). El selector mostraba "p. ej. VUAA" junto al S&P 500,
+   "VWCE" junto al Mundo: un instrumento concreto al lado de un resultado
+   calculado con las cifras de la persona. Ya no hay ningún producto,
+   fondo ni ticker en la app: solo tipos de activo ("acciones de EE. UU.",
+   "bonos alemanes", "oro").
 2. **Zonas del retiro ("prudente", "arriesgado").** Son etiquetas de los
    datos, no de la persona, pero suenan a juicio. Siempre van con su dato
    ("duró en 79 de cada 100"); ver la [tasa de
@@ -82,14 +80,12 @@ operación sobre un instrumento concreto**. Dice que no es asesoramiento
 4. **"Chequeo de tu plan".** Las observaciones describen un hecho del
    plan con su cifra en euros; nunca dicen qué comprar, qué vender ni qué
    pesos poner, y la sección empieza diciendo que qué hacer lo decide la
-   persona. La referencia del ahorro son "las acciones del mundo", un
-   índice, nunca un fondo, y va con su caso malo. Ver el [chequeo de tu
+   persona. La referencia del ahorro son "las acciones de EE. UU.", un
+   tipo de activo, nunca un fondo, y va con su caso malo y su peor caída. Ver el [chequeo de tu
    plan](../wealth-lens/chequeo.md); un test comprueba su redacción.
    **Para revisar con el profesional:** si comparar un ahorro con las
-   acciones del mundo, con las cifras de la persona, puede leerse como
-   una sugerencia.
-5. **Mi cartera.** Lee las posiciones que la persona ya tiene y dice cómo
-   se movieron y cuánto pesan; nunca qué hacer con ellas.
+   acciones, con las cifras de la persona, puede leerse como una
+   sugerencia.
 
 ## Reglas de redacción para todas las apps
 
@@ -154,3 +150,6 @@ De criterio (las revisa quien escribe y quien revisa):
 - 2026-10-07: el chequeo de tu plan, hecho y con su test de redacción;
   un punto más para el profesional (comparar el ahorro con las acciones
   del mundo).
+- 2026-10-09 (fase A2): se quitan los nombres de fondos (punto 1
+  resuelto), *Mi cartera* y las acciones sueltas; la referencia del ahorro
+  pasa a las acciones de EE. UU.

@@ -20,25 +20,21 @@ export function countriesFor(locale: Locale): Country[] {
       code: country.code,
       name: countryName(country.code, locale),
       sentence: countryInSentence(country.code, locale),
-      withoutRent: country.monthlyCostEur.withoutRent,
-      withRent: country.monthlyCostEur.withRent,
-      estimated: country.method === "estimated",
+      cost: country.monthlyCostEur,
     }))
     .sort((a, b) => collator.compare(a.name, b.name));
 }
 
 /** Where the numbers come from, for the page's sources. */
 export const DATA = (() => {
-  const detailed = costOfLiving.countries.filter((country) => country.method === "detailed");
-  const estimated = costOfLiving.countries.filter((country) => country.method === "estimated");
-  const latest = (dates: string[]) => dates.sort().at(-1) ?? "";
+  const surveys = costOfLiving.countries.map((country) => country.surveyYear);
   return {
-    detailed: detailed.length,
-    estimated: estimated.length,
-    /** The month the detailed figures refer to, YYYY-MM (the latest). */
-    detailedMonth: latest(detailed.map((country) => country.referenceDate)),
-    /** The year of the World Bank price levels behind the estimates (the latest). */
-    priceYear: Math.max(...estimated.map((country) => country.priceLevel?.year ?? 0)),
+    countries: costOfLiving.countries.length,
+    /** The year of the prices. */
+    priceYear: costOfLiving.priceYear,
+    /** The oldest and newest household surveys behind the figures. */
+    surveyFrom: Math.min(...surveys),
+    surveyTo: Math.max(...surveys),
     compiledOn: costOfLiving.compiledOn,
   };
 })();

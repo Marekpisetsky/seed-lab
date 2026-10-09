@@ -4,12 +4,10 @@
  * en.ts, so the search does not bring the whole English dictionary along.
  */
 export const ENGLISH_SEARCH_WORDS = {
-  index: "index stocks shares",
+  index: "index stocks shares us usa america",
   bonds: "bonds government bund germany",
   gold: "gold",
   savings: "savings account bank deposit cash interest",
   custom: "custom own growth rate numbers",
-  portfolio: "my portfolio holdings",
   mix: "mix weights several combine stocks bonds",
-  stock: "stock shares company",
 };

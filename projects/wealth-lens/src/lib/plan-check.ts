@@ -6,11 +6,12 @@
  * - horizon: the plan's years, or a goal, under 5 years away, with money
  *   that moves up and down: how many of the 1,000 possible futures end
  *   below what was put in by then (shown from 1 in 10);
- * - concentration: one stock over a fifth of the mix the plan invests in,
- *   or of My portfolio (index funds aside): its euros and its worst fall;
  * - savings: a savings account for 10 years or more: what it keeps in
- *   today's euros, against what was put in and against world stocks, with
+ *   today's euros, against what was put in and against US stocks, with
  *   both sides of them: what savings give up, and their worst fall.
+ *
+ * (The concentration check, one stock over a fifth of a mix, went with the
+ * individual stocks on 9 October 2026.)
  *
  * Numbers only; the words are in i18n/check-text.ts. It informs: it never
  * says what to buy, what to sell or what weights to choose (research/
@@ -19,15 +20,11 @@
 
 import type { AssetId } from "./assets";
 import type { Calculation, CalculatorPlan, GoalStatus } from "./calculator";
-import { futureValueWithContributions, holdingValue } from "./finance";
+import { futureValueWithContributions } from "./finance";
 import { CRISES, crisisResults } from "./history-test";
 import { resolveInvestment } from "./investment";
-import { INDEX_TRACKERS, instrumentForHolding, MARKET, type PricesFile } from "./market-data";
-import { CONCENTRATION_LIMIT, mixStock } from "./mix";
-import { referenceFor } from "./portfolio";
 import { bandsFor, FUTURES, samplesFor } from "./projections";
 import { percentile } from "./simulation";
-import { BASE_CURRENCY, type Holding } from "./types";
 
 /** "Short": the plan's years, or a goal, less than this many years away. */
 export const SHORT_YEARS = 5;
@@ -35,10 +32,8 @@ export const SHORT_YEARS = 5;
 export const BELOW_SHOWN = 0.1;
 /** "Long" for a savings account: this many years or more. */
 export const SAVINGS_YEARS = 10;
-/** One stock over this share of a mix or of My portfolio: a fifth, the line the mix already uses (lib/mix.ts). */
-export { CONCENTRATION_LIMIT };
-/** The world reference a savings account is set against: world stocks, the "World" example (MSCI World). */
-export const WORLD_REFERENCE: AssetId = "world";
+/** What a savings account is set against: US stocks, the one stock series with open data. */
+export const STOCKS_REFERENCE: AssetId = "sp500";
 
 export interface HorizonCheck {
   id: "horizon";
@@ -55,25 +50,6 @@ export interface HorizonCheck {
   bad: number;
 }
 
-export interface ConcentrationCheck {
-  id: "concentration";
-  where: "mix" | "portfolio";
-  /** Its ticker ("NVDA"). */
-  name: string;
-  /** Its share, 0 to 1. */
-  share: number;
-  /** Its euros: of today's money, or of the total at the end when there is no money today (a mix with only a monthly amount). */
-  amount: number;
-  total: number;
-  atEnd: boolean;
-  /** Its worst fall from a peak in the stored prices (0.57 = −57 %), and since when; `null` without prices. */
-  fall: { max: number; from: string } | null;
-  /** Its change over the last 12 months; `null` without prices. */
-  change1y: number | null;
-  /** The index it grows like in the plan. */
-  reference: AssetId;
-}
-
 export interface SavingsCheck {
   id: "savings";
   years: number;
@@ -81,11 +57,11 @@ export interface SavingsCheck {
   total: number;
   putIn: number;
   /**
-   * World stocks with the same amounts: the typical result, the one 1 in 10
+   * US stocks with the same amounts: the typical result, the one 1 in 10
    * futures end below, and their worst fall in the data (its share, and its
    * first and last calendar years).
    */
-  world: { typical: number; bad: number; rate: number; period: [number, number] | null; fall: WorstFall | null };
+  stocks: { typical: number; bad: number; rate: number; period: [number, number] | null; fall: WorstFall | null };
 }
 
 export interface WorstFall {
@@ -95,10 +71,10 @@ export interface WorstFall {
   to: number;
 }
 
-export type PlanCheck = HorizonCheck | ConcentrationCheck | SavingsCheck;
+export type PlanCheck = HorizonCheck | SavingsCheck;
 
 /** At most one of each, in this order: the risk of the next years first. */
-export const CHECK_ORDER = ["horizon", "concentration", "savings"] as const;
+export const CHECK_ORDER = ["horizon", "savings"] as const;
 
 /** The soonest goal the plan reaches later but within SHORT_YEARS. */
 function shortGoal(goals: readonly GoalStatus[]): GoalStatus | null {
@@ -123,101 +99,45 @@ export function horizonCheck(calc: Calculation): HorizonCheck | null {
   return { id: "horizon", years, goal, putIn, below, futures: paths.length, bad: percentile(ends, 0.1) };
 }
 
-/** An index fund: an ETF of the list, or a ticker of a well-known one. */
-function isIndexFund(holding: Holding): boolean {
-  const instrument = instrumentForHolding(holding.ticker, holding.currency);
-  if (instrument) return instrument.kind === "etf";
-  const ticker = holding.ticker.trim().toUpperCase().split(".")[0];
-  return Object.values(INDEX_TRACKERS).some((list) => list.includes(ticker));
-}
+let stocksFall: WorstFall | null | undefined;
 
-/** One stock over a fifth: of the mix the plan invests in, or else of My portfolio's holdings in euros. */
-export function concentrationCheck(calc: Calculation, holdings: readonly Holding[], market: PricesFile = MARKET): ConcentrationCheck | null {
-  const { investment } = calc.investment;
-  if (investment.kind === "mix") {
-    const stocks = investment.parts.filter((part) => part.stock !== undefined);
-    const biggest = stocks.reduce<(typeof stocks)[number] | null>((top, part) => (top === null || part.weight > top.weight ? part : top), null);
-    const instrument = mixStock(biggest?.stock);
-    if (!biggest || !instrument || biggest.weight / 100 <= CONCENTRATION_LIMIT) return null;
-    const share = biggest.weight / 100;
-    const atEnd = calc.scenario.capital <= 0;
-    const total = atEnd ? calc.result.total : calc.scenario.capital;
-    const prices = market.prices[instrument.id];
-    return {
-      id: "concentration",
-      where: "mix",
-      name: instrument.id,
-      share,
-      amount: share * total,
-      total,
-      atEnd,
-      fall: prices?.drawdown ?? null,
-      change1y: prices?.change1y ?? null,
-      reference: biggest.asset,
-    };
-  }
-  const priced = holdings
-    .filter((holding) => holding.currency === BASE_CURRENCY)
-    .map((holding) => ({ holding, value: holdingValue(holding) ?? 0 }))
-    .filter((entry) => entry.value > 0);
-  const total = priced.reduce((sum, entry) => sum + entry.value, 0);
-  const biggest = priced.filter((entry) => !isIndexFund(entry.holding)).sort((a, b) => b.value - a.value)[0];
-  if (!biggest || total <= 0 || biggest.value / total <= CONCENTRATION_LIMIT) return null;
-  const instrument = instrumentForHolding(biggest.holding.ticker, biggest.holding.currency);
-  const prices = instrument ? market.prices[instrument.id] : undefined;
-  return {
-    id: "concentration",
-    where: "portfolio",
-    name: biggest.holding.ticker,
-    share: biggest.value / total,
-    amount: biggest.value,
-    total,
-    atEnd: false,
-    fall: prices?.drawdown ?? null,
-    change1y: prices?.change1y ?? null,
-    reference: referenceFor(biggest.holding).asset,
-  };
-}
-
-let worldFall: WorstFall | null | undefined;
-
-/** World stocks' worst fall in the data: the deepest of the crashes "Test my plan" runs through (lib/history-test.ts). */
-export function worstWorldFall(): WorstFall | null {
-  if (worldFall !== undefined) return worldFall;
-  const results = Object.values(crisisResults({ parts: [{ asset: WORLD_REFERENCE, weight: 1 }], rebalance: true, savingsReturn: 0 }, { start: 1, monthly: 0 }, 1));
+/** US stocks' worst fall in the data: the deepest of the crashes "Test my plan" runs through (lib/history-test.ts). */
+export function worstStocksFall(): WorstFall | null {
+  if (stocksFall !== undefined) return stocksFall;
+  const results = Object.values(crisisResults({ parts: [{ asset: STOCKS_REFERENCE, weight: 1 }], rebalance: true, savingsReturn: 0 }, { start: 1, monthly: 0 }, 1));
   let worst: WorstFall | null = null;
   for (const result of results) {
     const crisis = result && CRISES.find((entry) => entry.id === result.id);
     if (!result?.fall || !crisis || (worst && result.fall.drop <= worst.drop)) continue;
     worst = { drop: result.fall.drop, from: crisis.year, to: crisis.year + crisis.years - 1 };
   }
-  worldFall = worst;
+  stocksFall = worst;
   return worst;
 }
 
-/** A savings account for many years: what it keeps, and what world stocks gave with the same amounts. */
+/** A savings account for many years: what it keeps, and what US stocks gave with the same amounts. */
 export function savingsCheck(calc: Calculation, plan: Pick<CalculatorPlan, "pricesOf" | "assumptions">): SavingsCheck | null {
   const { investment, scenario, result } = calc;
   if (investment.investment.kind !== "asset" || investment.investment.asset !== "savings" || result.years < SAVINGS_YEARS) return null;
-  // World stocks' own figures, with the same rising prices as the plan.
-  const world = resolveInvestment({ kind: "asset", asset: WORLD_REFERENCE }, [], { pricesOf: plan.pricesOf, assumptions: { ...plan.assumptions, growth: null, volatility: null } });
+  // US stocks' own figures, with the same rising prices as the plan.
+  const stocks = resolveInvestment({ kind: "asset", asset: STOCKS_REFERENCE }, { pricesOf: plan.pricesOf, assumptions: { ...plan.assumptions, growth: null, volatility: null } });
   const amounts = { start: scenario.capital, monthly: scenario.monthly, years: result.years };
   return {
     id: "savings",
     years: result.years,
     total: result.total,
     putIn: result.putIn,
-    world: {
-      typical: futureValueWithContributions(amounts.start, amounts.monthly, world.realReturn, amounts.years),
-      bad: bandsFor(world, amounts).p10[amounts.years],
-      rate: world.realReturn,
-      period: world.period,
-      fall: worstWorldFall(),
+    stocks: {
+      typical: futureValueWithContributions(amounts.start, amounts.monthly, stocks.realReturn, amounts.years),
+      bad: bandsFor(stocks, amounts).p10[amounts.years],
+      rate: stocks.realReturn,
+      period: stocks.period,
+      fall: worstStocksFall(),
     },
   };
 }
 
 /** The plan's checks, in CHECK_ORDER: none, one, two or three. */
-export function planChecks(calc: Calculation, plan: Pick<CalculatorPlan, "pricesOf" | "assumptions">, holdings: readonly Holding[], market: PricesFile = MARKET): PlanCheck[] {
-  return [horizonCheck(calc), concentrationCheck(calc, holdings, market), savingsCheck(calc, plan)].filter((check): check is PlanCheck => check !== null);
+export function planChecks(calc: Calculation, plan: Pick<CalculatorPlan, "pricesOf" | "assumptions">): PlanCheck[] {
+  return [horizonCheck(calc), savingsCheck(calc, plan)].filter((check): check is PlanCheck => check !== null);
 }

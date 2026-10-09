@@ -4,32 +4,29 @@ import { parseIsoDate } from "./dates";
 import { averageResult, cardYears, CRISES, crisisResult, crisisResults, everyStartYear, fallAmount, historyPath, historySource, SP500_ALONE, yearsCovered, type HistorySource } from "./history-test";
 import { SERIES } from "./indexes";
 import { resolveInvestment } from "./investment";
-import type { Holding } from "./types";
 import { SP500_PLAN } from "./sp500-plan";
 
 const today = parseIsoDate("2026-09-30");
 const sp = (year: number) => SERIES.sp500.dataset.years.find((entry) => entry.year === year)?.realReturn ?? NaN;
-const world = (year: number) => SERIES.world.dataset.years.find((entry) => entry.year === year)?.realReturn ?? NaN;
+const stocks = (year: number) => SERIES.sp500.dataset.years.find((entry) => entry.year === year)?.realReturn ?? NaN;
 const bondsReturn = (year: number) => SERIES.bonds.dataset.years.find((entry) => entry.year === year)?.realReturn ?? NaN;
-const worldOnly: HistorySource = { parts: [{ asset: "world", weight: 1 }], rebalance: true, savingsReturn: 0 };
-const sixtyForty: HistorySource = { parts: [{ asset: "world", weight: 0.6 }, { asset: "bonds", weight: 0.4 }], rebalance: true, savingsReturn: 0 };
+const bondsOnly: HistorySource = { parts: [{ asset: "bonds", weight: 1 }], rebalance: true, savingsReturn: 0 };
+const sixtyForty: HistorySource = { parts: [{ asset: "sp500", weight: 0.6 }, { asset: "bonds", weight: 0.4 }], rebalance: true, savingsReturn: 0 };
 
 describe("the history a plan follows", () => {
-  it("is its asset, a mix's parts, or the index of each stock of My portfolio; world stocks for custom growth; none with no ups and downs", () => {
-    expect(historySource(resolveInvestment({ kind: "asset", asset: "sp500" }, []))).toEqual(SP500_ALONE);
-    expect(historySource(resolveInvestment({ kind: "asset", asset: "savings" }, []))).toBeNull();
-    // The starting 5 %: it moves like world stocks, so it is tested with their real years.
-    expect(historySource(resolveInvestment({ kind: "custom" }, []))).toEqual({ parts: [{ asset: "world", weight: 1 }], rebalance: true, savingsReturn: 0 });
-    expect(historySource(resolveInvestment({ kind: "custom" }, [], { pricesOf: "NL", assumptions: { growth: 0.05, volatility: 0, inflation: null } }))).toBeNull();
-    const mix = historySource(resolveInvestment({ kind: "mix", parts: [{ asset: "world", weight: 60 }, { asset: "bonds", weight: 40 }], rebalance: true }, []));
-    expect(mix).toMatchObject({ rebalance: true, parts: [{ asset: "world", weight: 0.6 }, { asset: "bonds", weight: 0.4 }] });
-    const nasdaqFund: Holding = { id: "n", ticker: "EQQQ", quantity: 1, costBasis: 100, currency: "EUR", currentPrice: 100, priceSource: "manual", priceDate: null };
-    expect(historySource(resolveInvestment({ kind: "portfolio" }, [nasdaqFund]))?.parts.map((part) => part.asset)).toEqual(["nasdaq100"]);
+  it("is its asset or a mix's parts; US stocks for custom growth; none with no ups and downs", () => {
+    expect(historySource(resolveInvestment({ kind: "asset", asset: "sp500" }))).toEqual(SP500_ALONE);
+    expect(historySource(resolveInvestment({ kind: "asset", asset: "savings" }))).toBeNull();
+    // The starting 5 %: it moves like US stocks, so it is tested with their real years.
+    expect(historySource(resolveInvestment({ kind: "custom" }))).toEqual({ parts: [{ asset: "sp500", weight: 1 }], rebalance: true, savingsReturn: 0 });
+    expect(historySource(resolveInvestment({ kind: "custom" }, { pricesOf: "NL", assumptions: { growth: 0.05, volatility: 0, inflation: null } }))).toBeNull();
+    const mix = historySource(resolveInvestment({ kind: "mix", parts: [{ asset: "sp500", weight: 60 }, { asset: "bonds", weight: 40 }], rebalance: true }));
+    expect(mix).toMatchObject({ rebalance: true, parts: [{ asset: "sp500", weight: 0.6 }, { asset: "bonds", weight: 0.4 }] });
   });
 
   it("covers the years every part has data for", () => {
     expect(yearsCovered(SP500_ALONE)).toEqual([1928, 2022]);
-    expect(yearsCovered(worldOnly)).toEqual([1988, 2024]);
+    expect(yearsCovered(bondsOnly)).toEqual([1988, 2024]);
     expect(yearsCovered({ ...sixtyForty, parts: [...sixtyForty.parts, { asset: "sp500", weight: 0 }] })).toEqual([1988, 2022]);
   });
 });
@@ -47,11 +44,11 @@ describe("a path through real years", () => {
 
   it("rebalances a mix to its weights every year, or lets it drift", () => {
     const [, rebalanced, twoYears] = historyPath(sixtyForty, { start: 1000, monthly: 0 }, 2008, 2);
-    const first = 600 * (1 + world(2008)) + 400 * (1 + bondsReturn(2008));
+    const first = 600 * (1 + stocks(2008)) + 400 * (1 + bondsReturn(2008));
     expect(rebalanced).toBeCloseTo(first, 9);
-    expect(twoYears).toBeCloseTo(first * (0.6 * (1 + world(2009)) + 0.4 * (1 + bondsReturn(2009))), 9);
+    expect(twoYears).toBeCloseTo(first * (0.6 * (1 + stocks(2009)) + 0.4 * (1 + bondsReturn(2009))), 9);
     const drifting = historyPath({ ...sixtyForty, rebalance: false }, { start: 1000, monthly: 0 }, 2008, 2)[2];
-    expect(drifting).toBeCloseTo(600 * (1 + world(2008)) * (1 + world(2009)) + 400 * (1 + bondsReturn(2008)) * (1 + bondsReturn(2009)), 9);
+    expect(drifting).toBeCloseTo(600 * (1 + stocks(2008)) * (1 + stocks(2009)) + 400 * (1 + bondsReturn(2008)) * (1 + bondsReturn(2009)), 9);
   });
 
   it("stops where the data ends", () => {
@@ -65,10 +62,10 @@ describe("the crashes", () => {
     expect(CRISES.map((crisis) => `${crisis.id} ${crisis.year}`)).toEqual(["depression 1929", "oil 1973", "dotcom 2000", "financial 2008", "covid 2020", "inflation 2022"]);
   });
 
-  it("are all in the S&P 500's data; World's starts in 1988, so not the first two", () => {
+  it("are all in US stocks' data; bonds' start in 1988, so not the first two", () => {
     const amounts = { start: 1000, monthly: 200 };
     expect(Object.values(crisisResults(SP500_ALONE, amounts, 20)).every(Boolean)).toBe(true);
-    const inWorld = crisisResults(worldOnly, amounts, 20);
+    const inWorld = crisisResults(bondsOnly, amounts, 20);
     expect(inWorld.depression).toBeNull();
     expect(inWorld.oil).toBeNull();
     expect(inWorld.dotcom && inWorld.financial && inWorld.covid && inWorld.inflation).toBeTruthy();
@@ -96,7 +93,7 @@ describe("the crashes", () => {
     expect(adding?.fall?.to).toBeCloseTo((adding?.fall?.from ?? 0) * (1 - (alone?.fall?.drop ?? 0)), 9);
     // The money itself (with €6,000 added a year) ends higher than the money at the top fell to.
     expect(adding?.path[adding.fall?.trough ?? 0]).toBeGreaterThan(adding?.fall?.to ?? Infinity);
-    // The S&P 500 ended 2020 up: in yearly data the Covid crash does not show.
+    // US stocks ended 2020 up: in yearly data the Covid crash does not show.
     expect(crisisResult(SP500_ALONE, { start: 10_000, monthly: 0 }, 20, "covid")?.fall).toBeNull();
   });
 
@@ -110,7 +107,7 @@ describe("the crashes", () => {
     expect(depression?.final).toBeCloseTo(depression?.path[20] ?? NaN, 9);
   });
 
-  it("cushion a mix's fall, next to the S&P 500 alone", () => {
+  it("cushion a mix's fall, next to US stocks alone", () => {
     const amounts = { start: 10_000, monthly: 0 };
     const mix = crisisResult(sixtyForty, amounts, 20, "financial");
     const alone = crisisResult(SP500_ALONE, amounts, 20, "financial");
@@ -150,7 +147,7 @@ describe("every start year", () => {
   });
 
   it("uses shorter runs when the data is too short for the plan's years", () => {
-    const result = everyStartYear(worldOnly, { start: 1000, monthly: 0 }, 60);
+    const result = everyStartYear(bondsOnly, { start: 1000, monthly: 0 }, 60);
     expect(result?.window).toBe(2024 - 1988 + 1 - 4);
     expect(result?.starts).toHaveLength(5);
     expect(everyStartYear(null, { start: 1000, monthly: 0 }, 20)).toBeNull();
@@ -163,7 +160,7 @@ describe("every start year", () => {
 
   it("is compared with the plan's own average growth over the same years", () => {
     const plan: CalculatorPlan = { ...SP500_PLAN, invested: 1000, monthlyContribution: 200 };
-    const calc = calculate(plan, [], today);
+    const calc = calculate(plan, today);
     expect(averageResult(calc.scenario, calc.result.years)).toBeCloseTo(calc.result.total, 6);
   });
 });

@@ -12,7 +12,7 @@ import { LOCALES, localePath, PAGES, splitPath } from "@/i18n/locales";
 import type { Locale } from "@/i18n/locales";
 
 /** The pages in the header, and the ones in the footer. */
-const NAV = ["money", "test", "stocks"] as const;
+const NAV = ["money", "test"] as const;
 const FOOTER = ["about", "howItWorks", "privacy", "terms"] as const;
 
 /**

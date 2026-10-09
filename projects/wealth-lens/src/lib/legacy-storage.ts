@@ -1,25 +1,17 @@
 /**
- * Earlier versions of Wealth Lens saved everything in localStorage under
+ * Earlier versions of Wealth Lens (now Horalis Growth) saved everything in localStorage under
  * "wealth-lens:v1:*". The app no longer stores anything, so data left by
  * those versions is offered once, to load into memory or just delete; either
  * way it is removed from the browser. This module only reads and deletes,
- * it never writes.
+ * it never writes. Their holdings and price files are no longer used: only
+ * the plan is kept.
  */
 
 import type { AppState } from "./app-store";
 import { STANDARD_ASSUMPTIONS, type Plan } from "./types";
-import {
-  DEFAULT_PLAN,
-  FORMER_CUSTOM_VOLATILITY,
-  isRecord,
-  parseGoal,
-  parseHoldings,
-  parseUploadedPrices,
-  type UploadedPrices,
-} from "./validation";
+import { DEFAULT_PLAN, FORMER_CUSTOM_VOLATILITY, isRecord, parseGoal } from "./validation";
 
 const PREFIX = "wealth-lens:v1:";
-const UPLOADED_PREFIX = `${PREFIX}uploaded-prices:`;
 
 /** The subset of the Web Storage API this module needs (easy to fake in tests). */
 export interface LegacyStorage {
@@ -67,7 +59,6 @@ export function hasLegacyData(storage: LegacyStorage | null): boolean {
 /** What an earlier version saved, turned into today's state; `null` if nothing usable. */
 export function readLegacyData(storage: LegacyStorage | null): AppState | null {
   if (!storage) return null;
-  const holdings = parseHoldings(read(storage, `${PREFIX}holdings`)) ?? [];
   const invested = read(storage, `${PREFIX}invested`);
   const assumptions = read(storage, `${PREFIX}assumptions`);
   const goal = parseGoal(read(storage, `${PREFIX}goal`));
@@ -81,8 +72,10 @@ export function readLegacyData(storage: LegacyStorage | null): AppState | null {
     monthlyContribution: 0,
     goals: goal && goal.amount > 0 ? [{ id: "g1", kind: "amount", amount: goal.amount }] : [],
   };
-  const answered = typeof invested === "number" && Number.isFinite(invested) && invested >= 0;
-  if (answered) plan.invested = invested;
+  const typedInvested = typeof invested === "number" && Number.isFinite(invested) && invested >= 0;
+  if (typedInvested) plan.invested = invested;
+  // Something to load: an amount invested or added a month (holdings are no longer kept).
+  const answered = typedInvested || (isRecord(assumptions) && typeof assumptions.monthlyContribution === "number" && assumptions.monthlyContribution >= 0);
   if (isRecord(assumptions)) {
     const { monthlyContribution, withdrawalRate, inflation, realReturn } = assumptions;
     if (typeof monthlyContribution === "number" && monthlyContribution >= 0) plan.monthlyContribution = monthlyContribution;
@@ -96,14 +89,8 @@ export function readLegacyData(storage: LegacyStorage | null): AppState | null {
       plan.assumptions = { ...plan.assumptions, growth: realReturn, volatility: FORMER_CUSTOM_VOLATILITY };
     }
   }
-  const uploadedPrices: Record<string, UploadedPrices> = {};
-  for (const key of legacyKeys(storage)) {
-    if (!key.startsWith(UPLOADED_PREFIX)) continue;
-    const prices = parseUploadedPrices(read(storage, key));
-    if (prices) uploadedPrices[key.slice(UPLOADED_PREFIX.length)] = prices;
-  }
-  if (!answered && holdings.length === 0) return null;
-  return { plan, holdings, uploadedPrices, whatIf: null };
+  if (!answered) return null;
+  return { plan, whatIf: null };
 }
 
 /** Removes everything earlier versions saved. */

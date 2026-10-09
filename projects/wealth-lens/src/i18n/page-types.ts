@@ -21,24 +21,14 @@ export interface SourceEntry {
 /** Figures How it works quotes from the data itself, already written the page language's way. */
 export interface HowItWorksFacts {
   period: string;
+  /** How many countries the cost-of-living table has. */
   countries: number;
-  detailed: number;
-  estimated: number;
-  medianWithout: string;
-  medianWith: string;
-  tenthWithout: string;
-  tenthWith: string;
-  /** Countries left out for prices rising over 30% a year, by name. */
-  leftOut: string;
+  /** The year of the prices of the table. */
+  priceYear: number;
+  /** The oldest and newest household surveys behind it. */
+  surveyFrom: number;
+  surveyTo: number;
   /** Countries whose prices rose 10% a year or more in 2015–2024, by name. */
   highInflation: string;
-  priceYear: number;
 }
 
-/**
- * A thing of the list in words: its name, and either its source (the same
- * figure for everyone) or what its figure for a country is ("Average
- * price of a used car in Spain"), told with the country in a sentence and,
- * for a home deposit, the home's price.
- */
-export type ItemWords = { name: string; source: string; about?: undefined } | { name: string; about: (country: string, detail: string) => string; source?: undefined };

@@ -15,10 +15,8 @@ import { TOTAL_ID } from "./first-result";
 import { KeyFacts } from "./key-facts";
 import { PlanCheckSection } from "./plan-check";
 import { ResultSection, SeeMore } from "./result-section";
-import { StocksSummary } from "./stocks-summary";
 import { WhatIfIndicator, whatIfApplied, WhatIfRow } from "./what-if-row";
 import { WhereDetails } from "./where-details";
-import { WishesLine } from "./wishes-line";
 
 function Loading() {
   const { m } = useI18n();
@@ -28,7 +26,7 @@ function Loading() {
 /**
  * The sections in sight come with the result's code, so none arrives late
  * and pushes the page. What opens with a tap (good to know, the
- * withdrawal slider, the things to buy, the possible futures) has its own
+ * withdrawal slider, the possible futures) has its own
  * code, fetched as soon as the result is shown, ready before it is asked for.
  */
 const loadKnow = () => import("./know-details");
@@ -36,11 +34,10 @@ const KnowDetails = dynamic(() => loadKnow().then((module) => module.KnowDetails
 const preloadTaps = () => {
   void loadKnow();
   void import("./pay-details");
-  void import("./things-section");
   void import("./futures-view");
 };
 
-/** What the user said, in one sentence: "With €1,100 today and €100 a month in the S&P 500, in 20 years you could have…" */
+/** What the user said, in one sentence: "With €1,100 today and €100 a month in US stocks, in 20 years you could have…" */
 function summaryText({ scenario, investment, result }: CalculationBundle["calc"], i18n: I18n): string {
   const { m, f } = i18n;
   const t = m.result;
@@ -84,7 +81,6 @@ function ResultTotal({ bundle, ref }: { bundle: CalculationBundle; ref: React.Re
         <Help what={m.result.inYears(years)} text={m.help.total} />
       </p>
       <div className="pt-2">
-        <WishesLine bundle={bundle} />
       </div>
     </section>
   );
@@ -94,7 +90,7 @@ function ResultTotal({ bundle, ref }: { bundle: CalculationBundle; ref: React.Re
  * The result in levels: what the user said and the total, the six key
  * figures under it, the chart with its tabs (the main picture), then, with
  * their titles always in sight: "What if…?", check your plan (only when
- * something stands out), my stocks today (only with holdings), my goals,
+ * something stands out), my goals,
  * where it reaches and good to know. Only each
  * one's long detail waits behind "See more".
  */
@@ -138,9 +134,8 @@ export function Results({ bundle, arrive = false, onArrived }: { bundle: Calcula
           <WhatIfRow bundle={bundle} />
         </ResultSection>
         <PlanCheckSection checks={bundle.checks} />
-        <StocksSummary holdings={bundle.holdings} />
         <ResultSection title={m.goals.title}>
-          <GoalsSection calc={calc} today={today} wishCountry={bundle.wishCountry} inCard />
+          <GoalsSection calc={calc} today={today} inCard />
         </ResultSection>
         <ResultSection title={m.cards.where}>
           <WhereDetails bundle={bundle} />

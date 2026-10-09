@@ -2,23 +2,21 @@
 
 import { ArrowDown, ChevronDown, Minus, Plus } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n";
-import { Changed } from "@/components/ui/changed";
 import { SettledNumberInput } from "@/components/ui/form";
 import { useAppState } from "@/hooks/use-app";
 import { loadCalculation } from "@/hooks/use-lazy-calculation";
 import { appStore, updatePlan } from "@/lib/app-store";
 import { optionsChanged } from "@/lib/assumptions";
-import { priceHoldings } from "@/lib/auto-price";
 import { resolveInvestment } from "@/lib/investment";
-import { planReady, startingCapital } from "@/lib/plan";
+import { planReady } from "@/lib/plan";
 import { MONTHLY_STEP, stepValue, YEARS_STEP } from "@/lib/step";
 import { EXAMPLE_AMOUNTS, MAX_AMOUNT, MAX_YEARS_AHEAD, MIN_YEARS } from "@/lib/validation";
 import { offeredRates } from "@/lib/withdrawal";
 import { GrowthField } from "./growth-field";
 
-/** Mixes, My portfolio, ups and downs and rising prices: loaded when "More options" is opened. */
+/** Mixes, ups and downs and rising prices: loaded when "More options" is opened. */
 const MoreOptions = dynamic(() => import("./more-options").then((module) => module.MoreOptions), {
   loading: () => <div aria-hidden="true" className="h-24" />,
 });
@@ -101,13 +99,11 @@ export function CalculatorCard({ onSee, compact = false }: { onSee?: () => void;
   const i18n = useI18n();
   const { m, f } = i18n;
   const t = m.calculator;
-  const { plan, holdings, uploadedPrices } = useAppState();
-  const priced = useMemo(() => priceHoldings(holdings, uploadedPrices), [holdings, uploadedPrices]);
-  const capital = startingCapital(priced, plan.invested);
-  const current = resolveInvestment(plan.investment, priced, plan);
+  const { plan } = useAppState();
+  const current = resolveInvestment(plan.investment, plan);
   const ids = { have: useId(), monthly: useId(), growth: useId(), years: useId(), see: useId() };
   const seeButton = useRef<HTMLButtonElement>(null);
-  const ready = planReady(plan, priced);
+  const ready = planReady(plan);
   // Once the user starts using the page, the calculation's code comes, and idle moments work out ahead
   // what the next choice will need (not before: a page only looked at loads and does no extra work).
   useEffect(() => {
@@ -122,7 +118,7 @@ export function CalculatorCard({ onSee, compact = false }: { onSee?: () => void;
   const monthly = plan.monthlyContribution;
   const before = f.eur(1).startsWith("€");
   // Enter in a field goes on to the next step, and from the last to the button.
-  const order = [capital.source === "holdings" ? null : ids.have, ids.monthly, ids.growth, ids.years].filter((id): id is string => id !== null);
+  const order = [ids.have, ids.monthly, ids.growth, ids.years];
   const next = (from: string) => () => {
     const after = order[order.indexOf(from) + 1];
     if (after) document.getElementById(after)?.focus();
@@ -137,11 +133,11 @@ export function CalculatorCard({ onSee, compact = false }: { onSee?: () => void;
   // Read from the store at the press, not from this render: leaving a field for the button saves its number just before.
   const see = () => {
     const now = appStore.get();
-    if (planReady(now.plan, now.holdings)) {
+    if (planReady(now.plan)) {
       onSee?.();
       return;
     }
-    const empty = now.holdings.length === 0 && now.plan.invested === null ? ids.have : ids.monthly;
+    const empty = now.plan.invested === null ? ids.have : ids.monthly;
     document.getElementById(empty)?.focus();
   };
 
@@ -149,14 +145,8 @@ export function CalculatorCard({ onSee, compact = false }: { onSee?: () => void;
     <section aria-label={t.label} className={`rounded-xl border border-border bg-card ${compact ? "p-4" : "p-4 sm:p-6"}`}>
       {/* The order the eye reads is the order Tab follows: have, add, grow, years. */}
       <ol className="divide-y divide-border">
-        <Step number={1} question={t.steps.have} fieldId={capital.source === "holdings" ? undefined : ids.have} compact={compact}>
-          {capital.source === "holdings" ? (
-            <p className="flex min-h-11 items-center justify-between gap-2 rounded-md border border-border px-3 text-base font-semibold tabular-nums">
-              <Changed value={f.eur(capital.amount)} />
-              <span className="truncate text-sm font-normal text-muted">{t.fromHoldings}</span>
-            </p>
-          ) : (
-            <span className="relative block">
+        <Step number={1} question={t.steps.have} fieldId={ids.have} compact={compact}>
+          <span className="relative block">
               <Affix side={before ? "left" : "right"}>€</Affix>
               <SettledNumberInput
                 id={ids.have}
@@ -169,8 +159,7 @@ export function CalculatorCard({ onSee, compact = false }: { onSee?: () => void;
                 placeholder={t.example(f.grouped(EXAMPLE_AMOUNTS.invested))}
                 className={`${exampleClass} ${before ? "pl-8" : "pr-8"}`}
               />
-            </span>
-          )}
+          </span>
         </Step>
         <Step number={2} question={t.steps.monthly} fieldId={ids.monthly} compact={compact}>
           <Stepper
@@ -248,13 +237,12 @@ export function CalculatorCard({ onSee, compact = false }: { onSee?: () => void;
 
 /**
  * "More options", out of the card: a quiet link under it that opens its
- * own panel (mixes, My portfolio, ups and downs, rising prices), loaded
+ * own panel (mixes, ups and downs, rising prices), loaded
  * then. The card keeps its size, open or closed.
  */
 export function MoreOptionsLink() {
   const { m } = useI18n();
-  const { plan, holdings, uploadedPrices } = useAppState();
-  const priced = useMemo(() => priceHoldings(holdings, uploadedPrices), [holdings, uploadedPrices]);
+  const { plan } = useAppState();
   const [open, setOpen] = useState(false);
   const panel = useId();
   const changed = optionsChanged(plan);
@@ -273,7 +261,7 @@ export function MoreOptionsLink() {
       </button>
       {open && (
         <div id={panel} className="mt-2 rounded-xl border border-border bg-card p-4">
-          <MoreOptions current={resolveInvestment(plan.investment, priced, plan)} priced={priced} />
+          <MoreOptions current={resolveInvestment(plan.investment, plan)} />
         </div>
       )}
     </div>

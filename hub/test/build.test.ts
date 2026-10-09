@@ -1,3 +1,4 @@
+import { costOfLiving } from "../../packages/seed-kit/src/cost-of-living.ts";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -327,7 +328,7 @@ describe("the front page", () => {
     assert.equal(figures.trackers, 0);
     assert.ok(Math.max(...report.map(({ weight }) => weight.compressed)) <= figures.maxKb * 1000, "no page weighs more than the figure");
     assert.equal(figures.languages, LOCALES.length);
-    assert.equal(figures.countries, 172);
+    assert.equal(figures.countries, costOfLiving.countries.length);
     assert.equal(figures.tools, SHOWN_TOOLS.length);
     for (const locale of LOCALES) {
       const shown = [...section(page(locale), "figures").matchAll(/<dd>([^<]+)<\/dd>/g)].map(([, value]) => value);

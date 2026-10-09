@@ -87,7 +87,11 @@ describe.each(["en", "es"] as const)("the first screen (%s)", (locale) => {
 
   it("gives five examples under step 3 that fill the field with one tap, none marked at 5 %", () => {
     const examples = [...decode(steps[2]).matchAll(/<button type="button" aria-pressed="(true|false)" aria-label="([^"]+)"/g)];
-    expect(examples.map((example) => example[2].split(",")[0])).toEqual(Object.values(m.growth.examples));
+    // Each one's name for a screen reader starts with the word on screen (WCAG 2.5.3).
+    const said = Object.values(m.growth.examplesSaid);
+    expect(examples).toHaveLength(said.length);
+    examples.forEach((example, index) => expect(example[2].startsWith(`${said[index]}, `), example[2]).toBe(true));
+    for (const [id, word] of Object.entries(m.growth.examples)) expect(m.growth.examplesSaid[id as keyof typeof m.growth.examples].startsWith(word)).toBe(true);
     expect(examples.every((example) => example[1] === "false")).toBe(true);
     expect(text(steps[2])).toContain(m.growth.examplesLabel);
     // No chips, no list to open, no switch.
@@ -178,9 +182,9 @@ describe.each(["en", "es"] as const)("step 3 with another number (%s)", (locale)
     const html = step3(card({ investment: { kind: "asset", asset: "sp500" }, assumptions: STANDARD_ASSUMPTIONS }));
     expect(html.match(/<input[^>]*\svalue="([^"]*)"/)?.[1]).toBe(locale === "en" ? "7.5" : "7,5");
     const pressed = [...decode(html).matchAll(/aria-pressed="true" aria-label="([^"]+)"/g)].map((match) => match[1]);
-    expect(pressed).toEqual([m.growth.example(m.growth.examples.sp500, f.rate(indexRate("sp500")))]);
+    expect(pressed).toEqual([m.growth.example(m.growth.examplesSaid.sp500, f.rate(indexRate("sp500")))]);
     // Where its number comes from: its own past years.
-    expect(text(html)).toContain(m.invest.source.asset("S&P 500", "1988–2022"));
+    expect(text(html)).toContain(m.invest.source.asset(m.assets.name.sp500, "1988–2022"));
   });
 
   it("says a number of one's own is one's own", () => {
@@ -225,26 +229,10 @@ describe.each(["en", "es"] as const)("the result in levels (%s)", (locale) => {
     expect(grid).toBeLessThan(html.indexOf('role="img"'));
   });
 
-  it("says right under the big number what the person could do with it, and when", () => {
+  it("shows no wishes priced from a list under the big number: goals are the user's own", () => {
     const total = html.indexOf(`id="${TOTAL_ID}"`);
     const facts = html.indexOf(`aria-label="${m.facts.label}"`);
-    const line = decode(html.slice(total, facts));
-    expect(text(line)).toContain(m.wishes.title);
-    const list = line.slice(line.indexOf("<ul aria-labelledby"));
-    const chips = [...list.matchAll(/<button type="button" aria-label="([^"]+)"[^>]*>(.*?)<\/button>/g)];
-    // A trip, a home and time (or the person's own priorities first): each with its price and when.
-    expect(chips.length).toBeGreaterThanOrEqual(2);
-    expect(chips.length).toBeLessThanOrEqual(3);
-    bundle.wishes.forEach((wish, index) => {
-      const when = f.when(wish.months);
-      expect(text(chips[index][2])).toContain(when);
-      expect(chips[index][1]).toContain(locale === "en" ? "Add to My goals" : "Añadir a Mis metas");
-      // An icon beside the words, never instead of them.
-      expect(chips[index][2]).toMatch(/<svg[^>]*aria-hidden="true"/);
-    });
-    // "Prices of": small, beside the wishes, the country in sight.
-    expect(text(line)).toContain(`${m.things.pricesOf}:`);
-    expect(line).toMatch(/<option value="NL" selected="">/);
+    expect(decode(html.slice(total, facts))).not.toContain("<ul aria-labelledby");
   });
 
   it("checks the plan only when something stands out: savings for 30 years, with its euros and how it is worked out", () => {
@@ -273,7 +261,7 @@ describe.each(["en", "es"] as const)("the result in levels (%s)", (locale) => {
     expect(grid).toContain(`id="${panel}"`);
     const { result, scenario, investment, countries } = bundle.calc;
     const bands = bandsFor(investment, { start: scenario.capital, monthly: scenario.monthly, years: result.years });
-    const dearest = countries.filter((row) => row.withoutHousing.covered).toSorted((a, b) => b.withoutHousing.amount - a.withoutHousing.amount)[0];
+    const dearest = countries.filter((row) => row.cost.covered).toSorted((a, b) => b.cost.amount - a.cost.amount || b.code.localeCompare(a.code))[0];
     const expected: [string, string][] = [
       [m.facts.putIn, f.eur(result.putIn)],
       [m.facts.grows, f.eur(result.growth)],
@@ -347,11 +335,6 @@ describe.each(["en", "es"] as const)("where it reaches and my goals (%s)", (loca
     expect(where).toContain('type="search"');
   });
 
-  it("keeps the things to buy behind “See more”", () => {
-    expect(decode(where)).toContain(`${m.cards.more}<span class="sr-only">: ${m.things.title}</span>`);
-    expect(where).not.toContain("things-title");
-  });
-
   it("never shows a ✓ without its date: “✓ from 2031, in 5 years”, “in 25 years (2051)” or “not at this pace”", () => {
     // A plan that pays some countries well before its 20 years end, and goals near, far and out of reach.
     const state: AppState = {
@@ -360,11 +343,11 @@ describe.each(["en", "es"] as const)("where it reaches and my goals (%s)", (loca
         { id: "a", kind: "amount", amount: 150_000 },
         { id: "b", kind: "amount", amount: 900_000 },
         { id: "c", kind: "amount", amount: 50_000_000 },
-        { id: "d", kind: "live", country: "PE", housing: false },
+        { id: "d", kind: "live", country: "PE" },
       ] },
     };
     const calc = calculationFor(state, today).calc;
-    const html = decode(render(locale, state, createElement(WhereDetails, { bundle: calculationFor(state, today) })) + render(locale, state, createElement(GoalsSection, { calc, today, wishCountry: "NL", inCard: true })));
+    const html = decode(render(locale, state, createElement(WhereDetails, { bundle: calculationFor(state, today) })) + render(locale, state, createElement(GoalsSection, { calc, today, inCard: true })));
     const since = locale === "en" ? /^(from \d{4}|from today)/ : /^(desde \d{4}|desde hoy)/;
     const checks = html.split('class="lucide lucide-check').slice(1);
     expect(checks.length).toBeGreaterThan(3);
@@ -376,7 +359,7 @@ describe.each(["en", "es"] as const)("where it reaches and my goals (%s)", (loca
   });
 
   it("asks for a first goal, with what goals are for, without naming the place again", () => {
-    const html = render(locale, filled, createElement(GoalsSection, { calc: bundle.calc, today, wishCountry: bundle.wishCountry, inCard: true }));
+    const html = render(locale, filled, createElement(GoalsSection, { calc: bundle.calc, today, inCard: true }));
     expect(text(html)).toContain(m.goals.empty);
     expect(text(html)).not.toContain(m.help.goals);
     expect(text(html)).toContain(m.goals.add);
@@ -404,7 +387,7 @@ describe.each(["en", "es"] as const)("the sentence before the big number (%s)", 
     expect(said({ investment: { kind: "custom" }, assumptions: { ...EXAMPLE_PLAN.assumptions, growth: 0.06 } })).toContain(t.investedIn.custom(f.rate(0.06)));
     // A loss is said as one, never "growing −50% a year".
     expect(said({ investment: { kind: "custom" }, assumptions: { ...EXAMPLE_PLAN.assumptions, growth: -0.5 } })).toContain(t.investedIn.customLoss(f.rate(0.5)));
-    expect(said({ investment: { kind: "mix", parts: [{ asset: "world", weight: 60 }, { asset: "bonds", weight: 40 }], rebalance: false } })).toContain(t.investedIn.mix);
+    expect(said({ investment: { kind: "mix", parts: [{ asset: "sp500", weight: 60 }, { asset: "bonds", weight: 40 }], rebalance: false } })).toContain(t.investedIn.mix);
   });
 });
 
@@ -426,7 +409,7 @@ describe.each(["en", "es"] as const)("“See my result”, only the first time (
       { monthlyContribution: null },
       { invested: 0, monthlyContribution: 0 },
       { years: 37 },
-      { investment: { kind: "asset", asset: "world" }, assumptions: STANDARD_ASSUMPTIONS },
+      { investment: { kind: "asset", asset: "bonds" }, assumptions: STANDARD_ASSUMPTIONS },
       { assumptions: { ...EXAMPLE_PLAN.assumptions, growth: 0.07 } },
       { assumptions: { ...EXAMPLE_PLAN.assumptions, volatility: 0.1, inflation: 0.04 } },
       { withdrawalRate: 0.03 },
@@ -586,12 +569,10 @@ describe("what loads with the first screen", () => {
     expect(source("./calculator-card.tsx")).toContain('import("./more-options")');
     expect(source("./key-facts.tsx")).toContain('import("./pay-details")');
     expect(staticImports("./key-facts.tsx")).not.toContain("./pay-details");
-    expect(source("./where-details.tsx")).toContain('import("./things-section")');
-    expect(staticImports("./where-details.tsx")).not.toContain("./things-section");
     // The sections in sight come with the result (none arrives late and pushes the page); what a tap opens is fetched as the result shows.
     for (const details of ["./where-details", "./goals-section"]) expect(staticImports("./results.tsx")).toContain(details);
     expect(staticImports("./results.tsx")).not.toContain("./know-details");
-    for (const tapped of ["./know-details", "./pay-details", "./things-section", "./futures-view"]) expect(source("./results.tsx")).toContain(`import("${tapped}")`);
+    for (const tapped of ["./know-details", "./pay-details", "./futures-view"]) expect(source("./results.tsx")).toContain(`import("${tapped}")`);
   });
 
   it("turns “See my result” on once both amounts are typed, and waits for it to be pressed", () => {

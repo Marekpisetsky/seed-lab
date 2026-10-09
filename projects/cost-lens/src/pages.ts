@@ -44,12 +44,10 @@ export function home(locale: Locale): Page {
   const choice = { ...DEFAULTS };
   const select = (name: "from" | "to") =>
     html`<div class="sk-field"><label for="${name}">${t[name]}</label><select class="sk-input" id="${name}" name="${name}">${countries.map(
-      (country) => html`<option value="${country.code}"${country.code === choice[name] ? raw(" selected") : ""}>${country.estimated ? "≈\u00a0" : ""}${country.name}</option>`,
+      (country) => html`<option value="${country.code}"${country.code === choice[name] ? raw(" selected") : ""}>${country.name}</option>`,
     )}</select></div>`;
   const facts = {
-    detailed: formats.number(DATA.detailed),
-    estimated: formats.number(DATA.estimated),
-    month: formats.monthYear(new Date(`${DATA.detailedMonth}-01T00:00:00Z`)),
+    surveys: `${DATA.surveyFrom}–${DATA.surveyTo}`,
     year: String(DATA.priceYear),
     compiled: formats.date(DATA.compiledOn),
   };

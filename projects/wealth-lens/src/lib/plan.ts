@@ -1,48 +1,24 @@
 /**
- * Small pure helpers shared by both screens: which capital the report starts
- * from, and which gain "My stocks" shows big.
+ * Small pure helpers: which capital the report starts from, and whether
+ * there is a result to show.
  */
-
-import { summarizeByCurrency, type CurrencySummary } from "./finance";
-import { BASE_CURRENCY, type Holding } from "./types";
 
 export interface StartingCapital {
   amount: number;
-  /** Holdings (valued at current prices), or the amount typed on "My money". */
-  source: "holdings" | "answer";
+  /** The amount typed on "My money". */
+  source: "answer";
 }
 
-/**
- * Holdings win once there are any: their EUR value at current prices. Before
- * that, the amount typed on "My money".
- */
-export function startingCapital(holdings: readonly Holding[], invested: number | null): StartingCapital {
-  if (holdings.length > 0) {
-    const eur = summarizeByCurrency(holdings).find((summary) => summary.currency === BASE_CURRENCY);
-    return { amount: eur?.value ?? 0, source: "holdings" };
-  }
+/** The amount typed on "My money"; nothing typed yet counts as 0. */
+export function startingCapital(invested: number | null): StartingCapital {
   return { amount: invested ?? 0, source: "answer" };
 }
 
 /**
  * Whether there is a result to show: both amounts are known, what the
- * user has (typed, or their holdings) and what they add each month. Until
- * then My money only asks; 0 is an answer, an empty field is not.
+ * user has and what they add each month. Until then My money only asks;
+ * 0 is an answer, an empty field is not.
  */
-export function planReady(plan: { invested: number | null; monthlyContribution: number | null }, holdings: readonly Holding[]): boolean {
-  return (holdings.length > 0 || plan.invested !== null) && plan.monthlyContribution !== null;
-}
-
-/**
- * The gain shown big at the top: the EUR totals when there are priced EUR
- * holdings, otherwise the first currency with prices. The rest are listed
- * small, since amounts in different currencies are never added up.
- */
-export function headlineGain(summaries: readonly CurrencySummary[]): {
-  main: CurrencySummary | null;
-  others: CurrencySummary[];
-} {
-  const priced = summaries.filter((summary) => summary.pricedCount > 0);
-  const main = priced.find((summary) => summary.currency === BASE_CURRENCY) ?? priced[0] ?? null;
-  return { main, others: priced.filter((summary) => summary !== main) };
+export function planReady(plan: { invested: number | null; monthlyContribution: number | null }): boolean {
+  return plan.invested !== null && plan.monthlyContribution !== null;
 }
