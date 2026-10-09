@@ -137,7 +137,7 @@ npm run typecheck
 npm test            # construye y comprueba el resultado
 npm run check       # los tres
 npm run shots       # vuelve a tomar las capturas (antes: npm run build en cada herramienta)
-npm run test:browser  # tras compilar el hub, Horalis Coste de vida e Horalis Inflación: el menú de tema,
+npm run test:browser  # tras compilar el hub, Horalis Coste de vida y Horalis Inflación: el menú de tema,
                       # el contraste AA en claro y oscuro y el daltonismo emulado (e2e/)
 ```
 

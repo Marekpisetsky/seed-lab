@@ -7,7 +7,7 @@ import { LOCALE_SETTINGS, LOCALES, localePath, PAGES, type Locale, type PageId }
 export const SITE_URL = "https://seed-lab-omega.vercel.app";
 
 /** The sharing picture (app/og.png/route.tsx), the same for every page and language. */
-const SHARE_IMAGE = { url: "/og.png", width: 1200, height: 630, alt: "Horalis Growth" };
+const SHARE_IMAGE = { url: "/og.png", width: 1200, height: 630 };
 
 /** A page's title, description, languages and sharing card, in `locale`. */
 export function pageMetadata(locale: Locale, page: PageId): Metadata {
@@ -29,8 +29,8 @@ export function pageMetadata(locale: Locale, page: PageId): Metadata {
       description,
       url: path,
       locale: LOCALE_SETTINGS[locale].intl.replace("-", "_"),
-      images: [SHARE_IMAGE],
+      images: [{ ...SHARE_IMAGE, alt: m.site.name }],
     },
-    twitter: { card: "summary_large_image", title: fullTitle, description, images: [SHARE_IMAGE] },
+    twitter: { card: "summary_large_image", title: fullTitle, description, images: [{ ...SHARE_IMAGE, alt: m.site.name }] },
   };
 }

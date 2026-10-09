@@ -13,7 +13,7 @@ El repositorio, sus carpetas (`projects/wealth-lens/`…) y los proyectos de
 Vercel conservan el nombre antiguo; solo cambia lo que ve la gente y la
 documentación. Las herramientas:
 
-| Herramienta (EN) | Antes | Carpeta | Pregunta |
+| Herramienta (en inglés) | Antes | Carpeta | Pregunta |
 | --- | --- | --- | --- |
 | Horalis Crecimiento (Growth) | Wealth Lens | `projects/wealth-lens/` | ¿Cuánto crecerá mi dinero? ¿Cuánto me genera hoy al mes? |
 | Horalis Coste de vida (Cost of Living) | Cost Lens | `projects/cost-lens/` | ¿Cuánto necesito para vivir en un país? |

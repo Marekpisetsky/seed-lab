@@ -92,7 +92,7 @@ hub (`.theme-dark`, `.theme-light`), que vuelven a alternar en
   navegador siguen la elección, y los menús de la cabecera se cierran con
   Escape o al tocar fuera. En React lo hace `react/chrome.tsx`.
 - **En un móvil estrecho** (hasta 424 px) no cabe junto a EN/ES con el
-  nombre más largo (Horalis Inflación): las opciones pasan al pie del panel
+  nombre más largo (Horalis Cost of Living): las opciones pasan al pie del panel
   del lanzador. Solo se ve una copia.
 - **Sin scripts** no hay menú, y la página sigue al dispositivo.
 

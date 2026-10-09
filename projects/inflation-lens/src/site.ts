@@ -7,7 +7,7 @@ import { toolById } from "../../../packages/seed-kit/src/tools.ts";
 
 /** Its id in seed-kit's tool list (packages/seed-kit/src/tools.json). */
 export const ID = "inflation-lens";
-/** Its name in each language, from the tool list: "Horalis Cost of Living". */
+/** Its name in each language, from the tool list: "Horalis Inflation". */
 export const NAME = toolById(ID).name;
 
 /** Where it is published, without a trailing slash (provisional until it has its own address). */

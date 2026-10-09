@@ -6,7 +6,7 @@ y se verifica con Node 22: `node --test`. Sus archivos viven en
 web_tool_files/ (cada uno con .tmpl, para que ninguna herramienta los tome
 por codigo), con cuatro marcas que se sustituyen al generar:
 
-  __NAME__  el nombre visible ("Horalis Cost Lens")
+  __NAME__  el nombre visible ("Horalis Demo Lens" para demo-lens)
   __ID__    el id en la lista de herramientas ("cost-lens")
   __KIT__   la ruta de src/ y test/ a packages/seed-kit/src
   __URL__   la direccion provisional donde se publicara

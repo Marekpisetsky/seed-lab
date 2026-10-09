@@ -139,7 +139,7 @@ De criterio (las revisa quien escribe y quien revisa):
   te dice qué comprar ni qué vender").
 - Cada app pasa su texto entero por ese test: Horalis Crecimiento
   (`src/components/plain-language.test.ts`), el hub (`test/build.test.ts`),
-  Horalis Coste de vida e Horalis Inflación (`test/site.test.ts`).
+  Horalis Coste de vida y Horalis Inflación (`test/site.test.ts`).
 - Al aplicarlo, el único texto que incumplía era el título "What you
   should know" de Horalis Crecimiento: ahora "Good to know" ("Para tener en
   cuenta").
