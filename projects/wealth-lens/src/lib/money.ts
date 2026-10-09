@@ -10,7 +10,7 @@
  */
 
 import { roundMoney } from "@seed-kit/format.ts";
-import { currencyOf, ratePerDollar, RATED_CURRENCIES } from "@seed-kit/money.ts";
+import { convert, currencyOf, ratePerDollar, RATED_CURRENCIES } from "@seed-kit/money.ts";
 import { costOfLiving, type CountryCost } from "./cost-of-living";
 
 /** A first visit's currency, until the browser's language names a country (lib/start.ts). */
@@ -32,9 +32,9 @@ export function planCurrencyOf(country: string): string | null {
   return isPlanCurrency(currency) ? currency : null;
 }
 
-/** Units of `currency` per euro in PRICE_YEAR. */
+/** Units of `currency` per euro in PRICE_YEAR, or the nearest year with a rate; NaN for a currency with none. */
 function perEuro(currency: string): number {
-  return (ratePerDollar(currency, PRICE_YEAR) ?? Number.NaN) / (ratePerDollar(DEFAULT_CURRENCY, PRICE_YEAR) ?? Number.NaN);
+  return convert(1, DEFAULT_CURRENCY, currency, PRICE_YEAR)?.rate ?? Number.NaN;
 }
 
 /** What an average person lives on a month in a country, in `currency`, rounded as the pages show a cost. */
@@ -70,5 +70,7 @@ export function roundFigure(value: number): number {
 
 /** The app's €50 step in `currency`, as a round figure: 50 in euros or dollars, ¥10,000, S/ 200. */
 export function moneyStep(currency: string): number {
-  return currency === DEFAULT_CURRENCY ? 50 : roundFigure(50 * perEuro(currency));
+  const rate = perEuro(currency);
+  // Euros, or a currency with no rate at all: the plain 50.
+  return currency === DEFAULT_CURRENCY || !Number.isFinite(rate) ? 50 : roundFigure(50 * rate);
 }

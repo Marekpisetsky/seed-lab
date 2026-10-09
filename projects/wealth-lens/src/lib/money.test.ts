@@ -32,6 +32,9 @@ describe("the plan's currency", () => {
     expect(moneyStep("USD")).toBe(50);
     expect(moneyStep("JPY")).toBeGreaterThanOrEqual(5000);
     expect(moneyStep("PEN")).toBe(200);
+    // A currency without a rate in the prices' year takes the nearest year; one with none at all, the plain 50.
+    expect(moneyStep("IRR")).toBeGreaterThan(100_000);
+    expect(moneyStep("XXX")).toBe(50);
   });
 
   it("leaves the result alone and shows the countries in it", () => {
