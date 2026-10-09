@@ -3,13 +3,14 @@
   "id": "countries",
   "title": "Economies of the World Bank, with their region, income group and currency",
   "source": "Unicode CLDR (cldr-core 48.2.0): the economies in the World Bank's figures with an ISO code (supplemental/codeMappings.json) and their currency (supplemental/currencyData.json)",
-  "url": "https://datahelpdesk.worldbank.org/knowledgebase/articles/906519",
-  "api": "https://api.worldbank.org/v2/country?format=json&per_page=400 ; https://registry.npmjs.org/cldr-core",
-  "license": "CC BY 4.0",
-  "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+  "url": "https://cldr.unicode.org/",
+  "api": "https://registry.npmjs.org/cldr-core",
+  "license": "Unicode License v3",
+  "licenseUrl": "https://www.unicode.org/license.txt",
   "currencyLicense": "Unicode License v3",
   "currencyLicenseUrl": "https://www.unicode.org/license.txt",
-  "retrievedOn": "2026-10-09"
+  "retrievedOn": "2026-10-09",
+  "provisional": "Economies taken from the CLDR's ISO codes, for figures read from the public mirror of the World Bank's data: no region or income group. The yearly download takes the World Bank's own list."
  },
  "countries": {
   "AD": {
@@ -424,7 +425,7 @@
   },
   "HT": {
    "iso3": "HTI",
-   "currency": "USD",
+   "currency": "HTG",
    "eu": false
   },
   "HU": {
@@ -759,7 +760,7 @@
   },
   "PA": {
    "iso3": "PAN",
-   "currency": "USD",
+   "currency": "PAB",
    "eu": false
   },
   "PE": {
@@ -799,7 +800,7 @@
   },
   "PS": {
    "iso3": "PSE",
-   "currency": "JOD",
+   "currency": "ILS",
    "eu": false
   },
   "PT": {

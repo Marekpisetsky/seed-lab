@@ -56,7 +56,7 @@ describe("official data: checks", () => {
   it("stops on too few countries, a value out of range, a future year, a missing licence or an old data year", () => {
     assert.match(checkSeries(fake("wb-fx", [1, 1], 10), TODAY).errors.join(), /fewer than 150/);
     assert.match(checkSeries(fake("wb-price-level", [1, 50, 1, 1, 1, 1]), TODAY).errors.join(), /outside/);
-    assert.match(checkSeries(fake("wb-fx", [1, 1, 1, 1, 1, 1, 1, 1]), TODAY).errors.join(), /years still to come/);
+    assert.match(checkSeries(fake("wb-fx", [1, 1, 1, 1, 1, 1, 1]), TODAY).errors.join(), /year not yet complete/);
     const unlicensed = fake("wb-fx", [1, 1, 1, 1, 1, 1]);
     unlicensed.meta.license = "All rights reserved";
     assert.match(checkSeries(unlicensed, TODAY).errors.join(), /licence/);
@@ -64,6 +64,7 @@ describe("official data: checks", () => {
     old.values = Object.fromEntries(Object.entries(old.values).map(([code]) => [code, [2015, 1]]));
     old.meta.dataYear = 2015;
     assert.match(checkSeries(old, TODAY).errors.join(), /more than 4 years old/);
+    assert.deepEqual(checkSeries(old, TODAY, undefined, null, false).errors, [], "a tool's build keeps working with old data");
     const lying = fake("wb-fx", [1, 1, 1, 1, 1, 1]);
     lying.meta.dataYear = 2024;
     assert.match(checkSeries(lying, TODAY).errors.join(), /dataYear says 2024/);
@@ -151,6 +152,8 @@ describe("official data: reading the sources", () => {
           region: {
             BG: [{ BGN: { _from: "1999-07-05", _to: "2026-01-01" } }, { EUR: { _from: "2026-01-01" } }],
             PA: [{ PAB: { _from: "1903-11-04" } }, { USD: { _from: "1904-05-18" } }],
+            HT: [{ HTG: { _from: "1872-08-26" } }, { USD: { _from: "1915-01-01" } }],
+            PS: [{ JOD: { _from: "1996-02-12" } }, { ILS: { _from: "1985-09-04" } }],
             CU: [{ CUC: { _from: "1994-01-01", _tender: "false" } }, { CUP: { _from: "1859-01-01" } }],
           },
         },
@@ -159,7 +162,9 @@ describe("official data: reading the sources", () => {
     const money = currencies(data, TODAY);
     assert.equal(money.get("BG"), "EUR");
     assert.equal(currencies(data, new Date("2025-06-01")).get("BG"), "BGN");
-    assert.equal(money.get("PA"), "USD");
+    assert.equal(money.get("PA"), "PAB", "the country's own currency first");
+    assert.equal(money.get("HT"), "HTG");
+    assert.equal(money.get("PS"), "ILS");
     assert.equal(money.get("CU"), "CUP");
     const codes = economiesFromCldr({ supplemental: { codeMappings: { NL: { _alpha3: "NLD" }, ZZ: { _alpha3: "ZZZ" }, "001": {} } } });
     assert.deepEqual([...codes.keys()], ["NL", "XK"]);
@@ -177,7 +182,7 @@ describe("the official data in this build", () => {
       assert.match(series.meta.retrievedOn, /^\d{4}-\d{2}-\d{2}$/, id);
       assert.ok(series.meta.dataYear >= 2021, `${id}: data year ${series.meta.dataYear}`);
     }
-    assert.equal(sourcesOf(["wb-fx"])[0].license, "CC BY 4.0");
+    assert.match(sourcesOf(["wb-fx"])[0].license, /CC[- ]BY[- ]4\.0/);
   });
 
   it("names every country it has figures for, with a currency", () => {
@@ -189,6 +194,8 @@ describe("the official data in this build", () => {
     }
     assert.ok(Object.keys(COUNTRIES).length >= 190);
     for (const [code, info] of Object.entries(COUNTRIES)) assert.match(info.currency ?? "", /^[A-Z]{3}$/, code);
+    assert.equal(COUNTRIES.HT.currency, "HTG");
+    assert.equal(COUNTRIES.PS.currency, "ILS");
   });
 
   it("uses Eurostat for the European Union only, and the euro in the euro area", () => {

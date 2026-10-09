@@ -2,7 +2,7 @@
  * The yearly download of Horalis's official data (src/official/series.ts):
  *
  *   node --experimental-strip-types scripts/official-data.ts [--out DIR] [--report FILE]
- *   … --mirror DIR [--hicp FILE]   (a provisional start, see below)
+ *   … --mirror DIR [--mirror-date TEXT] [--hicp FILE]   (a provisional start, see below)
  *
  * It downloads every series from its source (World Bank, Eurostat, CLDR),
  * checks each one on its own and against the files in use, and only then
@@ -38,19 +38,26 @@ const OUT = option("--out", fileURLToPath(new URL("../src/data/official/", impor
 const REPORT = option("--report", join(OUT, "REPORT.md"));
 const MIRROR = option("--mirror", "");
 const HICP_FILE = option("--hicp", "");
+const mirrorDate = option("--mirror-date", "unknown date");
 const today = new Date();
 const retrievedOn = today.toISOString().slice(0, 10);
 
+/** A download that gives up after two minutes, and tries again only when trying again can help (network, 429, 5xx). */
 async function get(url: string, as: "json" | "bytes" = "json"): Promise<unknown> {
   let last: unknown;
   for (let attempt = 0; attempt < 4; attempt += 1) {
+    if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 2000 * 2 ** (attempt - 1)));
     try {
-      const response = await fetch(url, { headers: { "user-agent": "Horalis yearly data (github.com/Marekpisetsky/seed-lab)" } });
-      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+      const response = await fetch(url, { headers: { "user-agent": "Horalis yearly data (github.com/Marekpisetsky/seed-lab)" }, signal: AbortSignal.timeout(120_000) });
+      if (!response.ok) {
+        const error = new Error(`${response.status} ${response.statusText}`);
+        if (response.status !== 429 && response.status < 500) throw Object.assign(error, { final: true });
+        throw error;
+      }
       return as === "json" ? await response.json() : new Uint8Array(await response.arrayBuffer());
     } catch (error) {
       last = error;
-      await new Promise((resolve) => setTimeout(resolve, 2000 * 2 ** attempt));
+      if ((error as { final?: boolean }).final) break;
     }
   }
   throw new Error(`could not download ${url}: ${last instanceof Error ? last.message : String(last)}`);
@@ -97,6 +104,7 @@ async function worldBank(list: Map<string, Economy>): Promise<OfficialSeries[]> 
         byCountry = observations(await get(indicatorUrl(code)), code, list);
       }
       if (!/CC[- ]BY[- ]?4\.0/i.test(licence)) throw new Error(`${code}: the licence given is "${licence}", not CC BY 4.0`);
+      // Two of these the World Bank compiles from the IMF's International Financial Statistics; it publishes them under CC BY 4.0.
       const values = rows(byCountry, specOf(id).digits);
       out.push({
         meta: meta(
@@ -106,7 +114,8 @@ async function worldBank(list: Map<string, Economy>): Promise<OfficialSeries[]> 
             codes: [code],
             url: `https://data.worldbank.org/indicator/${code}`,
             api: MIRROR ? `${MIRROR_URL}/tree/main/indicators/${code.toLowerCase()}` : indicatorUrl(code),
-            ...WB_LICENSE,
+            license: licence,
+            licenseUrl: WB_LICENSE.licenseUrl,
             method: `Copied as published, one figure per country and year; regions and income groups left out. Licence read from the ${MIRROR ? "mirror's datapackage.json" : "World Bank's metadata"}: ${licence}.`,
             ...(MIRROR ? { provisional: `Taken from the public mirror of the World Bank's data (${MIRROR_URL}, its automated update of ${mirrorDate}), not from api.worldbank.org. The yearly download replaces it from the World Bank.` } : {}),
           },
@@ -121,11 +130,24 @@ async function worldBank(list: Map<string, Economy>): Promise<OfficialSeries[]> 
   return out;
 }
 
+/** Eurostat's HICP; "CP00" (all items) until ECOICOP 2, "TOTAL" in case the code changed with it. */
+async function hicpFromEurostat(): Promise<Record<string, Row>> {
+  let last: unknown;
+  for (const coicop of ["CP00", "TOTAL"]) {
+    try {
+      return fromJsonStat(await get(hicpUrl(coicop)));
+    } catch (error) {
+      last = error;
+    }
+  }
+  throw last;
+}
+
 async function eurostat(): Promise<OfficialSeries | null> {
   try {
     const all: Record<string, Row> = HICP_FILE
       ? Object.fromEntries(Object.entries((JSON.parse(readFileSync(HICP_FILE, "utf8")) as { series: Record<string, { from: number; rates: number[] }> }).series).map(([code, entry]) => [code, [entry.from, ...entry.rates] as Row]))
-      : fromJsonStat(await get(hicpUrl()));
+      : await hicpFromEurostat();
     const keep = new Set<string>(["EA", "EU", ...EU27]);
     const values = Object.fromEntries(
       Object.entries(all)
@@ -142,7 +164,7 @@ async function eurostat(): Promise<OfficialSeries | null> {
           api: hicpUrl(),
           ...EUROSTAT_LICENSE,
           method: "The EU's 27 countries, the euro area (EA, as it was each year) and the EU (EU27_2020) only.",
-          ...(HICP_FILE ? { provisional: "Typed by hand from Eurostat's published annual rates (projects/inflation-lens, 2026-10-02), because the session that built this could not reach Eurostat; figures may differ by about 0.1 points from Eurostat's current ones. The yearly download replaces them from Eurostat." } : {}),
+          ...(HICP_FILE ? { provisional: "Typed by hand from Eurostat's published annual rates (projects/inflation-lens, 2026-10-02), because the session that built this could not reach Eurostat. It stops at 2024, although Eurostat has published 2025, and its figures may differ by about 0.1 points from Eurostat's current ones. The yearly download replaces them from Eurostat." } : {}),
         },
         values,
       ),
@@ -168,9 +190,7 @@ async function cldrFile(path: string): Promise<string> {
 
 async function countryList(list: Map<string, Economy>): Promise<object | null> {
   try {
-    const money = currencies(JSON.parse(await cldrFile("package/supplemental/currencyData.json")), today);
-    const missing = [...list.keys()].filter((code) => !money.has(code));
-    if (missing.length > 0) warnings.push(`countries: no currency in CLDR for ${missing.join(", ")}`);
+    const money = await currencyMap();
     return {
       meta: {
         id: "countries",
@@ -184,6 +204,7 @@ async function countryList(list: Map<string, Economy>): Promise<object | null> {
         currencyLicense: CLDR_LICENSE.license,
         currencyLicenseUrl: CLDR_LICENSE.licenseUrl,
         retrievedOn,
+        ...(MIRROR ? { provisional: "Economies taken from the CLDR's ISO codes, for figures read from the public mirror of the World Bank's data: no region or income group. The yearly download takes the World Bank's own list." } : {}),
       },
       countries: Object.fromEntries(
         [...list.values()]
@@ -200,45 +221,65 @@ async function countryList(list: Map<string, Economy>): Promise<object | null> {
   }
 }
 
+/** The series in use, also when it is a provisional start: never fewer countries, never an older year. */
 function readInUse(id: string): OfficialSeries | null {
   const file = join(OUT, `${id}.json`);
   if (!existsSync(file)) return null;
-  const series = JSON.parse(readFileSync(file, "utf8")) as OfficialSeries;
-  // A provisional bootstrap is not a yardstick: anything from the source replaces it.
-  return series.meta.provisional ? null : series;
+  return JSON.parse(readFileSync(file, "utf8")) as OfficialSeries;
 }
 
-let list = new Map<string, Economy>();
-let mirrorDate = "";
+let currencyCache: Map<string, string> | null = null;
+/** Each country's currency today, from the CLDR. */
+async function currencyMap(): Promise<Map<string, string>> {
+  currencyCache ??= currencies(JSON.parse(await cldrFile("package/supplemental/currencyData.json")), today);
+  return currencyCache;
+}
+
+let countries: object | null = null;
 try {
-  if (MIRROR) {
-    mirrorDate = option("--mirror-date", "unknown date");
-    list = economiesFromCldr(JSON.parse(await cldrFile("package/supplemental/codeMappings.json")) as unknown);
-  } else list = economies(await get(COUNTRIES_URL));
-  if (list.size < 180) errors.push(`countries: only ${list.size} economies`);
-} catch (error) {
-  errors.push(`countries: ${error instanceof Error ? error.message : String(error)}`);
-}
-const series = [...(await worldBank(list)), ...[await eurostat()].filter((entry): entry is OfficialSeries => entry !== null)];
-// Only economies some series has figures for (the CLDR also lists old codes: Yugoslavia, the USSR…).
-const named = new Set(series.flatMap((entry) => Object.keys(entry.values)));
-for (const code of [...list.keys()]) if (!named.has(code)) list.delete(code);
-const countries = await countryList(list);
-const inflation = series.find((entry) => entry.meta.id === "wb-inflation");
-for (const entry of series) {
-  const before = readInUse(entry.meta.id);
-  const own = checkSeries(entry, today, inflation, before);
-  errors.push(...own.errors);
-  warnings.push(...own.warnings);
-  if (before) {
-    const compared = compareSeries(before, entry);
-    errors.push(...compared.errors);
-    warnings.push(...compared.warnings);
+  let list = new Map<string, Economy>();
+  try {
+    if (MIRROR) {
+      list = economiesFromCldr(JSON.parse(await cldrFile("package/supplemental/codeMappings.json")) as unknown);
+    } else list = economies(await get(COUNTRIES_URL));
+    if (list.size < 180) errors.push(`countries: only ${list.size} economies`);
+  } catch (error) {
+    errors.push(`countries: ${error instanceof Error ? error.message : String(error)}`);
   }
-  written.push(entry);
+  const series = [...(await worldBank(list)), ...[await eurostat()].filter((entry): entry is OfficialSeries => entry !== null)];
+  // Only economies some series has figures for (the CLDR also lists old codes: Yugoslavia, the USSR…).
+  const named = new Set(series.flatMap((entry) => Object.keys(entry.values)));
+  for (const code of [...list.keys()]) if (!named.has(code)) list.delete(code);
+  // Every economy must have a currency to be used: one without (the Channel Islands, which have no ISO code) is left out of every series, and said.
+  const money = await currencyMap();
+  const without = [...list.keys()].filter((code) => !money.has(code));
+  for (const code of without) list.delete(code);
+  for (const entry of series) {
+    entry.values = Object.fromEntries(Object.entries(entry.values).filter(([code]) => !without.includes(code)));
+    entry.meta.dataYear = dataYearOf(entry.values);
+  }
+  if (without.length > 0) warnings.push(`countries: left out, no currency in the CLDR: ${without.join(", ")}`);
+  countries = await countryList(list);
+  const inflation = series.find((entry) => entry.meta.id === "wb-inflation");
+  for (const entry of series) {
+    const before = readInUse(entry.meta.id);
+    const own = checkSeries(entry, today, inflation, before);
+    errors.push(...own.errors);
+    warnings.push(...own.warnings);
+    if (before) {
+      const compared = compareSeries(before, entry);
+      errors.push(...compared.errors);
+      warnings.push(...compared.warnings);
+    }
+    written.push(entry);
+  }
+  const expected = [...Object.keys(WB_CODES), "eurostat-hicp"];
+  for (const id of expected) if (!series.some((entry) => entry.meta.id === id)) errors.push(`${id}: not downloaded`);
+
+} catch (error) {
+  // Whatever breaks, the report still says what happened, and nothing is written.
+  errors.push(`the download stopped: ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`);
 }
-const expected = [...Object.keys(WB_CODES), "eurostat-hicp"];
-for (const id of expected) if (!series.some((entry) => entry.meta.id === id)) errors.push(`${id}: not downloaded`);
 
 const ok = errors.length === 0;
 mkdirSync(OUT, { recursive: true });

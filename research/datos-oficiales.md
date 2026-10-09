@@ -39,6 +39,11 @@ dentro del build.
 | Gasto o ingreso medio por persona y día | Banco Mundial (PIP), SI.SPR.PCAP, dólares PPA de 2021 | CC BY 4.0 | 2023 (cada país, su última encuesta) |
 | Moneda de cada país | Unicode CLDR, `supplemental/currencyData.json` | Unicode License v3 | 48.2.0 |
 
+El Banco Mundial elabora dos de estas series, la inflación y el tipo de
+cambio, a partir de las Estadísticas Financieras Internacionales del FMI.
+Las publica con CC BY 4.0, y por eso se pueden usar. No se descarga nada
+del FMI directamente.
+
 **Qué fuentes no se usan y por qué:**
 - **FMI:** sus condiciones piden permiso para el uso comercial y para las
   descargas automáticas.
@@ -68,13 +73,19 @@ dentro del build.
 2. **Rango.** Cada cifra cae dentro de lo plausible. Un tipo de cambio
    puede ser minúsculo antes de una redenominación (el austral argentino)
    o enorme en hiperinflación (Zimbabue, 2008), pero nunca 0 ni infinito.
+   El rango de tipos de cambio y paridades es muy amplio a propósito: los
+   errores reales los detecta el control de saltos.
 3. **Cobertura.**
    - Al menos 150 países, o 100 en las encuestas.
    - Nunca menos países que los que ya había.
 4. **Años.**
    - Ningún año futuro.
+   - Ninguna cifra del año en curso: un dato anual solo está completo
+     cuando el año ha terminado.
    - El año de los datos no puede tener más de 4 años, ni 8 en las
-     encuestas.
+     encuestas. Esto solo se exige en la descarga anual: un build con datos
+     antiguos sigue funcionando, y cada herramienta dice de qué año son sus
+     datos.
    - Nunca puede ser anterior al que ya había.
 5. **Saltos.**
    - Si una cifra se multiplica o divide por más de 50 de un año a otro, la
@@ -84,7 +95,10 @@ dentro del build.
      euro, la unificación del kyat en 2012, la dolarización de Ecuador en
      2000.
    - En la primera descarga, los saltos solo se listan para revisarlos.
-6. **Revisiones.** Las cifras revisadas mucho se listan para revisarlas,
+6. **Monedas.** Un país sin moneda en el CLDR queda fuera de todas las
+   series, y el informe lo dice. Es el caso de las Islas del Canal, que no
+   tienen código ISO.
+7. **Revisiones.** Las cifras revisadas mucho se listan para revisarlas,
    pero no paran la descarga: más de un 25 %, o más de 5 puntos en una
    inflación. Una ronda nueva del PCI revisa series enteras.
 
@@ -133,6 +147,14 @@ workflow anual descarga de las fuentes oficiales y los sustituye.
 
 ## Historial
 
+- **9 de octubre de 2026.** Cambios tras la revisión independiente:
+  - La moneda de cada país es la suya propia cuando está en uso: HTG en
+    Haití, PAB en Panamá, ILS en Palestina.
+  - Un país sin moneda queda fuera.
+  - No se aceptan cifras del año en curso.
+  - La descarga se compara también con los datos provisionales.
+  - El informe se escribe siempre, aunque el script falle.
+  - Un build no falla por tener datos antiguos.
 - **9 de octubre de 2026.** Ficha nueva (fase A1 del plan Horalis).
   - Datos de arranque desde el espejo público, provisionales.
   - El workflow anual se queda en `packages/seed-kit/scripts/`, listo para

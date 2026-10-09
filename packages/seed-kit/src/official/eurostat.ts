@@ -16,9 +16,9 @@ const FROM_ISO: Readonly<Record<string, string>> = { GR: "EL", EU: "EU27_2020" }
 
 export const HICP_GEO = ["EA", "EU", ...EU27] as const;
 
-export function hicpUrl(): string {
+export function hicpUrl(coicop = "CP00"): string {
   const url = new URL("https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_aind");
-  for (const [key, value] of [["format", "JSON"], ["lang", "EN"], ["unit", "RCH_A_AVG"], ["coicop", "CP00"]]) url.searchParams.set(key, value);
+  for (const [key, value] of [["format", "JSON"], ["lang", "EN"], ["unit", "RCH_A_AVG"], ["coicop", coicop]]) url.searchParams.set(key, value);
   for (const geo of HICP_GEO) url.searchParams.append("geo", FROM_ISO[geo] ?? geo);
   return url.toString();
 }

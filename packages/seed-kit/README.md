@@ -151,8 +151,19 @@ llegaba al Banco Mundial ni a Eurostat:
   automática del 1 de julio de 2026).
 - Las de Eurostat salen de las cifras tecleadas a mano de Inflation Lens.
 
-Cada archivo lo dice en `meta.provisional` y las páginas lo muestran. La
-primera ejecución del workflow los sustituye por los de la fuente.
+Cada archivo lo dice en `meta.provisional`, y las herramientas lo
+mostrarán junto a sus cifras cuando los usen. La primera ejecución del
+workflow los sustituye por los de la fuente.
+
+**Monedas.** `countries.json` da la moneda de hoy de cada país, pero
+`wb-fx` y `wb-ppp` cuentan cada año en la moneda que el país usaba
+entonces: España, en pesetas antes de 1999 y en euros después.
+
+**Regla de conversión.** Solo se convierte con cifras del mismo país y del
+mismo año, pasando por el dólar. Así la unidad siempre cuadra.
+
+**Sin caducidad.** Un build nunca falla porque los datos sean antiguos.
+Solo la descarga anual exige datos recientes.
 
 ## La lista de herramientas
 

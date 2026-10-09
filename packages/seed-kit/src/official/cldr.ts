@@ -12,7 +12,15 @@ interface CurrencyData {
   supplemental?: { currencyData?: { region?: Record<string, Array<Record<string, { _from?: string; _to?: string; _tender?: string }>>> } };
 }
 
-/** Region → its current tender currency, as of `today`. */
+/** Where the CLDR lists more than one currency in use and its order would mislead. */
+const PREFERRED: Readonly<Record<string, string>> = { PS: "ILS" };
+
+/**
+ * Region → its current tender currency, as of `today`: the country's own
+ * (its code starts with the region's: HTG for Haiti, PAB for Panama) when it
+ * is in use, otherwise the one in use for longest (BG: the euro once the lev
+ * ended), with PREFERRED where that misleads.
+ */
 export function currencies(answer: unknown, today = new Date()): Map<string, string> {
   const regions = (answer as CurrencyData)?.supplemental?.currencyData?.region;
   if (!regions) throw new Error("CLDR: no currencyData.region");
@@ -23,8 +31,10 @@ export function currencies(answer: unknown, today = new Date()): Map<string, str
     const current = list
       .flatMap((entry) => Object.entries(entry))
       .filter(([, info]) => info._tender !== "false" && (info._from ?? "0000") <= day && (info._to === undefined || info._to > day))
-      .sort(([, a], [, b]) => (b._from ?? "").localeCompare(a._from ?? ""));
-    if (current.length > 0) out.set(region, current[0][0]);
+      .sort(([, a], [, b]) => (a._from ?? "").localeCompare(b._from ?? ""));
+    const own = current.find(([code]) => code.startsWith(region));
+    const chosen = PREFERRED[region] ?? own?.[0] ?? current[0]?.[0];
+    if (chosen) out.set(region, chosen);
   }
   return out;
 }

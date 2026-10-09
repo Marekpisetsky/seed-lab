@@ -48,7 +48,7 @@ jobs:
           set +e
           node --experimental-strip-types scripts/official-data.ts --report "$RUNNER_TEMP/REPORT.md"
           echo "status=$?" >> "$GITHUB_OUTPUT"
-          cp "$RUNNER_TEMP/REPORT.md" src/data/official/REPORT.md
+          cp "$RUNNER_TEMP/REPORT.md" src/data/official/REPORT.md || printf '# Official data\n\nThe download crashed before writing its report. See the run: %s\n' "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > src/data/official/REPORT.md
 
       - name: Test seed-kit with the new data
         id: tests
@@ -75,4 +75,4 @@ jobs:
           git add src/data/official
           git commit -m "$title"
           git push origin "$branch"
-          gh pr create --base "${{ github.event.repository.default_branch }}" --head "$branch" --title "$title" --body-file src/data/official/REPORT.md
+          gh pr create --head "$branch" --title "$title" --body-file src/data/official/REPORT.md

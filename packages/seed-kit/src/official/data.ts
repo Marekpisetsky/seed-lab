@@ -34,7 +34,7 @@ export interface CountriesFile {
 
 function checked(raw: unknown, inflationSeries?: OfficialSeries): OfficialSeries {
   const series = raw as OfficialSeries;
-  const { errors } = checkSeries(series, new Date(), inflationSeries);
+  const { errors } = checkSeries(series, new Date(), inflationSeries, null, false);
   if (errors.length > 0) throw new Error(`official data, ${series.meta?.id}: ${errors.slice(0, 5).join("; ")}`);
   return series;
 }

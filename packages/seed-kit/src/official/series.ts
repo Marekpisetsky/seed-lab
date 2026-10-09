@@ -162,7 +162,14 @@ export interface CheckResult {
  * and not explained by prices rising as much that year. On a first
  * download, with nothing in use, jumps are listed to look at.
  */
-export function checkSeries(series: OfficialSeries, today = new Date(), inflation?: OfficialSeries, before?: OfficialSeries | null): CheckResult {
+export function checkSeries(
+  series: OfficialSeries,
+  today = new Date(),
+  inflation?: OfficialSeries,
+  before?: OfficialSeries | null,
+  /** False when a tool is built: data that is years old still works; only the yearly download must bring recent data. */
+  checkAge = true,
+): CheckResult {
   const errors: string[] = [];
   const warnings: string[] = [];
   const spec = SPECS.find((entry) => entry.id === series.meta?.id);
@@ -173,7 +180,7 @@ export function checkSeries(series: OfficialSeries, today = new Date(), inflatio
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(meta.retrievedOn ?? "")) errors.push(`${spec.id}: retrievedOn must be YYYY-MM-DD`);
   if (!Array.isArray(meta.codes) || meta.codes.length === 0) errors.push(`${spec.id}: no source codes`);
-  if (!/CC BY[- ]?4\.0|2011\/833\/EU/i.test(meta.license ?? "")) errors.push(`${spec.id}: licence "${meta.license}" is not one that allows reuse`);
+  if (!/CC[- ]BY[- ]?4\.0|2011\/833\/EU/i.test(meta.license ?? "")) errors.push(`${spec.id}: licence "${meta.license}" is not one that allows reuse`);
   const countries = Object.keys(series.values ?? {});
   if (countries.length < spec.minCountries) errors.push(`${spec.id}: ${countries.length} countries, fewer than ${spec.minCountries}`);
   const thisYear = today.getUTCFullYear();
@@ -183,7 +190,8 @@ export function checkSeries(series: OfficialSeries, today = new Date(), inflatio
       errors.push(`${spec.id} ${code}: bad first year`);
       continue;
     }
-    if (row[0] + row.length - 2 > thisYear) errors.push(`${spec.id} ${code}: figures for years still to come`);
+    // Yearly figures are only complete once the year is over: none for this year or later.
+    if (row[0] + row.length - 2 >= thisYear) errors.push(`${spec.id} ${code}: figures for a year not yet complete`);
     let previous: { year: number; value: number } | null = null;
     row.slice(1).forEach((value, index) => {
       const year = row[0] + index;
@@ -213,7 +221,7 @@ export function checkSeries(series: OfficialSeries, today = new Date(), inflatio
     const year = dataYearOf(series.values);
     if (meta.dataYear !== year) errors.push(`${spec.id}: dataYear says ${meta.dataYear}, the figures say ${year}`);
     const allowed = spec.id === "wb-survey-mean" ? 8 : 4;
-    if (year < thisYear - allowed) errors.push(`${spec.id}: its latest year (${year}) is more than ${allowed} years old`);
+    if (checkAge && year < thisYear - allowed) errors.push(`${spec.id}: its latest year (${year}) is more than ${allowed} years old`);
   }
   return { errors, warnings };
 }
