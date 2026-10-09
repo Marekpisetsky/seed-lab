@@ -24,7 +24,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
-import { CLDR_LICENSE, CLDR_PACKAGE, currencies, economiesFromCldr } from "../src/official/cldr.ts";
+import { CLDR_LICENSE, CLDR_PACKAGE, currencies, currencySince, economiesFromCldr } from "../src/official/cldr.ts";
 import { EU27, fromJsonStat, hicpUrl } from "../src/official/eurostat.ts";
 import { checkSeries, compareSeries, dataYearOf, EUROSTAT_LICENSE, specOf, WB_CODES, WB_LICENSE, round, type OfficialSeries, type Row, type SeriesMeta } from "../src/official/series.ts";
 import { COUNTRIES_URL, economies, fromMirrorCsv, indicatorUrl, licenseOf, metadataUrl, MIRROR_URL, observations, rows, type Economy } from "../src/official/worldbank.ts";
@@ -191,6 +191,7 @@ async function cldrFile(path: string): Promise<string> {
 async function countryList(list: Map<string, Economy>): Promise<object | null> {
   try {
     const money = await currencyMap();
+    const since = currencySince(JSON.parse(await cldrFile("package/supplemental/currencyData.json")), money);
     return {
       meta: {
         id: "countries",
@@ -211,7 +212,7 @@ async function countryList(list: Map<string, Economy>): Promise<object | null> {
           .sort((a, b) => a.iso2.localeCompare(b.iso2))
           .map((economy) => [
             economy.iso2,
-            { iso3: economy.iso3, ...(economy.region ? { region: economy.region, income: economy.income } : {}), currency: money.get(economy.iso2) ?? null, eu: (EU27 as readonly string[]).includes(economy.iso2) },
+            { iso3: economy.iso3, ...(economy.region ? { region: economy.region, income: economy.income } : {}), currency: money.get(economy.iso2) ?? null, currencySince: since.get(economy.iso2) ?? null, eu: (EU27 as readonly string[]).includes(economy.iso2) },
           ]),
       ),
     };

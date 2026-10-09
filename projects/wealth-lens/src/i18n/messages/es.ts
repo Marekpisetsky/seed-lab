@@ -116,6 +116,7 @@ export const es: Messages = {
     "portfolio-retired": () => "Tu archivo tenía una cartera de posiciones. Horalis ya no guarda posiciones: ahora usa acciones de EE. UU.",
     "holdings-retired": () => "Tu archivo tenía posiciones. Horalis ya no las guarda; tu plan no cambia.",
     "country-costs-official": () => "El coste de cada país sale ahora del Banco Mundial, vivienda incluida. Tus metas de un país pueden cambiar.",
+    "currency-unknown": () => "Su moneda no tiene tipo oficial en nuestros datos. Los importes se leen en euros: cámbiala en Más opciones.",
     "goal-items-retired": ({ count }) => (count === 1 ? "Se quitó una meta de la antigua lista de precios. Añádela con tu propio precio." : `Se quitaron ${count} metas de la antigua lista de precios. Añádelas con tu propio precio.`),
   } satisfies ProblemTexts,
   assets: {

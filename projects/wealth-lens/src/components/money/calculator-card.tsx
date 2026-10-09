@@ -12,6 +12,7 @@ import { optionsChanged } from "@/lib/assumptions";
 import { resolveInvestment } from "@/lib/investment";
 import { planReady } from "@/lib/plan";
 import { MONTHLY_STEP, stepValue, YEARS_STEP } from "@/lib/step";
+import { exampleIn } from "@/lib/money";
 import { EXAMPLE_AMOUNTS, MAX_AMOUNT, MAX_YEARS_AHEAD, MIN_YEARS } from "@/lib/validation";
 import { offeredRates } from "@/lib/withdrawal";
 import { GrowthField } from "./growth-field";
@@ -115,7 +116,9 @@ export function CalculatorCard({ onSee, compact = false }: { onSee?: () => void;
     return () => events.forEach((name) => window.removeEventListener(name, start));
   }, [plan.withdrawalRate]);
   const monthly = plan.monthlyContribution;
-  const before = f.cur(1).startsWith("€");
+  // The plan's currency at its side of the field, with room for it ("€", "MX$", "PEN").
+  const before = f.symbolFirst;
+  const room = { [before ? "paddingLeft" : "paddingRight"]: `calc(1.25rem + ${f.symbol.length}ch)` } as React.CSSProperties;
   // Enter in a field goes on to the next step, and from the last to the button.
   const order = [ids.have, ids.monthly, ids.growth, ids.years];
   const next = (from: string) => () => {
@@ -146,7 +149,7 @@ export function CalculatorCard({ onSee, compact = false }: { onSee?: () => void;
       <ol className="divide-y divide-border">
         <Step number={1} question={t.steps.have} fieldId={ids.have} compact={compact}>
           <span className="relative block">
-              <Affix side={before ? "left" : "right"}>€</Affix>
+              <Affix side={before ? "left" : "right"}>{f.symbol}</Affix>
               <SettledNumberInput
                 id={ids.have}
                 enterKeyHint="next"
@@ -155,8 +158,9 @@ export function CalculatorCard({ onSee, compact = false }: { onSee?: () => void;
                 onEmpty={() => updatePlan({ invested: null })}
                 onKeyDown={enter(ids.have)}
                 max={MAX_AMOUNT}
-                placeholder={t.example(f.grouped(EXAMPLE_AMOUNTS.invested))}
-                className={`${exampleClass} ${before ? "pl-8" : "pr-8"}`}
+                placeholder={t.example(f.grouped(exampleIn(EXAMPLE_AMOUNTS.invested, f.step)))}
+                className={exampleClass}
+                style={room}
               />
           </span>
         </Step>
@@ -169,7 +173,7 @@ export function CalculatorCard({ onSee, compact = false }: { onSee?: () => void;
             onLess={() => updatePlan({ monthlyContribution: stepValue(monthly ?? 0, -1, { ...MONTHLY_STEP, step: f.step, max: MAX_AMOUNT }) })}
             onMore={() => updatePlan({ monthlyContribution: stepValue(monthly ?? 0, 1, { ...MONTHLY_STEP, step: f.step, max: MAX_AMOUNT }) })}
           >
-            <Affix side={before ? "left" : "right"}>€</Affix>
+            <Affix side={before ? "left" : "right"}>{f.symbol}</Affix>
             <SettledNumberInput
               id={ids.monthly}
               enterKeyHint="next"
@@ -178,8 +182,9 @@ export function CalculatorCard({ onSee, compact = false }: { onSee?: () => void;
               onEmpty={() => updatePlan({ monthlyContribution: null })}
               onKeyDown={enter(ids.monthly)}
               max={MAX_AMOUNT}
-              placeholder={t.example(f.grouped(EXAMPLE_AMOUNTS.monthlyContribution))}
-              className={`${exampleClass} ${before ? "pl-8" : "pr-8"}`}
+              placeholder={t.example(f.grouped(exampleIn(EXAMPLE_AMOUNTS.monthlyContribution, f.step)))}
+              className={exampleClass}
+              style={room}
             />
           </Stepper>
         </Step>

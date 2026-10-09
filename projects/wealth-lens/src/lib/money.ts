@@ -26,6 +26,15 @@ export function isPlanCurrency(value: unknown): value is string {
   return typeof value === "string" && PLAN_CURRENCIES.includes(value);
 }
 
+/**
+ * A currency a saved plan can keep: any with an official rate in some year.
+ * One that loses its rate for the prices' year after a yearly data update
+ * stays, and its countries' costs use the nearest year with one.
+ */
+export function isRatedCurrency(value: unknown): value is string {
+  return typeof value === "string" && RATED_CURRENCIES.includes(value);
+}
+
 /** A country's currency when a plan can be in it, else `null`. */
 export function planCurrencyOf(country: string): string | null {
   const currency = currencyOf(country);
@@ -37,9 +46,10 @@ function perEuro(currency: string): number {
   return convert(1, DEFAULT_CURRENCY, currency, PRICE_YEAR)?.rate ?? Number.NaN;
 }
 
-/** What an average person lives on a month in a country, in `currency`, rounded as the pages show a cost. */
+/** What an average person lives on a month in a country, in `currency`, rounded as the pages show a cost: PRICE_YEAR's rate, or the nearest year's. */
 export function costIn(country: Pick<CountryCost, "monthlyCostUsd">, currency: string): number {
-  return roundMoney(country.monthlyCostUsd * (ratePerDollar(currency, PRICE_YEAR) ?? Number.NaN));
+  const rate = ratePerDollar(currency, PRICE_YEAR) ?? convert(1, "USD", currency, PRICE_YEAR)?.rate ?? Number.NaN;
+  return roundMoney(country.monthlyCostUsd * rate);
 }
 
 /** A country of the list with its monthly cost in the plan's currency. */
@@ -73,4 +83,9 @@ export function moneyStep(currency: string): number {
   const rate = perEuro(currency);
   // Euros, or a currency with no rate at all: the plain 50.
   return currency === DEFAULT_CURRENCY || !Number.isFinite(rate) ? 50 : roundFigure(50 * rate);
+}
+
+/** A euro example ("e.g. 1,000") as the same size of money in the currency whose €50 step is `step`, a round figure. */
+export function exampleIn(euros: number, step: number): number {
+  return step === 50 ? euros : roundFigure((euros / 50) * step);
 }

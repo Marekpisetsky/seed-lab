@@ -18,11 +18,12 @@ import { monthlyCost, type Country } from "./calc.ts";
  * or US dollars when the data have no rate for that year: a rate of
  * another year would mix two years' prices.
  */
-function money(code: string): Pick<Country, "currency" | "perDollar" | "rateYear"> {
+function money(code: string): Pick<Country, "currency" | "ownCurrency" | "perDollar" | "rateYear"> {
   const year = costOfLiving.priceYear;
   const currency = currencyOf(code);
   const perDollar = currency ? ratePerDollar(currency, year) : null;
-  return currency && perDollar ? { currency, perDollar, rateYear: year } : { currency: "USD", perDollar: 1, rateYear: year };
+  const ownCurrency = currency ?? "USD";
+  return currency && perDollar ? { currency, ownCurrency, perDollar, rateYear: year } : { currency: "USD", ownCurrency, perDollar: 1, rateYear: year };
 }
 
 /** Every country of the data, in a language, sorted by its name there. */

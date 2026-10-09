@@ -124,6 +124,7 @@ export const nl: Messages = {
     "portfolio-retired": () => "Je bestand had een portefeuille met beleggingen. Horalis houdt geen beleggingen meer bij: het gebruikt nu Amerikaanse aandelen.",
     "holdings-retired": () => "Je bestand had beleggingen. Horalis houdt ze niet meer bij; je plan blijft hetzelfde.",
     "country-costs-official": () => "Landkosten komen nu uit enquêtes van de Wereldbank, wonen inbegrepen. Je doelen voor een land kunnen veranderen.",
+    "currency-unknown": () => "Die munt heeft geen officiële koers in onze gegevens. De bedragen gelden als euro's: verander het bij Meer opties.",
     "goal-items-retired": ({ count }) =>
       count === 1
         ? "Een doel uit de oude prijslijst is weggelaten. Voeg het toe met je eigen prijs."

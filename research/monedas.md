@@ -68,13 +68,19 @@ moneda. Para cada moneda:
 2. Los años que le falten se completan con otros países de la misma
    moneda **solo si coinciden** con él (diferencia de menos del 1 % en los
    años comunes).
-3. **Monedas nuevas.** Si de un año al siguiente el tipo salta más de
-   ×20, la moneda cambió (una redenominación: el bolívar, el dólar de
-   Zimbabue…). Se cortan los años anteriores al salto: nunca se mezclan
-   dos monedas con el mismo código.
+3. **Monedas nuevas.** Un país solo da años desde el primer año entero de
+   su moneda de hoy, según la fecha de inicio de CLDR (`currencySince`:
+   el bolívar soberano, 20 de agosto de 2018 → desde 2019; el euro en
+   Croacia, 1 de enero de 2023 → desde 2023). El Banco Mundial a veces
+   reexpresa los años viejos en la moneda nueva y a veces no (el VES de
+   2015–2017 era bolívar fuerte, 100 000 veces mayor): ante la duda se
+   pierden esos años antes que mezclar dos monedas. Además, si de un año
+   al siguiente el tipo salta más de ×20, la moneda cambió aunque CLDR no
+   lo diga (el dólar de Zimbabue…), y se cortan los años anteriores.
 4. El dólar vale 1 todos los años.
 
-Resultado (9 oct. 2026): 147 monedas con tipo, 2015–2025.
+Resultado (9 oct. 2026): 145 monedas con tipo, 2015–2025 (sin el VES ni el
+florín del Caribe, XCG, nacido en 2025).
 
 ## Cada herramienta
 
@@ -82,17 +88,26 @@ Resultado (9 oct. 2026): 147 monedas con tipo, 2015–2025.
   donde vives; el resultado, en la del país con que comparas. Los costes de
   los países están en dólares de su año de precios (2024); se pasan a cada
   moneda con el tipo de **ese mismo año**. Un país cuya moneda no tiene
-  tipo ese año sale en dólares, y la página lo dice («Sin tipo de ese año,
-  en dólares»): un tipo de otro año mezclaría precios de dos años. Hoy son
+  tipo ese año sale en dólares, y la página lo dice junto al resultado
+  («Irán: en dólares de EE. UU., sin tipo oficial de 2024»): un tipo de otro año mezclaría precios de dos años. Hoy son
   8 países (CD, GN, IR, LK, MM, MR, MW, SL). Junto al resultado: «Con los
   tipos oficiales de 2024: 1 € = 4,06 PEN». La cantidad de partida es lo
-  que vive al mes una persona media del país de partida, en su moneda.
+  que vive al mes una persona media del país de partida, en su moneda. Al
+  cambiar «Dónde vives», lo escrito pasa a la nueva moneda con el mismo
+  tipo (sigue siendo el mismo dinero); si no se había tocado, pasa a lo
+  que vive una persona media allí.
+- **Formato de números.** En las tres herramientas, como los escribe la
+  región del lector si su navegador habla el idioma de la página (es-MX en
+  `/es`: 1,234.5; en-IN: 1,50,000). Crecimiento lee además los lakhs de la
+  India y el apóstrofo suizo (150’000) al escribir.
 - **Horalis Inflación.** Cada lugar en su moneda de hoy (zona euro y UE:
   euro). La inflación cambia lo que compra el dinero, no su moneda: no hay
   conversión.
 - **Horalis Crecimiento.** El plan tiene moneda («Tus importes están en»,
   en Más opciones), cualquiera con tipo en el año de precios de los países.
-  - Los importes que escribes están en ella; cambiarla no los convierte.
+  - Los importes que escribes están en ella, y su símbolo va dentro del
+    campo; cambiarla no los convierte. Los ejemplos en gris son la misma
+    cantidad de dinero en ella (1000 € → 20 000 MX$).
   - El crecimiento es el de cada inversión después de la subida de precios,
     en su propia moneda: **no cuenta los cambios entre monedas** (Cómo
     funciona lo dice).
@@ -109,9 +124,14 @@ Resultado (9 oct. 2026): 147 monedas con tipo, 2015–2025.
     del navegador, si la app tiene sus cifras; un plan ya tocado no
     cambia.
   - El archivo de datos pasa a la versión 12 y guarda la moneda; los
-    archivos anteriores eran en euros y se leen en euros.
+    archivos anteriores eran en euros y se leen en euros. Un archivo con
+    una moneda que tiene tipo en algún año la conserva (si la
+    actualización anual le quita el del año de precios, los costes usan el
+    año más cercano); con una moneda desconocida se lee en euros, y lo
+    dice.
   - El tope de una cantidad sube de 10⁹ a 10¹⁵: mil millones de euros en
-    la moneda con más unidades por euro (el rial iraní, unos 4,6 × 10¹³).
+    la moneda del plan con más unidades por euro (la libra libanesa, unos
+    9,7 × 10¹³ en 2024).
 
 ## Redondeo
 
@@ -184,6 +204,10 @@ afecta a cifras entre 95 y 99, que ahora van a la decena.
 
 ## Historial
 
+- 2026-10-09 (fase A3, tras la revisión independiente): fecha de inicio de
+  cada moneda (CLDR) para no mezclar el bolívar fuerte con el soberano;
+  la cantidad de Coste de vida sigue al país; formato del lector en las
+  tres herramientas; archivos con monedas que pierdan su tipo del año.
 - 2026-10-09 (fase A3): ficha nueva. Moneda por país, tipos oficiales por
   año, conversiones con año visible, formatos por región, país de partida
   según el idioma. Coste de vida y Crecimiento dejan de ser solo en euros.

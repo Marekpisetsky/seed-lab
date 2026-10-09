@@ -48,3 +48,15 @@ export function countryFromLanguage(language: string | undefined, supported: rea
   const region = language ? regionOf(language) : null;
   return region !== null && supported.includes(region) ? region : fallback;
 }
+
+/**
+ * The reader's region, for writing numbers their way: the one their
+ * browser's language names when it is the page's language ("es-MX" on a
+ * Spanish page: "MX"); "" otherwise. A pair like "en-NL" would mix two
+ * ways of writing (1.234,5 and €1,234.50), so another language's region
+ * is never used.
+ */
+export function readerRegion(pageLanguage: string, browserLanguage: string | undefined): string {
+  if (!browserLanguage || browserLanguage.slice(0, 2).toLowerCase() !== pageLanguage) return "";
+  return regionOf(browserLanguage) ?? "";
+}

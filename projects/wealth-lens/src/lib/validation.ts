@@ -9,7 +9,7 @@
 import { isAssetId } from "./assets";
 import { DEFAULT_PRICES_OF, isPriceCountry, referenceRate } from "@seed-kit/inflation-rates.ts";
 import { isIndexId, RETIRED_SERIES } from "./index-ids";
-import { DEFAULT_CURRENCY, isPlanCurrency } from "./money";
+import { DEFAULT_CURRENCY, isRatedCurrency } from "./money";
 import { resolveInvestment, toReal } from "./investment";
 import { MAX_PARTS, mixPartKey } from "./mix";
 import { problem, type Problem } from "./problems";
@@ -22,8 +22,9 @@ export const DEFAULT_GOAL: LegacyGoal = { amount: 100_000, targetDate: null };
 
 /**
  * The largest amount accepted anywhere (invested, monthly, a price), in
- * any currency: room for a thousand million euros in the currency with
- * the most units to the euro (about 4.6 × 10¹³ Iranian rials).
+ * any currency: room for a thousand million euros in the plan currency
+ * with the most units to the euro (Lebanese pounds in 2024: about
+ * 9.7 × 10¹³).
  */
 export const MAX_AMOUNT = 1e15;
 
@@ -399,6 +400,17 @@ function goalsFromEarlierVersions(value: Record<string, unknown>, notices: Notic
 }
 
 /**
+ * The plan's currency: any with an official rate in some year (lib/money.ts).
+ * Before version 12 every amount was in euros; a currency the data no
+ * longer know is read as euros, and said.
+ */
+function currencyOf(value: Record<string, unknown>, notices: Notices): string {
+  if (isRatedCurrency(value.currency)) return value.currency;
+  if (typeof value.currency === "string" && value.currency !== DEFAULT_CURRENCY) notices.push(problem("currency-unknown"));
+  return DEFAULT_CURRENCY;
+}
+
+/**
  * Field by field, so one bad or missing field does not reset the others.
  * Amounts missing from a file are 0, never the example values of a first
  * visit. Also reads the plans of versions 1 to 5 (see above): their
@@ -438,8 +450,7 @@ export function parsePlan(value: unknown, notices: Notices = [], version: number
     // On the slider's steps: 2–7 %, every 0.5 % (earlier versions offered 3, 4 and 5 %).
     withdrawalRate: pick("withdrawalRate", (v) => (isRate(v) && v > 0 ? snapWithdrawal(v) : null)),
     pricesOf,
-    // Before version 12 every amount was in euros.
-    currency: isPlanCurrency(value.currency) ? value.currency : DEFAULT_CURRENCY,
+    currency: currencyOf(value, notices),
     assumptions: chosen.assumptions,
     goals,
   };

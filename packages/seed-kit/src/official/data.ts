@@ -23,6 +23,8 @@ export interface CountryInfo {
   income?: string;
   /** ISO 4217, the currency in use today; null when the CLDR gives none. */
   currency: string | null;
+  /** Since when, YYYY-MM-DD (CLDR); null or missing when the CLDR gives no date. */
+  currencySince?: string | null;
   /** A member of the European Union (its inflation is Eurostat's). */
   eu: boolean;
 }

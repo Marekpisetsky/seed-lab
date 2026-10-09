@@ -129,6 +129,7 @@ export const en = {
     "portfolio-retired": () => "Your file had a portfolio of holdings. Horalis no longer keeps holdings: it now uses US stocks.",
     "holdings-retired": () => "Your file had holdings. Horalis no longer keeps them; your plan is unchanged.",
     "country-costs-official": () => "Country costs now come from World Bank surveys, housing included. Your country goals may change.",
+    "currency-unknown": () => "Its currency has no official rate in our data. The amounts are read as euros: change it in More options.",
     "goal-items-retired": ({ count }) => (count === 1 ? "A goal from the old price list was left out. Add it with your own price." : `${count} goals from the old price list were left out. Add them with your own price.`),
   } satisfies ProblemTexts,
   assets: {

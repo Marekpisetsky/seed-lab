@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { COUNTRIES, OFFICIAL } from "../src/official/data.ts";
-import { buildCurrencies, buildExchangeRates, NEW_CURRENCY_JUMP, RATES_FROM } from "../src/official/money-tables.ts";
+import { buildCurrencies, buildExchangeRates, firstWholeYear, NEW_CURRENCY_JUMP, RATES_FROM } from "../src/official/money-tables.ts";
 import { valueIn } from "../src/official/series.ts";
 import { convert, countryFromLanguage, currencyOf, EXCHANGE_RATES_SOURCE, latestSharedYear, ratePerDollar, RATED_CURRENCIES, roundMoney } from "../src/money.ts";
 
@@ -41,6 +41,14 @@ describe("the money tables the pages carry", () => {
         if (ratePerDollar(currency, year - 1) !== null) assert.ok(ratio < NEW_CURRENCY_JUMP && ratio > 1 / NEW_CURRENCY_JUMP, `${currency} ${year}`);
       }
     }
+    // A currency that began after the data's years has no rates of the one it replaced (CLDR's start date):
+    // the bolívar soberano (2018) none of the bolívar fuerte's; the ouguiya of 2018 none of the old one's.
+    assert.equal(ratePerDollar("VES", 2017), null);
+    assert.equal(ratePerDollar("MRU", 2017), null);
+    assert.equal(ratePerDollar("SLE", 2022), null);
+    assert.equal(firstWholeYear("2018-08-20"), 2019);
+    assert.equal(firstWholeYear("2023-01-01"), 2023);
+    assert.equal(firstWholeYear(null), Number.NEGATIVE_INFINITY);
     // The euro took Germany's rates, not Croatia's kuna or Bulgaria's lev.
     for (let year = RATES_FROM; year <= 2024; year += 1) assert.ok((ratePerDollar("EUR", year) ?? 0) < 1, String(year));
   });

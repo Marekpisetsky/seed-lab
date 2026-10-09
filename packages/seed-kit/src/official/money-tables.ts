@@ -45,13 +45,27 @@ export function buildCurrencies(): Record<string, string> {
 export const NEW_CURRENCY_JUMP = 20;
 
 /**
+ * The first whole year of a currency in a country: the year of its CLDR
+ * start when it began on 1 January (the euro in Croatia, 2023), else the
+ * year after (a yearly average of 2018 in Venezuela mixes two bolívars).
+ */
+export function firstWholeYear(since: string | null | undefined): number {
+  if (!since) return Number.NEGATIVE_INFINITY;
+  const year = Number(since.slice(0, 4));
+  return since.slice(5) === "01-01" ? year : year + 1;
+}
+
+/**
  * A country's rates from RATES_FROM on, in the currency it uses today: the
  * World Bank gives each year in the currency of that year, so years before
- * a redenomination (Zimbabwe, 2024–2025) are left out rather than mixed.
+ * the currency began (CLDR: the bolívar soberano in 2018, the ouguiya of
+ * 2018) or before a redenomination the data show (a jump of ×20: Zimbabwe,
+ * 2024–2025) are left out rather than mixed.
  */
-function yearsOf(row: Row | undefined, last: number): Record<string, number> {
+function yearsOf(row: Row | undefined, last: number, since: string | null | undefined): Record<string, number> {
   const kept: [number, number][] = [];
-  for (let year = last; year >= RATES_FROM; year -= 1) {
+  const first = Math.max(RATES_FROM, firstWholeYear(since));
+  for (let year = last; year >= first; year -= 1) {
     const value = valueIn(row, year);
     if (value === null || !(value > 0)) continue;
     const next = kept.at(-1);
@@ -74,7 +88,7 @@ export function buildExchangeRates(): ExchangeRates {
     // gives its old currency for the years before, and is left out.
     const series = [...new Set([RATE_COUNTRY[currency], ...users])]
       .filter((code): code is string => Boolean(code) && fx.values[code] !== undefined)
-      .map((code) => ({ code, years: yearsOf(fx.values[code], last) }))
+      .map((code) => ({ code, years: yearsOf(fx.values[code], last, COUNTRIES[code]?.currencySince) }))
       .filter((entry) => Object.keys(entry.years).length > 0)
       .sort((a, b) => Number(b.code === RATE_COUNTRY[currency]) - Number(a.code === RATE_COUNTRY[currency]) || Object.keys(b.years).length - Object.keys(a.years).length);
     const best = series[0] ? { code: series[0].code, years: { ...series[0].years } } : undefined;

@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { byCode, equivalent, exchangeRate, extremes, monthlyCost, reach, startingChoice, type Country } from "../src/calc.ts";
+import { byCode, equivalent, exchangeRate, extremes, monthlyCost, reach, sameMoney, startingChoice, type Country } from "../src/calc.ts";
 import { countriesFor } from "../src/countries.ts";
 import { listsHtml, ratePair, resultHtml } from "../src/view.ts";
 import { costOfLiving } from "../../../packages/seed-kit/src/cost-of-living.ts";
 
-const country = (code: string, cost: number, currency = "USD", perDollar = 1): Country => ({ code, name: code, sentence: code, cost, currency, perDollar, rateYear: 2024 });
+const country = (code: string, cost: number, currency = "USD", perDollar = 1): Country => ({ code, name: code, sentence: code, cost, currency, ownCurrency: currency, perDollar, rateYear: 2024 });
 const HOME = country("NL", 2700);
 const CHEAP = country("PE", 900);
 const DEAR = country("CH", 5400);
@@ -144,5 +144,30 @@ describe("with the real data", () => {
     assert.equal((lists.match(/<tr><th scope="row">/g) ?? []).length, 10);
     assert.match(lists, /Where €2,500 goes furthest/);
     assert.match(lists, /<td>×\d+\.\d<\/td><\/tr>/);
+  });
+});
+
+describe("changing where you live", () => {
+  it("keeps the same money, in the new country's currency", () => {
+    const euro = { code: "NL", name: "NL", sentence: "NL", cost: 2000, currency: "EUR", ownCurrency: "EUR", perDollar: 0.9, rateYear: 2024 };
+    const yen = { ...euro, code: "JP", currency: "JPY", ownCurrency: "JPY", perDollar: 150 };
+    assert.ok(Math.abs(sameMoney(1800, euro, yen) - 300_000) < 1e-6);
+    assert.ok(Math.abs(sameMoney(sameMoney(1800, euro, yen), yen, euro) - 1800) < 1e-9);
+  });
+});
+
+describe("countries without an official rate for the prices' year", () => {
+  it("come out in US dollars, and the result says so beside it", () => {
+    const list = countriesFor("en");
+    const dollars = list.filter((c) => c.currency === "USD" && c.ownCurrency !== "USD").map((c) => c.code).sort();
+    assert.deepEqual(dollars, ["CD", "GN", "IR", "LK", "MM", "MR", "MW", "SL"]);
+    const html = resultHtml({ amount: 2000, from: "NL", to: "IR" }, list, "en").value;
+    assert.match(html, /in US dollars, with no official rate for 20\d\d\./);
+  });
+
+  it("write numbers the reader's way when asked: Mexico's on a Spanish page", () => {
+    const es = countriesFor("es");
+    const mx = resultHtml({ amount: 25_000, from: "MX", to: "PE" }, es, "es", "MX").value;
+    assert.match(mx, /Con \$25,000 al mes en México/);
   });
 });

@@ -24,6 +24,7 @@ export const nl: Words = {
     sentence: (amount: string, from: string, to: string, need: string) => `Met ${amount} per maand in ${from} zou je in ${to} ${need} nodig hebben om even goed te leven.`,
     invalid: "Typ een bedrag per maand om te vergelijken.",
     rate: (year: string, pair: string) => `Met de officiële koersen van ${year}: ${pair}.`,
+    inDollars: (country: string, year: string) => `${country}: in Amerikaanse dollars, zonder officiële koers voor ${year}.`,
     private: "Berekend in je browser. Er wordt niets bewaard of verstuurd.",
     furthest: (amount: string) => `Waar ${amount} het verst reikt`,
     least: (amount: string) => `Waar ${amount} het minst ver reikt`,

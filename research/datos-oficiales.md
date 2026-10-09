@@ -24,7 +24,8 @@ dentro del build.
   verla, con qué licencia, cuándo se descargó y cuál es el último año que
   tienen la mayoría de los países (el «año de los datos»).
 - Las herramientas muestran esa fuente y ese año junto a cada resultado.
-- Cada país lleva también su moneda de hoy (ISO 4217, de Unicode CLDR),
+- Cada país lleva también su moneda de hoy (ISO 4217, de Unicode CLDR) y
+  desde cuándo la usa (`currencySince`, la fecha de inicio de CLDR),
   para que cualquier herramienta pueda trabajar en cualquier moneda. Cómo
   se usan la moneda y el tipo de cambio: [monedas](monedas.md).
 

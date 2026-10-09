@@ -21,6 +21,7 @@ export const en = {
     sentence: (amount: string, from: string, to: string, need: string) => `With ${amount} a month in ${from}, in ${to} you would need ${need} to live the same.`,
     invalid: "Type an amount a month to compare.",
     rate: (year: string, pair: string) => `At the official rates of ${year}: ${pair}.`,
+    inDollars: (country: string, year: string) => `${country}: in US dollars, with no official rate for ${year}.`,
     private: "Worked out in your browser. Nothing is saved or sent.",
     furthest: (amount: string) => `Where ${amount} goes furthest`,
     least: (amount: string) => `Where ${amount} goes least far`,

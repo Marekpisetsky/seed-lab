@@ -40,6 +40,23 @@ export function currencies(answer: unknown, today = new Date()): Map<string, str
 }
 
 /**
+ * Since when each region uses the currency `chosen` gives it ("VE" →
+ * "2018-08-20", the day the bolívar soberano replaced the bolívar fuerte);
+ * `null` where the CLDR gives no date. A rate from before that day is of
+ * the currency it replaced, even under the same country (money-tables.ts).
+ */
+export function currencySince(answer: unknown, chosen: ReadonlyMap<string, string>): Map<string, string | null> {
+  const regions = (answer as CurrencyData)?.supplemental?.currencyData?.region;
+  if (!regions) throw new Error("CLDR: no currencyData.region");
+  const out = new Map<string, string | null>();
+  for (const [region, code] of chosen) {
+    const entry = (regions[region] ?? []).flatMap((item) => Object.entries(item)).find(([name, info]) => name === code && info._tender !== "false");
+    out.set(region, entry?.[1]._from ?? null);
+  }
+  return out;
+}
+
+/**
  * Countries by their two- and three-letter ISO codes, from the CLDR's code
  * mappings: the economies a World Bank file names by ISO alpha-3, so its
  * regions and income groups ("WLD", "EUU"…) drop out. Kosovo, which has no

@@ -101,8 +101,8 @@ export function resetAssumptions(): void {
 
 /**
  * "Rising prices in" (More options): the country's reference inflation
- * replaces any typed one, and its numbers are written that country's way.
- * The currency follows it when it was the previous country's own.
+ * replaces any typed one. The currency follows it when it was the
+ * previous country's own.
  */
 export function setPricesOf(pricesOf: string): void {
   updatePlan((plan) => ({

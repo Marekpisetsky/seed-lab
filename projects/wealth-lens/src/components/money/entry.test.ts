@@ -537,6 +537,20 @@ describe.each(["en", "es"] as const)("the same figures everywhere (%s)", (locale
   });
 });
 
+describe("the plan's currency", () => {
+  it("is the one beside the amounts the person types, with examples the same size of money", () => {
+    for (const [locale, currency, symbol] of [["es", "PEN", "PEN"], ["en", "USD", "$"], ["en", "EUR", "€"], ["es", "JPY", "JPY"]] as const) {
+      const state: AppState = { ...INITIAL_STATE, plan: { ...INITIAL_STATE.plan, currency } };
+      const card = render(locale, state, createElement(CalculatorCard, {}));
+      const affixes = [...card.matchAll(/<span aria-hidden="true" class="pointer-events-none absolute[^"]*">([^<]*)<\/span>/g)].map((match) => decode(match[1]));
+      expect(affixes.slice(0, 2), `${locale} ${currency}`).toEqual([symbol, symbol]);
+      expect(card).not.toMatch(currency === "EUR" ? /\$/ : /€/);
+    }
+    const yen = render("en", { ...INITIAL_STATE, plan: { ...INITIAL_STATE.plan, currency: "JPY" } }, createElement(CalculatorCard, {}));
+    expect(decode(yen)).toMatch(/placeholder="e\.g\. [\d,]{6,}"/);
+  });
+});
+
 describe("the chart's tabs", () => {
   it("are “Show: 5 years · 10 years · 20 years · All” and change only how many years it shows", () => {
     expect(PERIODS).toEqual([5, 10, 20, "all"]);

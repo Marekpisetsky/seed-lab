@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useSyncExternalStore } from "react";
-import { regionOf } from "@seed-kit/detect.ts";
+import { readerRegion } from "@seed-kit/detect.ts";
 import type { I18n } from "@/i18n";
 import { createI18n } from "@/i18n/make";
 import { useAppState } from "@/hooks/use-app";
@@ -9,12 +9,6 @@ import { useAppState } from "@/hooks/use-app";
 const I18nContext = createContext<I18n | null>(null);
 
 const never = () => () => {};
-
-/** The reader's region when their browser speaks the page's language with one ("es-MX" on a Spanish page: "MX"); "" otherwise. */
-function readerRegion(locale: string): string {
-  const language = navigator.language ?? "";
-  return language.slice(0, 2).toLowerCase() === locale ? (regionOf(language) ?? "") : "";
-}
 
 /**
  * Every component under it speaks `i18n`'s language, with amounts in the
@@ -26,7 +20,7 @@ function readerRegion(locale: string): string {
 export function I18nProvider({ i18n, children }: { i18n: I18n; children: React.ReactNode }) {
   const { plan } = useAppState();
   // The static page is written in the language's own way; the reader's comes once it runs.
-  const region = useSyncExternalStore(never, () => readerRegion(i18n.locale), () => "");
+  const region = useSyncExternalStore(never, () => readerRegion(i18n.locale, navigator.language), () => "");
   const value = createI18n(i18n.locale, i18n.m, { region, currency: plan.currency });
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }

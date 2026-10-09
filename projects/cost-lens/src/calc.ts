@@ -23,8 +23,10 @@ export interface Country {
   sentence: string;
   /** A month, in US dollars of the data's price year. */
   cost: number;
-  /** Its currency (ISO 4217); "USD" when the data have no rate for its own in the prices' year. */
+  /** The currency its amounts are in (ISO 4217): its own, or "USD" when the data have no rate for its own in the prices' year. */
   currency: string;
+  /** Its own currency (ISO 4217), even when its amounts are in dollars. */
+  ownCurrency: string;
   /** Units of that currency per US dollar, the official yearly average of `rateYear`. */
   perDollar: number;
   /** The year of that rate: the year of the prices. */
@@ -50,6 +52,15 @@ function usable(amount: number): boolean {
 export function equivalent(amount: number, from: Country, to: Country): number | null {
   if (!usable(amount)) return null;
   return ((amount / from.perDollar) * to.cost * to.perDollar) / from.cost;
+}
+
+/**
+ * The amount typed for `from`, in `to`'s currency instead: when the person
+ * changes where they live, their money stays the same money (1950 € in the
+ * Netherlands become about 290,000 ¥ when they pick Japan).
+ */
+export function sameMoney(amount: number, from: Country, to: Country): number {
+  return (amount * to.perDollar) / from.perDollar;
 }
 
 /** Units of `to`'s currency for one of `from`'s, at the official rates. */

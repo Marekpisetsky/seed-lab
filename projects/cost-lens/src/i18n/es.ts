@@ -18,6 +18,7 @@ export const es: Words = {
     sentence: (amount: string, from: string, to: string, need: string) => `Con ${amount} al mes en ${from}, en ${to} necesitarías ${need} para vivir igual.`,
     invalid: "Escribe una cantidad al mes para comparar.",
     rate: (year: string, pair: string) => `Con los tipos oficiales de ${year}: ${pair}.`,
+    inDollars: (country: string, year: string) => `${country}: en dólares de EE.\u00a0UU., sin tipo oficial de ${year}.`,
     private: "Se calcula en tu navegador. No se guarda ni se envía nada.",
     furthest: (amount: string) => `Donde ${amount} rinde más`,
     least: (amount: string) => `Donde ${amount} rinde menos`,

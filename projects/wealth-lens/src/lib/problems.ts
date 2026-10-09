@@ -24,6 +24,7 @@ export interface ProblemValues {
   "holdings-retired": None;
   /** Goals to live in a country (versions 1 to 10): the cost is now one official figure, housing included. */
   "country-costs-official": None;
+  "currency-unknown": None;
   /** Goals that were things of the old price list: there is no list any more. */
   "goal-items-retired": { count: number };
 }

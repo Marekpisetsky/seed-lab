@@ -37,6 +37,8 @@ export interface NumberFormats {
   currency: string;
   /** Its symbol as this language writes it beside a number: "€", "US$", "MX$", "PEN". */
   symbol: string;
+  /** Whether this language writes the symbol before the number ("€5", "$5") or after it ("5 €"). */
+  symbolFirst: boolean;
   /** 1234.5, "EUR" → "€1,234.50". */
   money(amount: number, currency: string, options?: MoneyOptions): string;
   /**
@@ -200,6 +202,9 @@ function createFormats(intl: string, currency: string): NumberFormats {
     get symbol() {
       return symbol();
     },
+    get symbolFirst() {
+      return affixes().before !== "";
+    },
     get decimalSeparator() {
       return (decimal ??= new Intl.NumberFormat(intl).formatToParts(1.5).find((part) => part.type === "decimal")?.value ?? ".");
     },
@@ -218,7 +223,9 @@ function createFormats(intl: string, currency: string): NumberFormats {
     curCompact(amount) {
       if (Number.isFinite(amount) && Math.abs(amount) >= POWER_FROM) return powerCur(Math.abs(amount), amount < 0 ? "\u2212" : "", 2);
       const digits = amount >= 1e6 && amount < 1e7 ? 1 : 0;
-      return typeset(numberFormat(`compact|${digits}`, { style: "currency", currency, notation: "compact", maximumFractionDigits: digits }).format(amount));
+      const text = typeset(numberFormat(`compact|${digits}`, { style: "currency", currency, notation: "compact", maximumFractionDigits: digits }).format(amount));
+      // Spanish writes "1,2 M€" but "1,2 MJPY": a code written as letters gets its space ("1,2 M JPY").
+      return text.replace(/(\p{L})([A-Z]{3})$/u, (whole, scale: string, code: string) => (code === currency ? `${scale}\u00a0${code}` : whole));
     },
     percent,
     rate(rate) {

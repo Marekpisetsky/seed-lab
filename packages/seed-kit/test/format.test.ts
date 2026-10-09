@@ -76,6 +76,11 @@ describe("amounts in any currency, the way each country writes them", () => {
     assert.equal(formatsFor("en", { currency: "JPY" }).cur(5e18), nb("JP¥5 × 10¹⁸"));
   });
 
+  it("keeps a space before a currency written as letters on a short axis label", () => {
+    assert.equal(formatsFor("es", { currency: "JPY" }).curCompact(1_200_000), nb("1,2 M JPY"));
+    assert.equal(formatsFor("es").curCompact(1_200_000), nb("1,2 M€"));
+  });
+
   it("falls back to the language's own marks for a country the browser does not pair with it", () => {
     assert.equal(formatsFor("es", { country: "ZZ" }).cur(1234.5), formatsFor("es").cur(1234.5));
     assert.equal(formatsFor("en", { currency: "USD" }).symbol, "US$");

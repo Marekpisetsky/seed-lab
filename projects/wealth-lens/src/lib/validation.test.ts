@@ -8,6 +8,7 @@ import {
   parseGoal,
   parseInvestment,
   parsePlan,
+  type Notices,
 } from "./validation";
 
 describe("parseGoal", () => {
@@ -116,7 +117,11 @@ describe("parsePlan", () => {
   it("keeps the plan's currency, or takes euros: files before version 12, and a currency without official rates", () => {
     expect(parsePlan({ ...full, currency: "JPY" })?.currency).toBe("JPY");
     expect(parsePlan({ ...full, currency: undefined })?.currency).toBe("EUR");
-    expect(parsePlan({ ...full, currency: "XXX" })?.currency).toBe("EUR");
+    const notices: Notices = [];
+    expect(parsePlan({ ...full, currency: "XXX" }, notices)?.currency).toBe("EUR");
+    expect(notices).toContainEqual({ code: "currency-unknown" });
+    // A currency with a rate in some year, though not the prices' year (the yearly update can do that), stays.
+    expect(parsePlan({ ...full, currency: "MMK" })?.currency).toBe("MMK");
     expect(parsePlan({ ...full, currency: 42 })?.currency).toBe("EUR");
   });
 

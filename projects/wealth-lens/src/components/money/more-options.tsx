@@ -102,9 +102,10 @@ const PRICE_COUNTRIES = Object.keys(REFERENCE_INFLATION).map((code) => ({ code }
 
 const currencyLists = new Map<string, { code: string; label: string }[]>();
 
-/** Every currency a plan can be in, by its name in the page's language: "Euro (EUR)". */
-function currencyOptions(locale: string): { code: string; label: string }[] {
-  let list = currencyLists.get(locale);
+/** Every currency a plan can be in, by its name in the page's language: "Euro (EUR)"; the plan's own too, if a file brought one off the list. */
+function currencyOptions(locale: string, current: string): { code: string; label: string }[] {
+  const key = PLAN_CURRENCIES.includes(current) ? locale : `${locale}|${current}`;
+  let list = currencyLists.get(key);
   if (!list) {
     let names: Intl.DisplayNames | null = null;
     try {
@@ -113,11 +114,11 @@ function currencyOptions(locale: string): { code: string; label: string }[] {
       names = null;
     }
     const collator = new Intl.Collator(locale);
-    list = PLAN_CURRENCIES.map((code) => {
+    list = [...new Set([...PLAN_CURRENCIES, current])].map((code) => {
       const name = names?.of(code);
       return { code, label: name && name !== code ? `${name} (${code})` : code };
     }).sort((a, b) => collator.compare(a.label, b.label));
-    currencyLists.set(locale, list);
+    currencyLists.set(key, list);
   }
   return list;
 }
@@ -241,7 +242,7 @@ export function MoreOptions({ current }: { current: ResolvedInvestment }) {
             onChange={(event) => setCurrency(event.target.value)}
             className="min-h-11 w-full rounded-md border border-border bg-card px-3 py-2 text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
           >
-            {currencyOptions(i18n.locale).map((option) => (
+            {currencyOptions(i18n.locale, plan.currency).map((option) => (
               <option key={option.code} value={option.code}>
                 {option.label}
               </option>

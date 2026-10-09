@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { languageScript, regionOf } from "../src/detect.ts";
+import { languageScript, readerRegion, regionOf } from "../src/detect.ts";
 import { countryFromLanguage } from "../src/money.ts";
 
 /** Runs the head script on an address, as a browser would, and says where it went. */
@@ -74,5 +74,16 @@ describe("the country of a browser language", () => {
     assert.equal(countryFromLanguage("en-US", supported, "NL"), "NL");
     assert.equal(countryFromLanguage("es-419", supported, "NL"), "NL");
     assert.equal(countryFromLanguage(undefined, supported, "NL"), "NL");
+  });
+});
+
+describe("the reader's region", () => {
+  it("is the browser's, only when it speaks the page's language", () => {
+    assert.equal(readerRegion("es", "es-MX"), "MX");
+    assert.equal(readerRegion("en", "en-IN"), "IN");
+    assert.equal(readerRegion("en", "en"), "US");
+    assert.equal(readerRegion("en", "nl-NL"), "");
+    assert.equal(readerRegion("es", undefined), "");
+    assert.equal(readerRegion("es", "es-419"), "");
   });
 });
