@@ -1,6 +1,6 @@
 {
  "description": "Each country's reference inflation, a long-run figure for its consumer prices: the inflation target its central bank publishes (the middle of a range), or, without one, about the 2015–2024 average of consumer price inflation (World Bank, FP.CPI.TOTL.ZG). Typed by hand from the central banks' pages and checked in September 2026; recentAverage marks countries whose prices rose 10% a year or more on average in 2015–2024. Used only to turn growth after rising prices into growth before them; the user can overwrite it.",
- "note": "Each country's inflation is a long-run reference for each country's consumer prices: the inflation target its central bank publishes (the middle of a range), as of September 2026. Long-run forecasts such as the IMF World Economic Outlook's five-year projections mostly converge on these targets. Where a central bank has no numeric target, the figure is about the 2015–2024 average. Only used to turn growth before inflation into growth after inflation; the user can overwrite it. The same criterion as the detailed countries: the ECB's 2% in the euro area, the central bank's published target where listed, otherwise about the 2015–2024 average of consumer price inflation. recentAverage marks countries whose prices rose 10% a year or more on average in 2015–2024.",
+ "note": "Typed by hand. A central bank's numeric target where it publishes one (the ECB's 2% in the euro area; the middle of a range); otherwise about the 2015–2024 average of consumer price inflation (World Bank, FP.CPI.TOTL.ZG; each such figure was checked against the official series, within one point). The only figure of the cost-of-living data not read from an official series: phase A3 of the Horalis plan decides how to keep it.",
  "checkedOn": "2026-09-30",
  "countries": {
   "IN": {
@@ -35,7 +35,7 @@
   },
   "MA": {
    "rate": 0.02,
-   "basis": "Bank Al-Maghrib has no numeric inflation target; about the 2015–2024 average of consumer price inflation (IMF World Economic Outlook)",
+   "basis": "Bank Al-Maghrib has no numeric inflation target; about the 2015–2024 average of consumer price inflation (World Bank, FP.CPI.TOTL.ZG)",
    "asOf": "2026-09"
   },
   "PE": {
@@ -45,7 +45,7 @@
   },
   "MY": {
    "rate": 0.02,
-   "basis": "Bank Negara Malaysia has no numeric inflation target; about the 2015–2024 average of consumer price inflation (IMF World Economic Outlook)",
+   "basis": "Bank Negara Malaysia has no numeric inflation target; about the 2015–2024 average of consumer price inflation (World Bank, FP.CPI.TOTL.ZG)",
    "asOf": "2026-09"
   },
   "BR": {

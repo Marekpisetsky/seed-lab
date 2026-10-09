@@ -20,6 +20,7 @@ function facts(i18n: I18n): HowItWorksFacts {
     priceYear: costOfLiving.priceYear,
     surveyFrom: Math.min(...surveys),
     surveyTo: Math.max(...surveys),
+    provisional: costOfLiving.provisional !== null,
     highInflation: names(Object.entries(REFERENCE_INFLATION).filter(([, inflation]) => inflation.recentAverage !== undefined).map(([code]) => code)),
   };
 }

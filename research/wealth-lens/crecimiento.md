@@ -181,7 +181,7 @@ test de lenguaje sencillo, con las mismas palabras.
    decidir cuál es "el" resultado y unificar el paso.
 7. **Mezclas que se reequilibran.** La media ponderada de medias
    geométricas subestima el crecimiento de una mezcla reequilibrada: un
-   60/40 Mundo/Bonos crece 3,66 % en la proyección y 4,09 % reequilibrado
+   60/40 acciones de EE. UU./bonos alemanes crece 5,51 % en la proyección y 5,87 % reequilibrado
    año a año con los mismos datos (ver [mezclas](mezclas-y-acciones.md)).
 
 ## Historial

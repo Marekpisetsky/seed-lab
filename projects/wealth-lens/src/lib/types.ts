@@ -6,16 +6,7 @@
 
 import type { AssetId } from "./assets";
 
-/** ISO 4217 currency code, upper case (e.g. "EUR", "USD"). */
-export type CurrencyCode = string;
-
-/**
- * The goal, the FIRE simulator and the cost-of-living figures are expressed
- * in euros (see README).
- */
-export const BASE_CURRENCY: CurrencyCode = "EUR";
-
-/** The euro goal of version 1 plans, in BASE_CURRENCY and in today's money. */
+/** The euro goal of version 1 plans, in euros and in today's money. */
 export interface LegacyGoal {
   amount: number;
   /** Optional target date, ISO `YYYY-MM-DD`. */
@@ -95,7 +86,7 @@ export type NewGoal = Goal extends infer G ? (G extends Goal ? Omit<G, "id"> : n
 export interface Plan {
   /** Amount invested, typed in the calculator; `null` until it is typed (a first visit asks). */
   invested: number | null;
-  /** Added every month, in BASE_CURRENCY, constant in today's money; `null` until it is typed. */
+  /** Added every month, in euros, constant in today's money; `null` until it is typed. */
   monthlyContribution: number | null;
   investment: Investment;
   /** How many years ahead the result looks: 1 to 60. */

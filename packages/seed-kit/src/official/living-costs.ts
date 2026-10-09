@@ -34,6 +34,8 @@ const DAYS_A_MONTH = 365.25 / 12;
 
 /** US prices in `year` next to 2021's, from the World Bank's yearly US inflation. */
 export function usPricesSince2021(year: number, inflation: Row | undefined = OFFICIAL["wb-inflation"].values.US): number {
+  // Prices before 2021 would need deflating, not inflating: never guessed.
+  if (year < SURVEY_DOLLARS_YEAR) throw new Error(`cost of living: prices of ${year} are older than the survey dollars (${SURVEY_DOLLARS_YEAR})`);
   let factor = 1;
   for (let at = SURVEY_DOLLARS_YEAR + 1; at <= year; at += 1) {
     const rate = valueIn(inflation, at);
@@ -64,16 +66,19 @@ export function countryCost(code: string): LivingCost | null {
   const survey = latest(OFFICIAL["wb-survey-mean"].values[code]);
   const level = latest(OFFICIAL["wb-price-level"].values[code]);
   if (!survey || !level) return null;
+  // A year without US inflation or a euro rate leaves the country out, the same way.
   let usd: number;
+  let euros: number;
   try {
     usd = survey.value * usPricesSince2021(level.year) * level.value * DAYS_A_MONTH;
+    euros = usd * eurosPerDollar(level.year);
   } catch {
     return null;
   }
   return {
     code,
     monthlyCostUsd: usd,
-    monthlyCostEur: roundEuros(usd * eurosPerDollar(level.year)),
+    monthlyCostEur: roundEuros(euros),
     priceYear: level.year,
     surveyYear: survey.year,
   };

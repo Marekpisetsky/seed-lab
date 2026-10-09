@@ -95,13 +95,8 @@ function isGrowth(value: unknown): value is number {
   return isFiniteNumber(value) && value >= GROWTH_LIMITS.min && value <= GROWTH_LIMITS.max;
 }
 
-const CURRENCY_PATTERN = /^[A-Z]{3}$/;
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const COUNTRY_PATTERN = /^[A-Z]{2}$/;
-
-export function isCurrencyCode(value: unknown): value is string {
-  return typeof value === "string" && CURRENCY_PATTERN.test(value);
-}
 
 export function isIsoDate(value: unknown): value is string {
   if (typeof value !== "string" || !ISO_DATE_PATTERN.test(value)) return false;
@@ -239,6 +234,17 @@ function startingInvestment(version: number): Investment {
 
 /** The ups and downs Custom growth had until version 8: the S&P 500's. */
 export const FORMER_CUSTOM_VOLATILITY = resolveInvestment({ kind: "asset", asset: "sp500" }).volatility;
+
+/**
+ * The ups and downs Custom growth had in versions 9 and 10: world stocks'
+ * (MSCI World, 1988–2022), kept as a number since that series was removed
+ * (9 October 2026), so a file of those versions gives the same result.
+ */
+export const WORLD_CUSTOM_VOLATILITY = 0.178217;
+/** The data file version since which Custom growth moves like US stocks. */
+const CUSTOM_LIKE_US_SINCE = 11;
+/** The data file version since which a country's cost is one official figure (World Bank). */
+const OFFICIAL_COSTS_SINCE = 11;
 
 /**
  * Since version 8 a typed growth is "My %", Custom growth: the calculator
@@ -409,10 +415,14 @@ export function parsePlan(value: unknown, notices: Notices = [], version: number
     assumptions = { growth, volatility: null, inflation };
   }
   const chosen = withGrowthAsCustom(parseInvestment(value.investment, notices) ?? startingInvestment(version), assumptions, pricesOf);
-  // Custom growth of an earlier version keeps the S&P 500's ups and downs it had, so its result does not change.
-  if (version < CUSTOM_LIKE_WORLD_SINCE && chosen.investment.kind === "custom" && chosen.assumptions.volatility === null) {
-    chosen.assumptions = { ...chosen.assumptions, volatility: FORMER_CUSTOM_VOLATILITY };
+  // Custom growth of an earlier version keeps the ups and downs it had, so its result does not change:
+  // the S&P 500's until version 8, world stocks' in versions 9 and 10.
+  if (version < CUSTOM_LIKE_US_SINCE && chosen.investment.kind === "custom" && chosen.assumptions.volatility === null) {
+    chosen.assumptions = { ...chosen.assumptions, volatility: version < CUSTOM_LIKE_WORLD_SINCE ? FORMER_CUSTOM_VOLATILITY : WORLD_CUSTOM_VOLATILITY };
   }
+  const goals = "goals" in value ? parseGoals(value.goals, notices) : goalsFromEarlierVersions(value, notices);
+  // A country's cost changed source (World Bank surveys, one figure with housing): said once.
+  if (version < OFFICIAL_COSTS_SINCE && goals.some((goal) => goal.kind === "live")) notices.push(problem("country-costs-official"));
   return {
     invested: amount(value.invested),
     monthlyContribution: amount(value.monthlyContribution),
@@ -423,6 +433,6 @@ export function parsePlan(value: unknown, notices: Notices = [], version: number
     withdrawalRate: pick("withdrawalRate", (v) => (isRate(v) && v > 0 ? snapWithdrawal(v) : null)),
     pricesOf,
     assumptions: chosen.assumptions,
-    goals: "goals" in value ? parseGoals(value.goals, notices) : goalsFromEarlierVersions(value, notices),
+    goals,
   };
 }

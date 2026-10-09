@@ -124,7 +124,7 @@ const parsed = DATASETS.map(([info, data]) => [info, parseReturns(info.name, dat
 /** The years every asset is compared over, e.g. [1988, 2022]. */
 export const COMMON_PERIOD: readonly [number, number] = commonPeriod(parsed.map(([, years]) => years));
 
-/** Every asset with a history: the stock indexes, euro government bonds and gold. */
+/** Every asset with a history: US stocks, German government bonds and gold. */
 export const SERIES = Object.fromEntries(
   parsed.map(([info, years]) => [
     info.id,
@@ -140,13 +140,3 @@ if (SERIES_IDS.some((id) => !SERIES[id])) throw new Error("A series has no datas
 
 /** The stock index. */
 export const INDEXES = Object.fromEntries(INDEX_IDS.map((id) => [id, SERIES[id]])) as Readonly<Record<IndexId, IndexInfo>>;
-
-/**
- * US consumer prices, December to December, by year (from the gold
- * dataset, which records the inflation it deflates by).
- */
-export const US_INFLATION: ReadonlyMap<number, number> = new Map(
-  (gold.years as { year: number; inflation?: number }[])
-    .filter((entry): entry is { year: number; inflation: number } => typeof entry.inflation === "number")
-    .map((entry) => [entry.year, entry.inflation]),
-);

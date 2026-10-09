@@ -9,6 +9,9 @@ import { browserStorage, deleteLegacyData, hasLegacyData, readLegacyData } from 
 const noopSubscribe = () => () => {};
 let found: boolean | null = null;
 const getFound = () => (found ??= hasLegacyData(browserStorage()));
+/** Whether any of it can still be loaded: holdings alone cannot (the app no longer keeps them). */
+let loadable: boolean | null = null;
+const getLoadable = () => (loadable ??= readLegacyData(browserStorage()) !== null);
 
 /**
  * Shown once when an earlier version left data in this browser's storage:
@@ -17,6 +20,7 @@ const getFound = () => (found ??= hasLegacyData(browserStorage()));
 export function LegacyDataNotice() {
   const { m } = useI18n();
   const present = useSyncExternalStore(noopSubscribe, getFound, () => false);
+  const canLoad = useSyncExternalStore(noopSubscribe, getLoadable, () => false);
   const [dismissed, setDismissed] = useState(false);
   if (!present || dismissed) return null;
 
@@ -33,9 +37,11 @@ export function LegacyDataNotice() {
     <div role="status" className="border-b border-warning-border bg-warning-bg text-warning-foreground">
       <div className="mx-auto flex max-w-(--sk-width) flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2 text-sm">
         <p className="flex-1">{m.data.legacy}</p>
-        <Button size="sm" variant="primary" onClick={() => finish(true)}>
-          {m.data.useIt}
-        </Button>
+        {canLoad && (
+          <Button size="sm" variant="primary" onClick={() => finish(true)}>
+            {m.data.useIt}
+          </Button>
+        )}
         <Button size="sm" variant="ghost" onClick={() => finish(false)}>
           {m.data.deleteIt}
         </Button>

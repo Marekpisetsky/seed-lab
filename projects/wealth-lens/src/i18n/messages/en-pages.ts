@@ -155,7 +155,7 @@ export const enPages = {
         what: "US stocks (S&P Composite) yearly growth, and US prices until 2022",
         url: "http://www.econ.yale.edu/~shiller/data.htm",
         date: "to June 2023",
-        terms: "Free to use with credit.",
+        terms: "Published openly on his site; used with credit.",
       },
       {
         name: "OECD and Deutsche Bundesbank",
@@ -182,14 +182,14 @@ export const enPages = {
         name: "World Bank, Commodity Price Data (the Pink Sheet)",
         what: "Gold price, December average of each year",
         url: "https://www.worldbank.org/en/research/commodity-markets",
-        date: "to December 2024",
+        date: "to December 2024, read from a public copy of the World Bank's data",
         terms: "CC BY 4.0: free to use with credit.",
       },
       {
         name: "World Bank, Poverty and Inequality Platform and World Development Indicators",
         what: "What an average person lives on (household surveys), price levels (ICP 2021) and each year's rise in prices",
         url: "https://data.worldbank.org/indicator/SI.SPR.PCAP",
-        date: `surveys to ${facts.surveyTo}, prices ${facts.priceYear}`,
+        date: `surveys to ${facts.surveyTo}, prices ${facts.priceYear}${facts.provisional ? ". Provisional: read from a public copy of the World Bank's data, until the yearly download" : ""}`,
         terms: "CC BY 4.0: free to use with credit.",
       },
       {
@@ -209,7 +209,8 @@ export const enPages = {
     ],
     licensesTitle: "Data licenses",
     licenses: [
-      "Every source lets anyone reuse its data with credit: the World Bank, the OECD, Destatis, the US Bureau of Labor Statistics, Robert Shiller and Unicode.",
+      "Most sources let anyone reuse their data with credit: the World Bank, the OECD, Destatis, the US Bureau of Labor Statistics and Unicode.",
+      "Robert Shiller publishes his data openly on his site; it is used with credit. From UBS, only one published figure is quoted: 5.2%.",
       "Horalis Growth always says where a figure comes from and of which year.",
       "The method and the sources are public. The code belongs to Horalis. The data keeps its owners' rights.",
     ],

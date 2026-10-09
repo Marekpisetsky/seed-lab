@@ -10,6 +10,7 @@ import {
   yearlyPath,
   type CalculatorPlan,
 } from "./calculator";
+import { countryByCode } from "./cost-of-living";
 import { parseIsoDate } from "./dates";
 import { futureValueWithContributions, monthsToGoal, requiredMonthlyContribution } from "./finance";
 import { INDEXES } from "./indexes";
@@ -17,6 +18,9 @@ import { cachedSuccessRate } from "./simulation";
 import { STANDARD_ASSUMPTIONS, type Goal } from "./types";
 
 const today = parseIsoDate("2026-09-29");
+// Figures from the official data, read here so the yearly data update needs no edit to these tests.
+const PERU = countryByCode("PE")!;
+const peruCost = PERU.monthlyCostEur;
 const r = INDEXES.sp500.averageReturn;
 
 const plan = (overrides: Partial<CalculatorPlan> = {}): CalculatorPlan => ({
@@ -80,7 +84,7 @@ describe("the country table", () => {
     expect(countries.length).toBeGreaterThanOrEqual(100);
     const costs = countries.map((row) => row.cost.amount);
     expect([...costs].sort((a, b) => a - b)).toEqual(costs);
-    expect(countries.find((row) => row.code === "PE")).toMatchObject({ cost: { amount: 210 }, referenceDate: "2024" });
+    expect(countries.find((row) => row.code === "PE")).toMatchObject({ cost: { amount: peruCost }, referenceDate: PERU.referenceDate });
     expect(countries.find((row) => row.code === "NL")).toBeDefined();
   });
 
@@ -98,7 +102,7 @@ describe("the country table", () => {
     const at3 = calculate(plan({ withdrawalRate: 0.03 }), today).countries;
     const covered = (rows: typeof countries) => rows.filter((row) => row.cost.covered).length;
     expect(covered(at3)).toBeLessThanOrEqual(covered(countries));
-    expect(at3.find((row) => row.code === "PE")?.cost.target).toBeCloseTo((210 * 12) / 0.03, 6);
+    expect(at3.find((row) => row.code === "PE")?.cost.target).toBeCloseTo((peruCost * 12) / 0.03, 6);
   });
 
   it("ticks what the income after 20 years pays, and says when the rest comes", () => {
@@ -107,7 +111,7 @@ describe("the country table", () => {
       expect(cell.months <= 240).toBe(cell.covered);
       expect(cell.months).toBeCloseTo(monthsToGoal(1000, 200, r, (cell.amount * 12) / 0.04), 6);
     }
-    // Peru (EUR 210) is paid; Switzerland (EUR 3,070) is not.
+    // Peru (about EUR 200) is paid; Switzerland (about EUR 3,000) is not.
     expect(countries.find((row) => row.code === "PE")).toMatchObject({ cost: { covered: true } });
     expect(countries.find((row) => row.code === "CH")).toMatchObject({ cost: { covered: false } });
   });
@@ -163,7 +167,7 @@ describe("goals", () => {
     expect(statuses.map((status) => goalName(status, EN))).toEqual(["Live in Peru", "A car", "A boat", "Reach €100,000", "My rent"]);
     expect(goalDetail(a, EN)).toBe("housing included");
     expect(goalDetail(e, EN)).toBeNull();
-    expect(a).toMatchObject({ kind: "monthly", amount: 210, target: (210 * 12) / 0.04, referenceDate: "2024" });
+    expect(a).toMatchObject({ kind: "monthly", amount: peruCost, target: (peruCost * 12) / 0.04, referenceDate: PERU.referenceDate });
     expect(b).toMatchObject({ kind: "once", amount: 24_000, target: 24_000 });
     expect(c).toMatchObject({ kind: "once", target: 15_000 });
     expect(d).toMatchObject({ kind: "once", target: 100_000 });
@@ -220,9 +224,11 @@ describe("goals", () => {
   it("explain their calculation, with the source and year of a country's figure", () => {
     const calc = calculate(plan({ goals: [live] }), today);
     const explain = goalExplain(calc.goals[0], calc.scenario, calc.investment, EN);
-    expect(explain[0]).toBe("€210 a month × 12 ÷ 4% taken out a year = €63,000 needed.");
-    expect(explain[1]).toMatch(/^You have €1,000 and add €200 a month\. It grows [\d.]+% a year after rising prices \(US stocks, 1988–2022 average\)\. €63,000 in /);
-    expect(explain[2]).toBe("What an average person there lives on, housing included: World Bank: household survey 2024, prices 2024.");
+    const needed = EN.f.eur((peruCost * 12) / 0.04);
+    expect(explain[0]).toBe(`${EN.f.eur(peruCost)} a month × 12 ÷ 4% taken out a year = ${needed} needed.`);
+    expect(explain[1]).toMatch(/^You have €1,000 and add €200 a month\. It grows [\d.]+% a year after rising prices \(US stocks, 1988–2022 average\)\. /);
+    expect(explain[1]).toContain(`. ${needed} in `);
+    expect(explain[2]).toBe(`What an average person there lives on, housing included: World Bank: household survey ${PERU.surveyYear}, prices ${PERU.referenceDate}.`);
   });
 
   it("keep a country a file names but the official data no longer price, so it can be removed", () => {

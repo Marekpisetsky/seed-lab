@@ -49,7 +49,7 @@ export function parseDataFile(text: string): DataFileResult {
   }
   const notices: Notices = [];
   if (Array.isArray(json.holdings) && json.holdings.length > 0 && !(isRecord(json.plan) && isRecord(json.plan.investment) && json.plan.investment.kind === "portfolio")) {
-    notices.push(problem("portfolio-retired"));
+    notices.push(problem("holdings-retired"));
   }
   return {
     ok: true,

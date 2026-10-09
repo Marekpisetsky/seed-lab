@@ -16,6 +16,7 @@ import {
   waitingFinding,
   type FindingContext,
 } from "./findings";
+import { countryByCode } from "./cost-of-living";
 import { INDEXES } from "./indexes";
 import { STANDARD_ASSUMPTIONS, type Goal } from "./types";
 
@@ -48,9 +49,10 @@ const ebike: Goal = { id: "b", kind: "buy-own", name: "An e-bike", amount: 2900 
 /** The default: EUR 1,000 and EUR 200/month in US stocks for 20 years, no goals. */
 const byDefault = context();
 const total = futureValueWithContributions(1000, 200, r, 20);
-/** With a first goal: living in Peru, housing included (EUR 210/month → EUR 63,000). */
+/** With a first goal: living in Peru, housing included (about EUR 200 a month → about EUR 60,000), from the official data. */
 const small = context({ goals: [peru] });
-const n = monthsToGoal(1000, 200, r, 63_000);
+const peruTarget = ((countryByCode("PE")?.monthlyCostEur ?? NaN) * 12) / 0.04;
+const n = monthsToGoal(1000, 200, r, peruTarget);
 
 describe("the first goal", () => {
   it("is what findings about reaching something are about, when the plan gets there later", () => {
@@ -75,9 +77,9 @@ describe("lever: +€100 a month vs +1% vs a year earlier", () => {
 
   it("speaks in years for the first goal", () => {
     const finding = leverFinding(small);
-    const gain = n - monthsToGoal(1000, 300, r, 63_000);
+    const gain = n - monthsToGoal(1000, 300, r, peruTarget);
     expect(finding).toMatchObject({ value: formatYears(gain), text: `€100 more a month reaches your first goal ${formatYears(gain)} sooner.` });
-    expect(finding?.calculation[0]).toMatch(/^Live in Peru: €63,000 needed, in \d+ years \(20\d\d\)\.$/);
+    expect(finding?.calculation[0]).toMatch(new RegExp(`^Live in Peru: ${formatEurRounded(peruTarget).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} needed, in \\d+ years \\(20\\d\\d\\)\\.$`));
   });
 
   it("is about the result when the first goal is less than two years away", () => {

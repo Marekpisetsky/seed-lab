@@ -87,7 +87,7 @@ export const esPages: PageMessages = {
         body: [
           "Bajo el resultado, Mis metas: solo las que añades tú. Cada una dice cuándo llega tu plan.",
           "Tú das el precio de lo que quieres. El ejemplo en gris solo muestra el tipo de cifra.",
-          "Vivir en un país usa lo que vive una persona media allí (ver Países). Vivir sin trabajar usa tus propios gastos al mes, o los de un país como punto de partida.",
+          "Vivir en un país usa el gasto de una persona media allí (ver Países). Vivir sin trabajar usa tus propios gastos al mes, o los de un país como punto de partida.",
           "Nada se resta de tu dinero: cada meta se calcula por separado.",
         ],
       },
@@ -151,7 +151,7 @@ export const esPages: PageMessages = {
         what: "Crecimiento anual de las acciones de EE. UU. (S&P Composite), y precios de EE. UU. hasta 2022",
         url: "http://www.econ.yale.edu/~shiller/data.htm",
         date: "hasta junio de 2023",
-        terms: "Uso libre citando la fuente.",
+        terms: "Publicados en abierto en su web; se usan citándolos.",
       },
       {
         name: "OCDE y Deutsche Bundesbank",
@@ -178,14 +178,14 @@ export const esPages: PageMessages = {
         name: "Banco Mundial, precios de materias primas (Pink Sheet)",
         what: "Precio del oro, media de diciembre de cada año",
         url: "https://www.worldbank.org/en/research/commodity-markets",
-        date: "hasta diciembre de 2024",
+        date: "hasta diciembre de 2024, leído de una copia pública de los datos del Banco Mundial",
         terms: "CC BY 4.0: uso libre citando la fuente.",
       },
       {
         name: "Banco Mundial, Plataforma de Pobreza y Desigualdad e Indicadores del Desarrollo Mundial",
-        what: "Lo que vive una persona media (encuestas de hogares), niveles de precios (PCI 2021) y la subida de precios de cada año",
+        what: "El gasto de una persona media (encuestas de hogares), niveles de precios (PCI 2021) y la subida anual de precios",
         url: "https://data.worldbank.org/indicator/SI.SPR.PCAP",
-        date: `encuestas hasta ${facts.surveyTo}, precios de ${facts.priceYear}`,
+        date: `encuestas hasta ${facts.surveyTo}, precios de ${facts.priceYear}${facts.provisional ? ". Provisional: leído de una copia pública de los datos del Banco Mundial, hasta la descarga anual" : ""}`,
         terms: "CC BY 4.0: uso libre citando la fuente.",
       },
       {
@@ -205,7 +205,8 @@ export const esPages: PageMessages = {
     ],
     licensesTitle: "Licencias de los datos",
     licenses: [
-      "Todas las fuentes permiten reutilizar sus datos citándolas: el Banco Mundial, la OCDE, Destatis, la Oficina de Estadísticas Laborales de EE. UU., Robert Shiller y Unicode.",
+      "Casi todas las fuentes permiten reutilizar sus datos citándolas: el Banco Mundial, la OCDE, Destatis, la Oficina de Estadísticas Laborales de EE. UU. y Unicode.",
+      "Robert Shiller publica sus datos en abierto en su web; se usan citándolo. De UBS solo se cita una cifra publicada: el 5,2 %.",
       "Horalis Crecimiento dice siempre de dónde sale una cifra y de qué año es.",
       "El método y las fuentes son públicos. El código es de Horalis. Los datos conservan los derechos de sus dueños.",
     ],

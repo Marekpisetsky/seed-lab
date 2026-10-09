@@ -50,6 +50,7 @@ export function home(locale: Locale): Page {
     surveys: `${DATA.surveyFrom}–${DATA.surveyTo}`,
     year: String(DATA.priceYear),
     compiled: formats.date(DATA.compiledOn),
+    provisional: DATA.provisional,
   };
   return {
     id: "home",

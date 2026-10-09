@@ -39,7 +39,9 @@ Exacta, para un país:
   (FP.CPI.TOTL.ZG de EE. UU.).
 - Coste al mes en dólares de `t` = `m × U(t) × q × 365,25 / 12`.
 - En euros = dólares × euros por dólar en `t` (PA.NUS.FCRF de Alemania, el
-  mismo para toda la zona euro), redondeado a 10 € (mínimo 10 €).
+  mismo para toda la zona euro), redondeado a 10 €, o a 1 € por debajo de
+  100 € (`roundEuros`; nunca menos de 1 €): con pasos de 10 €, los países
+  más pobres (20–40 € al mes) daban razones demasiado gruesas.
 
 En Horalis Crecimiento, un país "alcanza" cuando lo que el dinero paga al
 mes llega a ese coste:

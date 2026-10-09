@@ -10,6 +10,12 @@ import { addGoal } from "@/lib/app-store";
 import { featuredRows, type CountryCell, type CountryRow } from "@/lib/calculator";
 import { costOfLiving } from "@/lib/cost-of-living";
 
+/** The years of the household surveys behind the table: "2010–2025". */
+const SURVEYS = (() => {
+  const years = costOfLiving.countries.map((country) => country.surveyYear);
+  return `${Math.min(...years)}–${Math.max(...years)}`;
+})();
+
 /** The plan's years and today, to say when each cell is reached. */
 interface When {
   horizonMonths: number;
@@ -157,8 +163,9 @@ export function CountriesSection({ income, rows, horizonMonths, today }: { incom
         )}
       </div>
       <p className="text-sm text-muted">
-        {t.note(String(costOfLiving.priceYear))}
+        {t.note(SURVEYS, String(costOfLiving.priceYear))}
       </p>
+      {costOfLiving.provisional && <p className="text-sm text-muted">{t.provisional}</p>}
     </section>
   );
 }

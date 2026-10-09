@@ -30,5 +30,7 @@ export interface HowItWorksFacts {
   surveyTo: number;
   /** Countries whose prices rose 10% a year or more in 2015–2024, by name. */
   highInflation: string;
+  /** The official data are a provisional copy (seed-kit official/data.ts): the page says so. */
+  provisional: boolean;
 }
 

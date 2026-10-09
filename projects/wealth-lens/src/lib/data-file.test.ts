@@ -7,7 +7,7 @@ import { dataFileName, parseDataFile, serializeState } from "./data-file";
 import { futureValueWithContributions } from "./finance";
 import { resolveInvestment } from "./investment";
 import { STANDARD_ASSUMPTIONS } from "./types";
-import { FORMER_CUSTOM_VOLATILITY } from "./validation";
+import { FORMER_CUSTOM_VOLATILITY, WORLD_CUSTOM_VOLATILITY } from "./validation";
 
 const state: AppState = {
   plan: {
@@ -172,8 +172,34 @@ describe("data file", () => {
     const result = parseDataFile(damaged);
     // What the file lacks is 0, not the example numbers of a first visit.
     expect(result.ok && result.state.plan).toEqual({ ...INITIAL_STATE.plan, investment: { kind: "asset", asset: "sp500" }, assumptions: STANDARD_ASSUMPTIONS, invested: 0, monthlyContribution: 300 });
-    expect(result.ok && result.notices).toEqual([{ code: "portfolio-retired" }]);
+    expect(result.ok && result.notices).toEqual([{ code: "holdings-retired" }]);
     expect(result.ok && Object.keys(result.state).sort()).toEqual(["plan", "whatIf"]);
+  });
+
+  it("keeps the result of versions 9 and 10: Custom growth with world stocks' ups and downs, the plan beside holdings unchanged", () => {
+    const v10 = (plan: Record<string, unknown>, holdings: unknown[] = []) =>
+      parseDataFile(JSON.stringify({ kind: "wealth-lens-data", version: 10, plan: { ...INITIAL_STATE.plan, invested: 1000, monthlyContribution: 100, ...plan }, holdings }));
+    const custom = v10({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.05 } });
+    expect(custom.ok && custom.state.plan.assumptions).toEqual({ ...STANDARD_ASSUMPTIONS, growth: 0.05, volatility: WORLD_CUSTOM_VOLATILITY });
+    // Typed ups and downs stay as typed.
+    const typed = v10({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.05, volatility: 0.1 } });
+    expect(typed.ok && typed.state.plan.assumptions.volatility).toBe(0.1);
+    // A mix beside holdings stays the mix: only the holdings are left out, and the notice says only that.
+    const mix = { kind: "mix", parts: [{ asset: "sp500", weight: 60 }, { asset: "bonds", weight: 40 }], rebalance: true };
+    const withHoldings = v10({ investment: mix, assumptions: STANDARD_ASSUMPTIONS }, [{ ticker: "VWCE" }]);
+    expect(withHoldings.ok && withHoldings.state.plan.investment).toEqual(mix);
+    expect(withHoldings.ok && withHoldings.notices).toEqual([{ code: "holdings-retired" }]);
+  });
+
+  it("says once that country goals now use the official figure", () => {
+    const file = (version: number) =>
+      parseDataFile(JSON.stringify({ kind: "wealth-lens-data", version, plan: { ...INITIAL_STATE.plan, goals: [{ id: "a", kind: "live", country: "PE", housing: false }, { id: "b", kind: "live", country: "NL" }] } }));
+    const old = file(10);
+    expect(old.ok && old.state.plan.goals).toEqual([{ id: "a", kind: "live", country: "PE" }, { id: "b", kind: "live", country: "NL" }]);
+    expect(old.ok && old.notices).toEqual([{ code: "country-costs-official" }]);
+    expect(problemText({ code: "country-costs-official" }, EN.m.problems)).toMatch(/World Bank/);
+    // A file of this version already has them.
+    expect(file(11)).toMatchObject({ ok: true, notices: [] });
   });
 
   describe("earlier versions' growth, typed before or after rising prices", () => {

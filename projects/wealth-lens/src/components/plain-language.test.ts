@@ -118,6 +118,15 @@ describe("the dictionaries", () => {
     expect(JARGON.es.test("lo que de verdad puedes comprar")).toBe(false);
   });
 
+  it("name no product: no fund, ticker, index brand or price source, only kinds of assets", () => {
+    // Allowed only where a loaded file is told what no longer exists (problems), and where a source is cited.
+    const PRODUCTS = /\b(VUAA|VWCE|EQQQ|SXR8|NVDA|NVIDIA|AAPL|ASML|MSCI|Nasdaq|LBMA|Yahoo|Stooq|Numbeo|Wise|ETF)\b/i;
+    const named = dictionaries.flatMap(({ locale, entries }) =>
+      entries.filter((entry) => !entry.path.startsWith("problems.") && PRODUCTS.test(entry.text)).map((entry) => `${locale} ${entry.path}: ${entry.text}`),
+    );
+    expect(named).toEqual([]);
+  });
+
   it("speak in short sentences", () => {
     const long = dictionaries.flatMap(({ locale, entries }) =>
       plainLanguageProblems(entries, locale, {

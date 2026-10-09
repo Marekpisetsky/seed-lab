@@ -270,7 +270,10 @@ El PR #17 de migración no forma parte de esta continuación.
   las acciones del mundo y el Nasdaq-100 pasan a acciones de EE. UU.; una
   acción, en la inversión o en una mezcla, y My portfolio, también; los
   holdings y los precios subidos se ignoran; una meta de la antigua lista
-  de compras se quita. Además: el crecimiento de la
+  de compras se quita; las metas de un país pasan a la cifra oficial. El
+  crecimiento propio de las versiones 9 y 10 conserva la oscilación de las
+  acciones del mundo que tenía (`WORLD_CUSTOM_VOLATILITY`), así que su
+  resultado no cambia. Además: el crecimiento de la
   v7 (antes de inflación) y el de la v6 (antes o después) pasan al número
   después de inflación con la inflación del archivo (la suya o la de su
   país); un crecimiento cambiado sobre un índice o una mezcla pasa a *My

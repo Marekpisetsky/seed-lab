@@ -120,3 +120,8 @@ Verificado para esta ficha (3 de octubre de 2026):
   de EE. UU. (las del mundo se retiraron: sus datos no son abiertos).
   Cambian las tasas precalculadas del plan de partida: al 4 % dura en 81,8
   de cada 100 (antes 79,5). El chip "Mundo" desaparece.
+- 2026-10-09 (revisión independiente de A2): un archivo de las versiones 9
+  y 10 con crecimiento propio y sin oscilación escrita conserva la
+  oscilación que tenía, la de las acciones del mundo (0,178217, guardada
+  como número: `WORLD_CUSTOM_VOLATILITY` en `src/lib/validation.ts`), así
+  que su resultado no cambia. Test: `data-file.test.ts`.

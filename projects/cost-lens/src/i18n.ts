@@ -31,10 +31,11 @@ const en = {
     goesFurther: "Goes further",
     times: (value: string) => `×${value}`,
     sourcesTitle: "Where the numbers come from",
-    sources: (facts: { surveys: string; year: string; compiled: string }) => [
+    sources: (facts: { surveys: string; year: string; compiled: string; provisional: boolean }) => [
       `What an average person lives on in each country, housing included: the World Bank's household surveys (${facts.surveys}, each country its latest).`,
       `Brought to ${facts.year} prices with the World Bank's price levels, and to euros at that year's official rate. Data of ${facts.compiled}, licence CC BY 4.0.`,
-      "One person, a month, rounded to €10. Only countries with official data are listed: no figure is invented.",
+      "One person, a month, rounded to €10 (to €1 under €100). Only countries with official data are listed: no figure is invented.",
+      ...(facts.provisional ? ["Provisional: read from a public copy of the World Bank's data, until the yearly download."] : []),
       "A national average: cities differ a lot. Some countries measure spending, others income.",
     ],
   },
@@ -75,10 +76,11 @@ const es: Words = {
     goesFurther: "Rinde más",
     times: (value: string) => `×${value}`,
     sourcesTitle: "De dónde salen los números",
-    sources: (facts: { surveys: string; year: string; compiled: string }) => [
-      `Lo que vive una persona media en cada país, vivienda incluida: las encuestas de hogares del Banco Mundial (${facts.surveys}, cada país la última).`,
+    sources: (facts: { surveys: string; year: string; compiled: string; provisional: boolean }) => [
+      `Con lo que vive una persona media en cada país, vivienda incluida: las encuestas de hogares del Banco Mundial (${facts.surveys}, cada país la última).`,
       `Llevado a precios de ${facts.year} con los niveles de precios del Banco Mundial, y a euros al tipo oficial de ese año. Datos del ${facts.compiled}, licencia CC BY 4.0.`,
-      "Una persona, al mes, redondeado a 10\u00a0€. Solo salen países con datos oficiales: no se inventa ninguna cifra.",
+      "Una persona, al mes, redondeado a 10\u00a0€ (a 1\u00a0€ por debajo de 100\u00a0€). Solo salen países con datos oficiales: no se inventa ninguna cifra.",
+      ...(facts.provisional ? ["Provisional: leído de una copia pública de los datos del Banco Mundial, hasta la descarga anual."] : []),
       "Es una media nacional: las ciudades cambian mucho. Unos países miden el gasto y otros, el ingreso.",
     ],
   },

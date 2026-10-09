@@ -80,8 +80,6 @@ function ResultTotal({ bundle, ref }: { bundle: CalculationBundle; ref: React.Re
         <Changed value={f.eur(result.total)} />
         <Help what={m.result.inYears(years)} text={m.help.total} />
       </p>
-      <div className="pt-2">
-      </div>
     </section>
   );
 }

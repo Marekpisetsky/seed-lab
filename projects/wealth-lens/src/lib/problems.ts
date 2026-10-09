@@ -18,8 +18,12 @@ export interface ProblemValues {
   "stocks-now-us": None;
   /** World stocks or the Nasdaq-100 (versions 1 to 10): no open data, so US stocks now. */
   "series-retired": { series: string };
-  /** My portfolio (versions 6 to 10): holdings are no longer kept. */
+  /** My portfolio (versions 6 to 10): holdings are no longer kept, and the plan invests in US stocks. */
   "portfolio-retired": None;
+  /** Holdings beside a plan that did not invest in them (versions 1 to 10): no longer kept; the plan is unchanged. */
+  "holdings-retired": None;
+  /** Goals to live in a country (versions 1 to 10): the cost is now one official figure, housing included. */
+  "country-costs-official": None;
   /** Goals that were things of the old price list: there is no list any more. */
   "goal-items-retired": { count: number };
 }

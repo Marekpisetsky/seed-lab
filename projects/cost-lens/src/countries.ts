@@ -36,6 +36,8 @@ export const DATA = (() => {
     surveyFrom: Math.min(...surveys),
     surveyTo: Math.max(...surveys),
     compiledOn: costOfLiving.compiledOn,
+    /** Read from a public copy of the World Bank's data until the yearly download: the page says so. */
+    provisional: costOfLiving.provisional !== null,
   };
 })();
 

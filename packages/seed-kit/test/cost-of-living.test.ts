@@ -43,6 +43,7 @@ describe("the cost of living, from official data only", () => {
     assert.deepEqual([roundEuros(23.6), roundEuros(94.4), roundEuros(95), roundEuros(214), roundEuros(0.2)], [24, 94, 100, 210, 1]);
     assert.equal(nl.priceYear, level.year);
     assert.equal(usPricesSince2021(2021), 1);
+    assert.throws(() => usPricesSince2021(2019), /older than the survey dollars/);
     assert.ok(usPricesSince2021(2024) > 1.1 && usPricesSince2021(2024) < 1.2);
   });
 
