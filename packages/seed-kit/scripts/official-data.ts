@@ -178,9 +178,9 @@ async function countryList(list: Map<string, Economy>): Promise<object | null> {
         source: MIRROR
           ? `Unicode CLDR (${CLDR_PACKAGE} ${cldrVersion}): the economies in the World Bank's figures with an ISO code (supplemental/codeMappings.json) and their currency (supplemental/currencyData.json)`
           : `World Bank country list; currencies from Unicode CLDR (${CLDR_PACKAGE} ${cldrVersion}, supplemental/currencyData.json)`,
-        url: "https://datahelpdesk.worldbank.org/knowledgebase/articles/906519",
-        api: `${COUNTRIES_URL} ; https://registry.npmjs.org/${CLDR_PACKAGE}`,
-        ...WB_LICENSE,
+        url: MIRROR ? "https://cldr.unicode.org/" : "https://datahelpdesk.worldbank.org/knowledgebase/articles/906519",
+        api: MIRROR ? `https://registry.npmjs.org/${CLDR_PACKAGE}` : `${COUNTRIES_URL} ; https://registry.npmjs.org/${CLDR_PACKAGE}`,
+        ...(MIRROR ? CLDR_LICENSE : WB_LICENSE),
         currencyLicense: CLDR_LICENSE.license,
         currencyLicenseUrl: CLDR_LICENSE.licenseUrl,
         retrievedOn,
