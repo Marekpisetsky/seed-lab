@@ -1,6 +1,6 @@
-# wealth-lens
+# Horalis Crecimiento (carpeta `wealth-lens`)
 
-**Misión:** que cualquier persona en Europa vea, en palabras sencillas, qué
+**Misión:** que cualquier persona, en cualquier país, vea, en palabras sencillas, qué
 puede hacer su dinero —cuánto podría crecer, cuánto podría pagarle cada
 mes y en qué lugares del mundo alcanza— sin darle sus datos a nadie. Es
 la primera herramienta de Horalis: gratuita y centrada en la privacidad.
@@ -637,8 +637,8 @@ en About y Privacy. `[email](email)` en los diccionarios lo inserta
 el navegador la convierte en un enlace de correo; ni la dirección entera
 ni `mailto` aparecen en el HTML, para que no la recojan los bots. Sin
 enlaces a GitHub en la web. Código propietario: ver `LICENSE` y `TRADEMARKS.md` en la raíz
-del repositorio. Icono de la familia de Horalis: la semilla con brote
-del hub permanece en Horalis; Horalis Crecimiento tiene una lente con barras propias (`src/app/icon.svg`;
+del repositorio. Icono: la semilla verde de Horalis, la misma en toda la familia
+(`src/app/icon.svg`;
 `favicon.ico` y `apple-icon.png` los dibuja `npm run images` a
 partir de él). La imagen para compartir, de 1200×630, se genera en el
 build (`src/app/og.png/route.tsx`, estática, la misma para todas las

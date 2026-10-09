@@ -63,7 +63,7 @@ describe("data file", () => {
   it("says what the file is and when it was saved", () => {
     const json = JSON.parse(serializeState(state, new Date("2026-09-29T10:00:00Z")));
     expect(json).toMatchObject({ kind: "wealth-lens-data", version: 10, savedAt: "2026-09-29T10:00:00.000Z" });
-    expect(dataFileName(new Date("2026-09-29T10:00:00Z"))).toBe("wealth-lens-2026-09-29.json");
+    expect(dataFileName(new Date("2026-09-29T10:00:00Z"))).toBe("horalis-growth-2026-09-29.json");
   });
 
   it("reads version 8 files as they were: a chip's investment as it was, Custom growth with the S&P 500's ups and downs it had", () => {

@@ -51,10 +51,10 @@ html { scroll-padding-top: calc(var(--sk-header-space) + .5rem); }
 
 .sk-brand { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; margin-right: auto; font-size: 1.125rem; font-weight: 800; letter-spacing: -.01em; }
 .sk-seed { display: inline-flex; color: var(--brand); }
-/* "Horalis Growth": the brand, then the tool's own name; on a phone the tool's name goes under the brand. */
+/* "Horalis Growth": the brand, then the tool's own name; below 1024 px the tool's name goes under the brand, so EN/ES and the menus keep their row. */
 .sk-name { line-height: 1.15; }
 .sk-product { font-weight: 600; }
-@media (max-width: 47.999rem) {
+@media (max-width: 63.999rem) {
   .sk-name:has(.sk-product) { font-size: 1rem; }
   .sk-product { display: block; color: var(--muted); font-size: .8125rem; }
 }

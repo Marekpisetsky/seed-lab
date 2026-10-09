@@ -1,8 +1,8 @@
 # projects/
 
-Los productos de Horalis: herramientas digitales gratuitas y centradas en
-la privacidad para Europa. Hoy hay uno publicado, [Horalis Crecimiento](wealth-lens/).
-[Horalis Coste de vida](cost-lens/) e [Horalis Inflación](inflation-lens/) son betas
+Los productos de Horalis: herramientas digitales gratuitas y privadas,
+útiles en cualquier país y hechas en Europa. Hoy hay uno publicado, [Horalis Crecimiento](wealth-lens/).
+[Horalis Coste de vida](cost-lens/) y [Horalis Inflación](inflation-lens/) son betas
 ocultas, hechas con Forja: funcionan, pero aún no están publicadas ni se
 muestran en el hub (las cifras de Horalis Inflación son, además,
 provisionales).

@@ -106,7 +106,8 @@ anade a `packages/seed-kit/src/tools.json` como beta oculta (`"status":
 "beta"`, `"listed": false`, con `--categoria money` o `life`), con textos
 provisionales y los principios "pendiente". `--sin-registro` omite ese
 paso. El id debe ir en minusculas con guiones (`cost-lens`); el nombre
-visible sale de el (`Horalis Coste de vida`).
+visible sale de el, con la marca delante (`Horalis Cost Lens`); se cambia
+despues en `tools.json`, en cada idioma (`Horalis Coste de vida`).
 
 Las plantillas viven en `forja/templates/web_tool_files/` (con `.tmpl`
 para que nada las tome por codigo) y llevan cuatro marcas: `__NAME__`,
