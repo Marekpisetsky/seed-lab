@@ -61,7 +61,7 @@ export const enPages = {
         heading: "Your money grows",
         body: [
           "You start with an amount and add some every month. Each year the money grows by a percentage, and that growth grows too.",
-          "All amounts are in today's euros. Prices rise over time, so the growth shown is growth after rising prices.",
+          "All amounts are in today's money, in the currency you choose. Prices rise over time, so the growth shown is growth after rising prices.",
           "Each monthly amount goes in at the end of its month, and it rises with prices.",
         ],
       },
@@ -99,7 +99,7 @@ export const enPages = {
         heading: "Check your plan",
         id: "check",
         body: [
-          "Under the result, up to three observations, only when they apply. Each has its euros. They say what is, never what to do.",
+          "Under the result, up to three observations, only when they apply. Each has its amounts. They say what is, never what to do.",
           "Few years: your plan's years, or a goal, under 5 years away, and money that goes up and down. It counts how many of the 1,000 possible futures end below what you put in by then. It shows from 1 in 10. [The method](research:wealth-lens/chequeo.md#horizonte-frente-a-riesgo).",
           "Savings for 10 years or more: what the account keeps in today's money, against what you put in. And against US stocks, with the same amounts: what it gives up, and their worst fall. That fall comes from yearly data: within a year it may have been deeper. [The method](research:wealth-lens/chequeo.md#ahorro-a-largo-plazo).",
         ],
@@ -135,7 +135,7 @@ export const enPages = {
         body: [
           "It gives no advice and makes no forecast. It leaves out taxes and most fees.",
           "It downloads nothing while you use it: every figure is part of the page, with its source and year.",
-          "It does not convert currencies: all amounts are in euros.",
+          "Amounts are in the currency you choose. Growth is each investment's own, after rising prices: changes between currencies are not counted.",
         ],
       },
     ],

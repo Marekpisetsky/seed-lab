@@ -8,9 +8,9 @@
 import { formatsFor } from "__KIT__/format.ts";
 import { html, rich, type Html } from "__KIT__/html.ts";
 import { legalLink, legalPage } from "__KIT__/legal.ts";
-import { LOCALES, type Locale } from "__KIT__/locales.ts";
+import { SHOWN_LOCALES, type Locale } from "__KIT__/locales.ts";
 import { pagePath } from "__KIT__/page.ts";
-import { WORDS } from "./i18n.ts";
+import { WORDS } from "./i18n/index.ts";
 import { BASE_PATH, NAME } from "./site.ts";
 import { resultHtml } from "./view.ts";
 
@@ -74,16 +74,16 @@ ${page.sections.map((section) => html`<section><h2>${section.heading}</h2>${sect
   };
 }
 
-/** One page for every missing address, in every language (the host cannot know which one the visitor reads). */
+/** One page for every missing address, in every shown language (the host cannot know which one the visitor reads). */
 export function notFound(): Page {
-  const [first] = LOCALES;
+  const [first] = SHOWN_LOCALES;
   return {
     id: null,
     locale: first,
-    title: `${LOCALES.map((locale) => WORDS[locale].notFound.title).join(" · ")} · ${NAME[first]}`,
+    title: `${SHOWN_LOCALES.map((locale) => WORDS[locale].notFound.title).join(" · ")} · ${NAME[first]}`,
     description: WORDS[first].notFound.text,
     scripts: [],
-    main: html`${LOCALES.map((locale, index) => {
+    main: html`${SHOWN_LOCALES.map((locale, index) => {
       const words = WORDS[locale].notFound;
       return html`<div class="sk-prose" lang="${locale}">
 ${index === 0 ? html`<h1>${words.title}</h1>` : html`<h2>${words.title}</h2>`}

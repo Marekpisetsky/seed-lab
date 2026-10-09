@@ -1,7 +1,7 @@
 /**
  * The document around a page of a static Horalis tool (the ones Forja
  * makes): the head (language, title, description, addresses in every
- * language, the share tags, the icon, the styles inline, the theme script,
+ * shown language, the share tags, the icon, the styles inline, the theme script,
  * the language script on English pages) and the body (the kit's header, the page, the
  * kit's footer, the page's scripts). Nothing comes from another site.
  */
@@ -9,7 +9,7 @@
 import { languageScript } from "./detect.ts";
 import { themeScript } from "./theme.ts";
 import { html, raw, type Html } from "./html.ts";
-import { DEFAULT_LOCALE, LOCALE_SETTINGS, LOCALES, localePath, type Locale } from "./locales.ts";
+import { DEFAULT_LOCALE, isPendingReview, LOCALE_SETTINGS, localePath, SHOWN_LOCALES, type Locale } from "./locales.ts";
 
 export interface DocumentInput {
   locale: Locale;
@@ -44,7 +44,8 @@ const THEME_SCRIPT = themeScript({ menu: true });
 export function documentHtml(page: DocumentInput): string {
   const { locale, siteUrl, path } = page;
   const base = page.basePath ?? "";
-  const indexed = path !== null;
+  // A language waiting for review is built but not indexed nor linked (locales.ts).
+  const indexed = path !== null && !isPendingReview(locale);
   const address = (other: Locale) => siteUrl + pagePath(path ?? "/", other, base);
   return html`<!doctype html>
 <html lang="${locale}">
@@ -57,7 +58,7 @@ ${indexed && locale === DEFAULT_LOCALE ? html`<script>${raw(languageScript({ bas
 ${
   indexed
     ? html`<link rel="canonical" href="${address(locale)}">
-${LOCALES.map((other) => html`<link rel="alternate" hreflang="${other}" href="${address(other)}">\n`)}<link rel="alternate" hreflang="x-default" href="${address(DEFAULT_LOCALE)}">
+${SHOWN_LOCALES.map((other) => html`<link rel="alternate" hreflang="${other}" href="${address(other)}">\n`)}<link rel="alternate" hreflang="x-default" href="${address(DEFAULT_LOCALE)}">
 <meta property="og:url" content="${address(locale)}">`
     : html`<meta name="robots" content="noindex">`
 }

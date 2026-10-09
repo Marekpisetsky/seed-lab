@@ -48,7 +48,7 @@ function PlanBar({ bundle, sheet, onEdit, button }: { bundle: CalculationBundle;
   const { m, f } = useI18n();
   const t = m.calculator;
   const { plan } = bundle.state;
-  const amount = (value: number | null) => (value === null ? "–" : f.eur(value));
+  const amount = (value: number | null) => (value === null ? "–" : f.cur(value));
   const have = amount(plan.invested);
   const summary = t.summary(have, amount(plan.monthlyContribution), f.rate(bundle.base.investment.realReturn), m.units.years(plan.years));
   return (

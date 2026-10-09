@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { languageScript, pricesCountry, regionOf } from "../src/detect.ts";
+import { languageScript, regionOf } from "../src/detect.ts";
+import { countryFromLanguage } from "../src/money.ts";
 
 /** Runs the head script on an address, as a browser would, and says where it went. */
 function visit(script: string, pathname: string, { languages = ["es-ES", "en"], referrer = "", type = "navigate" } = {}) {
@@ -39,6 +40,12 @@ describe("the language script", () => {
     assert.equal(visit(plain, "/", { languages: ["en-GB", "es"] }).went, null);
     assert.equal(visit(plain, "/es/").went, null);
   });
+
+  it("names Dutch pages, but sends no browser to them while Dutch waits for review", () => {
+    assert.equal(visit(folders, "/nl/").lang, "nl");
+    assert.equal(visit(folders, "/", { languages: ["nl-NL", "en"] }).went, null);
+    assert.equal(visit(folders, "/", { languages: ["nl-NL", "es"] }).went, "/es/");
+  });
 });
 
 describe("the country of a browser language", () => {
@@ -61,11 +68,11 @@ describe("the country of a browser language", () => {
 
   it("starts with the language's country when there are prices for it, and the fallback otherwise", () => {
     const supported = ["NL", "ES", "DE", "FR", "IT", "PT"];
-    assert.equal(pricesCountry("es-ES", supported, "NL"), "ES");
-    assert.equal(pricesCountry("fr", supported, "NL"), "FR");
-    assert.equal(pricesCountry("de-AT", supported, "NL"), "NL");
-    assert.equal(pricesCountry("en-US", supported, "NL"), "NL");
-    assert.equal(pricesCountry("es-419", supported, "NL"), "NL");
-    assert.equal(pricesCountry(undefined, supported, "NL"), "NL");
+    assert.equal(countryFromLanguage("es-ES", supported, "NL"), "ES");
+    assert.equal(countryFromLanguage("fr", supported, "NL"), "FR");
+    assert.equal(countryFromLanguage("de-AT", supported, "NL"), "NL");
+    assert.equal(countryFromLanguage("en-US", supported, "NL"), "NL");
+    assert.equal(countryFromLanguage("es-419", supported, "NL"), "NL");
+    assert.equal(countryFromLanguage(undefined, supported, "NL"), "NL");
   });
 });

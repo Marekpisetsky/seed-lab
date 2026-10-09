@@ -7,7 +7,7 @@
  */
 
 import { costOfLiving } from "../../packages/seed-kit/src/cost-of-living.ts";
-import { LOCALES } from "../../packages/seed-kit/src/locales.ts";
+import { SHOWN_LOCALES } from "../../packages/seed-kit/src/locales.ts";
 import { TOOLS, type Tool } from "./content.ts";
 
 export interface Figures {
@@ -34,7 +34,7 @@ const countries = costOfLiving.countries.length;
 export function figures(measured: Pick<Figures, "cookies" | "trackers" | "maxKb">): Figures {
   return {
     ...measured,
-    languages: LOCALES.length,
+    languages: SHOWN_LOCALES.length,
     countries,
     tools: publishedTools(TOOLS),
   };

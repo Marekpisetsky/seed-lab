@@ -84,7 +84,6 @@ function Affix({ side, children }: { side: "left" | "right"; children: React.Rea
   );
 }
 
-const monthlyStep = { ...MONTHLY_STEP, max: MAX_AMOUNT };
 
 /**
  * The calculator, four numbered steps and nothing else: how much you have,
@@ -116,7 +115,7 @@ export function CalculatorCard({ onSee, compact = false }: { onSee?: () => void;
     return () => events.forEach((name) => window.removeEventListener(name, start));
   }, [plan.withdrawalRate]);
   const monthly = plan.monthlyContribution;
-  const before = f.eur(1).startsWith("€");
+  const before = f.cur(1).startsWith("€");
   // Enter in a field goes on to the next step, and from the last to the button.
   const order = [ids.have, ids.monthly, ids.growth, ids.years];
   const next = (from: string) => () => {
@@ -163,12 +162,12 @@ export function CalculatorCard({ onSee, compact = false }: { onSee?: () => void;
         </Step>
         <Step number={2} question={t.steps.monthly} fieldId={ids.monthly} compact={compact}>
           <Stepper
-            less={t.lessMonthly}
-            more={t.moreMonthly}
+            less={t.lessMonthly(f.cur(f.step))}
+            more={t.moreMonthly(f.cur(f.step))}
             atMin={monthly === null || monthly <= 0}
             atMax={monthly !== null && monthly >= MAX_AMOUNT}
-            onLess={() => updatePlan({ monthlyContribution: stepValue(monthly ?? 0, -1, monthlyStep) })}
-            onMore={() => updatePlan({ monthlyContribution: stepValue(monthly ?? 0, 1, monthlyStep) })}
+            onLess={() => updatePlan({ monthlyContribution: stepValue(monthly ?? 0, -1, { ...MONTHLY_STEP, step: f.step, max: MAX_AMOUNT }) })}
+            onMore={() => updatePlan({ monthlyContribution: stepValue(monthly ?? 0, 1, { ...MONTHLY_STEP, step: f.step, max: MAX_AMOUNT }) })}
           >
             <Affix side={before ? "left" : "right"}>€</Affix>
             <SettledNumberInput

@@ -91,7 +91,7 @@ function Plot({ points, startYear }: { points: YearPoint[]; startYear: number })
         viewBox={`0 0 ${width} ${height}`}
         className="block touch-pan-y select-none"
         role="img"
-        aria-label={m.chart.aria(startYear + years, f.eur(end.putIn), f.eur(growthEnd))}
+        aria-label={m.chart.aria(startYear + years, f.cur(end.putIn), f.cur(growthEnd))}
         onPointerDown={showYearAt}
         onPointerMove={showYearAt}
         // A finger lifted leaves the year shown; a mouse that leaves hides it.
@@ -102,7 +102,7 @@ function Plot({ points, startYear }: { points: YearPoint[]; startYear: number })
             <line x1={PAD.left} x2={plotRight} y1={y(value)} y2={y(value)} stroke="var(--border)" strokeWidth={1} />
             {value > 0 && (
               <text x={PAD.left + 2} y={y(value) - 3} fontSize={FONT} fill="var(--muted)">
-                {f.eurCompact(value)}
+                {f.curCompact(value)}
               </text>
             )}
           </g>
@@ -145,10 +145,10 @@ function Plot({ points, startYear }: { points: YearPoint[]; startYear: number })
         <div ref={tip} className="pointer-events-none absolute top-0 left-0 z-10 whitespace-nowrap rounded-md border border-border bg-card px-2 py-1 text-sm shadow-sm tabular-nums">
           <p className="font-medium">{yearTooltip(shown, startYear, i18n)}</p>
           <p>
-            <Swatch color="var(--chart-put-in)" /> {m.chart.putIn} {f.eur(shown.putIn)}
+            <Swatch color="var(--chart-put-in)" /> {m.chart.putIn} {f.cur(shown.putIn)}
           </p>
           <p>
-            <Swatch color="var(--chart-growth)" /> {m.chart.growth} {f.eur(shown.total - Math.min(shown.putIn, shown.total))}
+            <Swatch color="var(--chart-growth)" /> {m.chart.growth} {f.cur(shown.total - Math.min(shown.putIn, shown.total))}
           </p>
         </div>
       )}
@@ -189,9 +189,9 @@ function YearTable({ points, startYear }: { points: YearPoint[]; startYear: numb
                   <th scope="row" className="py-1 text-left font-normal">
                     {startYear + point.year}
                   </th>
-                  <td>{f.eur(point.putIn)}</td>
-                  <td>{f.eur(point.total - Math.min(point.putIn, point.total))}</td>
-                  <td>{f.eur(point.total)}</td>
+                  <td>{f.cur(point.putIn)}</td>
+                  <td>{f.cur(point.total - Math.min(point.putIn, point.total))}</td>
+                  <td>{f.cur(point.total)}</td>
                 </tr>
               ))}
             </tbody>
@@ -272,7 +272,7 @@ export function GrowthChart({ bundle }: { bundle: CalculationBundle }) {
       <div className="space-y-1 border-t border-border pt-3 text-sm text-muted">
         {bands && (
           <p className="tabular-nums">
-            {m.facts.badFrom(f.eur(bands.p10[result.years]))} {m.facts.aboveToo(f.eur(bands.p90[result.years]))}
+            {m.facts.badFrom(f.cur(bands.p10[result.years]))} {m.facts.aboveToo(f.cur(bands.p90[result.years]))}
           </p>
         )}
         {bands && (

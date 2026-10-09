@@ -19,7 +19,7 @@ import { STANDARD_ASSUMPTIONS, type Goal } from "./types";
 
 const ES = getI18n("es");
 const whenText = EN.f.when;
-const formatSmallEur = EN.f.smallEur;
+const formatSmallEur = EN.f.smallCur;
 
 const today = parseIsoDate("2026-09-29");
 
@@ -30,6 +30,7 @@ const plan = (overrides: Partial<CalculatorPlan> = {}): CalculatorPlan => ({
   years: 20,
   withdrawalRate: 0.04,
   pricesOf: "NL",
+  currency: "EUR",
   assumptions: STANDARD_ASSUMPTIONS,
   goals: [],
   ...overrides,
@@ -49,14 +50,14 @@ function texts(calc: Calculation, i18n: I18n): string[] {
   const { result } = calc;
   const { f } = i18n;
   return [
-    f.eur(result.total),
-    f.smallEur(result.income),
-    f.eur(result.putIn),
-    f.eur(Math.abs(result.growth)),
+    f.cur(result.total),
+    f.smallCur(result.income),
+    f.cur(result.putIn),
+    f.cur(Math.abs(result.growth)),
     ...calc.goals.flatMap((status) => [
       goalName(status, i18n),
       f.when(status.months, today),
-      f.eur(status.needed ?? 0),
+      f.cur(status.needed ?? 0),
       ...goalExplain(status, calc.scenario, calc.investment, i18n),
     ]),
     ...calc.countries.map((row) => f.when(row.cost.months)),
@@ -181,8 +182,8 @@ describe("growth from −50% to 500% a year, the whole range of step 3", () => {
         expectSensible(calc);
         for (const i18n of [EN, ES]) {
           const shown = [
-            i18n.f.eur(calc.result.total),
-            i18n.f.eur(bands.p90[years]),
+            i18n.f.cur(calc.result.total),
+            i18n.f.cur(bands.p90[years]),
             timesPutInText(calc.result, i18n) ?? "",
             ...planChecks(calc, p).flatMap((check) => [...checkWords(check, i18n).lead, ...checkWords(check, i18n).details]),
             ...calc.goals.map((goal) => i18n.f.when(goal.months, today)),
@@ -204,12 +205,12 @@ describe("growth from −50% to 500% a year, the whole range of step 3", () => {
     expect(calculate({ ...custom(-0.5, 2), monthlyContribution: 0 }, today).result.total).toBeCloseTo(250, 6);
     // 70% for 20 years: €1,000 alone becomes 1.7^20 times as much, in full.
     expect(calculate({ ...custom(0.7, 20), monthlyContribution: 0 }, today).result.total).toBeCloseTo(1000 * 1.7 ** 20, 0);
-    expect(EN.f.eur(1000 * 1.7 ** 20)).toBe("€40,642,314");
+    expect(EN.f.cur(1000 * 1.7 ** 20)).toBe("€40,642,314");
     // 500% for 20 years: €1,000 alone is 6^20 times as much, a power of ten.
     const huge = calculate({ ...custom(5, 20), monthlyContribution: 0 }, today).result.total;
     expect(huge / (1000 * 6 ** 20)).toBeCloseTo(1, 9);
-    expect(EN.f.eur(huge)).toBe("€3.66\u00a0×\u00a010¹⁸");
-    expect(ES.f.eur(huge)).toBe("3,66\u00a0×\u00a010¹⁸\u00a0€");
+    expect(EN.f.cur(huge)).toBe("€3.66\u00a0×\u00a010¹⁸");
+    expect(ES.f.cur(huge)).toBe("3,66\u00a0×\u00a010¹⁸\u00a0€");
   });
 });
 
@@ -230,7 +231,7 @@ describe("when", () => {
   });
 });
 
-describe("smallEur", () => {
+describe("smallCur", () => {
   it("says 'under €1' for a few cents, and whole euros otherwise", () => {
     expect(formatSmallEur(0.003)).toBe("under €1");
     expect(formatSmallEur(0)).toBe("€0");
@@ -239,9 +240,9 @@ describe("smallEur", () => {
   });
 
   it("writes Spanish amounts and spans the Spanish way", () => {
-    expect(ES.f.smallEur(0.003)).toBe("menos de 1\u00a0€");
-    expect(ES.f.smallEur(1234.4)).toBe("1234\u00a0€");
-    expect(ES.f.eur(112_288)).toBe("112.288\u00a0€");
+    expect(ES.f.smallCur(0.003)).toBe("menos de 1\u00a0€");
+    expect(ES.f.smallCur(1234.4)).toBe("1234\u00a0€");
+    expect(ES.f.cur(112_288)).toBe("112.288\u00a0€");
     expect(ES.f.when(144, today)).toBe("en 12 años (2038)");
     expect(ES.f.when(0.2)).toBe("en 1 mes");
     expect(ES.f.when(0)).toBe("ahora");

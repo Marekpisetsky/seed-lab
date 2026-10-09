@@ -84,7 +84,9 @@ generador en TypeScript que Node 22 ejecuta tal cual), ya conectada a
 seed-kit desde el codigo:
 
 - **EN y ES**, con el script de idioma de seed-kit, que no guarda nada,
-  y numeros escritos a la manera de cada idioma.
+  y numeros escritos a la manera de cada idioma. Las palabras van en un
+  archivo por idioma (`src/i18n/`), con **NL** construido pero oculto
+  hasta que lo revise un nativo.
 - **La cabecera y el pie de Horalis**: la semilla con su nombre, EN/ES,
   el lanzador de herramientas, privacidad y condiciones, "Parte de
   Horalis".

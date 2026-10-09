@@ -28,7 +28,7 @@ export function goalName(status: GoalStatus, i18n: I18n): string {
     case "buy-own":
       return goal.name;
     case "amount":
-      return goal.label ?? m.goals.reach(f.eur(goal.amount));
+      return goal.label ?? m.goals.reach(f.cur(goal.amount));
     case "freedom":
       return m.goals.freedom;
     case "monthly":
@@ -47,15 +47,15 @@ export function goalExplain(status: GoalStatus, scenario: Scenario, investment: 
   const t = m.goals.explain;
   if (!status.known) return [m.goals.unknownExplain];
   const cost =
-    status.kind === "monthly" ? t.monthlyCost(f.eur(status.amount), f.rate(scenario.withdrawalRate), f.eur(status.target)) : t.onceCost(f.eur(status.target));
+    status.kind === "monthly" ? t.monthlyCost(f.cur(status.amount), f.rate(scenario.withdrawalRate), f.cur(status.target)) : t.onceCost(f.cur(status.target));
   const source = growthSource(investment, i18n);
-  const start = t.start(f.eur(scenario.capital), f.eur(scenario.monthly), f.rate(scenario.realReturn), source);
+  const start = t.start(f.cur(scenario.capital), f.cur(scenario.monthly), f.rate(scenario.realReturn), source);
   const reach =
     status.months <= 1e-9
-      ? t.already(f.eur(scenario.capital))
+      ? t.already(f.cur(scenario.capital))
       : status.reachable && status.date
-        ? t.reaches(start, f.eur(status.target), f.duration(status.months), f.monthYear(status.date))
-        : t.tooFar(start, MAX_YEARS, f.eur(status.needed ?? 0), NEEDED_WITHIN_YEARS);
+        ? t.reaches(start, f.cur(status.target), f.duration(status.months), f.monthYear(status.date))
+        : t.tooFar(start, MAX_YEARS, f.cur(status.needed ?? 0), NEEDED_WITHIN_YEARS);
   const { goal } = status;
   const where =
     goal.kind === "freedom" && goal.country && goal.estimateDate

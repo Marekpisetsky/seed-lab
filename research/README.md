@@ -70,6 +70,7 @@ Las rutas de código son de `projects/wealth-lens/` salvo que digan otra cosa.
 | --- | --- |
 | [Por qué no simplemente maximizar el crecimiento (Kelly)](educacion/kelly.md) | Educativa: qué dice Kelly, qué saldría con nuestros datos y por qué Horalis no recomienda pesos. |
 | [Datos oficiales](datos-oficiales.md) | Las series que usan todas las herramientas (Banco Mundial, Eurostat, CLDR): fuentes, licencias, la descarga anual y sus comprobaciones. |
+| [Monedas](monedas.md) | La moneda de cada país, los tipos de cambio oficiales por año, cómo se convierte y se escribe una cantidad en cada herramienta, y el país de partida según el idioma del navegador. |
 | [Informar, no aconsejar](legal/informar-no-aconsejar.md) | Legal: el límite entre información general y asesoramiento personalizado (MiFID II) y las reglas de redacción de todas las apps. **No es asesoramiento legal.** |
 
 ## Estado

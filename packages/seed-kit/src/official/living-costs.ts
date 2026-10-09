@@ -26,6 +26,7 @@
 
 import { OFFICIAL } from "./data.ts";
 import { latest, valueIn, type Row } from "./series.ts";
+import { roundMoney } from "../money.ts";
 import type { CostOfLivingDataset, LivingCost } from "../cost-of-living.ts";
 
 /** The year international dollars of the survey series are given in. */
@@ -58,7 +59,7 @@ export function eurosPerDollar(year: number): number {
  * €26 are not "the same"); never below €1.
  */
 export function roundEuros(euros: number): number {
-  return euros < 95 ? Math.max(1, Math.round(euros)) : Math.round(euros / 10) * 10;
+  return roundMoney(euros);
 }
 
 /** One country's monthly cost, or null when the official data lack its survey or price level. */

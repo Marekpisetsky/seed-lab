@@ -62,20 +62,21 @@ def registrar(nombre: str, categoria: str, tools_json: Path = TOOLS_JSON) -> boo
     if any(herramienta["id"] == nombre for herramienta in herramientas):
         return False
     visible = nombre_visible(nombre)
-    pendiente = {"status": "pending", "note": {"en": "Not checked yet.", "es": "Aún sin comprobar."}}
+    pendiente = {"status": "pending", "note": {"en": "Not checked yet.", "es": "Aún sin comprobar.", "nl": "Nog niet gecontroleerd."}}
     herramientas.append(
         {
             "id": nombre,
-            "name": {"en": visible, "es": visible},
+            "name": {"en": visible, "es": visible, "nl": visible},
             "status": "beta",
             "listed": False,
             "category": categoria,
             "url": url_provisional(nombre),
             "languages": ["en", "es"],
-            "tagline": {"en": f"{visible}, a new Horalis tool.", "es": f"{visible}, una herramienta nueva de Horalis."},
+            "tagline": {"en": f"{visible}, a new Horalis tool.", "es": f"{visible}, una herramienta nueva de Horalis.", "nl": f"{visible}, een nieuwe Horalis-tool."},
             "description": {
                 "en": f"{visible} is being built. It runs in your browser: nothing is saved or sent.",
                 "es": f"{visible} está en construcción. Funciona en tu navegador: no se guarda ni se envía nada.",
+                "nl": f"{visible} wordt gebouwd. Het werkt in je browser: er wordt niets bewaard of verstuurd.",
             },
             "principles": {principio: pendiente for principio in ("device", "transparent", "europe", "light", "everyone")},
         }

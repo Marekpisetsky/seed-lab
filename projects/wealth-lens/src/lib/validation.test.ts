@@ -99,6 +99,7 @@ describe("parsePlan", () => {
     years: 25,
     withdrawalRate: 0.035,
     pricesOf: "DE",
+    currency: "PEN",
     assumptions: { growth: null, volatility: 0.2, inflation: 0.025 },
     goals: [
       { id: "a", kind: "live", country: "PE" },
@@ -110,6 +111,13 @@ describe("parsePlan", () => {
 
   it("keeps a valid plan as it is", () => {
     expect(parsePlan(full)).toEqual(full);
+  });
+
+  it("keeps the plan's currency, or takes euros: files before version 12, and a currency without official rates", () => {
+    expect(parsePlan({ ...full, currency: "JPY" })?.currency).toBe("JPY");
+    expect(parsePlan({ ...full, currency: undefined })?.currency).toBe("EUR");
+    expect(parsePlan({ ...full, currency: "XXX" })?.currency).toBe("EUR");
+    expect(parsePlan({ ...full, currency: 42 })?.currency).toBe("EUR");
   });
 
   it("falls back field by field without resetting the valid ones", () => {
@@ -154,7 +162,7 @@ describe("parsePlan", () => {
     expect(goals([{ id: "a", kind: "income", amount: 700, name: "" }])).toEqual([{ id: "a", kind: "monthly", amount: 700, label: null }]);
     expect(
       goals([
-        { id: "a", kind: "amount", amount: 2e9 },
+        { id: "a", kind: "amount", amount: 2e15 },
         { id: "b", kind: "live", country: "Portugal", housing: true },
         { id: "d", kind: "buy", item: "../x" },
         { id: "e", kind: "buy-own", name: "", amount: 10 },

@@ -86,7 +86,7 @@ export type NewGoal = Goal extends infer G ? (G extends Goal ? Omit<G, "id"> : n
 export interface Plan {
   /** Amount invested, typed in the calculator; `null` until it is typed (a first visit asks). */
   invested: number | null;
-  /** Added every month, in euros, constant in today's money; `null` until it is typed. */
+  /** Added every month, in the plan's currency, constant in today's money; `null` until it is typed. */
   monthlyContribution: number | null;
   investment: Investment;
   /** How many years ahead the result looks: 1 to 60. */
@@ -99,6 +99,8 @@ export interface Plan {
    * inflation into growth after it.
    */
   pricesOf: string;
+  /** The currency of every amount (ISO 4217, More options): one with an official rate (lib/money.ts). */
+  currency: string;
   /** What the user changed of the standard assumptions. */
   assumptions: AssumptionOverrides;
   /** Goals the user added, in that order; none at first. */

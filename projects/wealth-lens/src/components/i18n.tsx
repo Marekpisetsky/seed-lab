@@ -1,19 +1,37 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, useSyncExternalStore } from "react";
+import { regionOf } from "@seed-kit/detect.ts";
 import type { I18n } from "@/i18n";
+import { createI18n } from "@/i18n/make";
+import { useAppState } from "@/hooks/use-app";
 
 const I18nContext = createContext<I18n | null>(null);
 
-/**
- * Every component under it speaks `i18n`'s language. Pages give it through
- * i18n-en.tsx or i18n-es.tsx, so each page's code holds only its own words.
- */
-export function I18nProvider({ i18n, children }: { i18n: I18n; children: React.ReactNode }) {
-  return <I18nContext.Provider value={i18n}>{children}</I18nContext.Provider>;
+const never = () => () => {};
+
+/** The reader's region when their browser speaks the page's language with one ("es-MX" on a Spanish page: "MX"); "" otherwise. */
+function readerRegion(locale: string): string {
+  const language = navigator.language ?? "";
+  return language.slice(0, 2).toLowerCase() === locale ? (regionOf(language) ?? "") : "";
 }
 
-/** The words and formats of the page's language. */
+/**
+ * Every component under it speaks `i18n`'s language, with amounts in the
+ * plan's currency (More options) and numbers written the reader's way
+ * (their browser's language, worked out on the device). Pages give it
+ * through i18n-en.tsx, i18n-es.tsx or i18n-nl.tsx, so each page's code
+ * holds only its own words.
+ */
+export function I18nProvider({ i18n, children }: { i18n: I18n; children: React.ReactNode }) {
+  const { plan } = useAppState();
+  // The static page is written in the language's own way; the reader's comes once it runs.
+  const region = useSyncExternalStore(never, () => readerRegion(i18n.locale), () => "");
+  const value = createI18n(i18n.locale, i18n.m, { region, currency: plan.currency });
+  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
+}
+
+/** The words and formats of the page's language, in the plan's currency. */
 export function useI18n(): I18n {
   const i18n = useContext(I18nContext);
   if (!i18n) throw new Error("useI18n needs an I18nProvider around it");

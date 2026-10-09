@@ -43,8 +43,8 @@ function summaryText({ scenario, investment, result }: CalculationBundle["calc"]
   const t = m.result;
   const where = investedInText(investment, i18n);
   const years = m.units.years(result.years);
-  const have = f.eur(scenario.capital);
-  const monthly = f.eur(scenario.monthly);
+  const have = f.cur(scenario.capital);
+  const monthly = f.cur(scenario.monthly);
   if (scenario.monthly === 0 && scenario.capital > 0) return t.summaryToday(have, where, years);
   if (scenario.capital === 0 && scenario.monthly > 0) return t.summaryMonthly(monthly, where, years);
   return t.summary(have, monthly, where, years);
@@ -63,7 +63,7 @@ function ResultTotal({ bundle, ref }: { bundle: CalculationBundle; ref: React.Re
     <section ref={ref} tabIndex={-1} aria-label={m.result.label} className="scroll-mt-4 space-y-1 outline-none">
       {/* What a screen reader says after a change: one short sentence, not the whole section. */}
       <p className="sr-only" aria-live="polite" aria-atomic="true">
-        {m.result.announce(years, f.eur(result.total), grows) +
+        {m.result.announce(years, f.cur(result.total), grows) +
           (calc.whatIf ? m.result.announceWhatIf(whatIfApplied(calc.whatIf, bundle.base.investment, bundle.base.result.years, i18n)) : "")}
       </p>
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
@@ -75,9 +75,9 @@ function ResultTotal({ bundle, ref }: { bundle: CalculationBundle; ref: React.Re
       {/* A long figure ("€8.41 × 10⁴⁹", "4,4 billones de euros") a size smaller on a phone, so it is never cut. */}
       <p
         id={TOTAL_ID}
-        className={`flex flex-wrap items-center gap-2 font-extrabold tracking-tight tabular-nums [overflow-wrap:anywhere] sm:text-6xl ${f.eur(result.total).length > 10 ? "text-4xl" : "text-5xl"}`}
+        className={`flex flex-wrap items-center gap-2 font-extrabold tracking-tight tabular-nums [overflow-wrap:anywhere] sm:text-6xl ${f.cur(result.total).length > 10 ? "text-4xl" : "text-5xl"}`}
       >
-        <Changed value={f.eur(result.total)} />
+        <Changed value={f.cur(result.total)} />
         <Help what={m.result.inYears(years)} text={m.help.total} />
       </p>
     </section>

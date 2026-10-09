@@ -9,6 +9,7 @@ import { annualizedReturn, SERIES } from "./indexes";
 import { bandsFor, successRatesFor } from "./projections";
 import { STANDARD_ASSUMPTIONS } from "./types";
 import { SP500_PLAN } from "./sp500-plan";
+import { whatIfChip } from "@/components/money/what-if-row";
 import { badStartHead, WHAT_IF_IDS, whatIfInputs } from "./what-if";
 
 const today = parseIsoDate("2026-09-30");
@@ -22,9 +23,10 @@ afterEach(() => replaceState(INITIAL_STATE));
 describe("the five scenarios", () => {
   it("come in a fixed order, each with its chip and its label once applied", () => {
     expect(WHAT_IF_IDS).toEqual(["grow-more", "grow-less", "monthly-50", "years-5", "bad-decade"]);
-    expect(WHAT_IF_IDS.map((id) => EN.m.whatIf.chips[id])).toEqual(["Grows 1% more", "Grows 1% less", "+€50 a month", "5 more years", "A bad first decade"]);
+    const stocks = calculate(plan(), today).investment;
+    expect(WHAT_IF_IDS.map((id) => whatIfChip(id, stocks, 20, EN))).toEqual(["Grows 1% more", "Grows 1% less", "+€50 a month", "5 more years", "First 10 years like 2000–2009"]);
     expect(EN.m.whatIf.applied["grow-more"]).toBe("grows 1% more");
-    expect(WHAT_IF_IDS.map((id) => ES.m.whatIf.chips[id])).toHaveLength(5);
+    expect(WHAT_IF_IDS.map((id) => whatIfChip(id, stocks, 20, ES))).toHaveLength(5);
   });
 
   it("change the plan's inputs, one each", () => {

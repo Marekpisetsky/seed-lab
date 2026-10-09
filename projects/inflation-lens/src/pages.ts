@@ -8,9 +8,9 @@
 import { formatsFor } from "../../../packages/seed-kit/src/format.ts";
 import { html, raw, rich, type Html } from "../../../packages/seed-kit/src/html.ts";
 import { legalLink, legalPage } from "../../../packages/seed-kit/src/legal.ts";
-import { LOCALES, type Locale } from "../../../packages/seed-kit/src/locales.ts";
+import { SHOWN_LOCALES, type Locale } from "../../../packages/seed-kit/src/locales.ts";
 import { pagePath } from "../../../packages/seed-kit/src/page.ts";
-import { WORDS } from "./i18n.ts";
+import { WORDS } from "./i18n/index.ts";
 import { BASE_PATH, NAME } from "./site.ts";
 import { lastYear, yearOptions } from "./calc.ts";
 import { HICP, seriesFor } from "./hicp.ts";
@@ -59,7 +59,7 @@ export function home(locale: Locale): Page {
 ${HICP.provisional ? html`<aside class="sk-card provisional" aria-labelledby="provisional-title"><h2 id="provisional-title">${t.provisionalTitle}</h2><p>${t.provisional}</p></aside>` : ""}
 <div class="sk-layout">
 <form class="sk-card sk-form" id="calc" aria-label="${t.form}">
-<div class="sk-field"><label for="amount">${t.amount}</label><input class="sk-input" id="amount" name="amount" inputmode="decimal" autocomplete="off" value="${formats.grouped(choice.amount)}"></div>
+<div class="sk-field"><label for="amount">${t.amount(current.currency)}</label><input class="sk-input" id="amount" name="amount" inputmode="decimal" autocomplete="off" value="${formats.grouped(choice.amount)}"></div>
 <div class="sk-row">
 <div class="sk-field"><label for="year">${t.year}</label><select class="sk-input" id="year" name="year">${yearOptions(current).map((year) => html`<option${year === choice.year ? raw(" selected") : ""}>${year}</option>`)}</select></div>
 <div class="sk-field"><label for="place">${t.place}</label><select class="sk-input" id="place" name="place">${all.map((series) => html`<option value="${series.code}"${series.code === choice.place ? raw(" selected") : ""}>${series.name}</option>`)}</select></div>
@@ -98,16 +98,16 @@ ${page.sections.map((section) => html`<section><h2>${section.heading}</h2>${sect
   };
 }
 
-/** One page for every missing address, in every language (the host cannot know which one the visitor reads). */
+/** One page for every missing address, in every shown language (the host cannot know which one the visitor reads). */
 export function notFound(): Page {
-  const [first] = LOCALES;
+  const [first] = SHOWN_LOCALES;
   return {
     id: null,
     locale: first,
-    title: `${LOCALES.map((locale) => WORDS[locale].notFound.title).join(" · ")} · ${NAME[first]}`,
+    title: `${SHOWN_LOCALES.map((locale) => WORDS[locale].notFound.title).join(" · ")} · ${NAME[first]}`,
     description: WORDS[first].notFound.text,
     scripts: [],
-    main: html`${LOCALES.map((locale, index) => {
+    main: html`${SHOWN_LOCALES.map((locale, index) => {
       const words = WORDS[locale].notFound;
       return html`<div class="sk-prose" lang="${locale}">
 ${index === 0 ? html`<h1>${words.title}</h1>` : html`<h2>${words.title}</h2>`}

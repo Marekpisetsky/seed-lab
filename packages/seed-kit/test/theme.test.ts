@@ -87,7 +87,7 @@ describe("the theme", () => {
   it("has a menu in the header with three modes, Automatic first, in two copies that never share a group", () => {
     for (const locale of ["en", "es"] as const) {
       const words = CHROME_WORDS[locale];
-      const out = headerHtml(headerModel({ locale, name: "Tool", homeHref: "/", languageHrefs: { en: "/", es: "/es/" }, current: "tool" })).value;
+      const out = headerHtml(headerModel({ locale, name: "Tool", homeHref: "/", languageHrefs: { en: "/", es: "/es/", nl: "/nl/" }, current: "tool" })).value;
       assert.match(out, new RegExp(`<details class="sk-theme"><summary aria-label="${words.theme}" title="${words.theme}"`));
       const radios = [...out.matchAll(/<input type="radio" name="([^"]+)" value="(\w+)" data-sk-theme( checked)?>/g)];
       assert.equal(radios.length, 6);

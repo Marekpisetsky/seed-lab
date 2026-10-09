@@ -9,7 +9,7 @@ import { LOCALES, localePath } from "__KIT__/locales.ts";
 import { plainLanguageProblems, textsOf } from "__KIT__/plain-language.ts";
 import { TOOLS } from "__KIT__/tools.ts";
 import { build } from "../src/build.ts";
-import { WORDS } from "../src/i18n.ts";
+import { WORDS } from "../src/i18n/index.ts";
 import { EXAMPLE, PAGES } from "../src/pages.ts";
 import { ID, LIMIT_KB, SITE_URL } from "../src/site.ts";
 import { resultHtml } from "../src/view.ts";
@@ -48,7 +48,7 @@ describe("the site", () => {
       assert.match(text, /<header class="sk-header">[\s\S]*<a class="sk-brand"/, file);
       assert.match(text, /<nav class="sk-langs"[\s\S]*hreflang="en"[\s\S]*hreflang="es"/, file);
       assert.match(text, /<details class="sk-launcher">/, file);
-      assert.match(text, /<footer class="sk-footer">[\s\S]*\/privacy\/"[\s\S]*(?:Part of Horalis|Parte de Horalis)/, file);
+      assert.match(text, /<footer class="sk-footer">[\s\S]*\/privacy\/"[\s\S]*(?:Part of Horalis|Parte de Horalis|Onderdeel van Horalis)/, file);
       assert.match(text, /© 2026 Horalis/, file);
     }
   });

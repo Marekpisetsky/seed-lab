@@ -16,9 +16,9 @@ import { footerModel, headerModel } from "../../../packages/seed-kit/src/chrome.
 import { kitCss, minifyCss } from "../../../packages/seed-kit/src/css.ts";
 import { FAVICON } from "../../../packages/seed-kit/src/icons.ts";
 import { legalPage } from "../../../packages/seed-kit/src/legal.ts";
-import { LOCALE_SETTINGS, LOCALES, localePath, type Locale } from "../../../packages/seed-kit/src/locales.ts";
+import { LOCALE_SETTINGS, LOCALES, localePath, SHOWN_LOCALES, type Locale } from "../../../packages/seed-kit/src/locales.ts";
 import { documentHtml, pagePath } from "../../../packages/seed-kit/src/page.ts";
-import { WORDS } from "./i18n.ts";
+import { WORDS } from "./i18n/index.ts";
 import { home, notFound, PAGES, privacy, type Page } from "./pages.ts";
 import { BASE_PATH, ID, NAME, SITE_URL } from "./site.ts";
 
@@ -94,8 +94,8 @@ export function build(dist = DIST): Built[] {
   const site = SITE_URL + BASE_PATH;
   write("robots.txt", `User-agent: *\nAllow: /\n\nSitemap: ${site}/sitemap.xml\n`);
   const urls = Object.values(PAGES).flatMap((path) =>
-    LOCALES.map((locale) => {
-      const alternates = LOCALES.map((other) => `<xhtml:link rel="alternate" hreflang="${other}" href="${site + localePath(path, other)}"/>`).join("");
+    SHOWN_LOCALES.map((locale) => {
+      const alternates = SHOWN_LOCALES.map((other) => `<xhtml:link rel="alternate" hreflang="${other}" href="${site + localePath(path, other)}"/>`).join("");
       return `<url><loc>${site + localePath(path, locale)}</loc>${alternates}</url>`;
     }),
   );

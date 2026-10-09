@@ -21,7 +21,7 @@ import { INDEXES } from "./indexes";
 import { STANDARD_ASSUMPTIONS, type Goal } from "./types";
 
 const ES = getI18n("es");
-const formatEurRounded = EN.f.eurRounded;
+const formatEurRounded = EN.f.curRounded;
 const formatYears = EN.f.span;
 
 const today = parseIsoDate("2026-09-29");
@@ -34,6 +34,7 @@ const plan = (overrides: Partial<CalculatorPlan> = {}): CalculatorPlan => ({
   years: 20,
   withdrawalRate: 0.04,
   pricesOf: "NL",
+  currency: "EUR",
   assumptions: STANDARD_ASSUMPTIONS,
   goals: [],
   ...overrides,
@@ -118,13 +119,13 @@ describe("far goals", () => {
 });
 
 describe("inflation", () => {
-  it("gives what the account will show in euros of that year", () => {
+  it("gives what the account will show in money of that year", () => {
     const factor = Math.pow(1.02, 20);
     const finding = inflationFinding(byDefault);
     const shown = formatEurRounded(total * factor);
     expect(finding?.value).toBe(`~${shown}`);
     expect(finding?.text).toBe(`In 2046 your account will show ~${shown}. That is ${formatEurRounded(total)} of today's money.`);
-    expect(finding?.calculation[1]).toMatch(/^€[\d,]+ × 1\.49 = €[\d,]+ in euros of 2046\.$/);
+    expect(finding?.calculation[1]).toMatch(/^€[\d,]+ × 1\.49 = €[\d,]+ in money of 2046\.$/);
   });
 
   it("follows the chosen years", () => {

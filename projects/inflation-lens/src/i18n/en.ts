@@ -1,0 +1,65 @@
+/**
+ * Every word of Horalis Inflation in English. Each language has its own
+ * file with the same shape (a test checks it), in plain words (seed-kit's
+ * check: no jargon, short sentences). The header, the footer's links and
+ * the privacy page bring their own words from seed-kit.
+ */
+
+export const en = {
+  meta: {
+    title: "Horalis Inflation: what money from back then is worth today",
+    description: "How prices rose in each EU country and the euro area. Data from Eurostat. Free, and nothing is saved.",
+  },
+  groups: {
+    EA: { name: "Euro area", sentence: "the euro area" },
+    EU: { name: "European Union", sentence: "the European Union" },
+  },
+  home: {
+    title: "What is money from back then worth today?",
+    lead: "Prices in every EU country and the euro area, year by year. Data from Eurostat.",
+    form: "Your amount, year and place",
+    amount: (currency: string) => `Amount (${currency})`,
+    year: "Year",
+    place: "Country or area",
+    direction: "Which way",
+    toToday: "From that year to today",
+    toThen: "From today to that year",
+    result: "What it is worth",
+    worthToday: (amount: string, year: string, place: string, value: string, today: string) => `${amount} in ${year} in ${place} are worth ${value} today (${today}).`,
+    worthThen: (amount: string, today: string, year: string, place: string, value: string) => `${amount} today (${today}) were worth ${value} in ${year} in ${place}.`,
+    rose: (percent: string, year: string) => `Prices rose ${percent} since ${year}.`,
+    fell: (percent: string, year: string) => `Prices fell ${percent} since ${year}.`,
+    key: (amount: string, year: string, value: string) => `${amount} from ${year} buy today what ${value} bought then.`,
+    invalid: "Type an amount and pick a year with data.",
+    timeline: "Year by year",
+    timelineLabel: (place: string, from: string, to: string) => `How much prices rose each year in ${place}, from ${from} to ${to}.`,
+    since: (year: string) => `Since ${year}`,
+    tableYear: "Year",
+    tableRate: "Prices rose",
+    showYears: "Show every year",
+    provisionalTitle: "Provisional figures",
+    provisional: "These figures were typed by hand from Eurostat's tables. They may differ a little from Eurostat's latest.",
+    private: "Worked out in your browser. Nothing is saved or sent.",
+    sourcesTitle: "Where the numbers come from",
+    sources: (facts: { retrieved: string; today: string }) => [
+      "Eurostat's harmonised index of consumer prices, all items: how much prices rose on average each year.",
+      `"Today" is ${facts.today}, the last full year in the data. Each year is the average of its twelve months.`,
+      "The euro area is counted as it was each year. Older years are not in every country's data yet.",
+      "Each amount is in the place's currency today. Inflation changes what it buys, not the currency.",
+      `Free to reuse with credit: Creative Commons Attribution 4.0. Source: Eurostat. Taken on ${facts.retrieved}.`,
+    ],
+    sourceLink: "See Eurostat's table",
+    licenseLink: "Eurostat's reuse terms",
+  },
+  footer: {
+    note: "Nothing is saved or sent. Free to use.",
+    weight: (kb: string) => `This page weighs ${kb} KB compressed, measured when it was built.`,
+  },
+  notFound: {
+    title: "This page does not exist",
+    text: "Maybe the address has a typo, or the page moved.",
+    home: "Go to Horalis Inflation",
+  },
+};
+
+export type Words = typeof en;

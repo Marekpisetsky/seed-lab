@@ -50,7 +50,7 @@ describe("the note under it", () => {
     expect(assumptionsNote(resolveInvestment({ kind: "asset", asset: "gold" }), EN)).toMatch(/^Gold holds its value but hardly grows\. Past, not a promise\./);
   });
 
-  it("says that past figures are not a promise, and that amounts are in today's euros", () => {
-    expect(assumptionsNote(resolveInvestment({ kind: "asset", asset: "sp500" }), EN)).toBe("Past, not a promise. Amounts in today's euros.");
+  it("says that past figures are not a promise, and that amounts are in today's money", () => {
+    expect(assumptionsNote(resolveInvestment({ kind: "asset", asset: "sp500" }), EN)).toBe("Past, not a promise. Amounts in today's money.");
   });
 });

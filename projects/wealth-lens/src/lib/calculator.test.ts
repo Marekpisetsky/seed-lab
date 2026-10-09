@@ -30,6 +30,7 @@ const plan = (overrides: Partial<CalculatorPlan> = {}): CalculatorPlan => ({
   years: 20,
   withdrawalRate: 0.04,
   pricesOf: "NL",
+  currency: "EUR",
   assumptions: STANDARD_ASSUMPTIONS,
   goals: [],
   ...overrides,
@@ -224,8 +225,8 @@ describe("goals", () => {
   it("explain their calculation, with the source and year of a country's figure", () => {
     const calc = calculate(plan({ goals: [live] }), today);
     const explain = goalExplain(calc.goals[0], calc.scenario, calc.investment, EN);
-    const needed = EN.f.eur((peruCost * 12) / 0.04);
-    expect(explain[0]).toBe(`${EN.f.eur(peruCost)} a month × 12 ÷ 4% taken out a year = ${needed} needed.`);
+    const needed = EN.f.cur((peruCost * 12) / 0.04);
+    expect(explain[0]).toBe(`${EN.f.cur(peruCost)} a month × 12 ÷ 4% taken out a year = ${needed} needed.`);
     expect(explain[1]).toMatch(/^You have €1,000 and add €200 a month\. It grows [\d.]+% a year after rising prices \(US stocks, 1988–2022 average\)\. /);
     expect(explain[1]).toContain(`. ${needed} in `);
     expect(explain[2]).toBe(`What an average person there lives on, housing included: World Bank: household survey ${PERU.surveyYear}, prices ${PERU.referenceDate}.`);

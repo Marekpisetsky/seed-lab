@@ -57,7 +57,7 @@ jobs:
         continue-on-error: true
         run: |
           set -e
-          npm ci && npm run living-costs && npm run country-names && npm test
+          npm ci && npm run living-costs && npm run money-tables && npm run country-names && npm test
           # The tools that read the data, with it: their tests must pass too.
           (cd ../../projects/wealth-lens && npm ci && npm test)
           (cd ../../projects/cost-lens && npm ci && npm test)
@@ -66,7 +66,7 @@ jobs:
       - name: Keep the old data if the tests failed
         if: steps.data.outputs.status == '0' && steps.tests.outcome == 'failure'
         run: |
-          git checkout -- src/data/official/*.json src/data/living-costs.json src/data/country-names.json
+          git checkout -- src/data/official/*.json src/data/living-costs.json src/data/currencies.json src/data/exchange-rates.json src/data/country-names.json
           printf '\n## The tests failed with the new data\n\nThe data was put back as it was. See the run: %s\n' "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> src/data/official/REPORT.md
 
       - name: Open a pull request

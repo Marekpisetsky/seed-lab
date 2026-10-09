@@ -86,33 +86,43 @@ export function firstYearGrowth(scenario: Scenario, extra = 0): number {
 function growthAssumption(scenario: Scenario, investment: ResolvedInvestment, i18n: I18n): string {
   const source = growthSource(investment, i18n);
   const { f } = i18n;
-  return i18n.m.findings.growthAssumption(f.rate(scenario.realReturn), f.eur(firstYearGrowth(scenario), { signed: true }), source, Boolean(investment.period));
+  return i18n.m.findings.growthAssumption(f.rate(scenario.realReturn), f.cur(firstYearGrowth(scenario), { signed: true }), source, Boolean(investment.period));
 }
 
-/** Euros with cents only when there are any: "€102", "€102.50", "€1.49". */
+/** An amount with cents only when there are any: "€102", "€102.50", "€1.49". */
 function euros(amount: number, { f }: I18n): string {
-  return f.money(amount, "EUR", { decimals: Math.abs(amount - Math.round(amount)) < 0.005 ? 0 : 2 });
+  return f.money(amount, f.currency, { decimals: Math.abs(amount - Math.round(amount)) < 0.005 ? 0 : 2 });
+}
+
+/**
+ * A size of money in euros, in the plan's currency: the findings' limits
+ * ("worth saying from €1,000") are the same size of money in any currency
+ * (f.step is €50's worth, lib/money.ts).
+ */
+function sized(euroAmount: number, { f }: I18n): number {
+  return (euroAmount / 50) * f.step;
 }
 
 function monthlyAssumption(scenario: Scenario, { m, f }: I18n): string {
-  return m.findings.monthlyAssumption(f.eur(scenario.monthly));
+  return m.findings.monthlyAssumption(f.cur(scenario.monthly));
 }
 
 // ---------------------------------------------------------------------------
 // Rules
 // ---------------------------------------------------------------------------
 
-/** +€100 a month vs +1 % growth vs having started a year earlier: for the first goal, or for the result. */
+/** +€100 a month (twice the currency's step) vs +1 % growth vs having started a year earlier: for the first goal, or for the result. */
 export function leverFinding(context: FindingContext): Finding | null {
   const { calc, today, i18n } = context;
   const { m, f } = i18n;
   const t = m.findings.lever;
   const { scenario, investment } = calc;
+  const more = 2 * f.step;
   const options = [
-    { key: "monthly", label: t.monthlyLabel(f.eur(scenario.monthly + 100)), scenario: { ...scenario, monthly: scenario.monthly + 100 } },
+    { key: "monthly", label: t.monthlyLabel(f.cur(more), f.cur(scenario.monthly + more)), scenario: { ...scenario, monthly: scenario.monthly + more } },
     {
       key: "return",
-      label: t.returnLabel(f.rate(scenario.realReturn + 0.01), f.eur(firstYearGrowth(scenario, 0.01) - firstYearGrowth(scenario), { signed: true })),
+      label: t.returnLabel(f.rate(scenario.realReturn + 0.01), f.cur(firstYearGrowth(scenario, 0.01) - firstYearGrowth(scenario), { signed: true })),
       scenario: { ...scenario, realReturn: scenario.realReturn + 0.01 },
     },
     { key: "earlier", label: t.earlierLabel, scenario: { ...scenario, capital: valueAt(scenario, 12) } },
@@ -127,15 +137,15 @@ export function leverFinding(context: FindingContext): Finding | null {
     const best = results.reduce((a, b) => (b.gain > a.gain ? b : a));
     if (best.gain < 6) return null;
     const when = f.span(best.gain);
-    const extra = f.eur(firstYearGrowth(scenario, 0.01) - firstYearGrowth(scenario), { signed: true });
-    const text = best.key === "monthly" ? t.goalMonthly(when) : best.key === "return" ? t.goalReturn(when, extra) : t.goalEarlier(when);
+    const extra = f.cur(firstYearGrowth(scenario, 0.01) - firstYearGrowth(scenario), { signed: true });
+    const text = best.key === "monthly" ? t.goalMonthly(f.cur(more), when) : best.key === "return" ? t.goalReturn(when, extra) : t.goalEarlier(when);
     return {
       id: "lever",
       value: when,
       text,
       tone: "info",
       calculation: [
-        t.goalNeeded(goalName(focus, i18n), f.eur(focus.target), f.span(focus.months), yearOf(today, focus.months)),
+        t.goalNeeded(goalName(focus, i18n), f.cur(focus.target), f.span(focus.months), yearOf(today, focus.months)),
         ...results.map((result) => t.sooner(result.label, f.span(result.gain))),
       ],
       assumptions,
@@ -146,16 +156,16 @@ export function leverFinding(context: FindingContext): Finding | null {
   const base = valueAt(scenario, months);
   const results = options.map((option) => ({ ...option, gain: valueAt(option.scenario, months) - base }));
   const best = results.reduce((a, b) => (b.gain > a.gain ? b : a));
-  if (base <= 0 || best.gain < Math.max(1000, base * 0.05)) return null;
-  const amount = f.eurRounded(best.gain);
+  if (base <= 0 || best.gain < Math.max(sized(1000, i18n), base * 0.05)) return null;
+  const amount = f.curRounded(best.gain);
   const year = yearOf(today, months);
-  const say = best.key === "monthly" ? t.resultMonthly : best.key === "return" ? t.resultReturn : t.resultEarlier;
+  const say = (gain: string, at: number) => (best.key === "monthly" ? t.resultMonthly(f.cur(more), gain, at) : best.key === "return" ? t.resultReturn(gain, at) : t.resultEarlier(gain, at));
   return {
     id: "lever",
-    value: f.eurRounded(best.gain, { signed: true }),
+    value: f.curRounded(best.gain, { signed: true }),
     text: say(amount, year),
     tone: "info",
-    calculation: [t.now(f.eur(base), year), ...results.map((result) => t.gain(result.label, f.eur(result.gain, { signed: true })))],
+    calculation: [t.now(f.cur(base), year), ...results.map((result) => t.gain(result.label, f.cur(result.gain, { signed: true })))],
     assumptions,
   };
 }
@@ -171,14 +181,14 @@ export function waitingFinding(context: FindingContext): Finding | null {
   // The same capital and monthly amount, invested a year later: one year less by that date.
   const later = valueAt(calc.scenario, months - 12);
   const cost = now - later;
-  if (cost < Math.max(500, now * 0.02)) return null;
+  if (cost < Math.max(sized(500, i18n), now * 0.02)) return null;
   const year = yearOf(today, months);
   return {
     id: "waiting",
-    value: f.eurRounded(cost),
-    text: t.text(f.eurRounded(cost), year),
+    value: f.curRounded(cost),
+    text: t.text(f.curRounded(cost), year),
     tone: "info",
-    calculation: [t.now(f.eur(now), year), t.later(f.eur(later)), t.difference(f.eur(cost))],
+    calculation: [t.now(f.cur(now), year), t.later(f.cur(later)), t.difference(f.cur(cost))],
     assumptions: [growthAssumption(calc.scenario, calc.investment, i18n), monthlyAssumption(calc.scenario, i18n), m.findings.todaysEuros],
   };
 }
@@ -193,22 +203,22 @@ export function inflationFinding(context: FindingContext): Finding | null {
   if (years < 5 || inflation <= 0) return null;
   const real = calc.result.total;
   // "~€6, worth €4 of today's money" says nothing.
-  if (real < 1000) return null;
+  if (real < sized(1000, i18n)) return null;
   const factor = Math.pow(1 + inflation, years);
   const nominal = real * factor;
   const year = yearOf(today, months);
   const times = f.fixed(factor, 2);
   return {
     id: "inflation",
-    value: `~${f.eurRounded(nominal)}`,
-    text: t.text(year, f.eurRounded(nominal), f.eurRounded(real)),
+    value: `~${f.curRounded(nominal)}`,
+    text: t.text(year, f.curRounded(nominal), f.curRounded(real)),
     tone: "info",
     calculation: [
-      t.factor(f.rate(inflation), Math.round(years), times, euros(factor, i18n)),
-      t.times(f.eur(real), times, f.eur(nominal), year),
+      t.factor(f.rate(inflation), Math.round(years), times, euros(1, i18n), euros(factor, i18n)),
+      t.times(f.cur(real), times, f.cur(nominal), year),
       t.todays(year),
     ],
-    assumptions: [t.assumption(f.rate(inflation), euros(100 * (1 + inflation), i18n)), t.afterPrices],
+    assumptions: [t.assumption(f.rate(inflation), euros(100, i18n), euros(100 * (1 + inflation), i18n)), t.afterPrices],
   };
 }
 
@@ -222,15 +232,15 @@ export function feesFinding(context: FindingContext): Finding | null {
   const cheap: Scenario = { ...calc.scenario, realReturn: calc.scenario.realReturn - 0.002 };
   const dear: Scenario = { ...calc.scenario, realReturn: calc.scenario.realReturn - 0.01 };
   const cost = valueAt(cheap, months) - valueAt(dear, months);
-  if (cost < 1000) return null;
+  if (cost < sized(1000, i18n)) return null;
   const year = yearOf(today, months);
   return {
     id: "fees",
-    value: f.eurRounded(cost),
-    text: t.text(f.eurRounded(cost), year),
+    value: f.curRounded(cost),
+    text: t.text(f.curRounded(cost), year),
     tone: "info",
-    calculation: [t.cheap(f.eur(valueAt(cheap, months)), year), t.dear(f.eur(valueAt(dear, months)))],
-    assumptions: [t.assumption, growthAssumption(calc.scenario, calc.investment, i18n)],
+    calculation: [t.cheap(f.cur(valueAt(cheap, months)), year), t.dear(f.cur(valueAt(dear, months)))],
+    assumptions: [t.assumption(f.cur(1), f.cur(3), f.cur(1000)), growthAssumption(calc.scenario, calc.investment, i18n)],
   };
 }
 
@@ -255,7 +265,7 @@ export function sequenceFinding(context: FindingContext): Finding | null {
   const bad: Scenario = { ...scenario, head: decade.head };
   const years = `${decade.from}–${decade.to}`;
   const typical = valueAt(scenario, span * 12);
-  const calculation = [t.afterYears(span, f.eur(typical), f.eur(decade.head[span]), years), t.thenAverage];
+  const calculation = [t.afterYears(span, f.cur(typical), f.cur(decade.head[span]), years), t.thenAverage];
   const assumptions = [t.realYears(decadeSource(investment, i18n), years), monthlyAssumption(scenario, i18n)];
 
   if (focus) {
@@ -273,14 +283,14 @@ export function sequenceFinding(context: FindingContext): Finding | null {
     };
   }
   const shortfall = valueAt(scenario, months) - valueAt(bad, months);
-  if (shortfall < Math.max(1000, valueAt(scenario, months) * 0.05)) return null;
+  if (shortfall < Math.max(sized(1000, i18n), valueAt(scenario, months) * 0.05)) return null;
   const year = yearOf(today, months);
   return {
     id: "sequence",
-    value: f.eurRounded(-shortfall),
-    text: t.resultText(span, years, f.eurRounded(shortfall), year),
+    value: f.curRounded(-shortfall),
+    text: t.resultText(span, years, f.curRounded(shortfall), year),
     tone: "warning",
-    calculation: [...calculation, t.resultLine(year, f.eur(valueAt(scenario, months)), f.eur(valueAt(bad, months)), years)],
+    calculation: [...calculation, t.resultLine(year, f.cur(valueAt(scenario, months)), f.cur(valueAt(bad, months)), years)],
     assumptions,
   };
 }
@@ -296,9 +306,9 @@ export function doublingFinding({ calc, i18n }: FindingContext): Finding | null 
   return {
     id: "doubling",
     value: f.span(years * 12),
-    text: m.findings.doubling.text(f.rate(rate), f.eur(base), f.eur(base * 2), f.span(years * 12)),
+    text: m.findings.doubling.text(f.rate(rate), f.cur(base), f.cur(base * 2), f.span(years * 12)),
     tone: "info",
-    calculation: [m.findings.doubling.line(f.rate(rate), f.fixed(years, 1), f.eur(base), f.eur(base * 2))],
+    calculation: [m.findings.doubling.line(f.rate(rate), f.fixed(years, 1), f.cur(base), f.cur(base * 2))],
     assumptions: [growthAssumption(calc.scenario, calc.investment, i18n)],
   };
 }

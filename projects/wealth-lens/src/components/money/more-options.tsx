@@ -8,11 +8,12 @@ import { SettledNumberInput } from "@/components/ui/form";
 import { useAppState } from "@/hooks/use-app";
 import { byCountryName, countryName } from "@/i18n/countries";
 import { investmentName } from "@/i18n/investment-text";
-import { resetAssumptions, setAssumptions, setInvestment, setPricesOf } from "@/lib/app-store";
+import { resetAssumptions, setAssumptions, setCurrency, setInvestment, setPricesOf } from "@/lib/app-store";
 import { historicalRiskText, optionsChanged, upsAndDownsExample } from "@/lib/assumptions";
 import { REFERENCE_INFLATION, referenceInflation } from "@/lib/cost-of-living";
 import type { ResolvedInvestment } from "@/lib/investment";
 import { mixPartKey } from "@/lib/mix";
+import { PLAN_CURRENCIES, PRICE_YEAR } from "@/lib/money";
 import type { Investment } from "@/lib/types";
 import { MAX_VOLATILITY } from "@/lib/validation";
 import { HowTheSimulationsWork } from "./explainers";
@@ -98,6 +99,28 @@ function investmentFor(choice: PickChoice, current: Investment): Investment {
 const EMPTY: readonly string[] = [];
 /** Every country with a reference inflation, for "Rising prices in". */
 const PRICE_COUNTRIES = Object.keys(REFERENCE_INFLATION).map((code) => ({ code }));
+
+const currencyLists = new Map<string, { code: string; label: string }[]>();
+
+/** Every currency a plan can be in, by its name in the page's language: "Euro (EUR)". */
+function currencyOptions(locale: string): { code: string; label: string }[] {
+  let list = currencyLists.get(locale);
+  if (!list) {
+    let names: Intl.DisplayNames | null = null;
+    try {
+      names = new Intl.DisplayNames([locale], { type: "currency" });
+    } catch {
+      names = null;
+    }
+    const collator = new Intl.Collator(locale);
+    list = PLAN_CURRENCIES.map((code) => {
+      const name = names?.of(code);
+      return { code, label: name && name !== code ? `${name} (${code})` : code };
+    }).sort((a, b) => collator.compare(a.label, b.label));
+    currencyLists.set(locale, list);
+  }
+  return list;
+}
 
 /**
  * "More options", folded under the calculator and loaded when opened:
@@ -207,6 +230,25 @@ export function MoreOptions({ current }: { current: ResolvedInvestment }) {
           onCommit={(rate) => setAssumptions({ inflation: same(rate, reference.rate) ? null : rate })}
           hint={<p>{(/average/i.test(reference.basis) ? t.hintAverage : t.hintTarget)(f.rate(reference.rate), reference.asOf)}</p>}
         />
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold">{m.more.currencyTitle}</h3>
+        <label className="block max-w-sm min-w-0 space-y-1">
+          <span className={labelClass}>{m.more.currency}</span>
+          <select
+            value={plan.currency}
+            onChange={(event) => setCurrency(event.target.value)}
+            className="min-h-11 w-full rounded-md border border-border bg-card px-3 py-2 text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
+          >
+            {currencyOptions(i18n.locale).map((option) => (
+              <option key={option.code} value={option.code}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <p className="text-sm text-muted">{m.more.currencyHint(PRICE_YEAR)}</p>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2">

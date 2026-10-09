@@ -1,11 +1,12 @@
 /**
  * The words and formats of one language, made from its dictionary. Apart
  * from index.ts, so a page's code holds only its own language's words
- * (components/i18n-en.tsx, i18n-es.tsx).
+ * (components/i18n-en.tsx, i18n-es.tsx, i18n-nl.tsx).
  */
 
 import { addMonths } from "@/lib/dates";
 import { numberFormats, type NumberFormats } from "@/lib/format";
+import { DEFAULT_CURRENCY, moneyStep } from "@/lib/money";
 import { LOCALE_SETTINGS, type Locale } from "./locales";
 import type { Messages } from "./messages/en";
 import type { PageMessages } from "./messages/en-pages";
@@ -23,8 +24,10 @@ export interface Formats extends NumberFormats {
    * "in 25 years (2051)"; past 60 years, "not at this pace".
    */
   reach(months: number, horizonMonths: number, today: Date): Reach;
-  /** Whole euros, but "under €1" for a few cents: €1 invested pays €0.003 a month, not €0. */
-  smallEur(amount: number): string;
+  /** Whole units, but "under €1" for a few cents: €1 invested pays €0.003 a month, not €0. */
+  smallCur(amount: number): string;
+  /** The "+€50 a month" step in this currency, a round figure (lib/money.ts). */
+  step: number;
 }
 
 /** When the plan gets somewhere, in one line (`text`) and in two short ones for a narrow cell (`lines`). */
@@ -38,6 +41,14 @@ export interface I18n {
   locale: Locale;
   m: Messages;
   f: Formats;
+  /** The reader's way of writing numbers and the plan's currency. */
+  money: Money;
+}
+
+/** Whose way numbers are written ("MX": the reader's browser says es-MX; "" for the language's own) and the plan's currency (More options). */
+export interface Money {
+  region: string;
+  currency: string;
 }
 
 /**
@@ -52,8 +63,33 @@ export interface PageI18n extends I18n {
 /** Beyond this a date is not a plan (calculator.ts MAX_YEARS). */
 const MAX_MONTHS = 60 * 12;
 
-export function createI18n(locale: Locale, m: Messages): I18n {
-  const numbers = numberFormats(LOCALE_SETTINGS[locale].intl);
+/**
+ * The language's numbers as the reader's region writes them ("es" read in
+ * Mexico: 1,234.5), when the browser knows the pair; the language's own
+ * otherwise. Only the reader's own region (their browser's language, as
+ * es-MX on a Spanish page): a pair like en-NL mixes two ways of writing.
+ */
+function intlIn(locale: Locale, region: string): string {
+  const tag = `${locale}-${region}`;
+  try {
+    return /^[A-Z]{2}$/.test(region) && Intl.NumberFormat.supportedLocalesOf(tag).length > 0 ? tag : LOCALE_SETTINGS[locale].intl;
+  } catch {
+    return LOCALE_SETTINGS[locale].intl;
+  }
+}
+
+const made = new Map<string, I18n>();
+
+/**
+ * The words and formats of a language, with amounts in the plan's
+ * currency, numbers written the reader's way; made once per language,
+ * region and currency.
+ */
+export function createI18n(locale: Locale, m: Messages, money: Money = { region: "", currency: DEFAULT_CURRENCY }): I18n {
+  const key = `${locale}|${money.region}|${money.currency}`;
+  const known = made.get(key);
+  if (known && known.m === m) return known;
+  const numbers = numberFormats(intlIn(locale, money.region), money.currency);
   const { months: monthsText, years: yearsText } = m.units;
   const f: Formats = {
     ...numbers,
@@ -90,9 +126,12 @@ export function createI18n(locale: Locale, m: Messages): I18n {
         ? { reached: true, text: m.when.from(year, span), lines: [m.when.since(year), m.when.inSpan(span, null)] }
         : { reached: false, text: m.when.inSpan(span, year), lines: [m.when.inSpan(span, null), `(${year})`] };
     },
-    smallEur(amount) {
-      return amount > 0 && amount < 0.5 ? m.result.underOne : numbers.eur(amount);
+    smallCur(amount) {
+      return amount > 0 && amount < 0.5 ? m.result.underOne(numbers.cur(1)) : numbers.cur(amount);
     },
+    step: moneyStep(money.currency),
   };
-  return { locale, m, f };
+  const i18n = { locale, m, f, money };
+  made.set(key, i18n);
+  return i18n;
 }

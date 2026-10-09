@@ -30,6 +30,20 @@ export const IN_SENTENCE: Readonly<Record<Locale, Readonly<Record<string, string
     NL: "los Países Bajos",
     GB: "el Reino Unido",
   },
+  nl: {
+    US: "de Verenigde Staten",
+    GB: "het Verenigd Koninkrijk",
+    PH: "de Filipijnen",
+    AE: "de Verenigde Arabische Emiraten",
+    DO: "de Dominicaanse Republiek",
+    CF: "de Centraal-Afrikaanse Republiek",
+    BS: "de Bahama's",
+    MV: "de Maldiven",
+    KM: "de Comoren",
+    SC: "de Seychellen",
+    SB: "de Salomonseilanden",
+    MH: "de Marshalleilanden",
+  },
 };
 
 /** A country's name in a language, as a list shows it; its code when it has none. */

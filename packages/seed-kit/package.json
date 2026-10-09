@@ -15,7 +15,8 @@
     "check": "npm run lint && npm run typecheck && npm test",
     "official-data": "node --experimental-strip-types scripts/official-data.ts",
     "living-costs": "node --experimental-strip-types scripts/living-costs.ts",
-    "country-names": "node --experimental-strip-types scripts/country-names.ts"
+    "country-names": "node --experimental-strip-types scripts/country-names.ts",
+    "money-tables": "node --experimental-strip-types scripts/money-tables.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

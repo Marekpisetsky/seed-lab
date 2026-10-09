@@ -10,8 +10,8 @@ import { problem, type Problem } from "./problems";
 import { isRecord, parsePlan, type Notices } from "./validation";
 
 export const DATA_FILE_KIND = "wealth-lens-data";
-/** 11: no holdings, no price files, no goals from a price list (9 October 2026). */
-export const DATA_FILE_VERSION = 11;
+/** 11: no holdings, no price files, no goals from a price list; 12: the plan's currency (9 October 2026). */
+export const DATA_FILE_VERSION = 12;
 
 export function dataFileName(savedAt: Date): string {
   return `horalis-growth-${toIsoDate(savedAt)}.json`;
@@ -31,7 +31,7 @@ export function serializeState(state: AppState, savedAt: Date): string {
 export type DataFileResult = { ok: true; state: AppState; notices: Notices } | { ok: false; error: Problem };
 
 /**
- * Reads a file made by "Download my data" (versions 1 to 11); anything invalid
+ * Reads a file made by "Download my data" (versions 1 to 12); anything invalid
  * inside falls back field by field.
  */
 export function parseDataFile(text: string): DataFileResult {

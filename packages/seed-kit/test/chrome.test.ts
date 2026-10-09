@@ -14,9 +14,9 @@ const header = (locale: "en" | "es" = "en") =>
     homeCurrent: true,
     nav: [
       { label: "My money", href: "/", current: true },
-      { label: "My stocks", href: "/stocks" },
+      { label: "Test my plan", href: "/test" },
     ],
-    languageHrefs: { en: "/", es: "/es/" },
+    languageHrefs: { en: "/", es: "/es/", nl: "/nl/" },
     current: "wealth-lens",
   });
 
@@ -26,7 +26,7 @@ describe("the header", () => {
     assert.match(out, /<a class="sk-skip" href="#main">Skip to content<\/a>/);
     assert.match(out, /<a class="sk-brand" href="\/" aria-current="page"><span class="sk-seed"><svg[^>]*>.*<\/svg><\/span><span class="sk-name">Horalis<span class="sk-product"> &lt;Growth&gt;<\/span><\/span><\/a>/);
     assert.match(out, /<a href="\/" aria-current="page">My money<\/a>/);
-    assert.match(out, /<a href="\/stocks">My stocks<\/a>/);
+    assert.match(out, /<a href="\/test">Test my plan<\/a>/);
     assert.match(out, /<a href="\/es\/" hreflang="es" lang="es" title="Español" aria-label="Español">ES<\/a>/);
     assert.match(out, /hreflang="en" lang="en" title="English" aria-label="English" aria-current="true">EN<\/a>/);
     assert.match(out, /<details class="sk-launcher"><summary aria-label="Horalis tools"/);
@@ -43,7 +43,7 @@ describe("the header", () => {
   });
 
   it("shows the brand alone on the hub, and a tool's own name after it", () => {
-    const hub = headerHtml(headerModel({ locale: "en", name: "Horalis", homeHref: "/", languageHrefs: { en: "/", es: "/es/" }, current: "hub" })).value;
+    const hub = headerHtml(headerModel({ locale: "en", name: "Horalis", homeHref: "/", languageHrefs: { en: "/", es: "/es/", nl: "/nl/" }, current: "hub" })).value;
     assert.match(hub, /<span class="sk-name">Horalis<\/span><\/a>/);
     assert.equal(header().home.product, "<Growth>");
   });
@@ -53,7 +53,7 @@ describe("the header", () => {
     assert.match(es, /Saltar al contenido/);
     assert.match(es, /aria-label="Herramientas de Horalis"/);
     assert.match(es, /Estás aquí/);
-    assert.match(headerHtml(headerModel({ ...header(), name: "Horalis", homeHref: "/", languageHrefs: { en: "/", es: "/es/" }, current: "hub", theme: "dark", locale: "en" })).value, /<header class="sk-header theme-dark">/);
+    assert.match(headerHtml(headerModel({ ...header(), name: "Horalis", homeHref: "/", languageHrefs: { en: "/", es: "/es/", nl: "/nl/" }, current: "hub", theme: "dark", locale: "en" })).value, /<header class="sk-header theme-dark">/);
   });
 
   it("has the same words in every language", () => {

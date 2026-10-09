@@ -38,7 +38,7 @@ describe("data file", () => {
 
   it("says what the file is and when it was saved", () => {
     const json = JSON.parse(serializeState(state, new Date("2026-09-29T10:00:00Z")));
-    expect(json).toMatchObject({ kind: "wealth-lens-data", version: 11, savedAt: "2026-09-29T10:00:00.000Z" });
+    expect(json).toMatchObject({ kind: "wealth-lens-data", version: 12, savedAt: "2026-09-29T10:00:00.000Z" });
     // Only the plan: nothing about stocks or prices.
     expect(Object.keys(json).sort()).toEqual(["kind", "plan", "savedAt", "version"]);
     expect(dataFileName(new Date("2026-09-29T10:00:00Z"))).toBe("horalis-growth-2026-09-29.json");
@@ -61,7 +61,7 @@ describe("data file", () => {
   it("refuses files that are not Horalis Growth data", () => {
     expect(parseDataFile("not json")).toEqual({ ok: false, error: { code: "data-not-json" } });
     expect(parseDataFile('{"holdings": []}')).toEqual({ ok: false, error: { code: "data-not-ours" } });
-    expect(parseDataFile('{"kind": "wealth-lens-data", "version": 12}')).toEqual({ ok: false, error: { code: "data-newer" } });
+    expect(parseDataFile('{"kind": "wealth-lens-data", "version": 13}')).toEqual({ ok: false, error: { code: "data-newer" } });
     expect(problemText({ code: "data-newer" }, EN.m.problems)).toBe("A newer Horalis Growth made this file.");
   });
 

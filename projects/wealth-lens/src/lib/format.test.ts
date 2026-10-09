@@ -7,8 +7,8 @@ const ES = getI18n("es");
 const {
   dayMonth: formatDayMonth,
   duration: formatDuration,
-  eur: formatEur,
-  eurRounded: formatEurRounded,
+  cur: formatEur,
+  curRounded: formatEurRounded,
   money: formatMoney,
   monthYear: formatMonthYear,
   number: formatNumber,
@@ -39,7 +39,7 @@ describe("formatMoney", () => {
   });
 
   it("writes a loss with the true minus sign (−), which every reader of typed numbers reads back", () => {
-    for (const text of [formatMoney(-250, "EUR", { signed: true }), formatEur(-1234), formatPercent(-0.05), formatNumber(-2.5), ES.f.eur(-1234)]) {
+    for (const text of [formatMoney(-250, "EUR", { signed: true }), formatEur(-1234), formatPercent(-0.05), formatNumber(-2.5), ES.f.cur(-1234)]) {
       expect(text).toMatch(/^\u2212|\u2212\d/);
       expect(text).not.toContain("-");
     }
@@ -140,14 +140,14 @@ describe("in Spanish", () => {
   const nbsp = "\u00a0";
 
   it("writes money, percents and numbers the Spanish way", () => {
-    expect(ES.f.eur(112_288)).toBe(`112.288${nbsp}€`);
-    expect(ES.f.eur(5400, { signed: true })).toBe(`+5400${nbsp}€`);
+    expect(ES.f.cur(112_288)).toBe(`112.288${nbsp}€`);
+    expect(ES.f.cur(5400, { signed: true })).toBe(`+5400${nbsp}€`);
     expect(ES.f.money(1967.1513, "EUR")).toBe(`1967,15${nbsp}€`);
     expect(ES.f.percent(0.0914)).toBe(`9,1${nbsp}%`);
     expect(ES.f.rate(0.045)).toBe(`4,5${nbsp}%`);
     expect(ES.f.number(1500.5)).toBe("1500,5");
     expect(ES.f.fixed(0.9, 2)).toBe("0,90");
-    expect(ES.f.eurRounded(66_827)).toBe(`67.000${nbsp}€`);
+    expect(ES.f.curRounded(66_827)).toBe(`67.000${nbsp}€`);
   });
 
   it("writes spans of time and months in Spanish", () => {
@@ -158,7 +158,7 @@ describe("in Spanish", () => {
   });
 
   it("never writes a minus zero", () => {
-    expect(ES.f.eur(-0.3)).toBe(`0${nbsp}€`);
+    expect(ES.f.cur(-0.3)).toBe(`0${nbsp}€`);
     expect(ES.f.rate(-0.000001)).toBe(`0${nbsp}%`);
   });
 });

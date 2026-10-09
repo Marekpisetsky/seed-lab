@@ -1,6 +1,6 @@
 /**
  * The header and footer every Horalis app wears, as a plain model: the
- * logo and the app's name, its pages, the EN/ES switch, the theme menu
+ * logo and the app's name, its pages, the language switch, the theme menu
  * (theme.ts), the tools launcher, and the footer's links, notes and "Part
  * of Horalis". Two
  * renderers draw the same model with the same markup and classes
@@ -9,49 +9,15 @@
  * and notes.
  */
 
-import { LOCALE_SETTINGS, LOCALES, type Locale } from "./locales.ts";
-import type { Theme } from "./theme.ts";
+import { isPendingReview, LOCALE_SETTINGS, LOCALES, SHOWN_LOCALES, type Locale } from "./locales.ts";
+import { KIT_WORDS, type KitWords } from "./words/index.ts";
 import { BRAND_NAME, HUB_URL } from "./site.ts";
 import { SHOWN_TOOLS } from "./tools.ts";
 
-export const CHROME_WORDS = {
-  en: {
-    skip: "Skip to content",
-    pages: "Pages",
-    language: "Language",
-    launcher: "Horalis tools",
-    hub: "Horalis",
-    hubNote: "All the Horalis tools",
-    tools: "Tools",
-    here: "You are here",
-    more: "More",
-    theme: "Theme",
-    themes: { auto: "Automatic", light: "Light", dark: "Dark" },
-    themeAuto: "Like your device",
-    themeNote: "Kept only in this tab.",
-    partOf: "Part of Horalis",
-    copyright: "© 2026 Horalis. Free to use.",
-  },
-  es: {
-    skip: "Saltar al contenido",
-    pages: "Páginas",
-    language: "Idioma",
-    launcher: "Herramientas de Horalis",
-    hub: "Horalis",
-    hubNote: "Todas las herramientas de Horalis",
-    tools: "Herramientas",
-    here: "Estás aquí",
-    more: "Más",
-    theme: "Tema",
-    themes: { auto: "Automático", light: "Claro", dark: "Oscuro" },
-    themeAuto: "Como tu dispositivo",
-    themeNote: "Solo se recuerda en esta pestaña.",
-    partOf: "Parte de Horalis",
-    copyright: "© 2026 Horalis. De uso gratuito.",
-  },
-} as const satisfies Record<Locale, Record<string, string | Readonly<Record<Theme, string>>>>;
+/** The header's and footer's words in each language (words/en.ts, es.ts, nl.ts). */
+export const CHROME_WORDS: Readonly<Record<Locale, KitWords["chrome"]>> = Object.fromEntries(LOCALES.map((locale) => [locale, KIT_WORDS[locale].chrome])) as Record<Locale, KitWords["chrome"]>;
 
-export type ChromeWords = (typeof CHROME_WORDS)[Locale];
+export type ChromeWords = KitWords["chrome"];
 
 export interface ChromeLink {
   label: string;
@@ -133,7 +99,8 @@ export function headerModel(input: HeaderInput): HeaderModel {
     words: CHROME_WORDS[locale],
     home: { ...brandParts(input.name), href: input.homeHref, current: input.homeCurrent ?? false },
     nav: input.nav ?? [],
-    languages: LOCALES.map((other) => ({
+    // The shown languages, and the page's own if it waits for review (so it is marked current).
+    languages: LOCALES.filter((other) => SHOWN_LOCALES.includes(other) || other === locale).map((other) => ({
       locale: other,
       label: LOCALE_SETTINGS[other].label,
       name: LOCALE_SETTINGS[other].name,
@@ -166,7 +133,7 @@ export function footerModel(input: FooterInput): FooterModel {
     locale: input.locale,
     words: CHROME_WORDS[input.locale],
     links: input.links,
-    notes: input.notes ?? [],
+    notes: [...(input.notes ?? []), ...(isPendingReview(input.locale) ? [CHROME_WORDS[input.locale].reviewNote] : [])],
     ...(input.partOf === false ? {} : { partOf: input.partOf ?? HUB_URL }),
     ...(input.theme ? { theme: input.theme } : {}),
   };

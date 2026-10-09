@@ -44,7 +44,7 @@ describe("the Horalis header and footer", () => {
         { label: "My money", href: "/", current: true },
         { label: "My stocks", href: "/stocks" },
       ],
-      languageHrefs: { en: "/", es: "/es" },
+      languageHrefs: { en: "/", es: "/es", nl: "/nl" },
       current: "wealth-lens",
     });
     const footer = footerModel({ locale, links: [{ label: "About", href: "/about" }], notes: ["Nothing is saved or sent."] });
@@ -70,7 +70,7 @@ describe("the Horalis header and footer", () => {
   it("marks Horalis Growth as the tool you are in, wears the seed, and links the hub", () => {
     const markup = renderToStaticMarkup(
       createElement(SiteHeader, {
-        model: headerModel({ locale: "en", name: "Horalis Growth", homeHref: "/", languageHrefs: { en: "/", es: "/es" }, current: "wealth-lens" }),
+        model: headerModel({ locale: "en", name: "Horalis Growth", homeHref: "/", languageHrefs: { en: "/", es: "/es", nl: "/nl" }, current: "wealth-lens" }),
       }),
     );
     expect(markup).toMatch(/<a href="\/" aria-current="true"><span class="sk-tool">Horalis Growth<\/span><span class="sk-here">/);

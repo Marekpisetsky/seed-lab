@@ -22,8 +22,8 @@ export const STATUSES: readonly Status[] = ["live", "beta", "coming"];
 export const CATEGORIES = ["money", "life"] as const;
 export type Category = (typeof CATEGORIES)[number];
 export const CATEGORY_NAMES: Readonly<Record<Category, Localized>> = {
-  money: { en: "Money", es: "Dinero" },
-  life: { en: "Life and countries", es: "Vida y países" },
+  money: { en: "Money", es: "Dinero", nl: "Geld" },
+  life: { en: "Life and countries", es: "Vida y países", nl: "Leven en landen" },
 };
 
 /** The five principles, in the order of the Principles page (the dictionaries use the same ids). */

@@ -9,6 +9,7 @@
 import { isAssetId } from "./assets";
 import { DEFAULT_PRICES_OF, isPriceCountry, referenceRate } from "@seed-kit/inflation-rates.ts";
 import { isIndexId, RETIRED_SERIES } from "./index-ids";
+import { DEFAULT_CURRENCY, isPlanCurrency } from "./money";
 import { resolveInvestment, toReal } from "./investment";
 import { MAX_PARTS, mixPartKey } from "./mix";
 import { problem, type Problem } from "./problems";
@@ -19,8 +20,12 @@ import { STANDARD_ASSUMPTIONS, type AssumptionOverrides, type Goal, type Investm
 /** The euro goal of version 1 files, which becomes the goal "reach an amount". */
 export const DEFAULT_GOAL: LegacyGoal = { amount: 100_000, targetDate: null };
 
-/** The largest amount accepted anywhere (invested, monthly, a price): EUR 1 billion. */
-export const MAX_AMOUNT = 1e9;
+/**
+ * The largest amount accepted anywhere (invested, monthly, a price), in
+ * any currency: room for a thousand million euros in the currency with
+ * the most units to the euro (about 4.6 × 10¹³ Iranian rials).
+ */
+export const MAX_AMOUNT = 1e15;
 
 /**
  * The growth step 3 starts with, after rising prices: world stocks grew
@@ -54,6 +59,7 @@ export const DEFAULT_PLAN: Plan = {
   years: 20,
   withdrawalRate: 0.04,
   pricesOf: DEFAULT_PRICES_OF,
+  currency: DEFAULT_CURRENCY,
   assumptions: { ...STANDARD_ASSUMPTIONS, growth: STARTING_GROWTH },
   goals: [],
 };
@@ -432,6 +438,8 @@ export function parsePlan(value: unknown, notices: Notices = [], version: number
     // On the slider's steps: 2–7 %, every 0.5 % (earlier versions offered 3, 4 and 5 %).
     withdrawalRate: pick("withdrawalRate", (v) => (isRate(v) && v > 0 ? snapWithdrawal(v) : null)),
     pricesOf,
+    // Before version 12 every amount was in euros.
+    currency: isPlanCurrency(value.currency) ? value.currency : DEFAULT_CURRENCY,
     assumptions: chosen.assumptions,
     goals,
   };

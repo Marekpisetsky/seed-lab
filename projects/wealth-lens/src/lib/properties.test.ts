@@ -9,7 +9,7 @@ import { SP500_PLAN } from "./sp500-plan";
 
 const ES = getI18n("es");
 const whenText = EN.f.when;
-const { eur: formatEur, eurRounded: formatEurRounded, rate: formatRate } = EN.f;
+const { cur: formatEur, curRounded: formatEurRounded, rate: formatRate } = EN.f;
 
 /**
  * Properties the money math must keep for any input, checked on random
@@ -233,7 +233,7 @@ describe("texts never contradict their numbers", () => {
     fc.assert(
       fc.property(fc.double({ min: -0.49, max: 0.49, noNaN: true }), (tiny) =>
         [EN, ES].every(({ f }, index) =>
-          [f.eur(tiny), f.eur(tiny, { signed: true }), f.eurRounded(tiny), f.eurRounded(tiny, { signed: true }), formatShare(tiny / 10_000, index ? ES : EN), f.rate(tiny / 10_000)].every(
+          [f.cur(tiny), f.cur(tiny, { signed: true }), f.curRounded(tiny), f.curRounded(tiny, { signed: true }), formatShare(tiny / 10_000, index ? ES : EN), f.rate(tiny / 10_000)].every(
             (text) => !/^[-−]/.test(text),
           ),
         ),

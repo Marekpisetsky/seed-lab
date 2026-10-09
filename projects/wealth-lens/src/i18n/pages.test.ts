@@ -18,7 +18,7 @@ describe("the pages' words", () => {
     expect(PAGE_KEYS.sort()).toEqual(["about", "howItWorks", "meta", "notFound", "privacy", "terms"]);
     for (const dictionary of [en, es]) for (const key of PAGE_KEYS) expect(key in dictionary, key).toBe(false);
     // The browser's words come from en.ts or es.ts alone, never from the pages' files or index.ts.
-    for (const file of ["i18n-en.tsx", "i18n-es.tsx"]) {
+    for (const file of ["i18n-en.tsx", "i18n-es.tsx", "i18n-nl.tsx"]) {
       const code = readFileSync(new URL(`../components/${file}`, import.meta.url), "utf8");
       expect(code, file).not.toMatch(/-pages|from "@\/i18n"/);
     }

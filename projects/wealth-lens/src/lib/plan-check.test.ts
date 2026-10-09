@@ -20,6 +20,7 @@ const plan = (overrides: Partial<CalculatorPlan> = {}): CalculatorPlan => ({
   years: 20,
   withdrawalRate: 0.04,
   pricesOf: "NL",
+  currency: "EUR",
   assumptions: STANDARD_ASSUMPTIONS,
   goals: [],
   ...overrides,

@@ -112,8 +112,8 @@ describe("a growth over 50% a year: what the data has kept", () => {
 
   it("says no asset kept it, and what the user's money would be at that pace", () => {
     const text = strongGrowthWarning(0.7, money, EN);
-    expect(text).toBe(`No asset in the data has kept this up: 70% on average for 20 years. At that pace, your €1,100 would be ${EN.f.eur(1100 * 1.7 ** 20)}.`);
-    expect(EN.f.eur(1100 * 1.7 ** 20)).toBe("€44,706,545");
+    expect(text).toBe(`No asset in the data has kept this up: 70% on average for 20 years. At that pace, your €1,100 would be ${EN.f.cur(1100 * 1.7 ** 20)}.`);
+    expect(EN.f.cur(1100 * 1.7 ** 20)).toBe("€44,706,545");
     expect(plain(strongGrowthWarning(0.7, money, ES))).toBe("Ningún activo de los datos ha mantenido esto: un 70 % de media durante 20 años. A ese ritmo, tus 1100 € serían 44.706.545 €.");
   });
 

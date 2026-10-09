@@ -14,6 +14,7 @@ import { addGoal, removeGoal, updateGoal } from "@/lib/app-store";
 import { NEEDED_WITHIN_YEARS, type Calculation, type GoalStatus } from "@/lib/calculator";
 import { costOfLiving } from "@/lib/cost-of-living";
 import type { Goal, NewGoal } from "@/lib/types";
+import { costIn } from "@/lib/money";
 import { MAX_AMOUNT } from "@/lib/validation";
 
 function GoalRow({ status, calc, today }: { status: GoalStatus; calc: Calculation; today: Date }) {
@@ -26,7 +27,7 @@ function GoalRow({ status, calc, today }: { status: GoalStatus; calc: Calculatio
   const reached = status.reachable && reach.reached;
   const name = goalName(status, i18n);
   const detail = goalDetail(status, i18n);
-  const amountLine = !status.known ? "" : status.kind === "once" ? f.eur(status.amount) : m.goals.perMonthNeeded(f.eur(status.amount), f.eur(status.target));
+  const amountLine = !status.known ? "" : status.kind === "once" ? f.cur(status.amount) : m.goals.perMonthNeeded(f.cur(status.amount), f.cur(status.target));
   const remaining = Math.max(0, status.target - calc.scenario.capital);
   const saved = Math.min(status.target, Math.max(0, calc.scenario.capital));
   return (
@@ -48,7 +49,7 @@ function GoalRow({ status, calc, today }: { status: GoalStatus; calc: Calculatio
               <span className={reached ? "font-medium text-positive" : status.reachable ? "font-medium" : "text-muted"}>
                 {reached && <Check aria-hidden="true" className="mr-0.5 inline size-4 align-[-3px]" />}
                 {reached && <span className="sr-only">{m.goals.reached} </span>}
-                <Changed value={status.reachable ? reach.text : m.goals.notAtThisPace(f.eur(status.needed ?? 0), NEEDED_WITHIN_YEARS)} />
+                <Changed value={status.reachable ? reach.text : m.goals.notAtThisPace(f.cur(status.needed ?? 0), NEEDED_WITHIN_YEARS)} />
               </span>
             )}
             <span className="text-sm font-medium text-muted">
@@ -76,7 +77,7 @@ function GoalRow({ status, calc, today }: { status: GoalStatus; calc: Calculatio
       {status.known && status.goal.important && (
         <div className="px-1 pb-2">
           <progress aria-label={`${m.goals.progress}: ${name}`} max={status.target} value={saved} className="goal-progress block h-2 w-full" />
-          <p className="mt-1 text-sm font-medium">{m.goals.missing(f.eur(remaining))}</p>
+          <p className="mt-1 text-sm font-medium">{m.goals.missing(f.cur(remaining))}</p>
         </div>
       )}
       {status.goal.kind === "freedom" && <p className="px-1 text-sm font-medium text-muted">{m.goals.freedomAssumption(f.rate(calc.scenario.withdrawalRate))}</p>}
@@ -162,7 +163,7 @@ function LiveForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
 /** Personal expenses first; selecting a country only fills an editable estimate. */
 function FreedomForm({ onAdd, initial }: { onAdd: (goal: NewGoal) => void; initial?: Extract<Goal, { kind: "freedom" }> }) {
   const i18n = useI18n();
-  const { m } = i18n;
+  const { m, f } = i18n;
   const t = m.goals.form;
   const [amount, setAmount] = useState<number | null>(initial?.amount ?? null);
   const [country, setCountry] = useState<string | null>(initial?.country ?? null);
@@ -178,7 +179,7 @@ function FreedomForm({ onAdd, initial }: { onAdd: (goal: NewGoal) => void; initi
     }}>
       <label className="block space-y-1 text-sm font-medium">
         <span>{t.expenses}</span>
-        <LiveNumberInput value={amount} onValue={(value) => { setAmount(value); setCountry(null); setEstimateDate(undefined); }} placeholder={t.amountMonthPlaceholder} />
+        <LiveNumberInput value={amount} onValue={(value) => { setAmount(value); setCountry(null); setEstimateDate(undefined); }} placeholder={t.amountMonthPlaceholder(f.symbol)} />
       </label>
       <details className="text-sm">
         <summary className="min-h-11 cursor-pointer py-2 font-medium text-accent">{t.countryEstimate}</summary>
@@ -186,7 +187,7 @@ function FreedomForm({ onAdd, initial }: { onAdd: (goal: NewGoal) => void; initi
           const selected = countries.find((entry) => entry.code === event.target.value);
           if (selected) {
             setCountry(selected.code);
-            setAmount(selected.monthlyCostEur);
+            setAmount(costIn(selected, f.currency));
             setEstimateDate(selected.referenceDate);
           }
         }}>
@@ -208,7 +209,7 @@ function FreedomForm({ onAdd, initial }: { onAdd: (goal: NewGoal) => void; initi
  * an example in grey of the kind of figure.
  */
 function BuyForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
-  const { m } = useI18n();
+  const { m, f } = useI18n();
   const t = m.goals.form;
   const [name, setName] = useState("");
   const [amount, setAmount] = useState<number | null>(null);
@@ -227,7 +228,7 @@ function BuyForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
           <input value={name} onChange={(event) => setName(event.target.value)} maxLength={60} placeholder={t.whatPlaceholder} className={inputClass} />
         </label>
         <label className="block space-y-1 text-sm">
-          <span className="font-medium">{t.price}</span>
+          <span className="font-medium">{t.price(f.symbol)}</span>
           <LiveNumberInput value={amount} onValue={setAmount} placeholder={t.pricePlaceholder} />
         </label>
       </div>
@@ -239,7 +240,7 @@ function BuyForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
 }
 
 function AmountForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
-  const { m } = useI18n();
+  const { m, f } = useI18n();
   const t = m.goals.form;
   const [amount, setAmount] = useState<number | null>(null);
   const [label, setLabel] = useState("");
@@ -258,7 +259,7 @@ function AmountForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
       </label>
       <label className="block flex-1 space-y-1 text-sm">
         <span className="font-medium">{t.howMuch}</span>
-        <LiveNumberInput value={amount} onValue={setAmount} placeholder={t.amountPlaceholder} />
+        <LiveNumberInput value={amount} onValue={setAmount} placeholder={t.amountPlaceholder(f.symbol)} />
       </label>
       <Button type="submit" variant="primary" disabled={!valid}>
         <Plus aria-hidden="true" className="size-4" /> {t.add}
@@ -269,7 +270,7 @@ function AmountForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
 
 /** A monthly amount the money should pay, with a label only if the user wants one. */
 function MonthlyForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
-  const { m } = useI18n();
+  const { m, f } = useI18n();
   const t = m.goals.form;
   const [amount, setAmount] = useState<number | null>(null);
   const [label, setLabel] = useState("");
@@ -285,7 +286,7 @@ function MonthlyForm({ onAdd }: { onAdd: (goal: NewGoal) => void }) {
       <div className="grid grid-cols-2 gap-2">
         <label className="block space-y-1 text-sm">
           <span className="font-medium">{t.amountMonth}</span>
-          <LiveNumberInput value={amount} onValue={setAmount} placeholder={t.amountMonthPlaceholder} />
+          <LiveNumberInput value={amount} onValue={setAmount} placeholder={t.amountMonthPlaceholder(f.symbol)} />
         </label>
         <label className="block space-y-1 text-sm">
           <span className="font-medium">{t.label}</span>

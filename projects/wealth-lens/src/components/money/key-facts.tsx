@@ -48,18 +48,18 @@ function factsOf(bundle: CalculationBundle, i18n: I18n): Fact[] {
   const good = bands ? bands.p90[years] : result.total;
   // The same country the table of "Where it reaches" shows among its first rows (lib/calculator.ts).
   const dearest = dearestCovered(calc.countries);
-  const paid = m.result.perMonth(f.smallEur(result.income));
+  const paid = m.result.perMonth(f.smallCur(result.income));
   const lives = dearest ?? cheapest(calc.countries);
   return [
-    { id: "putIn", value: f.eur(result.putIn), from: t.putInFrom(f.eur(scenario.capital), f.eur(scenario.monthly), m.units.years(years)) },
-    { id: "grows", value: f.eur(result.growth), note: timesPutInText(result, i18n) ?? undefined, from: t.growsFrom },
-    { id: "pays", value: f.smallEur(result.income), from: <PayDetails bundle={bundle} /> },
-    { id: "bad", value: f.eur(bad), from: bands ? t.badFrom(f.eur(bad)) : m.chart.noUps },
-    { id: "good", value: f.eur(good), from: bands ? t.goodFrom(f.eur(good)) : m.chart.noUps },
+    { id: "putIn", value: f.cur(result.putIn), from: t.putInFrom(f.cur(scenario.capital), f.cur(scenario.monthly), m.units.years(years)) },
+    { id: "grows", value: f.cur(result.growth), note: timesPutInText(result, i18n) ?? undefined, from: t.growsFrom },
+    { id: "pays", value: f.smallCur(result.income), from: <PayDetails bundle={bundle} /> },
+    { id: "bad", value: f.cur(bad), from: bands ? t.badFrom(f.cur(bad)) : m.chart.noUps },
+    { id: "good", value: f.cur(good), from: bands ? t.goodFrom(f.cur(good)) : m.chart.noUps },
     {
       id: "lives",
       value: dearest ? countryName(dearest.code, i18n) : t.none,
-      from: lives ? (dearest ? t.livesFrom : t.livesNone)(countryName(lives.code, i18n), f.eur(lives.cost.amount), paid) : "",
+      from: lives ? (dearest ? t.livesFrom : t.livesNone)(countryName(lives.code, i18n), f.cur(lives.cost.amount), paid) : "",
     },
   ];
 }

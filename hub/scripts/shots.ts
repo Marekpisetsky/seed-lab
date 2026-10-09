@@ -19,7 +19,7 @@ import { createServer, type Server } from "node:http";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium, type Page } from "playwright";
-import { LOCALES, localePath, type Locale } from "../../packages/seed-kit/src/locales.ts";
+import { localePath, SHOWN_LOCALES, type Locale } from "../../packages/seed-kit/src/locales.ts";
 import { SHOWN_TOOLS } from "../../packages/seed-kit/src/tools.ts";
 import { SHOT_KINDS, type Shots } from "../src/shots.ts";
 
@@ -112,7 +112,7 @@ for (const id of wanted) {
   const { server, base } = await serve(buildFolder(id));
   const kinds = SHOT_KINDS.filter((kind) => kind.name === "card" || id === HERO);
   for (const kind of kinds) {
-    for (const locale of LOCALES as readonly Locale[]) {
+    for (const locale of SHOWN_LOCALES as readonly Locale[]) {
       const page = await browser.newPage({ viewport: kind.viewport, deviceScaleFactor: 2, locale: locale === "es" ? "es-ES" : "en-GB", colorScheme: "light" });
       // Next writes /es as es.html, the static tools /es/ as a folder: both are served.
       await page.goto(base + localePath("/", locale), { waitUntil: "networkidle" });

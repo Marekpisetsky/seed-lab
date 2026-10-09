@@ -10,7 +10,7 @@ import type { Localized } from "./locales.ts";
 export const BRAND_NAME = "Horalis";
 
 /** The brand's line, after its name: "Horalis. Own your hours." */
-export const MOTTO: Localized = { en: "Own your hours.", es: "Tus horas, tuyas." };
+export const MOTTO: Localized = { en: "Own your hours.", es: "Tus horas, tuyas.", nl: "Je uren, van jou." };
 
 /** The Horalis hub, where every tool links back to (provisional, on Vercel: docs/hosting.md). */
 export const HUB_URL = "https://seed-lab-hub.vercel.app";

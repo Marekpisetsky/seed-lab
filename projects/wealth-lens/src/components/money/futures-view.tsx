@@ -35,9 +35,9 @@ export function futuresSource(investment: ResolvedInvestment, scenario: Pick<Sce
   if (investment.simulation === "joint") return t.shuffleParts(PERIOD);
   const rate = f.rate(investment.realReturn);
   const base = scenario.capital > 0 ? scenario.capital : total;
-  const amount = t.onBase(f.eur(base * investment.realReturn), f.eur(base));
+  const amount = t.onBase(f.cur(base * investment.realReturn), f.cur(base));
   if (chosen.kind === "custom" && Math.abs(investment.volatility - investment.standard.volatility) < 1e-9) return t.normal(rate, amount, PERIOD);
-  return t.normalOwn(rate, amount, f.percent(investment.volatility, { decimals: 0 }), f.eur(base * investment.volatility), f.eur(base));
+  return t.normalOwn(rate, amount, f.percent(investment.volatility, { decimals: 0 }), f.cur(base * investment.volatility), f.cur(base));
 }
 
 function FuturesPlot({ samples, low, high, average, startYear, label, averageLabel }: { samples: number[][]; low: number[]; high: number[]; average: number[]; startYear: number; label: string; averageLabel: string }) {
@@ -69,7 +69,7 @@ function FuturesPlot({ samples, low, high, average, startYear, label, averageLab
             <line x1={PAD.left} x2={plotRight} y1={y(value)} y2={y(value)} stroke="var(--border)" strokeWidth={1} />
             {value > 0 && (
               <text x={PAD.left + 2} y={y(value) - 3} fontSize={FONT} fill="var(--muted)">
-                {f.eurCompact(value)}
+                {f.curCompact(value)}
               </text>
             )}
           </g>
@@ -162,13 +162,13 @@ export function FuturesView({ bundle, onClose }: { bundle: CalculationBundle; on
         average={average}
         averageLabel={scenario.head ? m.futures.badStart : m.futures.average}
         startYear={startYear}
-        label={m.futures.aria(samples.length, startYear + years, f.eur(bands.p10[years]), f.eur(bands.p90[years]))}
+        label={m.futures.aria(samples.length, startYear + years, f.cur(bands.p10[years]), f.cur(bands.p90[years]))}
       />
       <div className="mt-4 space-y-2 text-base">
         {scenario.head && <p>{m.futures.withoutDecade}</p>}
         <p>{futuresSource(investment, scenario, result.total, i18n)}</p>
         <p>{m.futures.count(f.number(FUTURES), samples.length)}</p>
-        <p className="tabular-nums">{m.futures.meaning(f.number(FUTURES / 10), f.eur(bands.p10[years]))}</p>
+        <p className="tabular-nums">{m.futures.meaning(f.number(FUTURES / 10), f.cur(bands.p10[years]))}</p>
       </div>
       <p className="mt-4">
         <IntentLink href={localePath(PAGES.test, locale)} className="inline-flex min-h-11 items-center font-medium text-accent underline-offset-2 hover:underline">

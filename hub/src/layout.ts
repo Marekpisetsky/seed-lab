@@ -5,7 +5,7 @@ import { languageScript } from "../../packages/seed-kit/src/detect.ts";
 import { themeScript } from "../../packages/seed-kit/src/theme.ts";
 import { html, raw } from "../../packages/seed-kit/src/html.ts";
 import type { Html } from "../../packages/seed-kit/src/html.ts";
-import { DEFAULT_LOCALE, LOCALE_SETTINGS, LOCALES, PAGES, localePath, messages } from "./i18n/index.ts";
+import { DEFAULT_LOCALE, isPendingReview, LOCALE_SETTINGS, LOCALES, PAGES, SHOWN_LOCALES, localePath, messages } from "./i18n/index.ts";
 import type { Locale, PageId } from "./i18n/index.ts";
 import { STYLES } from "./styles.ts";
 import { EMAIL, EMAIL_SCRIPT, hasEmail } from "./email.ts";
@@ -71,7 +71,8 @@ export function layout(page: PageInput, weight: Weight): string {
   const m = messages(locale);
   const path = id === null ? "/" : PAGES[id];
   const here = localePath(path, locale);
-  const indexed = id !== null;
+  // Dutch waits for a native speaker: built, but neither linked nor indexed.
+  const indexed = id !== null && !isPendingReview(locale);
   const nav: { id: PageId; label: string }[] = [
     { id: "principles", label: m.site.nav.principles },
     { id: "about", label: m.site.nav.about },
@@ -111,7 +112,7 @@ ${indexed && locale === DEFAULT_LOCALE ? html`<script>${raw(LANGUAGE_SCRIPT)}</s
 ${
   indexed
     ? html`<link rel="canonical" href="${SITE_URL + here}">
-${LOCALES.map((other) => html`<link rel="alternate" hreflang="${other}" href="${SITE_URL + localePath(path, other)}">\n`)}<link rel="alternate" hreflang="x-default" href="${SITE_URL + path}">
+${SHOWN_LOCALES.map((other) => html`<link rel="alternate" hreflang="${other}" href="${SITE_URL + localePath(path, other)}">\n`)}<link rel="alternate" hreflang="x-default" href="${SITE_URL + path}">
 <meta property="og:url" content="${SITE_URL + here}">`
     : html`<meta name="robots" content="noindex">`
 }

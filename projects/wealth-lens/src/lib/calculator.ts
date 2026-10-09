@@ -7,14 +7,15 @@
  * another, and they keep the order the user added them in. Countries are
  * only rows to read, with what an average person lives on there (official
  * data, seed-kit's cost-of-living.ts). Goals cost what the user says: no
- * price list. All amounts are in today's euros: growth is after inflation
- * and the monthly amount is assumed to rise with prices.
+ * price list. All amounts are in today's money, in the plan's currency
+ * (lib/money.ts): growth is after inflation and the monthly amount is
+ * assumed to rise with prices.
  */
 
-import { costOfLiving, type CountryCost } from "./cost-of-living";
 import { addMonths } from "./dates";
 import { futureValueWithContributions, monthlyWithdrawal, monthsToGoal, requiredCapital, requiredMonthlyContribution } from "./finance";
 import { resolveInvestment, shiftGrowth, type ResolvedInvestment } from "./investment";
+import { countriesIn, DEFAULT_CURRENCY, moneyStep, type LocalCost } from "./money";
 import { startingCapital, type StartingCapital } from "./plan";
 import { successRatesFor } from "./projections";
 import type { AssumptionOverrides, Goal, Investment } from "./types";
@@ -30,6 +31,8 @@ export interface CalculatorPlan {
   years: number;
   withdrawalRate: number;
   pricesOf: string;
+  /** The currency of every amount (ISO 4217, lib/money.ts). */
+  currency: string;
   assumptions: AssumptionOverrides;
   goals: readonly Goal[];
 }
@@ -232,13 +235,13 @@ function cell(scenario: Scenario, horizonMonths: number, amount: number): Countr
 export function countryRows(
   scenario: Scenario,
   horizonMonths: number,
-  countries: readonly CountryCost[] = costOfLiving.countries,
+  countries: readonly LocalCost[] = countriesIn(DEFAULT_CURRENCY),
 ): CountryRow[] {
   return [...countries]
-    .sort((a, b) => a.monthlyCostEur - b.monthlyCostEur || a.code.localeCompare(b.code))
+    .sort((a, b) => a.monthlyCost - b.monthlyCost || a.code.localeCompare(b.code))
     .map((country) => ({
       code: country.code,
-      cost: cell(scenario, horizonMonths, country.monthlyCostEur),
+      cost: cell(scenario, horizonMonths, country.monthlyCost),
       referenceDate: country.referenceDate,
     }));
 }
@@ -307,12 +310,12 @@ interface GoalShape {
   referenceDate: string | null;
 }
 
-function shapeOf(goal: Goal, countries: ReadonlyMap<string, CountryCost>): GoalShape | null {
+function shapeOf(goal: Goal, countries: ReadonlyMap<string, LocalCost>): GoalShape | null {
   switch (goal.kind) {
     case "live": {
       const country = countries.get(goal.country);
       if (!country) return null;
-      return { kind: "monthly", amount: country.monthlyCostEur, referenceDate: country.referenceDate };
+      return { kind: "monthly", amount: country.monthlyCost, referenceDate: country.referenceDate };
     }
     case "buy-own":
     case "amount":
@@ -325,7 +328,7 @@ function shapeOf(goal: Goal, countries: ReadonlyMap<string, CountryCost>): GoalS
 }
 
 /** Each goal against the same plan, in the order the user added them. */
-export function goalStatuses(goals: readonly Goal[], scenario: Scenario, today: Date, countries: readonly CountryCost[] = costOfLiving.countries): GoalStatus[] {
+export function goalStatuses(goals: readonly Goal[], scenario: Scenario, today: Date, countries: readonly LocalCost[] = countriesIn(DEFAULT_CURRENCY)): GoalStatus[] {
   const countryByCode = new Map(countries.map((entry) => [entry.code, entry]));
   return goals.map((goal) => {
     const shape = shapeOf(goal, countryByCode);
@@ -351,6 +354,8 @@ export interface Calculation {
   scenario: Scenario;
   /** The "What if…?" applied, if any (lib/what-if.ts). */
   whatIf: WhatIfId | null;
+  /** The "+€50 a month" step in the plan's currency (lib/money.ts). */
+  step: number;
   result: Result;
   goals: GoalStatus[];
   countries: CountryRow[];
@@ -365,7 +370,9 @@ export function calculate(plan: CalculatorPlan, today: Date, whatIf: WhatIfId | 
   const capital = startingCapital(plan.invested);
   const resolved = resolveInvestment(plan.investment, plan);
   const applied = whatIf !== null && whatIfAvailable(whatIf, plan.years, resolved) ? whatIf : null;
-  const inputs = whatIfInputs(applied, plan.monthlyContribution ?? 0, plan.years);
+  const step = moneyStep(plan.currency);
+  const inputs = whatIfInputs(applied, plan.monthlyContribution ?? 0, plan.years, step);
+  const countries = countriesIn(plan.currency);
   const investment = inputs.growth !== 0 ? shiftGrowth(resolved, inputs.growth) : resolved;
   const plain: Scenario = {
     capital: capital.amount,
@@ -379,23 +386,24 @@ export function calculate(plan: CalculatorPlan, today: Date, whatIf: WhatIfId | 
     investment,
     scenario,
     whatIf: applied,
+    step,
     result: resultOf(scenario, investment, inputs.years),
-    goals: goalStatuses(plan.goals, scenario, today),
-    countries: countryRows(scenario, inputs.years * 12),
+    goals: goalStatuses(plan.goals, scenario, today, countries),
+    countries: countryRows(scenario, inputs.years * 12, countries),
   };
 }
 
 /**
- * What each "What if…?" would change, in euros at the end of the plan's
+ * What each "What if…?" would change, in money at the end of the plan's
  * years (five more years: at the end of those), worked out on a
  * calculation without one: the same projection `calculate` makes with it.
  */
 export function whatIfEffects(base: Calculation): WhatIfEffect[] {
-  const { scenario, investment, result } = base;
+  const { scenario, investment, result, step } = base;
   return WHAT_IF_IDS.map((id) => {
     const available = whatIfAvailable(id, result.years, investment);
     if (!available) return { id, change: 0, available };
-    const inputs = whatIfInputs(id, scenario.monthly, result.years);
+    const inputs = whatIfInputs(id, scenario.monthly, result.years, step);
     const plain: Scenario = { ...scenario, monthly: inputs.monthly, realReturn: scenario.realReturn + inputs.growth };
     const changed = inputs.badStart ? withBadStart(plain, investment, inputs.years) : plain;
     return { id, change: valueAt(changed, inputs.years * 12) - result.total, available };

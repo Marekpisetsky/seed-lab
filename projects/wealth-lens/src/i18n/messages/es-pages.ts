@@ -57,7 +57,7 @@ export const esPages: PageMessages = {
         heading: "Tu dinero crece",
         body: [
           "Empiezas con una cantidad y añades algo cada mes. Cada año el dinero crece un porcentaje, y ese crecimiento también crece.",
-          "Todos los importes están en euros de hoy. Los precios suben con el tiempo, así que el crecimiento que ves es después de esa subida.",
+          "Todos los importes están en dinero de hoy, en la moneda que elijas. Los precios suben con el tiempo, así que el crecimiento que ves es después de esa subida.",
           "Cada aporte mensual entra al final de su mes, y sube con los precios.",
         ],
       },
@@ -95,7 +95,7 @@ export const esPages: PageMessages = {
         heading: "Chequeo de tu plan",
         id: "check",
         body: [
-          "Bajo el resultado, hasta tres observaciones, solo cuando aplican. Cada una con sus euros. Dicen lo que hay, nunca qué hacer.",
+          "Bajo el resultado, hasta tres observaciones, solo cuando aplican. Cada una con sus importes. Dicen lo que hay, nunca qué hacer.",
           "Pocos años: los años de tu plan, o una meta, a menos de 5 años, con dinero que sube y baja. Cuenta cuántos de los 1000 futuros posibles acaban por debajo de lo que pones hasta entonces. Sale desde 1 de cada 10. [El método](research:wealth-lens/chequeo.md#horizonte-frente-a-riesgo).",
           "Ahorro durante 10 años o más: lo que conserva la cuenta en dinero de hoy, frente a lo que pones. Y frente a las acciones de EE. UU., con las mismas cantidades: lo que se deja de ganar y su peor caída. Esa caída sale de datos anuales: dentro de cada año pudo ser mayor. [El método](research:wealth-lens/chequeo.md#ahorro-a-largo-plazo).",
         ],
@@ -131,7 +131,7 @@ export const esPages: PageMessages = {
         body: [
           "No da consejos ni hace pronósticos. Deja fuera los impuestos y la mayoría de las comisiones.",
           "No descarga nada mientras lo usas: cada cifra va dentro de la página, con su fuente y su año.",
-          "No convierte monedas: todos los importes están en euros.",
+          "Los importes están en la moneda que elijas. El crecimiento es el de cada inversión, después de la subida de precios: no cuenta los cambios entre monedas.",
         ],
       },
     ],

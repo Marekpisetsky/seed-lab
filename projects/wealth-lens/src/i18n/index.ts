@@ -1,7 +1,7 @@
 /**
  * The app's words and formats in one language: `m`, the dictionary
- * (messages/en.ts, messages/es.ts, and the server-only pages' words in
- * messages/en-pages.ts, es-pages.ts), and `f`, numbers, money and spans of
+ * (messages/en.ts, es.ts, nl.ts, and the server-only pages' words in
+ * messages/en-pages.ts, es-pages.ts, nl-pages.ts), and `f`, numbers, money and spans of
  * time as that language writes them. Pure and made once per language, so
  * the server (the static pages) and the browser write the same text.
  */
@@ -12,11 +12,13 @@ import { en, type Messages } from "./messages/en";
 import { enPages, type PageMessages } from "./messages/en-pages";
 import { es } from "./messages/es";
 import { esPages } from "./messages/es-pages";
+import { nl } from "./messages/nl";
+import { nlPages } from "./messages/nl-pages";
 
 export type { Formats, I18n, PageI18n, Reach } from "./make";
 
-const MESSAGES: Readonly<Record<Locale, Messages>> = { en, es };
-const PAGES: Readonly<Record<Locale, PageMessages>> = { en: enPages, es: esPages };
+const MESSAGES: Readonly<Record<Locale, Messages>> = { en, es, nl };
+const PAGES: Readonly<Record<Locale, PageMessages>> = { en: enPages, es: esPages, nl: nlPages };
 
 const made = new Map<Locale, PageI18n>();
 

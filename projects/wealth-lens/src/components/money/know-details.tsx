@@ -31,10 +31,10 @@ function baseOf(bundle: CalculationBundle): Base {
 function MixFiguresView({ figures, years, base }: { figures: MixFigures; years: number; base: Base }) {
   const { m, f } = useI18n();
   const t = m.result.mix;
-  const range = ([low, high]: [number, number]) => `${f.eur(low)} – ${f.eur(high)}`;
+  const range = ([low, high]: [number, number]) => `${f.cur(low)} – ${f.cur(high)}`;
   const worst = (year: WorstYear | null) =>
     year
-      ? (base.atEnd ? t.worstOnEnd : t.worstOnYours)(f.percent(year.change, { decimals: 0 }), year.year, f.eur(year.change * base.amount, { signed: true }), f.eur(base.amount))
+      ? (base.atEnd ? t.worstOnEnd : t.worstOnYours)(f.percent(year.change, { decimals: 0 }), year.year, f.cur(year.change * base.amount, { signed: true }), f.cur(base.amount))
       : t.noData;
   const span = figures.worst ? `${figures.worst.from}–${figures.worst.to}` : "";
   return (
@@ -83,7 +83,7 @@ function RangeView({ bundle }: { bundle: CalculationBundle }) {
         <Help what={m.result.mix.range(years)} text={m.help.range} />
       </p>
       <p className="text-base font-semibold">
-        <Changed value={`${f.eur(bands.p10[years])} – ${f.eur(bands.p90[years])}`} />
+        <Changed value={`${f.cur(bands.p10[years])} – ${f.cur(bands.p90[years])}`} />
       </p>
     </div>
   );

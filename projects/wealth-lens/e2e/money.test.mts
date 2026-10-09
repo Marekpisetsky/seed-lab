@@ -39,7 +39,7 @@ after(async () => {
 });
 
 async function open(lang: Lang, width: number, height = 800): Promise<Page> {
-  const page = await browser.newPage({ viewport: { width, height }, locale: lang === "es" ? "es-ES" : "en-GB" });
+  const page = await browser.newPage({ viewport: { width, height }, locale: lang === "es" ? "es-ES" : "en-IE" });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(base + WORDS[lang].path, { waitUntil: "networkidle" });
   return page;
@@ -375,7 +375,7 @@ describe("for a finger", () => {
 
 /** A page with motion allowed, recording every layout shift from the start. */
 async function withShifts(lang: Lang, width: number, height = 900): Promise<Page> {
-  const page = await browser.newPage({ viewport: { width, height }, locale: lang === "es" ? "es-ES" : "en-GB" });
+  const page = await browser.newPage({ viewport: { width, height }, locale: lang === "es" ? "es-ES" : "en-IE" });
   await page.addInitScript(() => {
     const shifts: { value: number; recent: boolean }[] = [];
     (window as unknown as { shifts: typeof shifts }).shifts = shifts;
@@ -545,8 +545,8 @@ describe("My goals", () => {
     for (const lang of ["en", "es"] as const) {
       const words =
         lang === "en"
-          ? { goals: "My goals", add: "Add a goal", buy: "Buy something", what: "What it is", price: "Its price in euros", example: "e.g. 15,000" }
-          : { goals: "Mis metas", add: "Añadir una meta", buy: "Comprar algo", what: "Qué es", price: "Su precio en euros", example: "p. ej. 15.000" };
+          ? { goals: "My goals", add: "Add a goal", buy: "Buy something", what: "What it is", price: "Its price (€)", example: "e.g. 15,000" }
+          : { goals: "Mis metas", add: "Añadir una meta", buy: "Comprar algo", what: "Qué es", price: "Su precio (€)", example: "p. ej. 15.000" };
       const page = await open(lang, 360);
       await firstResult(page, lang);
       // No wishes priced from a list under the big number, and no "Prices of" anywhere.
@@ -646,6 +646,28 @@ describe("growth from −50% to 500% a year", () => {
     await page.getByRole("button", { name: WORDS.en.see }).click();
     await page.locator(`section[aria-label="${WORDS.en.result}"]`).waitFor();
     assert.match(await page.locator(`section[aria-label="${WORDS.en.result}"]`).innerText(), /losing 50% a year/);
+    await page.close();
+  });
+});
+
+describe("any country, any currency", () => {
+  it("starts where the browser's language says: Mexico, its pesos and its way of writing numbers", async () => {
+    const page = await browser.newPage({ viewport: { width: 360, height: 800 }, locale: "es-MX" });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(base + "/es", { waitUntil: "networkidle" });
+    await firstResult(page, "es");
+    // 20000 typed, 400 a month: a peso amount written the Mexican way.
+    assert.match(await bigNumber(page), /^\$[\d,]+\b/);
+    // "What if…?": the €50 step is the same size of money in pesos, a round figure.
+    await page.getByRole("button", { name: /^\+\$[\d,]*0 al mes/ }).first().waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), "no page overflow");
+    await page.close();
+  });
+
+  it("keeps the euros of a reader whose language names a euro country", async () => {
+    const page = await open("en", 1366);
+    await firstResult(page, "en");
+    assert.match(await bigNumber(page), /^€[\d,]+\b/);
     await page.close();
   });
 });

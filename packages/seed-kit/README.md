@@ -26,9 +26,14 @@ src/
   theme.ts           claro / oscuro / automático: el script de la cabecera y la elección de la pestaña
   tools.json         la lista de herramientas: la leen el hub y todos los lanzadores
   tools.ts           la lee, la valida y dice cuáles se muestran
-  locales.ts         EN y ES, sus formatos (Intl) y direcciones por idioma
+  locales.ts         EN, ES y NL (construido pero oculto: pendiente de revisión por un nativo),
+                     sus formatos (Intl) y direcciones por idioma
+  words/             las palabras de seed-kit, un archivo por idioma (en.ts, es.ts, nl.ts)
   detect.ts          el script de idioma y el país del idioma del navegador: no guardan nada
-  format.ts          números, dinero, porcentajes y fechas en cada idioma (con el signo menos −)
+  format.ts          números, dinero (cualquier moneda), porcentajes y fechas en cada idioma
+                     y región (con el signo menos −); roundMoney, el redondeo de un coste
+  money.ts           la moneda de cada país (ISO 4217) y los tipos de cambio oficiales por año:
+                     convert() siempre dice el año (data/currencies.json, data/exchange-rates.json)
   plain-language.ts  el test de lenguaje sencillo: frases cortas, sin jerga, sin consejos (research/legal)
   checks.ts          peso por página, peticiones a otros sitios, almacenamiento
   vision.ts          para las pruebas en navegador: daltonismo emulado, distancia de color, contraste AA

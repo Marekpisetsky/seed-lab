@@ -75,9 +75,9 @@ export function strongGrowthWarning(
   }
   const second =
     plan.invested > 0
-      ? t.yours(f.eur(plan.invested), f.eur(plan.invested * (1 + realReturn) ** plan.years))
+      ? t.yours(f.cur(plan.invested), f.cur(plan.invested * (1 + realReturn) ** plan.years))
       : plan.monthly > 0
-        ? t.yoursMonthly(f.eur(plan.monthly), f.eur(futureValueWithContributions(0, plan.monthly, realReturn, plan.years)))
+        ? t.yoursMonthly(f.cur(plan.monthly), f.cur(futureValueWithContributions(0, plan.monthly, realReturn, plan.years)))
         : null;
   return second ? `${first} ${second}` : first;
 }
@@ -102,7 +102,7 @@ export function upsAndDownsText(volatility: number, { m, f }: I18n): string {
 /** "So €10,000 could end the year at €9,200 to €10,800.": a normal year's ups and downs, in euros. */
 export function upsAndDownsExample(volatility: number, { m, f }: I18n): string {
   if (volatility <= 0) return m.assumptions.exampleNone;
-  return m.assumptions.example(f.eur(10_000), f.eur(Math.max(0, 10_000 * (1 - volatility))), f.eur(10_000 * (1 + volatility)));
+  return m.assumptions.example(f.cur(10_000), f.cur(Math.max(0, 10_000 * (1 - volatility))), f.cur(10_000 * (1 + volatility)));
 }
 
 /** Where the figures come from: "data 1988–2022", "1.5% interest, prices rise 2%", "your numbers". */
@@ -130,10 +130,10 @@ export interface OnYourMoney {
  */
 export function assumptionsLine(investment: ResolvedInvestment, i18n: I18n, money?: OnYourMoney): string {
   const { m, f } = i18n;
-  const growth = money ? m.assumptions.growsEuros(growthText(investment, i18n), f.eur(money.firstYear, { signed: true })) : growthText(investment, i18n);
+  const growth = money ? m.assumptions.growsEuros(growthText(investment, i18n), f.cur(money.firstYear, { signed: true })) : growthText(investment, i18n);
   const moves =
     money && investment.volatility > 0 && money.base > 0
-      ? m.assumptions.canMoveEuros(f.percent(investment.volatility, { decimals: 0 }), f.eur(money.base * investment.volatility), f.eur(money.base))
+      ? m.assumptions.canMoveEuros(f.percent(investment.volatility, { decimals: 0 }), f.cur(money.base * investment.volatility), f.cur(money.base))
       : upsAndDownsText(investment.volatility, i18n);
   return [growth, moves, sourceText(investment, i18n)].filter(Boolean).join(" · ");
 }

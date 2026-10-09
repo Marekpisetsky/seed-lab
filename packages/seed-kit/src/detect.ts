@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE, PREFIXED_LOCALES } from "./locales.ts";
+import { DEFAULT_LOCALE, PREFIXED_LOCALES, SHOWN_PREFIXED_LOCALES } from "./locales.ts";
 
 /**
  * The language script, for the <head> of every page, before anything is
@@ -19,7 +19,7 @@ import { DEFAULT_LOCALE, PREFIXED_LOCALES } from "./locales.ts";
  */
 export function languageScript({ basePath = "", folders = false }: { basePath?: string; folders?: boolean } = {}): string {
   const home = folders ? "/" : "";
-  return `(function(){var b=${JSON.stringify(basePath)},p=${JSON.stringify(PREFIXED_LOCALES)},d="${DEFAULT_LOCALE}",w=location.pathname,r=b&&w.indexOf(b)===0?w.slice(b.length)||"/":w,s=r.split("/")[1],c=p.indexOf(s)>=0?s:d;document.documentElement.lang=c;if(c!==d)return;try{var n=performance.getEntriesByType("navigation")[0];if(n&&n.type!=="navigate")return;if(document.referrer&&new URL(document.referrer).origin===location.origin)return;var l=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||""];for(var i=0;i<l.length;i++){var x=String(l[i]).slice(0,2).toLowerCase();if(x===d)return;if(p.indexOf(x)>=0){location.replace(b+"/"+x+(r==="/"?${JSON.stringify(home)}:r)+location.search+location.hash);return}}}catch(e){}})();`;
+  return `(function(){var b=${JSON.stringify(basePath)},p=${JSON.stringify(PREFIXED_LOCALES)},q=${JSON.stringify(SHOWN_PREFIXED_LOCALES)},d="${DEFAULT_LOCALE}",w=location.pathname,r=b&&w.indexOf(b)===0?w.slice(b.length)||"/":w,s=r.split("/")[1],c=p.indexOf(s)>=0?s:d;document.documentElement.lang=c;if(c!==d)return;try{var n=performance.getEntriesByType("navigation")[0];if(n&&n.type!=="navigate")return;if(document.referrer&&new URL(document.referrer).origin===location.origin)return;var l=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||""];for(var i=0;i<l.length;i++){var x=String(l[i]).slice(0,2).toLowerCase();if(x===d)return;if(q.indexOf(x)>=0){location.replace(b+"/"+x+(r==="/"?${JSON.stringify(home)}:r)+location.search+location.hash);return}}}catch(e){}})();`;
 }
 
 /**
@@ -39,11 +39,12 @@ export function regionOf(language: string): string | null {
 }
 
 /**
- * Whose prices a tool shows first: the country of the browser's language
- * when the tool has prices for it, `fallback` otherwise. The reader can
- * change it; this only picks where to start.
+ * The country a tool starts with: the one the browser's language names or
+ * most likely means (es-MX → MX, en-GB → GB) when the tool knows it,
+ * `fallback` otherwise. Worked out on the device; nothing is stored or
+ * sent. The person can change it.
  */
-export function pricesCountry(language: string | undefined, supported: readonly string[], fallback: string): string {
+export function countryFromLanguage(language: string | undefined, supported: readonly string[], fallback: string): string {
   const region = language ? regionOf(language) : null;
   return region !== null && supported.includes(region) ? region : fallback;
 }

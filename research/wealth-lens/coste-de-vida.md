@@ -39,9 +39,12 @@ Exacta, para un país:
   (FP.CPI.TOTL.ZG de EE. UU.).
 - Coste al mes en dólares de `t` = `m × U(t) × q × 365,25 / 12`.
 - En euros = dólares × euros por dólar en `t` (PA.NUS.FCRF de Alemania, el
-  mismo para toda la zona euro), redondeado a 10 €, o a 1 € por debajo de
-  100 € (`roundEuros`; nunca menos de 1 €): con pasos de 10 €, los países
-  más pobres (20–40 € al mes) daban razones demasiado gruesas.
+  mismo para toda la zona euro), redondeado como todo coste (`roundMoney`:
+  a 1 por debajo de 95, a 10 por debajo de 10 000, a tres cifras encima;
+  nunca menos de 1): con pasos de 10 €, los países más pobres (20–40 € al
+  mes) daban razones demasiado gruesas.
+- En otra moneda (fase A3) = dólares × unidades de esa moneda por dólar en
+  `t`, con el mismo redondeo. Ver [monedas](../monedas.md).
 
 En Horalis Crecimiento, un país "alcanza" cuando lo que el dinero paga al
 mes llega a ese coste:
@@ -133,6 +136,10 @@ Resultado hoy: 122 países, precios de 2024. Ejemplos: Perú 210 €, España
 
 - 2026-10-03: primera ficha (sin cambios en el cálculo).
 - 2026-10-07: los mismos costes con alquiler ponían precio a cuatro deseos.
+- 2026-10-09 (fase A3): cada herramienta da el coste en la moneda de quien
+  la usa, con el tipo oficial del año de precios (ver
+  [monedas](../monedas.md)); el redondeo pasa a `roundMoney` (el corte de
+  «a la unidad» baja de 100 a 95). Las cifras en euros no cambian.
 - 2026-10-09 (fase A2): **método nuevo, solo con datos oficiales.**
   - Antes: 30 países de Numbeo (sin alquiler) y Wise (alquiler), y 142
     estimados con la cesta de Países Bajos por el nivel de precios (el

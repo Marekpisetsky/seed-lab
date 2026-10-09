@@ -210,8 +210,22 @@ idiomas y con planes de todo tipo (`percentWithoutMoney` de seed-kit).
   mostraba productos concretos. Su dirección da la página 404, como
   `/charts` y `/fire` de versiones anteriores.
 
-Limitaciones conocidas: no convierte entre monedas (todo en euros; la
-fase A3 lo amplía); el coste de vida es una media nacional (las ciudades
+**Cualquier país y moneda (fase A3).** El plan tiene moneda (Más
+opciones, «Tus importes están en»), cualquiera con tipo oficial del Banco
+Mundial en el año de precios de los países. Los importes escritos están en
+ella; el coste de cada país sale en ella al tipo oficial de ese año; los
+pasos («+50 € al mes») y los umbrales de las observaciones son la misma
+cantidad de dinero en ella, redondeada (`src/lib/money.ts`). La primera
+visita empieza en el país y la moneda que dice el idioma del navegador
+(es-MX: México y pesos), en el dispositivo; los números se escriben como
+en la región del lector si su navegador habla el idioma de la página. El
+archivo de datos pasa a la versión 12 (guarda la moneda; los anteriores se
+leen en euros). Neerlandés construido en `/nl` pero oculto (ni en el
+selector, ni en hreflang, `noindex`) hasta que lo revise un nativo.
+Método: [research/monedas.md](../../research/monedas.md).
+
+Limitaciones conocidas: el crecimiento no cuenta los cambios entre monedas
+(cada inversión crece en la suya, después de su inflación); el coste de vida es una media nacional (las ciudades
 varían mucho); los retornos de las acciones de EE. UU. y del oro están en
 dólares (después de la inflación de EE. UU.) y los bonos en euros (después
 de la alemana), y todo se compara en 1988–2022, porque el S&P 500 de
@@ -332,9 +346,10 @@ El PR #17 de migración no forma parte de esta continuación.
   que se ve al tocarla. El escenario activo vive en el estado en memoria,
   sigue puesto mientras cambia el plan y nunca se guarda. Los hallazgos
   siempre hablan del plan sin escenario.
-- **Palabras simples, en inglés y español**: todo texto visible vive en
-  los diccionarios (`src/i18n/messages/en.ts` y `es.ts`, del mismo tipo:
-  una clave que falte en español no compila); la lógica devuelve números
+- **Palabras simples, en inglés y español (y neerlandés, oculto hasta que
+  lo revise un nativo)**: todo texto visible vive en los diccionarios
+  (`src/i18n/messages/en.ts`, `es.ts` y `nl.ts`, del mismo tipo: una clave
+  que falte en otro idioma no compila); la lógica devuelve números
   y códigos de problema (`src/lib/problems.ts`) y cada idioma los
   redacta. `src/components/plain-language.test.ts` lee los dos
   diccionarios con el parser de TypeScript y falla si hay jerga ("real",

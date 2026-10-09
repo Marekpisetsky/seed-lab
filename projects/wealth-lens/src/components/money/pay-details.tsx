@@ -54,7 +54,7 @@ export function PayDetails({ bundle }: { bundle: CalculationBundle }) {
   const steady = investment.volatility <= 0;
   const lasted = steady ? sameEveryYearText(rate, investment.realReturn, i18n) : m.result.lastedOf(Math.round(result.lasted * 100));
   const zone = withdrawalZone(result.lasted);
-  const value = m.result.takenOutValue(f.rate(rate), f.smallEur(result.income));
+  const value = m.result.takenOutValue(f.rate(rate), f.smallCur(result.income));
   return (
     <div className="space-y-2">
       <p className="text-sm text-muted">{m.help.income}</p>
@@ -72,7 +72,7 @@ export function PayDetails({ bundle }: { bundle: CalculationBundle }) {
         step={1}
         value={step}
         onChange={(event) => updatePlan({ withdrawalRate: WITHDRAWAL_STEPS[Number(event.target.value)] })}
-        aria-valuetext={m.result.takenOutAria(f.rate(rate), f.smallEur(result.income), lasted, m.result.zone[zone])}
+        aria-valuetext={m.result.takenOutAria(f.rate(rate), f.smallCur(result.income), lasted, m.result.zone[zone])}
         className="block h-11 w-full cursor-pointer accent-(--accent)"
       />
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">

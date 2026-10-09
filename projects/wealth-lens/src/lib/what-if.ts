@@ -8,7 +8,8 @@
  * - Grows 1% more / less: the same investment, every year's growth factor
  *   times (1 + g ± 1%) / (1 + g), so the ups and downs stay and the typical
  *   year grows 1% more or less after rising prices.
- * - +€50 a month: the monthly amount plus €50.
+ * - +€50 a month: the monthly amount plus €50, or the same size of money
+ *   in the plan's currency (lib/money.ts, moneyStep).
  * - 5 more years: the same plan for five more years (60 at most).
  * - A decade like 2000–2009: for the first ten years (or the plan's years,
  *   if fewer), the money takes the real yearly growth of a bad decade from
@@ -29,6 +30,7 @@ export function isWhatIfId(value: unknown): value is WhatIfId {
 
 /** Growth added or taken away by "Grows 1% more / less". */
 export const GROWTH_STEP = 0.01;
+/** In euros; other currencies take the same size of money (lib/money.ts). */
 export const MONTHLY_STEP = 50;
 export const MORE_YEARS = 5;
 /** Years the bad start lasts, at most. */
@@ -47,9 +49,9 @@ export interface WhatIfInputs {
 }
 
 /** The plan's inputs with a scenario applied (`null`: as they are). */
-export function whatIfInputs(id: WhatIfId | null, monthly: number, years: number): WhatIfInputs {
+export function whatIfInputs(id: WhatIfId | null, monthly: number, years: number, step: number = MONTHLY_STEP): WhatIfInputs {
   return {
-    monthly: id === "monthly-50" ? monthly + MONTHLY_STEP : monthly,
+    monthly: id === "monthly-50" ? monthly + step : monthly,
     years: id === "years-5" ? Math.min(MAX_YEARS, years + MORE_YEARS) : years,
     growth: id === "grow-more" ? GROWTH_STEP : id === "grow-less" ? -GROWTH_STEP : 0,
     badStart: id === "bad-decade",

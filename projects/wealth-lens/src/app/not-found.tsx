@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getI18n } from "@/i18n";
-import { localePath, PREFIXED_LOCALES } from "@/i18n/locales";
+import { localePath, SHOWN_LOCALES } from "@/i18n/locales";
 
 const EN = getI18n("en");
 
@@ -25,7 +25,7 @@ export default function NotFound() {
       </header>
       <main id="main" className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:py-12">
         <div className="max-w-xl space-y-8 py-8">
-          {(["en", ...PREFIXED_LOCALES] as const).map((locale) => {
+          {SHOWN_LOCALES.map((locale) => {
             const { m } = getI18n(locale);
             return (
               <section key={locale} lang={locale} className="space-y-2">

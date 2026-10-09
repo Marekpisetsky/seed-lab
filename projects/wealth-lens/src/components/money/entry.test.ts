@@ -214,14 +214,14 @@ describe.each(["en", "es"] as const)("the result in levels (%s)", (locale) => {
   const html = render(locale, filled, createElement(Results, { bundle }));
 
   it("starts with what the user said, then the big number", () => {
-    const said = m.result.summary(f.eur(1000), f.eur(200), m.result.investedIn.custom(f.rate(0.05)), m.units.years(20));
+    const said = m.result.summary(f.cur(1000), f.cur(200), m.result.investedIn.custom(f.rate(0.05)), m.units.years(20));
     expect(text(html)).toContain(said);
     expect(decode(html).indexOf(said)).toBeGreaterThan(0);
     expect(decode(html).indexOf(said)).toBeLessThan(decode(html).indexOf(`id="${TOTAL_ID}"`));
   });
 
   it("shows the big number, the key figures right under it, then a small chart", () => {
-    expect(text(html)).toContain(f.eur(bundle.calc.result.total));
+    expect(text(html)).toContain(f.cur(bundle.calc.result.total));
     expect(count(html, 'role="img"')).toBe(1);
     const grid = html.indexOf(`aria-label="${m.facts.label}"`);
     expect(html.indexOf(`id="${TOTAL_ID}"`)).toBeGreaterThan(0);
@@ -263,11 +263,11 @@ describe.each(["en", "es"] as const)("the result in levels (%s)", (locale) => {
     const bands = bandsFor(investment, { start: scenario.capital, monthly: scenario.monthly, years: result.years });
     const dearest = countries.filter((row) => row.cost.covered).toSorted((a, b) => b.cost.amount - a.cost.amount || b.code.localeCompare(a.code))[0];
     const expected: [string, string][] = [
-      [m.facts.putIn, f.eur(result.putIn)],
-      [m.facts.grows, f.eur(result.growth)],
-      [m.facts.pays, f.smallEur(result.income)],
-      [m.facts.bad, f.eur(bands.p10[result.years])],
-      [m.facts.good, f.eur(bands.p90[result.years])],
+      [m.facts.putIn, f.cur(result.putIn)],
+      [m.facts.grows, f.cur(result.growth)],
+      [m.facts.pays, f.smallCur(result.income)],
+      [m.facts.bad, f.cur(bands.p10[result.years])],
+      [m.facts.good, f.cur(bands.p90[result.years])],
       [m.facts.lives, dearest ? countryName(dearest.code, getI18n(locale)) : m.facts.none],
     ];
     expected.forEach(([label, value], index) => {
@@ -300,7 +300,7 @@ describe.each(["en", "es"] as const)("the result in levels (%s)", (locale) => {
     const row = decode(html).match(new RegExp(`<div role="group" aria-label="${m.whatIf.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"[^>]*>(.*?)</div>`))?.[1] ?? "";
     const chips = [...row.matchAll(/<button[^>]*aria-pressed="false"[^>]*>(.*?)<\/button>/g)];
     expect(chips).toHaveLength(5);
-    expect(text(row)).toContain(`${m.whatIf.chips["monthly-50"]} +`);
+    expect(text(row)).toContain(`${m.whatIf.monthly(f.cur(f.step))} +`);
     expect(text(html)).toContain(m.help.whatIf);
   });
 
@@ -328,7 +328,7 @@ describe.each(["en", "es"] as const)("where it reaches and my goals (%s)", (loca
   const where = render(locale, filled, createElement(WhereDetails, { bundle }));
 
   it("shows the table of countries with seven rows, a way to see them all, and a search", () => {
-    expect(text(where)).toContain(m.countryTable.title(m.result.perMonth(f.smallEur(bundle.calc.result.income))));
+    expect(text(where)).toContain(m.countryTable.title(m.result.perMonth(f.smallCur(bundle.calc.result.income))));
     const body = where.slice(where.indexOf("<tbody"), where.indexOf("</tbody>"));
     expect(count(body, '<th scope="row"')).toBe(7);
     expect(text(where)).toContain(m.countryTable.showAll(bundle.calc.countries.length));
@@ -354,7 +354,7 @@ describe.each(["en", "es"] as const)("where it reaches and my goals (%s)", (loca
     for (const after of checks) expect(text(after.slice(after.indexOf("</svg>") + 6)).replace(/^\s*(covered|reached|cubierto|conseguido)\s*/, "").trim()).toMatch(since);
     // Reached within the plan's years, though well before their end: the year it is reached, and in how long.
     expect(text(html)).toMatch(locale === "en" ? /from 20\d\d,? in \d+ years?/ : /desde 20\d\d,? en \d+ años?/);
-    expect(text(html)).toContain(m.goals.notAtThisPace(f.eur(calc.goals[2].needed ?? 0), 30));
+    expect(text(html)).toContain(m.goals.notAtThisPace(f.cur(calc.goals[2].needed ?? 0), 30));
     expect(text(html)).toMatch(locale === "en" ? /in \d+ years \(20\d\d\)/ : /en \d+ años \(20\d\d\)/);
   });
 
@@ -378,8 +378,8 @@ describe.each(["en", "es"] as const)("the sentence before the big number (%s)", 
   const growing = t.investedIn.custom(f.rate(0.05));
 
   it("leaves out a monthly amount of zero, or money today of zero", () => {
-    expect(said({ monthlyContribution: 0 })).toContain(t.summaryToday(f.eur(1000), growing, m.units.years(20)));
-    expect(said({ invested: 0 })).toContain(t.summaryMonthly(f.eur(200), growing, m.units.years(20)));
+    expect(said({ monthlyContribution: 0 })).toContain(t.summaryToday(f.cur(1000), growing, m.units.years(20)));
+    expect(said({ invested: 0 })).toContain(t.summaryMonthly(f.cur(200), growing, m.units.years(20)));
   });
 
   it("names where the money goes: a chip's index, a mix, or the user's own growth", () => {
@@ -467,7 +467,7 @@ describe.each(["en", "es"] as const)("the page after the first result, by its wi
     expect(steps?.[2]).toContain("max-lg:hidden");
     const bar = html.slice(html.lastIndexOf('<div class="fixed inset-x-0 bottom-0'));
     expect(bar).toContain("lg:hidden");
-    expect(text(bar)).toContain(m.calculator.summary(f.eur(1000), f.eur(200), f.rate(0.05), m.units.years(20)));
+    expect(text(bar)).toContain(m.calculator.summary(f.cur(1000), f.cur(200), f.rate(0.05), m.units.years(20)));
     expect(bar).toMatch(new RegExp(`<button type="button" aria-expanded="false" aria-controls="${steps?.[1]}"[^>]*>.*${m.calculator.edit}`));
   });
 
@@ -521,7 +521,7 @@ describe.each(["en", "es"] as const)("the same figures everywhere (%s)", (locale
   });
 
   it("says the same “could pay you” in the key figure and in the table's title", () => {
-    const paid = f.smallEur(result.income);
+    const paid = f.smallCur(result.income);
     expect(text(results)).toContain(`${m.facts.pays} ${paid}`);
     expect(text(where)).toContain(m.countryTable.title(m.result.perMonth(paid)));
   });
@@ -529,9 +529,9 @@ describe.each(["en", "es"] as const)("the same figures everywhere (%s)", (locale
   it("says the same monthly amount and growth in the steps, the result's sentence and the bar", () => {
     firstResult.set(true);
     const page = text(render(locale, state, createElement(MoneyModule)));
-    const sentence = m.result.summary(f.eur(20_000), f.eur(400), m.result.investedIn.custom(f.rate(0.05)), m.units.years(20));
+    const sentence = m.result.summary(f.cur(20_000), f.cur(400), m.result.investedIn.custom(f.rate(0.05)), m.units.years(20));
     expect(text(results)).toContain(sentence);
-    expect(page).toContain(m.calculator.summary(f.eur(20_000), f.eur(400), f.rate(0.05), m.units.years(20)));
+    expect(page).toContain(m.calculator.summary(f.cur(20_000), f.cur(400), f.rate(0.05), m.units.years(20)));
     const fields = [...render(locale, state, createElement(CalculatorCard, { compact: true })).matchAll(/<input[^>]*\svalue="([^"]*)"/g)].map((match) => match[1]);
     expect(fields).toEqual([locale === "en" ? "20,000" : "20.000", "400", "5", "20"]);
   });

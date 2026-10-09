@@ -286,7 +286,7 @@ describe("no percentage without its euros, in the result", () => {
     const render = (element: React.ReactElement) => renderToStaticMarkup(createElement(Provider, { i18n }, element));
     if (bundle.calc.scenario.head) {
       const futures = render(createElement(FuturesView, { bundle, onClose: () => {} }));
-      expect(futures).toContain(locale === "en" ? "Thin lines and shading show futures without this decade." : "Las líneas finas y la franja muestran futuros sin esa década.");
+      expect(futures).toContain(i18n.m.futures.withoutDecade);
       expect(futures).not.toContain(i18n.m.futures.average);
     }
     const html = [
@@ -306,6 +306,6 @@ describe("no percentage without its euros, in the result", () => {
     // Check your plan, whenever it shows: every line with its euros too.
     if (bundle.checks.length > 0) expect(html).toContain(i18n.m.check.title);
     expect(blocks.some((block) => /%/.test(block))).toBe(true);
-    expect(percentWithoutMoney(blocks)).toEqual([]);
+    expect(percentWithoutMoney(blocks, i18n.f.symbol)).toEqual([]);
   });
 });

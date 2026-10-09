@@ -1,0 +1,34 @@
+/** Every word of __NAME__ in Spanish (the shape of en.ts). */
+
+import type { Words } from "./en.ts";
+
+export const es: Words = {
+  meta: {
+    title: "__NAME__: ¿cuánto ha cambiado?",
+    description: "Escribe un número antes y después. Mira el cambio, en cantidad y en porcentaje.",
+  },
+  home: {
+    title: "¿Cuánto ha cambiado?",
+    lead: "Un precio, un sueldo o una factura: escríbelo antes y después.",
+    form: "Tus números",
+    before: "Antes",
+    after: "Después",
+    result: "El cambio",
+    up: (percent: string) => `Subió un ${percent}.`,
+    down: (percent: string) => `Bajó un ${percent}.`,
+    same: "No cambió.",
+    fromZero: "Empezó en cero, así que no hay porcentaje.",
+    difference: (amount: string) => `Diferencia: ${amount}.`,
+    invalid: "Escribe dos números para ver el cambio.",
+    private: "Se calcula en tu navegador. No se guarda ni se envía nada.",
+  },
+  footer: {
+    note: "No se guarda ni se envía nada. De uso gratuito.",
+    weight: (kb: string) => `Esta página pesa ${kb} KB comprimida, medido al construirla.`,
+  },
+  notFound: {
+    title: "Esta página no existe",
+    text: "Quizá la dirección tiene un error, o la página se mudó.",
+    home: "Ir a __NAME__",
+  },
+};

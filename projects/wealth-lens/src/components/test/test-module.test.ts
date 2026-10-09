@@ -60,7 +60,7 @@ describe.each(["en", "es"] as const)("Test my plan (%s)", (locale) => {
       expect(card).toContain("<polyline");
       if (!result.fall) return expect(text(card)).toContain(t.card.noFall);
       // Only euros: no percent on a card.
-      expect(text(card.slice(card.indexOf("</svg>")))).toContain(f.eur(-fallAmount(result), { signed: true }));
+      expect(text(card.slice(card.indexOf("</svg>")))).toContain(f.cur(-fallAmount(result), { signed: true }));
       expect(text(card.slice(0, card.indexOf("</button>")))).not.toMatch(/%/);
     });
   });
@@ -72,7 +72,7 @@ describe.each(["en", "es"] as const)("Test my plan (%s)", (locale) => {
     const html = render(locale, sp500, createElement(CrisisPanel, { result, source, amounts: { start: 1_100, monthly: 100 }, scenario: calc.scenario, planYears: calc.result.years, name: "S&P 500" }));
     expect(text(html)).toContain(t.happened.financial);
     expect(html).toContain('role="img"');
-    expect(text(html)).toContain(t.card.fall(f.eur(-fallAmount(result), { signed: true }), f.span((result.yearsToRecover ?? 0) * 12)));
+    expect(text(html)).toContain(t.card.fall(f.cur(-fallAmount(result), { signed: true }), f.span((result.yearsToRecover ?? 0) * 12)));
     expect(text(html)).toContain(m.cards.more);
     expect(text(html)).not.toContain(t.started(result.startYear));
   });

@@ -9,8 +9,11 @@
  * until something changes, and every change notifies all screens at once.
  */
 
+import { regionOf } from "@seed-kit/detect.ts";
+import { isPriceCountry } from "@seed-kit/inflation-rates.ts";
 import { createId } from "./id";
 import { resolveInvestment } from "./investment";
+import { planCurrencyOf } from "./money";
 import { STANDARD_ASSUMPTIONS, type AssumptionOverrides, type Investment, type NewGoal, type Plan } from "./types";
 import { DEFAULT_PLAN } from "./validation";
 import { whatIfAvailable, type WhatIfId } from "./what-if";
@@ -96,9 +99,39 @@ export function resetAssumptions(): void {
   updatePlan((plan) => ({ assumptions: { ...STANDARD_ASSUMPTIONS, growth: plan.investment.kind === "custom" ? plan.assumptions.growth : null } }));
 }
 
-/** "Rising prices in" (More options): the country's reference inflation replaces any typed one. */
+/**
+ * "Rising prices in" (More options): the country's reference inflation
+ * replaces any typed one, and its numbers are written that country's way.
+ * The currency follows it when it was the previous country's own.
+ */
 export function setPricesOf(pricesOf: string): void {
-  updatePlan((plan) => ({ pricesOf, assumptions: { ...plan.assumptions, inflation: null } }));
+  updatePlan((plan) => ({
+    pricesOf,
+    currency: plan.currency === planCurrencyOf(plan.pricesOf) ? (planCurrencyOf(pricesOf) ?? plan.currency) : plan.currency,
+    assumptions: { ...plan.assumptions, inflation: null },
+  }));
+}
+
+/** "Your amounts are in" (More options): the amounts stay as typed; only their currency changes. */
+export function setCurrency(currency: string): void {
+  updatePlan({ currency });
+}
+
+/**
+ * A first visit starts in the country the browser's language names
+ * ("es-MX": Mexico's prices, its way of writing numbers and its pesos),
+ * when the app has its figures. Worked out on the device, never stored
+ * or sent; nothing changes once the plan has been touched.
+ */
+export function startFromLanguage(language: string | undefined): void {
+  const region = language ? regionOf(language) : null;
+  if (region === null || appStore.get() !== INITIAL_STATE) return;
+  const currency = planCurrencyOf(region);
+  if (!isPriceCountry(region) && currency === null) return;
+  appStore.set((state) => ({
+    ...state,
+    plan: { ...state.plan, ...(isPriceCountry(region) ? { pricesOf: region } : {}), ...(currency ? { currency } : {}) },
+  }));
 }
 
 /** One "What if…?" at a time: tapping another switches to it, tapping the one applied takes it away. */

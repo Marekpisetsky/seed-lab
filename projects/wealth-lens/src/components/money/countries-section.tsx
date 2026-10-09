@@ -33,7 +33,7 @@ function Cell({ cell, when }: { cell: CountryCell; when: When }) {
   const reach = f.reach(cell.months, when.horizonMonths, when.today);
   return (
     <td className="px-1.5 py-2 align-top tabular-nums">
-      <span className="block">{f.eur(cell.amount)}</span>
+      <span className="block">{f.cur(cell.amount)}</span>
       {/* Two short lines, so a narrow cell does not break them anywhere: "✓ from 2031" / "in 5 years". */}
       <span className={`block text-sm ${cell.covered ? "font-medium text-positive" : "text-muted"}`}>
         <span className="block">
@@ -89,13 +89,13 @@ export function CountriesSection({ income, rows, horizonMonths, today }: { incom
   const [adding, setAdding] = useState<string | null>(null);
   const searching = query.trim() !== "";
   const shown = searching ? rows.filter((row) => matchesCountry(row.code, query, i18n)) : all ? rows : featuredRows(rows);
-  const paid = m.result.perMonth(i18n.f.smallEur(income));
+  const paid = m.result.perMonth(i18n.f.smallCur(income));
   return (
     <section aria-labelledby="countries-title" className="space-y-2">
       <h3 id="countries-title" className="text-base font-bold">
         <Changed value={t.title(paid)} />
       </h3>
-      <p className="text-sm text-muted">{t.paidBy(i18n.f.smallEur(income))}</p>
+      <p className="text-sm text-muted">{t.paidBy(i18n.f.smallCur(income))}</p>
       <label className="relative block">
         <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
         <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} aria-label={t.search} placeholder={t.search} className={`${inputClass} pl-9 text-base`} />

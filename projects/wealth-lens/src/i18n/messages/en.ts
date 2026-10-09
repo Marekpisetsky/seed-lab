@@ -169,8 +169,8 @@ export const en = {
       growth: "How much does it grow each year?",
       years: "For how many years?",
     },
-    lessMonthly: "€50 less a month",
-    moreMonthly: "€50 more a month",
+    lessMonthly: (amount: string) => `${amount} less a month`,
+    moreMonthly: (amount: string) => `${amount} more a month`,
     yearsUnit: (years: number): string => (years === 1 ? "year" : "years"),
     lessYear: "One year less",
     moreYear: "One year more",
@@ -218,6 +218,9 @@ export const en = {
     mix: "A mix…",
     upsTitle: "Ups and downs",
     pricesTitle: "Rising prices",
+    currencyTitle: "Currency",
+    currency: "Your amounts are in",
+    currencyHint: (year: number) => `Countries' costs use the official rate of ${year} (World Bank). Growth leaves out changes between currencies.`,
   },
   cards: {
     where: "Where it reaches",
@@ -280,7 +283,7 @@ export const en = {
       yours: "Your own numbers, not a promise.",
       world: "World average over the long run, not a promise.",
       notPromise: "Not a promise.",
-      todaysEuros: "Amounts in today's euros.",
+      todaysEuros: "Amounts in today's money.",
     },
     historically: (growth: string, moves: string) => `Historically, assets growing about ${growth} moved about ±${moves} a year.`,
     upsAndDowns: "How much it can go up or down in a normal year",
@@ -304,7 +307,7 @@ export const en = {
         "Your own numbers (Custom): no history describes them. So each year's growth is drawn from a normal distribution. The typical year grows exactly your number. Two years in three stay within ± your ups and downs.",
       fixed: "No ups and downs (0): every year grows the same, like a savings account.",
       prices:
-        "Rising prices (inflation) turn growth before them (the nominal return, on a statement) into growth after them. Every amount is in today's euros.",
+        "Rising prices (inflation) turn growth before them (the nominal return, on a statement) into growth after them. Every amount is in today's money.",
       lines:
         "If it goes badly or well: the 10th and 90th percentiles of the 1,000 simulated paths, the possible futures. The bad decade is one that happened: 2000–2009, or the worst ten years in the data. Then the average.",
     },
@@ -344,7 +347,7 @@ export const en = {
     /** "12,346 times what you put in": a thousand times or more. */
     timesPutInMany: (count: string) => `${count} times what you put in`,
     perMonth: (amount: string) => `${amount}/month`,
-    underOne: "under €1",
+    underOne: (one: string) => `under ${one}`,
     takenOut: "Taken out each year",
     /** The slider's value, with what it pays: "4%: €374 a month". */
     takenOutValue: (rate: string, monthly: string) => `${rate}: ${monthly} a month`,
@@ -377,7 +380,7 @@ export const en = {
     lives: "Enough to live in",
     none: "none yet",
     putInFrom: (have: string, monthly: string, years: string) => `${have} today, plus ${monthly} a month for ${years}.`,
-    growsFrom: "The total minus what you put in, in today's euros.",
+    growsFrom: "The total minus what you put in, in today's money.",
     badFrom: (amount: string) => `In 1 of 10 possible futures, you end up below ${amount}.`,
     goodFrom: (amount: string) => `In 1 of 10 possible futures, you end up above ${amount}.`,
     /** After badFrom, under the chart: the other end. */
@@ -387,8 +390,10 @@ export const en = {
   },
   whatIf: {
     title: "What if…?",
-    chips: { "grow-more": "Grows 1% more", "grow-less": "Grows 1% less", "monthly-50": "+€50 a month", "years-5": "5 more years", "bad-decade": "A bad first decade" },
-    applied: { "grow-more": "grows 1% more", "grow-less": "grows 1% less", "monthly-50": "+€50 a month", "years-5": "5 more years", "bad-decade": "a bad first decade" },
+    chips: { "grow-more": "Grows 1% more", "grow-less": "Grows 1% less", "years-5": "5 more years", "bad-decade": "A bad first decade" },
+    applied: { "grow-more": "grows 1% more", "grow-less": "grows 1% less", "years-5": "5 more years", "bad-decade": "a bad first decade" },
+    /** "+€50 a month": the step of the plan's currency (lib/money.ts). */
+    monthly: (amount: string) => `+${amount} a month`,
     /** The bad decade, once its years are known: "First 10 years like 2000–2009". */
     decade: (count: number, years: string) => `First ${count} years like ${years}`,
     decadeApplied: (count: number, years: string) => `first ${count} years like ${years}`,
@@ -436,7 +441,7 @@ export const en = {
     button: (what: string) => `What is “${what}”?`,
     fall: "What the crash did to the money you had at the top.",
     every: "Each bar is one start year. Taller means more money.",
-    total: "What your money is worth then, in today's euros.",
+    total: "What your money is worth then, in today's money.",
     income: "What you could take out each month, from then on.",
     lasted: "In how many of 100 possible futures that amount lasted 30 years.",
     whatIf: "Tap one to see your plan with that change.",
@@ -487,7 +492,7 @@ export const en = {
       countryEstimate: "Or start from a country's average",
       liveNote: "What an average person there lives on, housing included.",
       includesRent: "What an average person there lives on. You can adjust it.",
-      ownExpenses: "Your own costs, including housing, in today's euros.",
+      ownExpenses: "Your own costs, including housing, in today's money.",
       goalName: "What matters to you?",
       goalPlaceholder: "e.g. my own studio",
       where: "Where?",
@@ -496,13 +501,13 @@ export const en = {
       onePerson: (country: string, date: string) => `An average person in ${country} (World Bank, ${date}).`,
       what: "What it is",
       whatPlaceholder: "e.g. a car",
-      price: "Its price in euros",
+      price: (symbol: string) => `Its price (${symbol})`,
       pricePlaceholder: "e.g. 15,000",
       add: "Add",
       howMuch: "How much?",
-      amountPlaceholder: "€ amount",
+      amountPlaceholder: (symbol: string) => `${symbol} amount`,
       amountMonth: "Amount a month",
-      amountMonthPlaceholder: "€ a month",
+      amountMonthPlaceholder: (symbol: string) => `${symbol} a month`,
       label: "Label (optional)",
       labelPlaceholder: "e.g. my rent",
     },
@@ -521,7 +526,7 @@ export const en = {
     showFewer: "Show fewer",
     search: "Search for a country",
     noMatch: (query: string) => `No country matches “${query}”. Only countries with World Bank household survey data are listed.`,
-    note: (surveys: string, year: string) => `What an average person lives on, housing included. World Bank household surveys (${surveys}), ${year} prices. A national average: cities differ a lot.`,
+    note: (surveys: string, year: string) => `What an average person lives on, housing included. World Bank household surveys (${surveys}), ${year} prices and official exchange rates. A national average: cities differ a lot.`,
     provisional: "Provisional: from a public copy of the World Bank's data. The yearly download replaces it.",
     /** Over the table: what ✓ and a year mean, and the other cells. */
     /** Where a country's figure comes from: the World Bank's household survey and price level, with their years. */
@@ -530,7 +535,7 @@ export const en = {
   },
   check: {
     title: "Check your plan",
-    intro: "What stands out in your plan, with its euros. What to do is up to you.",
+    intro: "What stands out in your plan, with its amounts. What to do is up to you.",
     how: "How it is worked out",
     /** "34 of 100": how many possible futures, as a count. */
     count: (count: number) => `${count} of 100`,
@@ -560,15 +565,15 @@ export const en = {
     nothing: "Nothing stands out for these numbers.",
     risk: "Risk",
     lever: {
-      monthlyLabel: (monthly: string) => `+€100 a month (${monthly})`,
+      monthlyLabel: (step: string, monthly: string) => `+${step} a month (${monthly})`,
       returnLabel: (rate: string, amount: string) => `+1% growth (${rate}, ${amount} the first year)`,
       earlierLabel: "Starting a year earlier",
-      goalMonthly: (when: string) => `€100 more a month reaches your first goal ${when} sooner.`,
+      goalMonthly: (step: string, when: string) => `${step} more a month reaches your first goal ${when} sooner.`,
       goalReturn: (when: string, amount: string) => `1% more growth, ${amount} the first year: your first goal ${when} sooner.`,
       goalEarlier: (when: string) => `Starting a year ago would reach your first goal ${when} sooner.`,
       goalNeeded: (name: string, target: string, when: string, year: number) => `${name}: ${target} needed, in ${when} (${year}).`,
       sooner: (label: string, when: string) => `${label}: ${when} sooner.`,
-      resultMonthly: (amount: string, year: number) => `€100 more a month gives you ${amount} more by ${year}.`,
+      resultMonthly: (step: string, amount: string, year: number) => `${step} more a month gives you ${amount} more by ${year}.`,
       resultReturn: (amount: string, year: number) => `1% more growth gives you ${amount} more by ${year}.`,
       resultEarlier: (amount: string, year: number) => `Starting a year ago would give you ${amount} more by ${year}.`,
       now: (amount: string, year: number) => `Now: ${amount} by ${year}.`,
@@ -582,17 +587,17 @@ export const en = {
     },
     inflation: {
       text: (year: number, shown: string, today: string) => `In ${year} your account will show ~${shown}. That is ${today} of today's money.`,
-      factor: (rate: string, years: number, factor: string, then: string) => `Prices rising ${rate} a year for ${years} years: × ${factor}, so €1 becomes ${then}.`,
-      times: (today: string, factor: string, shown: string, year: number) => `${today} × ${factor} = ${shown} in euros of ${year}.`,
-      todays: (year: number) => `Horalis Growth shows today's euros. Your bank will show euros of ${year}.`,
-      assumption: (rate: string, example: string) => `Prices rise ${rate} a year: €100 today costs ${example} next year.`,
+      factor: (rate: string, years: number, factor: string, one: string, then: string) => `Prices rising ${rate} a year for ${years} years: × ${factor}, so ${one} becomes ${then}.`,
+      times: (today: string, factor: string, shown: string, year: number) => `${today} × ${factor} = ${shown} in money of ${year}.`,
+      todays: (year: number) => `Horalis Growth shows today's money. Your bank will show money of ${year}.`,
+      assumption: (rate: string, hundred: string, example: string) => `Prices rise ${rate} a year: ${hundred} today costs ${example} next year.`,
       afterPrices: "Growth here is after rising prices, so it allows for them.",
     },
     fees: {
       text: (amount: string, year: number) => `A 1% fund fee instead of 0.2% costs you ${amount} by ${year}.`,
       cheap: (amount: string, year: number) => `At 0.2% a year: ${amount} by ${year}.`,
       dear: (amount: string) => `At 1% a year: ${amount}.`,
-      assumption: "These returns are before fund costs. Index funds cost about 0.1–0.3% a year: €1 to €3 per €1,000.",
+      assumption: (low: string, high: string, per: string) => `These returns are before fund costs. Index funds cost about 0.1–0.3% a year: ${low} to ${high} per ${per}.`,
     },
     sequence: {
       afterYears: (years: number, typical: string, bad: string, decade: string) => `After ${years} years: ${typical} at the average, ${bad} as in ${decade}.`,
@@ -610,7 +615,7 @@ export const en = {
     growthAssumption: (rate: string, amount: string, source: string, past: boolean) =>
       `Growth ${rate} a year after rising prices, ${amount} the first year: ${source}. ${past ? "Past, not a promise." : "Not a promise."}`,
     monthlyAssumption: (monthly: string) => `Your ${monthly} a month goes in at each month's end. It rises with prices.`,
-    todaysEuros: "All amounts in today's euros.",
+    todaysEuros: "All amounts in today's money.",
   },
   units: {
     months: (n: number) => plural(n, "month", "months"),

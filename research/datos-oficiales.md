@@ -25,7 +25,8 @@ dentro del build.
   tienen la mayoría de los países (el «año de los datos»).
 - Las herramientas muestran esa fuente y ese año junto a cada resultado.
 - Cada país lleva también su moneda de hoy (ISO 4217, de Unicode CLDR),
-  para que cualquier herramienta pueda trabajar en cualquier moneda.
+  para que cualquier herramienta pueda trabajar en cualquier moneda. Cómo
+  se usan la moneda y el tipo de cambio: [monedas](monedas.md).
 
 ## Fuentes, con fecha y licencia
 

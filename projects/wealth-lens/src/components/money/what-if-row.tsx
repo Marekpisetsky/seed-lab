@@ -16,17 +16,19 @@ import type { WhatIfEffect, WhatIfId } from "@/lib/what-if";
 /** "+€23,000", or why it cannot apply. */
 function effectText({ id, change, available }: WhatIfEffect, { m, f }: I18n): string {
   if (!available) return id === "years-5" ? m.whatIf.maxYears : m.whatIf.noUps;
-  return f.eurRounded(change, { signed: true });
+  return f.curRounded(change, { signed: true });
 }
 
 /** A scenario's name in a chip: "Grows 1% more", "First 10 years like 2000–2009". */
-export function whatIfChip(id: WhatIfId, investment: ResolvedInvestment, years: number, { m }: I18n): string {
+export function whatIfChip(id: WhatIfId, investment: ResolvedInvestment, years: number, { m, f }: I18n): string {
+  if (id === "monthly-50") return m.whatIf.monthly(f.cur(f.step));
   const decade = id === "bad-decade" ? decadeYears(investment, years) : null;
   return decade ? m.whatIf.decade(decade[1] - decade[0] + 1, `${decade[0]}–${decade[1]}`) : m.whatIf.chips[id];
 }
 
 /** The same, once applied: "grows 1% more", "first 10 years like 2000–2009". */
-export function whatIfApplied(id: WhatIfId, investment: ResolvedInvestment, years: number, { m }: I18n): string {
+export function whatIfApplied(id: WhatIfId, investment: ResolvedInvestment, years: number, { m, f }: I18n): string {
+  if (id === "monthly-50") return m.whatIf.monthly(f.cur(f.step));
   const decade = id === "bad-decade" ? decadeYears(investment, years) : null;
   return decade ? m.whatIf.decadeApplied(decade[1] - decade[0] + 1, `${decade[0]}–${decade[1]}`) : m.whatIf.applied[id];
 }
@@ -38,7 +40,7 @@ export function WhatIfIndicator({ bundle }: { bundle: CalculationBundle }) {
   const applied = bundle.calc.whatIf;
   if (!applied) return null;
   const label = whatIfApplied(applied, bundle.base.investment, bundle.base.result.years, i18n);
-  const change = f.eurRounded(bundle.calc.result.total - bundle.base.result.total, { signed: true });
+  const change = f.curRounded(bundle.calc.result.total - bundle.base.result.total, { signed: true });
   return (
     <button
       type="button"

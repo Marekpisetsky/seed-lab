@@ -1,6 +1,6 @@
 /** The languages of the hub: seed-kit's, with the hub's own pages. */
 
-export { DEFAULT_LOCALE, LOCALE_SETTINGS, LOCALES, localePath } from "../../../packages/seed-kit/src/locales.ts";
+export { DEFAULT_LOCALE, isPendingReview, LOCALE_SETTINGS, LOCALES, localePath, SHOWN_LOCALES } from "../../../packages/seed-kit/src/locales.ts";
 export type { Locale } from "../../../packages/seed-kit/src/locales.ts";
 
 /** The pages, by their address without the language. */
