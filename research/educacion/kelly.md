@@ -1,8 +1,8 @@
 # Ficha educativa: por qué no simplemente maximizar el crecimiento (Kelly)
 
-- **Para:** todas las apps de seed-lab · **Revisada:** 3 de octubre de 2026
+- **Para:** todas las apps de Horalis · **Revisada:** 3 de octubre de 2026
 - **Tipo:** educativa. No describe un cálculo de ninguna app: explica por
-  qué ninguna app de seed-lab propone pesos ni "la mezcla que más crece".
+  qué ninguna app de Horalis propone pesos ni "la mezcla que más crece".
 
 ## Qué dice el criterio de Kelly
 
@@ -24,11 +24,11 @@ Merton (1969) da:
   crecimiento máximo: G(f*) = r + (μ − r)² / (2σ²)
 
 Aquí μ = log(1 + g) + σ²/2, con g el crecimiento típico (el que usa
-Wealth Lens).
+Horalis Crecimiento).
 
 ## Qué saldría con nuestros supuestos
 
-Supuestos de Wealth Lens (ver las fichas de [crecimiento](../wealth-lens/crecimiento.md)
+Supuestos de Horalis Crecimiento (ver las fichas de [crecimiento](../wealth-lens/crecimiento.md)
 y [valor inicial](../wealth-lens/valor-inicial.md)); el activo sin riesgo es la
 cuenta de ahorro (1,5 % menos un 2 % de inflación: −0,49 % real) o, si
 hay que pedir prestado, un préstamo al 2 % real (unos 4 % antes de
@@ -79,7 +79,7 @@ frente a su varianza.
    12,5 %. Muchos gestores no lo usan en absoluto y trabajan con
    presupuestos de riesgo, pasivos y horizontes concretos.
 
-## Por qué seed-lab no recomienda pesos
+## Por qué Horalis no recomienda pesos
 
 - **Sería asesoramiento.** Proponer a una persona cuánto poner en qué,
   según sus cifras, se acerca a una recomendación personalizada, que en la
@@ -110,7 +110,7 @@ frente a su varianza.
   capital growth criteria", *Quantitative Finance* 10(7): 681–687
   (doi:10.1080/14697688.2010.506108); y (eds., 2011) *The Kelly Capital
   Growth Investment Criterion: Theory and Practice*, World Scientific.
-- Los datos y supuestos, de las fichas de Wealth Lens (3 de octubre de
+- Los datos y supuestos, de las fichas de Horalis Crecimiento (3 de octubre de
   2026).
 
 ## Validación
@@ -126,3 +126,8 @@ cualquiera puede rehacerlas con una calculadora.
 - 2026-10-08: título y revista correctos del artículo de MacLean, Thorp y
   Ziemba (2010); "Good and bad properties of the Kelly criterion" es el
   título del capítulo del libro de 2011.
+- 2026-10-09 (fase A2): la tabla de arriba se calculó con las acciones del
+  mundo (MSCI World), que la app ya no usa (sus datos no son abiertos), y
+  con la oscilación de entonces del plan de partida (17,82 %; hoy, la de
+  las acciones de EE. UU., 16,39 %). Se deja como ejemplo: la conclusión
+  (Kelly da apalancamientos que la app no recomienda) no cambia.

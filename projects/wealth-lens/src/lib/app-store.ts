@@ -1,6 +1,6 @@
 /**
- * The app's state: one plan shared by every screen, the holdings and any
- * price files the user uploaded. It lives in this module's memory only:
+ * The app's state: one plan shared by every screen. It lives in this
+ * module's memory only:
  * nothing is written to localStorage, cookies or a server, so reloading the
  * page starts over from the example numbers. "Download my data" and "Load
  * my data" (lib/data-file.ts) are the only way to keep it.
@@ -9,24 +9,22 @@
  * until something changes, and every change notifies all screens at once.
  */
 
-import type { AssetId } from "./assets";
-import { priceHoldings } from "./auto-price";
+import { regionOf } from "@seed-kit/detect.ts";
+import { isPriceCountry } from "@seed-kit/inflation-rates.ts";
 import { createId } from "./id";
 import { resolveInvestment } from "./investment";
-import { STANDARD_ASSUMPTIONS, type AssumptionOverrides, type Holding, type Investment, type NewGoal, type Plan } from "./types";
-import { DEFAULT_PLAN, type UploadedPrices } from "./validation";
+import { planCurrencyOf } from "./money";
+import { STANDARD_ASSUMPTIONS, type AssumptionOverrides, type Investment, type NewGoal, type Plan } from "./types";
+import { DEFAULT_PLAN } from "./validation";
 import { whatIfAvailable, type WhatIfId } from "./what-if";
 
 export interface AppState {
   plan: Plan;
-  holdings: readonly Holding[];
-  /** Price files uploaded for tickers without downloaded prices, keyed by ticker. */
-  uploadedPrices: Readonly<Record<string, UploadedPrices>>;
   /** The "What if…?" applied to the whole screen, if any: a look, not part of the plan, never saved. */
   whatIf: WhatIfId | null;
 }
 
-export const INITIAL_STATE: AppState = { plan: DEFAULT_PLAN, holdings: [], uploadedPrices: {}, whatIf: null };
+export const INITIAL_STATE: AppState = { plan: DEFAULT_PLAN, whatIf: null };
 
 export type Updater<T> = T | ((previous: T) => T);
 
@@ -65,8 +63,7 @@ export function createStore<T>(initial: T, settle: (value: T) => T = (value) => 
  */
 function withWhatIfThatApplies(state: AppState): AppState {
   if (state.whatIf === null) return state;
-  const holdings = priceHoldings(state.holdings, state.uploadedPrices);
-  const investment = resolveInvestment(state.plan.investment, holdings, state.plan);
+  const investment = resolveInvestment(state.plan.investment, state.plan);
   return whatIfAvailable(state.whatIf, state.plan.years, investment) ? state : { ...state, whatIf: null };
 }
 
@@ -102,22 +99,39 @@ export function resetAssumptions(): void {
   updatePlan((plan) => ({ assumptions: { ...STANDARD_ASSUMPTIONS, growth: plan.investment.kind === "custom" ? plan.assumptions.growth : null } }));
 }
 
-/** "Rising prices in" (More options): the country's reference inflation replaces any typed one. */
+/**
+ * "Rising prices in" (More options): the country's reference inflation
+ * replaces any typed one. The currency follows it when it was the
+ * previous country's own.
+ */
 export function setPricesOf(pricesOf: string): void {
-  updatePlan((plan) => ({ pricesOf, assumptions: { ...plan.assumptions, inflation: null } }));
+  updatePlan((plan) => ({
+    pricesOf,
+    currency: plan.currency === planCurrencyOf(plan.pricesOf) ? (planCurrencyOf(pricesOf) ?? plan.currency) : plan.currency,
+    assumptions: { ...plan.assumptions, inflation: null },
+  }));
 }
 
-/** What a holding grows like in My portfolio; `null` goes back to what its ticker says. */
-export function setHoldingReference(id: string, reference: AssetId | null): void {
-  setHoldings((holdings) =>
-    holdings.map((holding) => {
-      if (holding.id !== id) return holding;
-      const next = { ...holding };
-      if (reference) next.reference = reference;
-      else delete next.reference;
-      return next;
-    }),
-  );
+/** "Your amounts are in" (More options): the amounts stay as typed; only their currency changes. */
+export function setCurrency(currency: string): void {
+  updatePlan({ currency });
+}
+
+/**
+ * A first visit starts in the country the browser's language names
+ * ("es-MX": Mexico's prices, its way of writing numbers and its pesos),
+ * when the app has its figures. Worked out on the device, never stored
+ * or sent; nothing changes once the plan has been touched.
+ */
+export function startFromLanguage(language: string | undefined): void {
+  const region = language ? regionOf(language) : null;
+  if (region === null || appStore.get() !== INITIAL_STATE) return;
+  const currency = planCurrencyOf(region);
+  if (!isPriceCountry(region) && currency === null) return;
+  appStore.set((state) => ({
+    ...state,
+    plan: { ...state.plan, ...(isPriceCountry(region) ? { pricesOf: region } : {}), ...(currency ? { currency } : {}) },
+  }));
 }
 
 /** One "What if…?" at a time: tapping another switches to it, tapping the one applied takes it away. */
@@ -141,22 +155,6 @@ export function removeGoal(id: string): void {
 /** Optional goal edits, including a priority flag; money stays in the shared plan. */
 export function updateGoal(id: string, change: (goal: Plan["goals"][number]) => Plan["goals"][number]): void {
   updatePlan((plan) => ({ goals: plan.goals.map((goal) => goal.id === id ? change(goal) : goal) }));
-}
-
-export function setHoldings(next: Updater<readonly Holding[]>): void {
-  appStore.set((state) => ({
-    ...state,
-    holdings: typeof next === "function" ? next(state.holdings) : next,
-  }));
-}
-
-export function setUploadedPrices(ticker: string, prices: UploadedPrices | null): void {
-  appStore.set((state) => {
-    const uploadedPrices = { ...state.uploadedPrices };
-    if (prices) uploadedPrices[ticker] = prices;
-    else delete uploadedPrices[ticker];
-    return { ...state, uploadedPrices };
-  });
 }
 
 /** Replaces everything, e.g. with a loaded data file. */

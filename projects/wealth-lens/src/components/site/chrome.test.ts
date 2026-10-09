@@ -8,7 +8,7 @@ import { SiteFooter, SiteHeader } from "@seed-kit/react/chrome.tsx";
 /**
  * seed-kit's header and footer come in two renderers: static HTML (the hub,
  * the tools Forja makes) and React (here). They must draw the same thing,
- * so every seed-lab app wears one header and one footer.
+ * so every Horalis app wears one header and one footer.
  */
 
 /** A radio button's attributes in one order, `checked=""` written `checked`, and its group's name left out (React makes its own). */
@@ -34,17 +34,17 @@ const normal = (markup: string) =>
     .replace(/<input [^>]*?\/?>/g, input)
     .trim();
 
-describe("the seed-lab header and footer", () => {
+describe("the Horalis header and footer", () => {
   for (const locale of ["en", "es"] as const) {
     const header = headerModel({
       locale,
-      name: "Wealth Lens",
+      name: "Horalis Growth",
       homeHref: locale === "en" ? "/" : "/es",
       nav: [
         { label: "My money", href: "/", current: true },
         { label: "My stocks", href: "/stocks" },
       ],
-      languageHrefs: { en: "/", es: "/es" },
+      languageHrefs: { en: "/", es: "/es", nl: "/nl" },
       current: "wealth-lens",
     });
     const footer = footerModel({ locale, links: [{ label: "About", href: "/about" }], notes: ["Nothing is saved or sent."] });
@@ -67,14 +67,15 @@ describe("the seed-lab header and footer", () => {
     });
   }
 
-  it("marks Wealth Lens as the tool you are in, and links the hub", () => {
+  it("marks Horalis Growth as the tool you are in, wears the seed, and links the hub", () => {
     const markup = renderToStaticMarkup(
       createElement(SiteHeader, {
-        model: headerModel({ locale: "en", name: "Wealth Lens", homeHref: "/", languageHrefs: { en: "/", es: "/es" }, current: "wealth-lens" }),
+        model: headerModel({ locale: "en", name: "Horalis Growth", homeHref: "/", languageHrefs: { en: "/", es: "/es", nl: "/nl" }, current: "wealth-lens" }),
       }),
     );
-    expect(markup).toMatch(/<a href="\/" aria-current="true"><span class="sk-tool">Wealth Lens<\/span><span class="sk-here">/);
+    expect(markup).toMatch(/<a href="\/" aria-current="true"><span class="sk-tool">Horalis Growth<\/span><span class="sk-here">/);
     expect(markup).toMatch(/<a class="sk-hub" href="https:\/\/[^"]+">/);
-    expect(markup).toContain('data-mark="wealth-lens"');
+    expect(markup).toContain('<span class="sk-name">Horalis<span class="sk-product"> Growth</span></span>');
+    expect(markup).not.toContain("data-mark");
   });
 });

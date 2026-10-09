@@ -16,9 +16,9 @@ import { footerModel, headerModel } from "../../../packages/seed-kit/src/chrome.
 import { kitCss, minifyCss } from "../../../packages/seed-kit/src/css.ts";
 import { FAVICON } from "../../../packages/seed-kit/src/icons.ts";
 import { legalPage } from "../../../packages/seed-kit/src/legal.ts";
-import { LOCALE_SETTINGS, LOCALES, localePath, type Locale } from "../../../packages/seed-kit/src/locales.ts";
+import { LOCALE_SETTINGS, LOCALES, localePath, SHOWN_LOCALES, type Locale } from "../../../packages/seed-kit/src/locales.ts";
 import { documentHtml, pagePath } from "../../../packages/seed-kit/src/page.ts";
-import { WORDS } from "./i18n.ts";
+import { WORDS } from "./i18n/index.ts";
 import { home, notFound, PAGES, privacy, type Page } from "./pages.ts";
 import { BASE_PATH, ID, NAME, SITE_URL } from "./site.ts";
 
@@ -33,14 +33,14 @@ function kb(bytes: number, locale: Locale): string {
   return new Intl.NumberFormat(LOCALE_SETTINGS[locale].intl, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(bytes / 1000);
 }
 
-/** A whole page: seed-lab's header and footer around it, and what it weighs. `modules`: the browser code its scripts load. */
+/** A whole page: Horalis's header and footer around it, and what it weighs. `modules`: the browser code its scripts load. */
 function render(page: Page, weight: Weight, modules: readonly string[]): string {
   const { locale, id } = page;
   const words = WORDS[locale];
   const path = id === null ? null : PAGES[id];
   const header = headerModel({
     locale,
-    name: NAME,
+    name: NAME[locale],
     homeHref: pagePath("/", locale, BASE_PATH),
     homeCurrent: id === "home",
     languageHrefs: Object.fromEntries(LOCALES.map((other) => [other, pagePath(path ?? "/", other, BASE_PATH)])) as Record<Locale, string>,
@@ -48,7 +48,7 @@ function render(page: Page, weight: Weight, modules: readonly string[]): string 
   });
   const footer = footerModel({
     locale,
-    links: [{ label: legalPage(locale, NAME).title, href: pagePath(PAGES.privacy, locale, BASE_PATH), current: id === "privacy" }],
+    links: [{ label: legalPage(locale, NAME[locale]).title, href: pagePath(PAGES.privacy, locale, BASE_PATH), current: id === "privacy" }],
     notes: [words.footer.note, words.footer.weight(kb(weight.compressed, locale))],
   });
   return documentHtml({
@@ -94,8 +94,8 @@ export function build(dist = DIST): Built[] {
   const site = SITE_URL + BASE_PATH;
   write("robots.txt", `User-agent: *\nAllow: /\n\nSitemap: ${site}/sitemap.xml\n`);
   const urls = Object.values(PAGES).flatMap((path) =>
-    LOCALES.map((locale) => {
-      const alternates = LOCALES.map((other) => `<xhtml:link rel="alternate" hreflang="${other}" href="${site + localePath(path, other)}"/>`).join("");
+    SHOWN_LOCALES.map((locale) => {
+      const alternates = SHOWN_LOCALES.map((other) => `<xhtml:link rel="alternate" hreflang="${other}" href="${site + localePath(path, other)}"/>`).join("");
       return `<url><loc>${site + localePath(path, locale)}</loc>${alternates}</url>`;
     }),
   );

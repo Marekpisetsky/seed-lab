@@ -11,11 +11,9 @@ import { calculationFor } from "@/hooks/use-calculation";
 import { getI18n, type I18n } from "@/i18n";
 import { LOCALES, type Locale } from "@/i18n/locales";
 import { INITIAL_STATE, type AppState } from "@/lib/app-store";
-import { priceHoldings } from "@/lib/auto-price";
-import { connectionsData } from "@/lib/connections";
 import { parseIsoDate } from "@/lib/dates";
 import { allFindings } from "@/lib/findings";
-import { STANDARD_ASSUMPTIONS, type Holding, type Plan } from "@/lib/types";
+import { STANDARD_ASSUMPTIONS, type Plan } from "@/lib/types";
 import type { WhatIfId } from "@/lib/what-if";
 import { EXAMPLE_PLAN } from "@/lib/validation";
 import { FuturesView } from "./money/futures-view";
@@ -23,7 +21,6 @@ import { GoalsSection } from "./money/goals-section";
 import { KnowDetails } from "./money/know-details";
 import { PayDetails } from "./money/pay-details";
 import { Results } from "./money/results";
-import { StocksSummary } from "./money/stocks-summary";
 import { WhatIfRow } from "./money/what-if-row";
 import { WhereDetails } from "./money/where-details";
 
@@ -121,6 +118,15 @@ describe("the dictionaries", () => {
     expect(JARGON.es.test("lo que de verdad puedes comprar")).toBe(false);
   });
 
+  it("name no product: no fund, ticker, index brand or price source, only kinds of assets", () => {
+    // Allowed only where a loaded file is told what no longer exists (problems), and where a source is cited.
+    const PRODUCTS = /\b(VUAA|VWCE|EQQQ|SXR8|NVDA|NVIDIA|AAPL|ASML|MSCI|Nasdaq|LBMA|Yahoo|Stooq|Numbeo|Wise|ETF)\b/i;
+    const named = dictionaries.flatMap(({ locale, entries }) =>
+      entries.filter((entry) => !entry.path.startsWith("problems.") && PRODUCTS.test(entry.text)).map((entry) => `${locale} ${entry.path}: ${entry.text}`),
+    );
+    expect(named).toEqual([]);
+  });
+
   it("speak in short sentences", () => {
     const long = dictionaries.flatMap(({ locale, entries }) =>
       plainLanguageProblems(entries, locale, {
@@ -133,19 +139,6 @@ describe("the dictionaries", () => {
       }),
     );
     expect(long).toEqual([]);
-  });
-
-  it("name and source every thing to buy, in every language", () => {
-    for (const locale of LOCALES) {
-      const { things } = getI18n(locale).m;
-      for (const item of connectionsData.buy) {
-        expect(things.items[item.id]?.name, `${locale} ${item.id}`).toBeTruthy();
-        // One figure for everyone has its source; a figure for each country says what it is ("Average price of a used car in X").
-        const words = things.items[item.id];
-        const priced = item.prices !== undefined || item.monthsHome !== undefined;
-        expect(priced ? words?.about : words?.source, `${locale} ${item.id}`).toBeTruthy();
-      }
-    }
   });
 });
 
@@ -264,67 +257,55 @@ describe("the components", () => {
  */
 describe("no percentage without its euros, in the result", () => {
   const today = parseIsoDate("2026-09-30");
-  const holding = (ticker: string, quantity: number, price: number): Holding => ({
-    id: ticker,
-    ticker,
-    quantity,
-    costBasis: quantity * price * 0.8,
-    currency: "EUR",
-    currentPrice: price,
-    priceSource: "manual",
-    priceDate: null,
-  });
   const goals: Plan["goals"] = [
     { id: "a", kind: "amount", amount: 50_000 },
-    { id: "b", kind: "live", country: "PT", housing: true },
+    { id: "b", kind: "live", country: "PT" },
     { id: "c", kind: "monthly", amount: 900, label: null },
   ];
   const plan = (patch: Partial<Plan> = {}): Plan => ({ ...EXAMPLE_PLAN, invested: 20_000, monthlyContribution: 400, goals, ...patch });
-  const cases: { name: string; plan: Plan; holdings?: Holding[]; whatIf?: WhatIfId }[] = [
+  const cases: { name: string; plan: Plan; whatIf?: WhatIfId }[] = [
     { name: "the starting 5 %", plan: plan() },
-    { name: "the S&P 500, a bad decade applied", plan: plan({ investment: { kind: "asset", asset: "sp500" } }), whatIf: "bad-decade" },
-    { name: "the Nasdaq-100, price only, grows 1 % more", plan: plan({ investment: { kind: "asset", asset: "nasdaq100" } }), whatIf: "grow-more" },
+    { name: "US stocks, a bad decade applied", plan: plan({ investment: { kind: "asset", asset: "sp500" } }), whatIf: "bad-decade" },
+    { name: "bonds, grows 1 % more", plan: plan({ investment: { kind: "asset", asset: "bonds" } }), whatIf: "grow-more" },
     { name: "gold, nothing today", plan: plan({ investment: { kind: "asset", asset: "gold" }, invested: 0 }) },
     { name: "a savings account", plan: plan({ investment: { kind: "asset", asset: "savings" } }) },
-    { name: "the S&P 500 for 3 years", plan: plan({ investment: { kind: "asset", asset: "sp500" }, years: 3 }) },
+    { name: "US stocks for 3 years", plan: plan({ investment: { kind: "asset", asset: "sp500" }, years: 3 }) },
     { name: "my own growth and ups and downs", plan: plan({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.06, volatility: 0.25 } }) },
     {
-      name: "a mix with one stock over a fifth",
-      plan: plan({ investment: { kind: "mix", parts: [{ asset: "world", weight: 50 }, { asset: "bonds", weight: 20 }, { asset: "nasdaq100", weight: 30, stock: "NVDA" }], rebalance: false } }),
+      name: "a mix of stocks, bonds and gold",
+      plan: plan({ investment: { kind: "mix", parts: [{ asset: "sp500", weight: 50 }, { asset: "bonds", weight: 30 }, { asset: "gold", weight: 20 }], rebalance: false } }),
     },
-    { name: "my portfolio, most of it in one stock", plan: plan({ investment: { kind: "portfolio" }, invested: null }), holdings: [holding("ASML", 7, 1000), holding("VWCE", 20, 150)] },
   ];
   const Provider = I18nProvider as React.FC<{ i18n: I18n; children?: React.ReactNode }>;
 
   it.each(LOCALES.flatMap((locale) => cases.map((entry) => [locale, entry.name, entry] as const)))("%s: %s", (locale: Locale, _name, entry) => {
     const i18n = getI18n(locale);
-    const state: AppState = { ...INITIAL_STATE, plan: entry.plan, holdings: entry.holdings ?? [], whatIf: entry.whatIf ?? null };
+    const state: AppState = { ...INITIAL_STATE, plan: entry.plan, whatIf: entry.whatIf ?? null };
     app.state = state;
     const bundle = calculationFor(state, today);
     const render = (element: React.ReactElement) => renderToStaticMarkup(createElement(Provider, { i18n }, element));
     if (bundle.calc.scenario.head) {
       const futures = render(createElement(FuturesView, { bundle, onClose: () => {} }));
-      expect(futures).toContain(locale === "en" ? "Thin lines and shading show futures without this decade." : "Las líneas finas y la franja muestran futuros sin esa década.");
+      expect(futures).toContain(i18n.m.futures.withoutDecade);
       expect(futures).not.toContain(i18n.m.futures.average);
     }
     const html = [
       render(createElement(Results, { bundle })),
       render(createElement(PayDetails, { bundle })),
       render(createElement(KnowDetails, { bundle })),
-      render(createElement(GoalsSection, { calc: bundle.calc, today, wishCountry: bundle.wishCountry, inCard: true })),
+      render(createElement(GoalsSection, { calc: bundle.calc, today, inCard: true })),
       render(createElement(WhereDetails, { bundle })),
       render(createElement(WhatIfRow, { bundle })),
-      render(createElement(StocksSummary, { holdings: bundle.holdings })),
       bundle.calc.investment.volatility > 0 ? render(createElement(FuturesView, { bundle, onClose: () => {} })) : "",
     ].join("");
     // Every finding, not only the three shown: its line, its calculation and its assumptions.
-    const findings = allFindings({ calc: bundle.base, inflation: bundle.base.investment.inflation, today, holdings: priceHoldings(state.holdings), i18n }).flatMap(
+    const findings = allFindings({ calc: bundle.base, inflation: bundle.base.investment.inflation, today, i18n }).flatMap(
       (finding) => [`${finding.value} ${finding.text}`, ...finding.calculation, ...finding.assumptions],
     );
     const blocks = [...textBlocks(html), ...findings];
     // Check your plan, whenever it shows: every line with its euros too.
     if (bundle.checks.length > 0) expect(html).toContain(i18n.m.check.title);
     expect(blocks.some((block) => /%/.test(block))).toBe(true);
-    expect(percentWithoutMoney(blocks)).toEqual([]);
+    expect(percentWithoutMoney(blocks, i18n.f.symbol)).toEqual([]);
   });
 });

@@ -10,7 +10,7 @@
 
 import type { ChromeWords, FooterModel, HeaderModel } from "./chrome.ts";
 import { html, raw, type Html } from "./html.ts";
-import { brandSvg, CHECK_ICON, GRID_ICON, THEME_ICONS } from "./icons.ts";
+import { seedSvg, CHECK_ICON, GRID_ICON, THEME_ICONS } from "./icons.ts";
 import { THEMES } from "./theme.ts";
 
 const current = (on: boolean | undefined, value = "page") => (on ? raw(` aria-current="${value}"`) : "");
@@ -33,7 +33,7 @@ export function headerHtml(model: HeaderModel, id = "sk-launcher"): Html {
   return html`<a class="sk-skip" href="#main">${words.skip}</a>
 <header class="sk-header${model.theme ? ` theme-${model.theme}` : ""}">
 <div class="sk-wrap sk-bar">
-<a class="sk-brand" href="${model.home.href}"${current(model.home.current)}><span class="sk-seed">${raw(brandSvg(model.mark))}</span><span>${model.home.label}</span></a>
+<a class="sk-brand" href="${model.home.href}"${current(model.home.current)}><span class="sk-seed">${raw(seedSvg())}</span><span class="sk-name">${model.home.label}${model.home.product ? html`<span class="sk-product"> ${model.home.product}</span>` : ""}</span></a>
 ${
   model.nav.length > 0
     ? html`<nav class="sk-nav" aria-label="${words.pages}"><ul>${model.nav.map((link) => html`<li><a href="${link.href}"${current(link.current)}>${link.label}</a></li>`)}</ul></nav>`

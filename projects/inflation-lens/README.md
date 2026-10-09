@@ -1,4 +1,4 @@
-# Inflation Lens
+# Horalis Inflación
 
 **Misión:** que cualquiera vea, sin dar ningún dato, lo que valen hoy
 sus euros de otro año en su país de la UE o en la zona euro, y al revés:
@@ -22,7 +22,8 @@ lanzadores.
 
 - Escribes una cantidad, eliges un año y un país de la UE, la zona euro o
   la Unión Europea, y el sentido: de ese año a hoy, o de hoy a ese año.
-- Dice lo que vale (≈, en euros enteros), cuánto subieron los precios
+- Dice lo que vale (≈, en unidades enteras de la moneda de hoy del lugar:
+  euros, złotys, coronas…), cuánto subieron los precios
   desde entonces y la frase para 100 €: "100 € de 2010 compran hoy lo que
   ≈ 74 € entonces".
 - Una línea de tiempo sencilla: una barra por año con cuánto subieron los
@@ -76,7 +77,7 @@ provisional, y `npm test` lo vuelve a comprobar. Después se puede pasar a
 Nació con [Forja](../../tools/forja/README.md) (molde `web-tool`) sobre
 [seed-kit](../../packages/seed-kit/README.md): páginas estáticas, sin
 framework, que Node 22 genera desde TypeScript. De seed-kit vienen los
-colores, la cabecera y el pie de seed-lab, la página de privacidad y
+colores, la cabecera y el pie de Horalis, la página de privacidad y
 condiciones, el documento HTML, el script de idioma, los formatos de
 números, los nombres de los países, el código para el navegador, la
 medida del peso y las comprobaciones.
@@ -88,7 +89,8 @@ src/
   hicp.ts        los datos: validación, series por idioma, lectura del JSON-stat de Eurostat
   data/hicp.json los datos, con fuente, fecha y licencia
   view.ts        el resultado y la línea de tiempo en HTML: el build y el navegador
-  i18n.ts        todas las palabras, en inglés y en español
+  i18n/          todas las palabras, un archivo por idioma (en, es, y nl: oculto
+                 hasta que lo revise un nativo); index.ts las junta
   pages.ts       la herramienta, privacidad y condiciones, 404
   app.ts         el script del navegador: lee el formulario y redibuja
   styles.css     los estilos propios, después de los de seed-kit

@@ -1,9 +1,9 @@
-# Cost Lens
+# Horalis Coste de vida
 
 **Misión:** que cualquiera vea, en un momento y sin dar ningún dato, lo
-que vale su dinero en otro país: "Con 2.500 € al mes en Países Bajos, en
-Perú necesitarías ≈ 800 € para vivir igual", y dónde rinde más y menos,
-con y sin vivienda.
+que vale su dinero en otro país, cada uno en su moneda: "Con 1950 € al
+mes en los Países Bajos, en Perú necesitarías ≈ 870 PEN para vivir igual",
+con el tipo oficial y su año, y dónde rinde más y menos.
 
 **Qué NO es:**
 - No es un buscador de pisos, sueldos ni ofertas de trabajo.
@@ -21,28 +21,37 @@ el hub ni los lanzadores la muestran hasta que pase a `"listed": true`.
 
 - Escribes una cantidad al mes, dónde vives y con qué país comparas.
 - Dice cuánto necesitarías allí para vivir igual: la cantidad por lo que
-  cuesta vivir allí frente a donde vives. Con vivienda (el número grande)
-  y sin contar la vivienda (debajo).
+  cuesta vivir allí frente a donde vives, vivienda incluida.
 - Lista los cinco países donde esa cantidad rinde más y los cinco donde
-  rinde menos, con y sin vivienda a la vez: "×2" quiere decir que compra
-  el doble que donde vives.
-- Los países estimados por su nivel de precios llevan "≈", y cada cifra
-  dice de dónde sale y de cuándo.
+  rinde menos: "×2" quiere decir que compra el doble que donde vives.
+- La página dice de dónde salen las cifras y de qué años.
 
 ## Datos
 
-Los 172 países de seed-kit (`packages/seed-kit/src/cost-of-living.ts` y
-`data/`), los mismos que usa Wealth Lens: una sola fuente.
+Los países de seed-kit (`packages/seed-kit/src/cost-of-living.ts` y
+`data/living-costs.json`), los mismos que usa Horalis Crecimiento: una
+sola fuente. Lo que vive al mes una persona media en cada país, vivienda
+incluida: la media de las encuestas de hogares del Banco Mundial, llevada
+a los precios del último año con los niveles de precios del Banco Mundial,
+y en dólares de ese año (licencia CC BY 4.0). Solo salen los países con
+datos oficiales. Método:
+[research/wealth-lens/coste-de-vida.md](../../research/wealth-lens/coste-de-vida.md).
 
-- 30 detallados: Numbeo (gastos sin alquiler) y Wise (alquiler de un piso
-  de un dormitorio fuera del centro), en euros, redondeados a 10.
-- 142 estimados (≈): los costes de Países Bajos ajustados al nivel de
-  precios de cada país frente al suyo (Banco Mundial); el alquiler, con
-  ese número al cuadrado.
+**Monedas (fase A3).** Lo que escribes está en la moneda del país donde
+vives; el resultado, en la del país con que comparas, al tipo oficial del
+Banco Mundial del año de los precios (media del año), y la página dice ese
+tipo y ese año. Un país sin tipo de ese año sale en dólares. La primera
+vez, el país de partida sale del idioma del navegador (es-MX → México),
+en el dispositivo, y la cantidad es lo que vive al mes una persona media
+de allí. Método: [research/monedas.md](../../research/monedas.md).
 
-Solo viajan a la página las cifras derivadas y redondeadas que ya publica
-Wealth Lens (ver "Licencias de los datos" en su README). La página las
-lleva dentro, en JSON: el navegador no pide nada a nadie.
+Hasta la fase A2 (2026-10-09) eran 30 países de Numbeo y Wise, con y sin
+vivienda, y 142 estimados; esas fuentes no permitían copiar sus datos y
+había que mantenerlas a mano. La fase B3 rehace la herramienta sobre
+la paridad de poder adquisitivo.
+
+La página lleva las cifras dentro, en JSON: el navegador no pide nada a
+nadie.
 
 ## Cómo cumple los cinco principios
 
@@ -59,7 +68,7 @@ lleva dentro, en JSON: el navegador no pide nada a nadie.
 Nació con [Forja](../../tools/forja/README.md) (molde `web-tool`) sobre
 [seed-kit](../../packages/seed-kit/README.md): páginas estáticas, sin
 framework, que Node 22 genera desde TypeScript. De seed-kit vienen los
-colores, la cabecera y el pie de seed-lab, la página de privacidad y
+colores, la cabecera y el pie de Horalis, la página de privacidad y
 condiciones, el documento HTML, el script de idioma, los formatos de
 números, los datos de países y sus nombres, el código para el navegador,
 la medida del peso y las comprobaciones.
@@ -70,7 +79,8 @@ src/
   calc.ts        el cálculo, puro: equivalente, cuánto rinde, los extremos
   countries.ts   los países de seed-kit tal como los lleva la página (al construir)
   view.ts        el resultado y las dos listas en HTML: el build y el navegador
-  i18n.ts        todas las palabras, en inglés y en español
+  i18n/          todas las palabras, un archivo por idioma (en, es, y nl: oculto
+                 hasta que lo revise un nativo); index.ts las junta
   pages.ts       la herramienta, privacidad y condiciones, 404
   app.ts         el script del navegador: lee el formulario y redibuja
   styles.css     los estilos propios, después de los de seed-kit

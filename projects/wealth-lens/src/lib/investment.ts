@@ -9,10 +9,9 @@
  *   yearly log returns); the simulations draw its historical years;
  * - a savings account: its interest rate (lib/assets.ts) less the "Prices
  *   of" country's inflation, with no swings;
- * - a mix or My portfolio: the weighted growth of its parts, its swings,
- *   and a joint simulation of the parts (lib/mix.ts);
- * - Custom growth: the growth typed (5 % to start, lib/validation.ts) with
- *   world stocks' swings (CUSTOM_BASE).
+ * - a mix: the weighted growth of its parts, its swings, and a joint
+ *   simulation of the parts (lib/mix.ts);
+ * - Custom growth: the growth typed with US stocks' swings (CUSTOM_BASE).
  *
  * Every one of them can be changed (Plan.assumptions): the growth after
  * inflation (Custom growth, "My %"), the swings and the inflation.
@@ -27,16 +26,18 @@ import { isSeriesAsset, SAVINGS_RATE, savingsRealReturn, seriesVolatility, type 
 // Only each country's inflation rate: the whole country dataset is not part of the first screen.
 import { DEFAULT_PRICES_OF, isPriceCountry, referenceRate } from "@seed-kit/inflation-rates.ts";
 import { COMMON_PERIOD, SERIES } from "./indexes";
-import { MARKET, type PricesFile } from "./market-data";
 import { mixInputs, mixModel, mixVolatility, type MixModel } from "./mix";
 import { normalReturns } from "./normal";
-import { portfolioAllocation, portfolioInputs, type Allocation } from "./portfolio";
-import { STANDARD_ASSUMPTIONS, type AssumptionOverrides, type Holding, type Investment } from "./types";
+import { STANDARD_ASSUMPTIONS, type AssumptionOverrides, type Investment } from "./types";
 
-/** What the plan projects with when nothing else can be used (an empty portfolio). */
+/** What the plan projects with when nothing else can be used (a mix with no weight). */
 export const DEFAULT_ASSET: AssetId = "sp500";
-/** Whose ups and downs Custom growth has (until files of version 8 it was the S&P 500's: lib/validation.ts keeps theirs). */
-export const CUSTOM_BASE: AssetId = "world";
+/**
+ * Whose ups and downs Custom growth has: US stocks', the one stock series
+ * whose data may be published (world stocks' until 9 October 2026, when the
+ * MSCI World series was removed: research/wealth-lens/crecimiento.md).
+ */
+export const CUSTOM_BASE: AssetId = "sp500";
 
 /** What the resolver reads from the plan besides the investment. */
 export interface ProjectionSettings {
@@ -71,7 +72,7 @@ export interface StandardFigures {
 }
 
 export interface ResolvedInvestment {
-  /** What the plan says, or the default when that cannot be used (e.g. an empty portfolio). Its name and texts: i18n/investment-text.ts. */
+  /** What the plan says, or the default when that cannot be used (a mix with no weight). Its name and texts: i18n/investment-text.ts. */
   investment: Investment;
   /** Growth a year after inflation, used for every projection. */
   realReturn: number;
@@ -93,12 +94,8 @@ export interface ResolvedInvestment {
   returns: readonly number[];
   /** Years of history behind the growth; `null` when there are none. */
   period: [number, number] | null;
-  /** A mix's or the portfolio's model: its figures (range, worst year) and, standard, its simulations. */
+  /** A mix's model: its figures (range, worst year) and, standard, its simulations. */
   model: MixModel | null;
-  /** How the holdings are split, for My portfolio. */
-  allocation: Allocation | null;
-  /** Share of it whose figures leave dividends out (the Nasdaq-100's are price only): 0, 1 or in between. */
-  withoutDividends: number;
   /** Every simulated year's growth factor is multiplied by this ("What if: grows 1% more"); 1 otherwise. */
   growthFactor: number;
   /** Growth added a year by a "What if…?" (+0.01, −0.01), 0 otherwise. */
@@ -132,8 +129,6 @@ interface Base {
   key: string;
   returns: readonly number[];
   model: MixModel | null;
-  allocation: Allocation | null;
-  withoutDividends: number;
 }
 
 const PERIOD: [number, number] = [COMMON_PERIOD[0], COMMON_PERIOD[1]];
@@ -148,8 +143,6 @@ function fromAsset(asset: AssetId, inflation: number, investment: Investment = {
       key: `fixed:${realReturn.toFixed(6)}`,
       returns: [realReturn],
       model: null,
-      allocation: null,
-      withoutDividends: 0,
     };
   }
   const info = SERIES[asset];
@@ -160,13 +153,11 @@ function fromAsset(asset: AssetId, inflation: number, investment: Investment = {
     key: `asset:${asset}`,
     returns: info.years.map((entry) => entry.realReturn),
     model: null,
-    allocation: null,
-    withoutDividends: info.priceOnly ? 1 : 0,
   };
 }
 
-/** A mix or the portfolio, through its model. */
-function fromModel(model: MixModel, investment: Investment, allocation: Allocation | null): Base {
+/** A mix, through its model. */
+function fromModel(model: MixModel, investment: Investment): Base {
   const onlySavings = model.parts.every((part) => part.asset === "savings");
   const weights = model.parts.map((part) => part.weight.toFixed(4)).join(",");
   const volatility = mixVolatility(model);
@@ -177,48 +168,35 @@ function fromModel(model: MixModel, investment: Investment, allocation: Allocati
     key: `model:${model.key}:${weights}:${model.rebalance ? "rebalance" : "drift"}`,
     returns: [],
     model,
-    allocation,
-    withoutDividends: model.parts.reduce((sum, part) => sum + (part.asset === "nasdaq100" ? part.weight : 0), 0),
   };
 }
 
-function baseFor(investment: Investment, holdings: readonly Holding[], inflation: number, market: PricesFile): Base {
+function baseFor(investment: Investment, inflation: number): Base {
   switch (investment.kind) {
     case "asset":
       return fromAsset(investment.asset, inflation, investment);
-    case "portfolio": {
-      const allocation = portfolioAllocation(holdings);
-      const model = mixModel(portfolioInputs(allocation), false, { savingsReturn: savingsRealReturn(inflation), market });
-      if (model) return fromModel(model, investment, allocation);
-      break;
-    }
     case "mix": {
-      const model = mixModel(mixInputs(investment.parts), investment.rebalance, { savingsReturn: savingsRealReturn(inflation), market });
-      if (model) return fromModel(model, investment, null);
+      const model = mixModel(mixInputs(investment.parts), investment.rebalance, { savingsReturn: savingsRealReturn(inflation) });
+      if (model) return fromModel(model, investment);
       break;
     }
     case "custom": {
-      // A growth of one's own moves like world stocks: their ups and downs, around the typed growth.
-      const world = fromAsset(CUSTOM_BASE, inflation);
-      return { ...world, investment, standard: { ...world.standard, period: null }, withoutDividends: 0 };
+      // A growth of one's own moves like US stocks: their ups and downs, around the typed growth.
+      const stocks = fromAsset(CUSTOM_BASE, inflation);
+      return { ...stocks, investment, standard: { ...stocks.standard, period: null } };
     }
   }
-  // A portfolio with nothing priced in euros, or a mix with no weight.
+  // A mix with no weight.
   return fromAsset(DEFAULT_ASSET, inflation);
 }
 
 /**
  * The growth, swings and simulations behind a plan's investment, with the
- * user's changes applied. `holdings` must already be priced.
+ * user's changes applied.
  */
-export function resolveInvestment(
-  investment: Investment,
-  holdings: readonly Holding[],
-  settings: ProjectionSettings = STANDARD_SETTINGS,
-  market: PricesFile = MARKET,
-): ResolvedInvestment {
+export function resolveInvestment(investment: Investment, settings: ProjectionSettings = STANDARD_SETTINGS): ResolvedInvestment {
   const inflation = inflationFor(settings);
-  const base = baseFor(investment, holdings, inflation, market);
+  const base = baseFor(investment, inflation);
   const { growth, volatility: typedVolatility } = settings.assumptions;
   const standardReal =
     base.standard.basis === "nominal" && base.standard.nominalRate !== null ? toReal(base.standard.nominalRate, inflation) : base.standard.realReturn;
@@ -237,8 +215,6 @@ export function resolveInvestment(
     custom,
     customInflation: settings.assumptions.inflation !== null,
     model: base.model,
-    allocation: base.allocation,
-    withoutDividends: custom ? 0 : base.withoutDividends,
   };
   if (!custom) {
     return {

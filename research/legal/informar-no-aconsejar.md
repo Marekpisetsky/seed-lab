@@ -1,9 +1,9 @@
 # Ficha legal: informar, no aconsejar
 
-- **Para:** todas las apps de seed-lab · **Revisada:** 3 de octubre de 2026
+- **Para:** todas las apps de Horalis · **Revisada:** 3 de octubre de 2026
 
 > **Esto no es asesoramiento legal.** Es el criterio de trabajo de
-> seed-lab, escrito a partir de los textos públicos de la normativa
+> Horalis, escrito a partir de los textos públicos de la normativa
 > europea. Antes de lanzar, conviene que lo revise un profesional (un
 > abogado especializado en regulación de servicios financieros de la UE y
 > de cada país donde se publique), y que lo vuelva a revisar cuando cambie
@@ -12,7 +12,7 @@
 ## La pregunta
 
 ¿Dónde está el límite entre **dar información general** (lo que hace
-seed-lab) y **asesorar sobre inversiones**, un servicio reservado en la UE
+Horalis) y **asesorar sobre inversiones**, un servicio reservado en la UE
 a empresas autorizadas?
 
 ## El límite, según MiFID II
@@ -52,7 +52,7 @@ a empresas autorizadas?
   Directrices sobre determinados aspectos de los requisitos de idoneidad
   de MiFID II (ESMA35-43-3172, 2023).
 
-## Dónde está Wealth Lens
+## Dónde está Horalis Crecimiento
 
 **Lo que hace (información):** calcula, con las cifras que escribe la
 persona, consecuencias de un plan (cuánto podría tener, cómo se movió,
@@ -64,14 +64,12 @@ operación sobre un instrumento concreto**. Dice que no es asesoramiento
 
 **Lo que hay que vigilar (de más a menos riesgo):**
 
-1. **Nombres de fondos junto a un índice.** El selector muestra "p. ej.
-   VUAA" junto al S&P 500, "VWCE" junto al Mundo, etc. No dice "compra",
-   pero pone un instrumento concreto al lado de un resultado calculado con
-   las cifras de la persona: es lo más cercano al límite que tiene la app
-   y, según el Reglamento de abuso de mercado, podría leerse como una
-   sugerencia implícita. *Opciones:* nombrar varios fondos, o el índice y
-   su proveedor, o explicar que es solo un ejemplo de lo que sigue el
-   índice. **Para revisar con el profesional.**
+1. **Nombres de fondos junto a un índice** (resuelto en la fase A2, 9 de
+   octubre de 2026). El selector mostraba "p. ej. VUAA" junto al S&P 500,
+   "VWCE" junto al Mundo: un instrumento concreto al lado de un resultado
+   calculado con las cifras de la persona. Ya no hay ningún producto,
+   fondo ni ticker en la app: solo tipos de activo ("acciones de EE. UU.",
+   "bonos alemanes", "oro").
 2. **Zonas del retiro ("prudente", "arriesgado").** Son etiquetas de los
    datos, no de la persona, pero suenan a juicio. Siempre van con su dato
    ("duró en 79 de cada 100"); ver la [tasa de
@@ -82,14 +80,12 @@ operación sobre un instrumento concreto**. Dice que no es asesoramiento
 4. **"Chequeo de tu plan".** Las observaciones describen un hecho del
    plan con su cifra en euros; nunca dicen qué comprar, qué vender ni qué
    pesos poner, y la sección empieza diciendo que qué hacer lo decide la
-   persona. La referencia del ahorro son "las acciones del mundo", un
-   índice, nunca un fondo, y va con su caso malo. Ver el [chequeo de tu
+   persona. La referencia del ahorro son "las acciones de EE. UU.", un
+   tipo de activo, nunca un fondo, y va con su caso malo y su peor caída. Ver el [chequeo de tu
    plan](../wealth-lens/chequeo.md); un test comprueba su redacción.
    **Para revisar con el profesional:** si comparar un ahorro con las
-   acciones del mundo, con las cifras de la persona, puede leerse como
-   una sugerencia.
-5. **Mi cartera.** Lee las posiciones que la persona ya tiene y dice cómo
-   se movieron y cuánto pesan; nunca qué hacer con ellas.
+   acciones, con las cifras de la persona, puede leerse como una
+   sugerencia.
 
 ## Reglas de redacción para todas las apps
 
@@ -137,11 +133,11 @@ De criterio (las revisa quien escribe y quien revisa):
 - `packages/seed-kit/test/plain-language.test.ts`: el test de las
   palabras de consejo (EN y ES), que también deja pasar los avisos ("no
   te dice qué comprar ni qué vender").
-- Cada app pasa su texto entero por ese test: Wealth Lens
+- Cada app pasa su texto entero por ese test: Horalis Crecimiento
   (`src/components/plain-language.test.ts`), el hub (`test/build.test.ts`),
-  Cost Lens e Inflation Lens (`test/site.test.ts`).
+  Horalis Coste de vida y Horalis Inflación (`test/site.test.ts`).
 - Al aplicarlo, el único texto que incumplía era el título "What you
-  should know" de Wealth Lens: ahora "Good to know" ("Para tener en
+  should know" de Horalis Crecimiento: ahora "Good to know" ("Para tener en
   cuenta").
 - El chequeo de tu plan tiene además su propio test de redacción
   (`projects/wealth-lens/src/lib/plan-check.test.ts`): sin palabras de
@@ -154,3 +150,6 @@ De criterio (las revisa quien escribe y quien revisa):
 - 2026-10-07: el chequeo de tu plan, hecho y con su test de redacción;
   un punto más para el profesional (comparar el ahorro con las acciones
   del mundo).
+- 2026-10-09 (fase A2): se quitan los nombres de fondos (punto 1
+  resuelto), *Mi cartera* y las acciones sueltas; la referencia del ahorro
+  pasa a las acciones de EE. UU.

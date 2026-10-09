@@ -37,7 +37,7 @@ after(async () => {
 
 /** A page in a mode picked earlier in the tab ("auto": none), on a device in light or dark mode; in a window of its own. */
 async function open(path: string, { theme = "auto", device = "light", width = 1366 }: { theme?: string; device?: "light" | "dark"; width?: number } = {}): Promise<Page> {
-  const page = await (await browser.newContext({ viewport: { width, height: 900 }, locale: "en-GB" })).newPage();
+  const page = await (await browser.newContext({ viewport: { width, height: 900 }, locale: "en-IE" })).newPage();
   await page.emulateMedia({ reducedMotion: "reduce", colorScheme: device });
   if (theme !== "auto") await page.addInitScript((picked) => sessionStorage.setItem("sk-theme", picked), theme);
   await page.goto(base + path, { waitUntil: "networkidle" });
@@ -114,7 +114,7 @@ describe("the theme menu", () => {
 });
 
 describe("contrast in both modes", () => {
-  it("keeps every text at WCAG AA: the first screen, the result with its sections open, Check your plan, Test my plan, My stocks and Privacy", async () => {
+  it("keeps every text at WCAG AA: the first screen, the result with its sections open, Check your plan, Test my plan and Privacy", async () => {
     for (const theme of THEMES) {
       const page = await open("/", { theme });
       const problems: string[] = [];
@@ -135,7 +135,6 @@ describe("contrast in both modes", () => {
       await check("Check your plan");
       for (const [path, name] of [
         ["/test", "Test my plan"],
-        ["/stocks", "My stocks"],
         ["/privacy", "Privacy"],
       ] as const) {
         await page.getByRole("link", { name, exact: true }).first().click();
@@ -157,7 +156,7 @@ type Swatches = Record<string, { x: number; y: number }>;
 async function chartPoints(page: Page): Promise<Swatches> {
   return page.evaluate(() => {
     const putIn = document.querySelector('path[fill="var(--chart-put-in)"]')!;
-    // In sight first: what is under the big number (the wishes) can push it below the fold.
+    // In sight first: what is under the big number can push it below the fold.
     putIn.closest("svg")!.scrollIntoView({ block: "center" });
     const svg = putIn.closest("svg")!.getBoundingClientRect();
     const x = svg.left + svg.width * 0.8;

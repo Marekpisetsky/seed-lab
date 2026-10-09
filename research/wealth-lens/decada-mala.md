@@ -1,6 +1,6 @@
 # Ficha: década mala histórica
 
-- **App:** Wealth Lens · **Revisada:** 3 de octubre de 2026
+- **App:** Horalis Crecimiento · **Revisada:** 3 de octubre de 2026
 - **Código** (en `projects/wealth-lens/`): `src/lib/decade.ts`
   (`historicalDecade`, `decadeYears`, `FAMOUS_DECADE`, `DECADE_YEARS`),
   `src/lib/what-if.ts` (`badStartHead`), `src/lib/findings.ts`
@@ -26,11 +26,9 @@ dinero vuelve a crecer a su media. Qué década:
 
 | Activo | Media 1988–2022 | 2000–2009 | Década que usa |
 | --- | --- | --- | --- |
-| S&P 500 | 7,54 % | −3,03 % al año (−26,5 % en total) | 2000–2009 |
-| Mundo | 4,45 % | −2,70 % al año (−23,9 %) | 2000–2009 |
-| Nasdaq-100 | 9,90 % | −8,96 % al año (−60,9 %) | 2000–2009 |
-| Bonos del euro | 2,47 % | +3,97 % al año | 2013–2022 (−2,46 % al año) |
-| Oro | 1,06 % | +11,31 % al año | 1988–1997 (−8,16 % al año) |
+| Acciones de EE. UU. (S&P 500) | 7,54 % | −3,03 % al año (−26,5 % en total) | 2000–2009 |
+| Bonos alemanes | 2,47 % | +3,97 % al año | 2013–2022 (−2,46 % al año) |
+| Oro | 1,04 % | +12,07 % al año | 1988–1997 (−8,19 % al año) |
 
 Exacta: con X lo de hoy y Y la aportación, para cada año k de la década,
 saldo_k = valor de (saldo_{k−1}, Y, r_k, 1 año) con la fórmula del
@@ -38,10 +36,9 @@ saldo_k = valor de (saldo_{k−1}, Y, r_k, 1 año) con la fórmula del
 sigue la fórmula normal con la media g. De qué está hecha la década:
 
 - un activo: sus propios años;
-- una mezcla o *Mi cartera*: los años de sus partes, con sus pesos
-  (reequilibrados cada enero o dejándolos correr, como diga la mezcla);
-  una acción cuenta como su índice;
-- crecimiento propio: los años de las acciones del mundo;
+- una mezcla: los años de sus partes, con sus pesos (reequilibrados cada
+  enero o dejándolos correr, como diga la mezcla);
+- crecimiento propio: los años de las acciones de EE. UU.;
 - crecimiento u oscilación escritos: los mismos años movidos a ese
   crecimiento y estirados a esa oscilación, para que la década conserve su
   forma: log(1 + r') = log(1 + g') + (σ'/σ)·(log(1 + r) − log(1 + g)).
@@ -77,13 +74,13 @@ su crecimiento ni selecciona otros años históricos.
 con la década mala todavía seleccionada, alcanza exactamente la meta a
 30 años, tanto desde cero aportes como desde una aportación ya existente.
 
-- `src/lib/decade.test.ts` (9): 2000–2009 para los índices de acciones;
+- `src/lib/decade.test.ts` (8): 2000–2009 para las acciones de EE. UU.;
   la peor década, con sus años, donde 2000–2009 fue buena (bonos
   2013–2022, oro 1988–1997); los años del plan si son menos de diez; sin
   oscilaciones no hay década; los años reales de un activo, uno tras otro;
-  lo propio, con los años del Mundo movidos al crecimiento escrito; una
-  oscilación mayor, una década peor; las partes de una mezcla el mismo
-  año, con sus pesos; una acción como su índice.
+  lo propio, con los años de las acciones de EE. UU. movidos al
+  crecimiento escrito; una oscilación mayor, una década peor; las partes
+  de una mezcla el mismo año, con sus pesos.
 - `src/lib/what-if.test.ts` (18, "A bad first decade"): el "¿Y si…?" igual
   a aplicarlo, sus efectos en metas y países, y que no existe sin
   altibajos.
@@ -100,7 +97,7 @@ con la década mala todavía seleccionada, alcanza exactamente la meta a
 
 1. **Elegir la peor década es elegir a dedo.** Para bonos y oro se busca la
    peor de 35 años; para las acciones, 2000–2009, aunque 1999–2008 fue algo
-   peor (S&P 500: −4,41 % al año; Mundo: −3,08 %). Es una decisión de
+   peor (S&P 500: −4,41 % al año). Es una decisión de
    claridad ("2000–2009" es reconocible), pero no es "la peor" para todos.
    *Coste:* decir "una de las peores" o usar siempre la peor.
 2. **Volver a la media tras la crisis.** Después de una década mala las
@@ -108,11 +105,8 @@ con la década mala todavía seleccionada, alcanza exactamente la meta a
    (2010–2019 fue muy buena para las acciones). Volver a la media sin más
    puede exagerar el daño a largo plazo; tampoco hay garantía de rebote.
    *Coste:* ninguno inmediato; decirlo en *Cómo funciona*.
-3. **Una acción como su índice.** En una mala década, una acción concreta
-   puede hacerlo mucho peor (o mejor) que su índice. La década de la mezcla
-   la iguala a su índice para no inventar su historia. *Coste:* aceptable.
-4. **Estirar a otra oscilación.** La transformación conserva la forma de
-   la década, pero aplicar la secuencia de las acciones del mundo a un
+3. **Estirar a otra oscilación.** La transformación conserva la forma de
+   la década, pero aplicar la secuencia de las acciones de EE. UU. a un
    crecimiento escrito cualquiera es una analogía, no un dato.
 
 ## Historial
@@ -122,3 +116,7 @@ con la década mala todavía seleccionada, alcanza exactamente la meta a
   la misma década histórica que el plazo de llegada. Prueba de regresión:
   1.000 € iniciales y meta de un millón; antes la cifra propuesta dejaba
   unos 790.322 € en 30 años, ahora alcanza la meta bajo ese escenario.
+- 2026-10-09 (fase A2): sin Mundo, Nasdaq-100, acciones sueltas ni Mi
+  cartera. El crecimiento propio usa los años de las acciones de EE. UU.
+  (antes, los del Mundo). El oro, de la Pink Sheet del Banco Mundial: la
+  misma década, 1988–1997.

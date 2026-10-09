@@ -52,6 +52,14 @@ describe("the page around a static tool", () => {
     assert.doesNotMatch(missing, /canonical|navigator/);
   });
 
+  it("builds Dutch, waiting for a native speaker's review, but neither links nor indexes it", () => {
+    assert.doesNotMatch(page(), /hreflang="nl"/);
+    const dutch = page({ locale: "nl" });
+    assert.match(dutch, /<html lang="nl">/);
+    assert.match(dutch, /<meta name="robots" content="noindex">/);
+    assert.doesNotMatch(dutch, /canonical|hreflang/);
+  });
+
   it("sets the tab's light or dark mode first in the head, on every page, and runs the header's menus", () => {
     for (const html of [page(), page({ locale: "es" }), page({ path: null })]) {
       const head = html.slice(0, html.indexOf("</head>"));
@@ -94,7 +102,7 @@ import data from "./data.json" with { type: "json" };
 /** A doc comment the browser does not need. */
 export function half(amount: number, locale: Locale = "en"): string {
   // A comment line.
-  return numberFormats(locale === "en" ? "en-GB" : "es-ES").eur(amount * data.rate);
+  return numberFormats(locale === "en" ? "en-GB" : "es-ES").cur(amount * data.rate);
 }
 `,
       );

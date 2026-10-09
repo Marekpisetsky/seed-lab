@@ -18,6 +18,8 @@ export interface Series {
   name: string;
   /** As a sentence says it ("the euro area", "Spain"). */
   sentence: string;
+  /** The place's currency today (ISO 4217): amounts are in it. */
+  currency: string;
   /** The year of the first rate. */
   from: number;
   /** How much prices rose each year, in %, from `from` on. */

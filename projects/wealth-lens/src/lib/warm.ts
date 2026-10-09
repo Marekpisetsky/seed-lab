@@ -2,16 +2,14 @@
  * Work done ahead, in idle moments once the user starts using the page, one
  * short step at a time (each well under 50 ms, so the page never stutters): the mixes'
  * random draws, every asset's simulated years, a first run of each mix
- * template (100% stocks, 80/20, 60/40) drifting and rebalanced, of a
- * portfolio with a stock, the simulated years of each stock of the list
- * (for a mix) and of the user's own figures.
+ * template (100% stocks, 80/20, 60/40) drifting and rebalanced, and of
+ * the user's own figures.
  * Choosing any of them, or loading a file, then recalculates at once.
  */
 
 import { resolveInvestment } from "./investment";
-import { instrumentById, INSTRUMENTS } from "./market-data";
 import { SERIES_IDS } from "./indexes";
-import { mixModel, mixPercentiles, mixSuccessRates, partReturns, prepareMixDraws, TEMPLATES } from "./mix";
+import { mixModel, partReturns, prepareMixDraws, TEMPLATES } from "./mix";
 import { mixFigures, successRatesFor } from "./projections";
 import { STANDARD_ASSUMPTIONS } from "./types";
 
@@ -22,8 +20,8 @@ export function warmUp(rates: readonly number[]): void {
   warmed = true;
   const amounts = { start: 1000, monthly: 100, years: 20 };
   const steps: (() => void)[] = [
-    ...[0, 1, 2, 3].map((slots) => () => prepareMixDraws(slots)),
-    // Every asset's simulated years, which any mix or portfolio shares.
+    () => prepareMixDraws(),
+    // Every asset's simulated years, which any mix shares.
     () => {
       const all = mixModel(SERIES_IDS.map((asset) => ({ asset, weight: 1 })), false);
       if (all) partReturns(all);
@@ -31,32 +29,13 @@ export function warmUp(rates: readonly number[]): void {
     // The 60/40 first: it is the one a mix starts with.
     ...[TEMPLATES[2], TEMPLATES[1], TEMPLATES[0]].flatMap((template) =>
       [false, true].map((rebalance) => () => {
-        const mix = resolveInvestment({ kind: "mix", parts: [...template.parts], rebalance }, []);
+        const mix = resolveInvestment({ kind: "mix", parts: [...template.parts], rebalance });
         successRatesFor(mix, rates);
         mixFigures(mix, amounts);
       }),
     ),
     () => {
-      const stock = instrumentById("NVDA");
-      const model = mixModel([{ asset: "world", weight: 70 }, { asset: "nasdaq100", weight: 30, ...(stock ? { stock } : {}) }], false);
-      if (model) {
-        mixPercentiles(model, amounts);
-        mixSuccessRates(model, rates);
-      }
-    },
-    // Each stock of the list alone in a mix: its simulated years, ready for "Add".
-    ...INSTRUMENTS.filter((instrument) => instrument.kind === "stock").map((stock) => () => {
-      const model = mixModel([{ asset: stock.index, weight: 1, stock }], false);
-      if (model) partReturns(model);
-    }),
-    // A first run of a mix with a stock over a fifth: its figures and the concentration line.
-    () => {
-      const mix = resolveInvestment({ kind: "mix", parts: [{ asset: "world", weight: 30 }, { asset: "bonds", weight: 40 }, { asset: "nasdaq100", weight: 30, stock: "NVDA" }], rebalance: false }, []);
-      successRatesFor(mix, rates);
-      mixFigures(mix, amounts);
-    },
-    () => {
-      const own = resolveInvestment({ kind: "custom" }, [], { pricesOf: "NL", assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.05 } });
+      const own = resolveInvestment({ kind: "custom" }, { pricesOf: "NL", assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.05 } });
       successRatesFor(own, rates);
     },
   ];

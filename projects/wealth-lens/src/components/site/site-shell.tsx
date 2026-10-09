@@ -9,10 +9,11 @@ import { useI18n } from "@/components/i18n";
 import { LegacyDataNotice } from "@/components/legacy-data-notice";
 import { IntentLink } from "@/components/ui/intent-link";
 import { LOCALES, localePath, PAGES, splitPath } from "@/i18n/locales";
+import { startFromLanguage } from "@/lib/app-store";
 import type { Locale } from "@/i18n/locales";
 
 /** The pages in the header, and the ones in the footer. */
-const NAV = ["money", "test", "stocks"] as const;
+const NAV = ["money", "test"] as const;
 const FOOTER = ["about", "howItWorks", "privacy", "terms"] as const;
 
 /**
@@ -29,6 +30,8 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     document.documentElement.lang = locale;
   }, [locale]);
+  // A first visit: the country and currency the browser's language names (lib/app-store.ts).
+  useEffect(() => startFromLanguage(navigator.language), []);
   const header = headerModel({
     locale,
     name: m.site.name,

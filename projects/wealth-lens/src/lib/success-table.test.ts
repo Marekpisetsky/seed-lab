@@ -8,7 +8,7 @@ import { DEFAULT_PLAN } from "./validation";
 import { WITHDRAWAL_STEPS } from "./withdrawal";
 
 describe("the precomputed success rates", () => {
-  const investments = [...SERIES_IDS.map((asset) => resolveInvestment({ kind: "asset", asset }, [])), resolveInvestment(DEFAULT_PLAN.investment, [], DEFAULT_PLAN)];
+  const investments = [...SERIES_IDS.map((asset) => resolveInvestment({ kind: "asset", asset })), resolveInvestment(DEFAULT_PLAN.investment, DEFAULT_PLAN)];
 
   it("are exactly what the simulation gives for every asset with a history, the starting plan and every step of the slider", () => {
     for (const { key, returns } of investments) {
@@ -20,7 +20,7 @@ describe("the precomputed success rates", () => {
   });
 
   it("are used for those rates, and anything else is simulated", () => {
-    const { key, returns } = resolveInvestment({ kind: "asset", asset: "world" }, []);
+    const { key, returns } = resolveInvestment({ kind: "asset", asset: "gold" });
     expect(cachedSuccessRates(key, returns, [0.04])).toEqual([PRECOMPUTED_SUCCESS[key]["0.0400"]]);
     expect(cachedSuccessRates(key, returns, [0.033])).toEqual(successRates({ withdrawalRates: [0.033], returns }));
   });

@@ -1,8 +1,8 @@
 /*
- * The base of a seed-lab web tool (the ones Forja makes): the page, the
+ * The base of a Horalis web tool (the ones Forja makes): the page, the
  * text, a form, a result and a page of prose, mobile first, only the
  * tokens' colours and 44 px targets. With tokens.css and chrome.css, a
- * tool looks like the rest of seed-lab before it writes a line of CSS.
+ * tool looks like the rest of Horalis before it writes a line of CSS.
  */
 
 *, *::before, *::after { box-sizing: border-box; }

@@ -18,8 +18,8 @@ import { serve } from "../../../packages/seed-kit/src/serve.ts";
 const OUT = fileURLToPath(new URL("../out/", import.meta.url));
 
 const WORDS = {
-  en: { path: "/", have: "How much do you have now?", monthly: "How much do you add each month?", growth: "How much does it grow each year?", years: "For how many years?", see: "See my result", edit: "Edit", done: "Done", more: "€50 more a month", sp500: /^S&P 500,/, world: /^World,/, result: "Result" },
-  es: { path: "/es", have: "¿Cuánto tienes hoy?", monthly: "¿Cuánto añades al mes?", growth: "¿Cuánto crece al año?", years: "¿Durante cuántos años?", see: "Ver mi resultado", edit: "Editar", done: "Listo", more: "50 € más al mes", sp500: /^S&P 500,/, world: /^Mundo,/, result: "Resultado" },
+  en: { path: "/", have: "How much do you have now?", monthly: "How much do you add each month?", growth: "How much does it grow each year?", years: "For how many years?", see: "See my result", edit: "Edit", done: "Done", more: "€50 more a month", sp500: /^US stocks,/, bonds: /^Bonds, German government,/, result: "Result" },
+  es: { path: "/es", have: "¿Cuánto tienes hoy?", monthly: "¿Cuánto añades al mes?", growth: "¿Cuánto crece al año?", years: "¿Durante cuántos años?", see: "Ver mi resultado", edit: "Editar", done: "Listo", more: "50 € más al mes", sp500: /^Acciones de EE\. UU\.,/, bonds: /^Bonos alemanes,/, result: "Resultado" },
 } as const;
 type Lang = keyof typeof WORDS;
 
@@ -39,7 +39,7 @@ after(async () => {
 });
 
 async function open(lang: Lang, width: number, height = 800): Promise<Page> {
-  const page = await browser.newPage({ viewport: { width, height }, locale: lang === "es" ? "es-ES" : "en-GB" });
+  const page = await browser.newPage({ viewport: { width, height }, locale: lang === "es" ? "es-ES" : "en-IE" });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(base + WORDS[lang].path, { waitUntil: "networkidle" });
   return page;
@@ -64,7 +64,7 @@ describe("personal goals", () => {
       await page.getByLabel(WORDS[lang].have, { exact: true }).fill("60000");
       await page.getByLabel(WORDS[lang].monthly, { exact: true }).fill("100");
       await page.getByRole("button", { name: WORDS[lang].see }).click();
-      await page.getByRole("columnheader", { name: lang === "en" ? "With rent" : "Con alquiler", exact: true }).waitFor();
+      await page.getByRole("columnheader", { name: lang === "en" ? "A month, housing included" : "Al mes, vivienda incluida", exact: true }).waitFor();
       await page.waitForLoadState("networkidle");
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `${lang}: no page overflow`);
       await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
@@ -73,7 +73,7 @@ describe("personal goals", () => {
     }
   });
 
-  it("adds a country immediately with editable rent, in both languages", async () => {
+  it("adds a country immediately, housing included, in both languages", async () => {
     for (const lang of ["en", "es"] as const) {
       const page = await open(lang, 360);
       await firstResult(page, lang);
@@ -83,11 +83,11 @@ describe("personal goals", () => {
       await page.getByLabel(lang === "en" ? "Choose a country" : "Elige un país", { exact: true }).selectOption("ES");
       const goal = page.getByRole("button", { name: lang === "en" ? /^Live in Spain/ : /^Vivir en España/ });
       await goal.waitFor();
-      assert.match(await goal.innerText(), lang === "en" ? /including rent/ : /con alquiler incluido/);
+      assert.match(await goal.innerText(), lang === "en" ? /housing included/ : /vivienda incluida/);
+      // One figure, from official data: nothing to tick about rent.
       await goal.click();
-      const rent = page.getByRole("checkbox", { name: lang === "en" ? "including rent" : "con alquiler incluido" });
-      await rent.uncheck();
-      assert.match(await goal.innerText(), lang === "en" ? /excluding rent/ : /sin incluir alquiler/);
+      assert.equal(await page.getByRole("checkbox").count(), 0);
+      assert.match(await page.locator("main").innerText(), lang === "en" ? /World Bank: household survey 20\d\d, prices 20\d\d/ : /Banco Mundial: encuesta de hogares 20\d\d, precios 20\d\d/);
       await page.close();
     }
   });
@@ -196,9 +196,9 @@ describe("the four steps", () => {
     await growth.fill("6");
     await growth.press("Enter");
     assert.equal(await page.locator('button[aria-pressed="true"]').count(), 0);
-    await growth.fill("4.5");
+    await growth.fill("2.5");
     await growth.press("Enter");
-    assert.equal(await page.getByRole("button", { name: WORDS.en.world }).getAttribute("aria-pressed"), "true");
+    assert.equal(await page.getByRole("button", { name: WORDS.en.bonds }).getAttribute("aria-pressed"), "true");
     await page.close();
   });
 
@@ -360,7 +360,8 @@ describe("for a finger", () => {
       );
     assert.deepEqual(await small(), []);
     await firstResult(page, "es");
-    for (let i = 0; i < 2; i++) await page.getByRole("button", { name: /^Ver más/ }).first().click();
+    // The one "See more" left: Good to know.
+    await page.getByRole("button", { name: /^Ver más/ }).first().click();
     await page.getByRole("button", { name: /^Te pagaría al mes/ }).click();
     assert.deepEqual(await small(), []);
     await page.getByRole("button", { name: WORDS.es.edit }).click();
@@ -374,7 +375,7 @@ describe("for a finger", () => {
 
 /** A page with motion allowed, recording every layout shift from the start. */
 async function withShifts(lang: Lang, width: number, height = 900): Promise<Page> {
-  const page = await browser.newPage({ viewport: { width, height }, locale: lang === "es" ? "es-ES" : "en-GB" });
+  const page = await browser.newPage({ viewport: { width, height }, locale: lang === "es" ? "es-ES" : "en-IE" });
   await page.addInitScript(() => {
     const shifts: { value: number; recent: boolean }[] = [];
     (window as unknown as { shifts: typeof shifts }).shifts = shifts;
@@ -539,82 +540,31 @@ describe("Test my plan", () => {
   });
 });
 
-describe("With this you could", () => {
-  /** A page as a browser in this language would open it: navigator.language is `locale`. */
-  async function openAs(locale: string, lang: Lang, width: number): Promise<Page> {
-    const context = await browser.newContext({ viewport: { width, height: 800 }, locale, reducedMotion: "reduce" });
-    const page = await context.newPage();
-    await page.goto(base + WORDS[lang].path, { waitUntil: "networkidle" });
-    return page;
-  }
-  const WISH = {
-    en: { title: "With this you could:", pricesOf: "Prices of:", added: /In My goals\.$/, goals: "My goals" },
-    es: { title: "Con esto podrías:", pricesOf: "Precios de:", added: /En Mis metas\.$/, goals: "Mis metas" },
-  } as const;
-
-  it("sits under the big number: two or three wishes, each with its price and when, every one a finger's size", async () => {
+describe("My goals", () => {
+  it("asks for the user's own price, with an example in grey, and shows no price list", async () => {
     for (const lang of ["en", "es"] as const) {
-      for (const width of [360, 1366, 1920]) {
-        const page = await openAs(lang === "es" ? "es-ES" : "en-GB", lang, width);
-        await firstResult(page, lang);
-        const list = page.getByRole("list", { name: WISH[lang].title });
-        const chips = list.getByRole("button");
-        const count = await chips.count();
-        assert.ok(count >= 2 && count <= 3, `${count} wishes (${lang} ${width})`);
-        const total = (await page.locator("#result-total").boundingBox())!;
-        const box = (await list.boundingBox())!;
-        assert.ok(box.y > total.y + total.height - 1, `under the big number (${lang} ${width})`);
-        for (let index = 0; index < count; index++) {
-          const chip = chips.nth(index);
-          const text = await chip.innerText();
-          assert.match(text, /€/, `its price (${text})`);
-          assert.match(text, lang === "en" ? /· (now|in \d+ (months?|years?))$/ : /· (ahora|en \d+ (meses|mes|años?))$/, `when (${text})`);
-          const size = (await chip.boundingBox())!;
-          assert.ok(size.height >= 44 && size.x >= 0 && size.x + size.width <= width, `a finger's size, in the window (${lang} ${width}: ${text})`);
-        }
-        await page.context().close();
-      }
-    }
-  });
-
-  it("starts from the country of the browser's language, adds a wish to My goals with a tap, and stores nothing", async () => {
-    const page = await openAs("es-ES", "es", 360);
-    await firstResult(page, "es");
-    const t = WISH.es;
-    const pricesOf = page.getByLabel(t.pricesOf).first();
-    assert.equal(await pricesOf.inputValue(), "ES");
-    const list = page.getByRole("list", { name: t.title });
-    const chips = list.getByRole("button");
-    // An experience, a home, time: at Spain's prices the whole 80 m² home (€178,400) comes within the plan's 20 years.
-    const texts = await chips.allInnerTexts();
-    assert.deepEqual(texts.map((text) => text.split(" · ")[0]), ["Un viaje a Japón", "Una vivienda de 80 m², pagada", "Un año sin trabajar"]);
-    assert.match(texts[1], /^Una vivienda de 80 m², pagada · ≈ 178\.400\s€ · en \d+ años$/);
-    // Tapping it makes it the person's own priority: first in the line, ✓, and in My goals.
-    await chips.nth(1).click();
-    const first = chips.first();
-    assert.match(await first.innerText(), /^Una vivienda de 80 m², pagada/);
-    assert.equal(await first.getAttribute("aria-disabled"), "true");
-    assert.match((await first.getAttribute("aria-label")) ?? "", t.added);
-    const goals = page.getByRole("region", { name: t.goals });
-    assert.match(await goals.innerText(), /Una vivienda de 80 m², pagada[\s\S]*178\.400\s€/);
-    // The Netherlands' prices: the same home costs €378,080 there, in the line and in My goals.
-    await pricesOf.selectOption("NL");
-    assert.match(await first.innerText(), /^Una vivienda de 80 m², pagada · ≈ 378\.080\s€ ·/);
-    assert.match(await goals.innerText(), /Una vivienda de 80 m², pagada[\s\S]*378\.080\s€/);
-    // Kept in memory only: nothing in the browser's storage, and a reload starts from the language again.
-    assert.deepEqual(await page.evaluate(() => [localStorage.length, sessionStorage.length]), [0, 0]);
-    await page.reload({ waitUntil: "networkidle" });
-    await firstResult(page, "es");
-    assert.equal(await page.getByLabel(t.pricesOf).first().inputValue(), "ES");
-    await page.context().close();
-  });
-
-  it("shows the Netherlands' prices to a browser whose country has none", async () => {
-    for (const locale of ["en-US", "de-AT", "pt-BR"]) {
-      const page = await openAs(locale, "en", 1366);
-      await firstResult(page, "en");
-      assert.equal(await page.getByLabel(WISH.en.pricesOf).first().inputValue(), "NL", locale);
-      await page.context().close();
+      const words =
+        lang === "en"
+          ? { goals: "My goals", add: "Add a goal", buy: "Buy something", what: "What it is", price: "Its price (€)", example: "e.g. 15,000" }
+          : { goals: "Mis metas", add: "Añadir una meta", buy: "Comprar algo", what: "Qué es", price: "Su precio (€)", example: "p. ej. 15.000" };
+      const page = await open(lang, 360);
+      await firstResult(page, lang);
+      // No wishes priced from a list under the big number, and no "Prices of" anywhere.
+      assert.equal(await page.getByRole("list", { name: lang === "en" ? "With this you could:" : "Con esto podrías:" }).count(), 0);
+      assert.equal(await page.getByLabel(lang === "en" ? "Prices of:" : "Precios de:").count(), 0);
+      const goals = page.getByRole("region", { name: words.goals });
+      await goals.getByRole("button", { name: words.add }).click();
+      await goals.getByRole("radio", { name: words.buy }).check();
+      const price = goals.getByLabel(words.price);
+      assert.equal(await price.inputValue(), "");
+      assert.equal(await price.getAttribute("placeholder"), words.example);
+      await goals.getByLabel(words.what).fill(lang === "en" ? "A car" : "Un coche");
+      await price.fill("20000");
+      await goals.getByRole("button", { name: lang === "en" ? "Add" : "Añadir", exact: true }).click();
+      assert.match(await goals.innerText(), lang === "en" ? /A car[\s\S]*€20,000/ : /Un coche[\s\S]*20\.000\s€/);
+      // Kept in memory only.
+      assert.deepEqual(await page.evaluate(() => [localStorage.length, sessionStorage.length]), [0, 0]);
+      await page.close();
     }
   });
 });
@@ -664,8 +614,8 @@ describe("growth from −50% to 500% a year", () => {
       assert.match(
         said,
         lang === "en"
-          ? /^No index or large company has kept this up: 500% on average for 20 years\. At that pace, your €1,100 would be €4\.02 × 10¹⁸\.$/
-          : /^Ningún índice ni gran empresa ha mantenido esto: un 500 % de media durante 20 años\. A ese ritmo, tus 1100 € serían 4,02 × 10¹⁸ €\.$/,
+          ? /^No asset in the data has kept this up: 500% on average for 20 years\. At that pace, your €1,100 would be €4\.02 × 10¹⁸\.$/
+          : /^Ningún activo de los datos ha mantenido esto: un 500 % de media durante 20 años\. A ese ritmo, tus 1100 € serían 4,02 × 10¹⁸ €\.$/,
       );
       await page.getByRole("button", { name: t.see }).click();
       await page.locator(`section[aria-label="${t.result}"]`).waitFor();
@@ -696,6 +646,28 @@ describe("growth from −50% to 500% a year", () => {
     await page.getByRole("button", { name: WORDS.en.see }).click();
     await page.locator(`section[aria-label="${WORDS.en.result}"]`).waitFor();
     assert.match(await page.locator(`section[aria-label="${WORDS.en.result}"]`).innerText(), /losing 50% a year/);
+    await page.close();
+  });
+});
+
+describe("any country, any currency", () => {
+  it("starts where the browser's language says: Mexico, its pesos and its way of writing numbers", async () => {
+    const page = await browser.newPage({ viewport: { width: 360, height: 800 }, locale: "es-MX" });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(base + "/es", { waitUntil: "networkidle" });
+    await firstResult(page, "es");
+    // 20000 typed, 400 a month: a peso amount written the Mexican way.
+    assert.match(await bigNumber(page), /^\$[\d,]+\b/);
+    // "What if…?": the €50 step is the same size of money in pesos, a round figure.
+    await page.getByRole("button", { name: /^\+\$[\d,]*0 al mes/ }).first().waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), "no page overflow");
+    await page.close();
+  });
+
+  it("keeps the euros of a reader whose language names a euro country", async () => {
+    const page = await open("en", 1366);
+    await firstResult(page, "en");
+    assert.match(await bigNumber(page), /^€[\d,]+\b/);
     await page.close();
   });
 });

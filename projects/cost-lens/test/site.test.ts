@@ -9,15 +9,15 @@ import { LOCALES, localePath } from "../../../packages/seed-kit/src/locales.ts";
 import { plainLanguageProblems, textsOf } from "../../../packages/seed-kit/src/plain-language.ts";
 import { TOOLS } from "../../../packages/seed-kit/src/tools.ts";
 import { build } from "../src/build.ts";
-import { WORDS } from "../src/i18n.ts";
-import { countriesFor, DEFAULTS } from "../src/countries.ts";
+import { WORDS } from "../src/i18n/index.ts";
+import { countriesFor, defaultChoice } from "../src/countries.ts";
 import { PAGES } from "../src/pages.ts";
 import { ID, LIMIT_KB, SITE_URL } from "../src/site.ts";
 import { listsHtml, resultHtml } from "../src/view.ts";
 
 /**
- * What seed-lab promises for every tool, checked on the built site: both
- * languages, seed-lab's header and footer, nothing from other sites,
+ * What Horalis promises for every tool, checked on the built site: both
+ * languages, Horalis's header and footer, nothing from other sites,
  * nothing stored, under the weight limit, plain words.
  */
 
@@ -44,13 +44,13 @@ describe("the site", () => {
     for (const file of ["404.html", "favicon.svg", "js/app.js", "robots.txt", "sitemap.xml"]) assert.ok(existsSync(join(DIST, file)), file);
   });
 
-  it("wears seed-lab's header and footer: the name, EN/ES, the tools, privacy, Part of seed-lab", () => {
+  it("wears Horalis's header and footer: the name, EN/ES, the tools, privacy, Part of Horalis", () => {
     for (const { file, text } of HTML) {
       assert.match(text, /<header class="sk-header">[\s\S]*<a class="sk-brand"/, file);
       assert.match(text, /<nav class="sk-langs"[\s\S]*hreflang="en"[\s\S]*hreflang="es"/, file);
       assert.match(text, /<details class="sk-launcher">/, file);
-      assert.match(text, /<footer class="sk-footer">[\s\S]*\/privacy\/"[\s\S]*(?:Part of seed-lab|Parte de seed-lab)/, file);
-      assert.match(text, /© 2026 seed-lab/, file);
+      assert.match(text, /<footer class="sk-footer">[\s\S]*\/privacy\/"[\s\S]*(?:Part of Horalis|Parte de Horalis|Onderdeel van Horalis)/, file);
+      assert.match(text, /© 2026 Horalis/, file);
     }
   });
 
@@ -84,10 +84,11 @@ describe("the site", () => {
     for (const locale of LOCALES) {
       const page = readFileSync(join(DIST, localePath(PAGES.home, locale), "index.html"), "utf8");
       const countries = countriesFor(locale);
+      const choice = defaultChoice(countries);
       for (const draw of ["resultHtml", "listsHtml"] as const) {
-        const shown = ({ resultHtml, listsHtml })[draw](DEFAULTS, countries, locale).value;
+        const shown = ({ resultHtml, listsHtml })[draw](choice, countries, locale).value;
         assert.ok(page.includes(shown), `${locale}: ${draw}`);
-        assert.equal(browser[draw](DEFAULTS, countries, locale).value, shown, `${locale}: ${draw}`);
+        assert.equal(browser[draw](choice, countries, locale).value, shown, `${locale}: ${draw}`);
       }
       const carried = JSON.parse(page.match(/<script type="application\/json" id="countries">([^<]*)<\/script>/)?.[1] ?? "[]");
       assert.deepEqual(carried, countries, `${locale}: the page carries the countries the browser compares`);
@@ -97,10 +98,25 @@ describe("the site", () => {
   it("names its sources, with dates, on the page", () => {
     for (const locale of LOCALES) {
       const page = readFileSync(join(DIST, localePath(PAGES.home, locale), "index.html"), "utf8");
-      assert.match(page, /Numbeo/, locale);
-      assert.match(page, /Wise/, locale);
-      assert.match(page, locale === "en" ? /World Bank, 20\d\d/ : /Banco Mundial, 20\d\d/, locale);
+      assert.doesNotMatch(page, /Numbeo|Wise/, locale);
+      const surveys = { en: /World Bank(?:'|&#39;)s household surveys \(20\d\d–20\d\d/, es: /encuestas de hogares del Banco Mundial \(20\d\d–20\d\d/, nl: /huishoudenquêtes van de Wereldbank \(20\d\d–20\d\d/ };
+      assert.match(page, surveys[locale], locale);
+      const rates = { en: /official rate for 20\d\d/, es: /tipo oficial del Banco Mundial de 20\d\d/, nl: /officiële koers van de Wereldbank van 20\d\d/ };
+      assert.match(page, rates[locale], locale);
+      assert.match(page, /CC BY 4\.0/, locale);
     }
+  });
+});
+
+describe("Dutch, waiting for a native speaker's review", () => {
+  it("is built, but neither offered, linked nor indexed", () => {
+    for (const path of Object.values(PAGES)) {
+      const page = readFileSync(join(DIST, localePath(path, "nl"), "index.html"), "utf8");
+      assert.match(page, /<meta name="robots" content="noindex">/, path);
+      assert.match(page, /moedertaalspreker/, path);
+    }
+    for (const { file, text } of HTML.filter(({ file }) => !file.startsWith("nl/"))) assert.doesNotMatch(text, /hreflang="nl"|href="\/nl\//, file);
+    assert.doesNotMatch(readFileSync(join(DIST, "sitemap.xml"), "utf8"), /\/nl\//);
   });
 });
 

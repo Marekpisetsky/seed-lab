@@ -35,7 +35,7 @@ import { PathChart, StartYearsChart } from "./history-charts";
 function cardFigure(result: CrisisResult, { m, f }: ReturnType<typeof useI18n>): string {
   const t = m.test.card;
   if (!result.fall) return t.noFall;
-  const amount = f.eur(-fallAmount(result), { signed: true });
+  const amount = f.cur(-fallAmount(result), { signed: true });
   return result.yearsToRecover !== null ? t.fall(amount, f.span(result.yearsToRecover * 12)) : t.notBack(amount, result.lastYear);
 }
 
@@ -85,7 +85,7 @@ export function CrisisPanel({
   const lastShown = result.startYear + result.years - 1;
   // Both falls on the same money: what the plan had at its top (or, with no fall of its own, what the S&P 500 had at its).
   const top = fall?.from ?? alone?.fall?.from ?? 0;
-  const lost = (drop: number) => f.eur(-drop * top, { signed: true });
+  const lost = (drop: number) => f.cur(-drop * top, { signed: true });
   return (
     <section aria-labelledby="crisis-title" className="space-y-3 rounded-xl border border-border bg-card p-4 sm:p-6">
       <h2 id="crisis-title" className="text-xl font-bold">
@@ -104,23 +104,23 @@ export function CrisisPanel({
         average={average}
         startYear={result.startYear}
         fall={fall}
-        label={t.pathAria(name, result.startYear, lastShown, f.eur(result.final))}
+        label={t.pathAria(name, result.startYear, lastShown, f.cur(result.final))}
       />
       <SeeMore what={t.detailsTitle}>
         <div className="space-y-1.5 text-base">
           <p>
             {t.started(result.startYear)}{" "}
-            {fall ? <Marked text={t.dropped(f.eur(fall.from), f.eur(fall.to), pct(fall.drop))} strongClassName="font-semibold tabular-nums" /> : t.noDrop}
+            {fall ? <Marked text={t.dropped(f.cur(fall.from), f.cur(fall.to), pct(fall.drop))} strongClassName="font-semibold tabular-nums" /> : t.noDrop}
           </p>
           {!fall && <p>{t.withinYear}</p>}
           {fall && <p>{result.yearsToRecover !== null ? t.tookYears(f.span(result.yearsToRecover * 12)) : t.notBack(result.lastYear)}</p>}
           <p>
             <Marked
-              text={result.years === planYears ? t.after(result.years, f.eur(result.final)) : t.dataEnds(result.years, lastShown, f.eur(result.final))}
+              text={result.years === planYears ? t.after(result.years, f.cur(result.final)) : t.dataEnds(result.years, lastShown, f.cur(result.final))}
               strongClassName="font-semibold tabular-nums"
             />
           </p>
-          <p className="text-sm text-muted">{t.average(f.eur(averageResult(scenario, result.years)))}</p>
+          <p className="text-sm text-muted">{t.average(f.cur(averageResult(scenario, result.years)))}</p>
           {alone && (
             <div className="space-y-1 rounded-lg bg-background p-3 text-sm">
               {(fall || alone.fall) && (
@@ -130,7 +130,7 @@ export function CrisisPanel({
                     : t.mixNoFall(pct(alone.fall?.drop ?? 0), lost(alone.fall?.drop ?? 0))}
                 </p>
               )}
-              {alone.years === result.years && <p>{t.mixAfter(result.years, f.eur(result.final), f.eur(alone.final))}</p>}
+              {alone.years === result.years && <p>{t.mixAfter(result.years, f.cur(result.final), f.cur(alone.final))}</p>}
             </div>
           )}
         </div>
@@ -162,11 +162,11 @@ function StartYearsSection({ source, amounts, scenario, planYears }: { source: H
       <StartYearsChart
         every={every}
         average={averageResult(scenario, every.window)}
-        label={t.aria(every.starts.length, t.mark(every.worst.year, f.eur(every.worst.final)), t.mark(every.best.year, f.eur(every.best.final)))}
+        label={t.aria(every.starts.length, t.mark(every.worst.year, f.cur(every.worst.final)), t.mark(every.best.year, f.cur(every.best.final)))}
       />
       {alone && (
         <p className="rounded-lg bg-background p-3 text-sm">
-          {t.vsSp500(t.amountIn(every.worst.year, f.eur(every.worst.final)), t.amountIn(alone.worst.year, f.eur(alone.worst.final)))}
+          {t.vsSp500(t.amountIn(every.worst.year, f.cur(every.worst.final)), t.amountIn(alone.worst.year, f.cur(alone.worst.final)))}
         </p>
       )}
     </section>
@@ -216,7 +216,7 @@ export function TestModule() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <p className="text-sm">{t.plan(f.eur(scenario.capital), f.eur(scenario.monthly), investmentName(base.investment, i18n), planYears)}</p>
+        <p className="text-sm">{t.plan(f.cur(scenario.capital), f.cur(scenario.monthly), investmentName(base.investment, i18n), planYears)}</p>
         {base.investment.investment.kind === "custom" && source && <p className="text-sm text-muted">{t.customHistory}</p>}
         <IntentLink href={localePath("/", locale)} className="-ml-1 inline-flex min-h-11 items-center px-1 text-sm font-medium text-accent underline-offset-2 hover:underline">
           {t.change}

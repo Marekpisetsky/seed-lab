@@ -54,7 +54,7 @@ function GridLabels({ max, y }: { max: number; y: (value: number) => number }) {
         .filter((value) => value > 0)
         .map((value) => (
           <text key={value} x={PAD.left + 2} y={y(value) - 3} fontSize={FONT} fill="var(--muted)" stroke="var(--card)" strokeWidth={3} paintOrder="stroke">
-            {f.eurCompact(value)}
+            {f.curCompact(value)}
           </text>
         ))}
     </>
@@ -128,7 +128,7 @@ export function PathChart({ path, average, startYear, fall, label }: PathChartPr
         </svg>
       </div>
       <p className="text-sm tabular-nums" aria-live="off">
-        {yearOf(shown)}: <span className="font-medium">{f.eur(path[shown])}</span>
+        {yearOf(shown)}: <span className="font-medium">{f.cur(path[shown])}</span>
       </p>
       <figcaption className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
         <span className="flex items-center gap-1.5">
@@ -165,8 +165,8 @@ export function PathChart({ path, average, startYear, fall, label }: PathChartPr
                 <th scope="row" className="py-1 font-normal">
                   {yearOf(index)}
                 </th>
-                <td className="py-1">{f.eur(value)}</td>
-                <td className="py-1 text-muted">{f.eur(average[index])}</td>
+                <td className="py-1">{f.cur(value)}</td>
+                <td className="py-1 text-muted">{f.cur(average[index])}</td>
               </tr>
             ))}
           </tbody>
@@ -243,7 +243,7 @@ export function StartYearsChart({ every, average, label }: { every: StartYears; 
         </svg>
       </div>
       <p className="min-h-5 text-sm tabular-nums" aria-live="off">
-        {shown && t.mark(shown.year, f.eur(shown.final))}
+        {shown && t.mark(shown.year, f.cur(shown.final))}
       </p>
       <figcaption className="grid gap-1 text-sm tabular-nums sm:grid-cols-3">
         {[...marked].map(([year, mark]) => {
@@ -252,12 +252,12 @@ export function StartYearsChart({ every, average, label }: { every: StartYears; 
             <span key={mark.name} className="flex items-center gap-1.5">
               <Swatch color={mark.color} shape={mark.shape} />
               <span className="font-medium">{mark.name}</span>
-              <span>{start && t.mark(start.year, f.eur(start.final))}</span>
+              <span>{start && t.mark(start.year, f.cur(start.final))}</span>
             </span>
           );
         })}
         <span className="flex items-center gap-1.5 text-xs text-muted sm:col-span-3">
-          <Swatch color="var(--muted)" dashed /> {m.test.averageLine}: {f.eur(average)}
+          <Swatch color="var(--muted)" dashed /> {m.test.averageLine}: {f.cur(average)}
         </span>
       </figcaption>
       <details className="text-sm">
@@ -280,7 +280,7 @@ export function StartYearsChart({ every, average, label }: { every: StartYears; 
                   {start.year}
                 </th>
                 <td className="py-1">
-                  {f.eur(start.final)}
+                  {f.cur(start.final)}
                   {marked.has(start.year) && <span className="ml-2 text-xs text-muted">{marked.get(start.year)?.name}</span>}
                 </td>
               </tr>

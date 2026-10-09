@@ -9,7 +9,7 @@
 
 export const en = {
   site: {
-    name: "seed-lab",
+    name: "Horalis",
     nav: { principles: "Principles", about: "About" },
     roadmap: "Roadmap",
     noTracking: "No cookies. No analytics. Nothing about you is stored.",
@@ -17,22 +17,22 @@ export const en = {
   },
   meta: {
     home: {
-      title: "seed-lab: free, privacy-first tools for Europe",
-      description: "Free, privacy-first digital tools that Europeans can use without giving up their data. First tool: Wealth Lens.",
+      title: "Horalis: free, private tools for any country",
+      description: "Free, private digital tools that work in any country, built in Europe. Nothing you type leaves your device. First tool: Horalis Growth.",
     },
-    principles: { title: "Principles · seed-lab", description: "Five commitments for every seed-lab product, the rules behind them, and how each product meets them." },
-    about: { title: "About · seed-lab", description: "What seed-lab is, where it is going, what it is not, and who makes it." },
-    roadmap: { title: "Roadmap · seed-lab", description: "The steps seed-lab plans to climb, and what is still missing today." },
+    principles: { title: "Principles · Horalis", description: "Five commitments for every Horalis product, the rules behind them, and how each product meets them." },
+    about: { title: "About · Horalis", description: "What Horalis is, where it is going, what it is not, and who makes it." },
+    roadmap: { title: "Roadmap · Horalis", description: "The steps Horalis plans to climb, and what is still missing today." },
   },
-  og: { footer: "Free to use. Your data never leaves your device.", tool: "First tool: Wealth Lens" },
+  og: { footer: "Free to use. Your data never leaves your device.", tool: "First tool: Horalis Growth" },
   home: {
-    title: "Free, privacy-first digital tools for Europe.",
-    mission: "seed-lab builds free, privacy-first digital tools that Europeans — citizens, developers and public bodies — can use without giving up their data.",
-    cta: "Try Wealth Lens",
-    heroAlt: "Wealth Lens: what €10,000 and €300 a month could become in 20 years, with a chart.",
+    title: "Horalis. Own your hours.",
+    mission: "Free, private digital tools that work in any country, built in Europe. Every calculation happens on your device.",
+    cta: "Try Horalis Growth",
+    heroAlt: "Horalis Growth: what €10,000 and €300 a month could become in 20 years, with a chart.",
     principlesKicker: "Principles",
     principlesTitle: "Five principles, each with a rule you can check",
-    principlesIntro: "Every seed-lab product is held to them. Each one comes with rules anyone can check, and what is still missing is public.",
+    principlesIntro: "Every Horalis product is held to them. Each one comes with rules anyone can check, and what is still missing is public.",
     principlesLink: "What they mean in practice",
     toolsKicker: "Tools",
     toolsTitle: (count: number): string => (count === 1 ? "A tool for everyday life" : "Tools for everyday life"),
@@ -63,7 +63,7 @@ export const en = {
     differentTitle: "What a typical app asks of you, and what we ask",
     differentIntro: "We name no one. These are common habits on the web.",
     typical: "A typical app",
-    ours: "seed-lab",
+    ours: "Horalis",
     rows: [
       { label: "An account", typical: "Often required", ours: "Never" },
       { label: "Tracking", typical: "Analytics and ad trackers", ours: "None" },
@@ -87,7 +87,7 @@ export const en = {
   },
   principles: {
     title: "Principles",
-    lead: "Five commitments for every seed-lab product. Each one comes with rules anyone can check.",
+    lead: "Five commitments for every Horalis product. Each one comes with rules anyone can check.",
     rulesLabel: "In practice",
     tableTitle: "How each product meets them",
     tableIntro: "Checked against the rules above. What is still missing is on the [roadmap](/roadmap/).",
@@ -167,14 +167,14 @@ export const en = {
   },
   roadmap: {
     title: "Roadmap",
-    lead: "Where seed-lab is going, step by step, and what is still missing today.",
+    lead: "Where Horalis is going, step by step, and what is still missing today.",
     ladderTitle: "The steps",
     ladderIntro: "Each step only starts when the one before meets its condition.",
     here: "We are here",
     notYet: "Not yet",
     next: "Next step when",
     steps: [
-      { what: "Tools people use. Today: Wealth Lens.", until: "people keep using them, month after month." },
+      { what: "Tools people use. Today: Horalis Growth.", until: "people keep using them, month after month." },
       { what: "Free tools for developers that others adopt.", until: "others build on them without being asked." },
       { what: "A platform others depend on: European hosting, data and identity.", until: "" },
       { what: "Infrastructure at continental scale.", until: "" },
@@ -188,28 +188,27 @@ export const en = {
       "A WCAG audit by people, and a public accessibility statement.",
       "Tests with real people, children and older people included.",
       "A public list of changes to each method.",
-      "Replace the sources that do not allow sharing their data, like Yahoo Finance, Numbeo and MSCI.",
     ],
     blocksTitle: "Free tools for developers",
-    blocksIntro: "Wealth Lens is made of pieces other tools could reuse. We plan to publish them one by one. None is published yet.",
+    blocksIntro: "Horalis Growth is made of pieces other tools could reuse. We plan to publish them one by one. None is published yet.",
     planned: "Planned",
   },
   about: {
     title: "About",
-    lead: "What seed-lab is, where it is going, and what it is not.",
+    lead: "What Horalis is, where it is going, and what it is not.",
     sections: [
       {
-        heading: "What seed-lab is",
+        heading: "What Horalis is",
         body: [
-          "seed-lab builds free, privacy-first digital tools for Europe.",
+          "Horalis builds free, private digital tools that work in any country. They are built in Europe.",
           "We publish free tools. Citizens, developers and institutions adopt them on their own.",
-          "[Wealth Lens](wealth-lens) is the first tool, and the proof of our [principles](/principles/).",
+          "[Horalis Growth](wealth-lens) is the first tool, and the proof of our [principles](/principles/).",
         ],
       },
       {
         heading: "Where it is going",
         body: [
-          "In the long run: give Europe its own technology stack, so its citizens, companies and governments don't have to depend on anyone else's.",
+          "In the long run: information that is no longer centralised and tracked. Every calculation happens on your own device, and no tool needs a central server to work.",
           "That is a direction, not something that exists. **Today we are at the first step: tools people use.** The [roadmap](/roadmap/) shows the steps after it.",
         ],
       },
@@ -224,7 +223,7 @@ export const en = {
       {
         heading: "Who makes it",
         body: [
-          "It is made by Marek Pisetsky. The tools are free to use. Their code belongs to seed-lab.",
+          "It is made by Marek Pisetsky. The tools are free to use. Their code belongs to Horalis.",
           "Questions or ideas? Write to [email](email).",
         ],
       },
@@ -233,7 +232,7 @@ export const en = {
         body: [
           "No cookies, no analytics, no tracking. It is plain HTML and CSS, plus three tiny scripts.",
           "One picks your language. One keeps light or dark, only in this tab, until you close it. One makes the email address a link.",
-          "For now it is hosted on Vercel, in the US, like Wealth Lens. We plan to move both to a European host.",
+          "For now it is hosted on Vercel, in the US, like Horalis Growth. A move to a European host is planned.",
         ],
       },
     ],
@@ -241,7 +240,7 @@ export const en = {
   notFound: {
     title: "This page does not exist",
     text: "Maybe the address has a typo, or the page moved.",
-    home: "Go to seed-lab",
+    home: "Go to Horalis",
   },
 };
 

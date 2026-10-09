@@ -1,0 +1,39 @@
+/**
+ * Every word of __NAME__ in English. Each language has its own file with
+ * the same shape (a test checks it), in plain words (seed-kit's check: no
+ * jargon, short sentences). The header, the footer's links and the
+ * privacy page bring their own words from seed-kit.
+ */
+
+export const en = {
+  meta: {
+    title: "__NAME__: how much did it change?",
+    description: "Type a number before and after. See the change, in amount and in percent.",
+  },
+  home: {
+    title: "How much did it change?",
+    lead: "A price, a salary or a bill: type it before and after.",
+    form: "Your numbers",
+    before: "Before",
+    after: "After",
+    result: "The change",
+    up: (percent: string) => `It went up ${percent}.`,
+    down: (percent: string) => `It went down ${percent}.`,
+    same: "It did not change.",
+    fromZero: "It started at zero, so there is no percent.",
+    difference: (amount: string) => `Difference: ${amount}.`,
+    invalid: "Type two numbers to see the change.",
+    private: "Worked out in your browser. Nothing is saved or sent.",
+  },
+  footer: {
+    note: "Nothing is saved or sent. Free to use.",
+    weight: (kb: string) => `This page weighs ${kb} KB compressed, measured when it was built.`,
+  },
+  notFound: {
+    title: "This page does not exist",
+    text: "Maybe the address has a typo, or the page moved.",
+    home: "Go to __NAME__",
+  },
+};
+
+export type Words = typeof en;

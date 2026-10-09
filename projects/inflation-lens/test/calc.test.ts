@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { firstYear, lastYear, level, rise, worthThen, worthToday, yearOptions, type Series } from "../src/calc.ts";
 import { resultHtml, timelineHtml } from "../src/view.ts";
 
-const SERIES: Series = { code: "XX", name: "Testland", sentence: "Testland", from: 2021, rates: [10, -10, 0, 25] };
+const SERIES: Series = { code: "XX", name: "Testland", sentence: "Testland", currency: "EUR", from: 2021, rates: [10, -10, 0, 25] };
 const close = (actual: number | null, expected: number) => assert.ok(actual !== null && Math.abs(actual - expected) < 1e-9, `${actual} is not ${expected}`);
 
 describe("prices chained year after year", () => {
@@ -75,6 +75,12 @@ describe("the result and the timeline", () => {
     const spanish = resultHtml({ ...choice, direction: "then" }, [SERIES], "es").value;
     assert.match(spanish, /100\u00a0€ de hoy \(2024\) valían ≈\u00a081\u00a0€ en 2020 en Testland\./);
     assert.match(spanish, /100\u00a0€ de 2020 compran hoy lo que ≈\u00a081\u00a0€ entonces\./);
+  });
+
+  it("write amounts in the place's own currency", () => {
+    const zloty = resultHtml(choice, [{ ...SERIES, currency: "PLN" }], "en").value;
+    assert.match(zloty, /PLN\u00a0100 in 2020 in Testland are worth ≈\u00a0PLN\u00a0124 today \(2024\)\./);
+    assert.doesNotMatch(zloty, /€/);
   });
 
   it("say prices fell when they did, and ask again instead of showing nonsense", () => {

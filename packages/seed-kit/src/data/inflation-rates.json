@@ -1,5 +1,5 @@
 {
-  "description": "Each country's reference inflation rate, the same as in cost-of-living.json and estimated-countries.json, so a page can turn growth after rising prices into growth before them without loading the whole dataset. Written by scripts/inflation-rates.ts.",
+  "description": "Each country's reference inflation rate, the same as in inflation-reference.json, so a page can turn growth after rising prices into growth before them without loading the bases. Written by scripts/inflation-rates.ts.",
   "rates": {
     "IN": 0.04,
     "EG": 0.07,

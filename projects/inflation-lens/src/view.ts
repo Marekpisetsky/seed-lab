@@ -3,59 +3,60 @@
  * writes them into the page (so they show before anyone types, even
  * without scripts) and the browser redraws them as the amount, year,
  * place or direction change. Same code in both places; it gets the
- * series, it does not load them.
+ * series, it does not load them. `region`: the reader's way of writing
+ * numbers ("MX"), or "" for the page language's own (the page as built).
  */
 
 import { formatsFor } from "../../../packages/seed-kit/src/format.ts";
 import { escape, html, raw, type Html } from "../../../packages/seed-kit/src/html.ts";
 import type { Locale } from "../../../packages/seed-kit/src/locales.ts";
 import { lastYear, rise, worthThen, worthToday, type Series } from "./calc.ts";
-import { WORDS } from "./i18n.ts";
+import { WORDS } from "./i18n/index.ts";
 
 export interface Choice {
   amount: number;
   year: number;
   place: string;
-  /** "today": from that year's euros to today's; "then": the other way. */
+  /** "today": from that year's money to today's; "then": the other way. */
   direction: "today" | "then";
 }
 
-/** "≈ €136": every amount here is an estimate (the rates have one decimal), in whole euros. */
-function about(amount: number, locale: Locale): string {
-  return `≈\u00a0${formatsFor(locale).eur(amount)}`;
+/** "≈ €136": every amount here is an estimate (the rates have one decimal), in whole units of the place's currency. */
+function about(amount: number, series: Series, locale: Locale, region: string): string {
+  return `≈\u00a0${formatsFor(locale, { country: region, currency: series.currency }).cur(amount)}`;
 }
 
-/** The answer, how much prices rose, and the sentence for 100 euros. */
-export function resultHtml(choice: Choice, all: readonly Series[], locale: Locale): Html {
+/** The answer, how much prices rose, and the sentence for 100 of the place's currency. */
+export function resultHtml(choice: Choice, all: readonly Series[], locale: Locale, region = ""): Html {
   const words = WORDS[locale].home;
   const series = all.find((entry) => entry.code === choice.place);
   const value = series && (choice.direction === "today" ? worthToday(choice.amount, choice.year, series) : worthThen(choice.amount, choice.year, series));
   const change = series ? rise(choice.year, series) : null;
   const hundred = series ? worthThen(100, choice.year, series) : null;
   if (!series || value === null || value === undefined || change === null || hundred === null) return html`<p class="sk-sentence">${words.invalid}</p>`;
-  const formats = formatsFor(locale);
+  const formats = formatsFor(locale, { country: region, currency: series.currency });
   const today = String(lastYear(series));
   const year = String(choice.year);
-  const amount = formats.money(choice.amount, "EUR", { decimals: Number.isInteger(choice.amount) ? 0 : 2 });
+  const amount = formats.money(choice.amount, series.currency, { decimals: Number.isInteger(choice.amount) ? 0 : 2 });
   const sentence =
     choice.direction === "today"
-      ? words.worthToday(amount, year, series.sentence, about(value, locale), today)
-      : words.worthThen(amount, today, year, series.sentence, about(value, locale));
-  return html`<p class="sk-big">${about(value, locale)}</p>
+      ? words.worthToday(amount, year, series.sentence, about(value, series, locale, region), today)
+      : words.worthThen(amount, today, year, series.sentence, about(value, series, locale, region));
+  return html`<p class="sk-big">${about(value, series, locale, region)}</p>
 <p class="sk-sentence">${sentence}</p>
 <p class="sk-muted">${change >= 0 ? words.rose(formats.percent(change), year) : words.fell(formats.percent(-change), year)}</p>
-<p class="key">${words.key(formats.eur(100), year, about(hundred, locale))}</p>`;
+<p class="key">${words.key(formats.cur(100), year, about(hundred, series, locale, region))}</p>`;
 }
 
 const WIDTH = 640;
 const HEIGHT = 160;
 
 /** A simple timeline: one bar per year, how much prices rose; the years since the chosen one stand out. */
-export function timelineHtml(choice: Choice, all: readonly Series[], locale: Locale): Html {
+export function timelineHtml(choice: Choice, all: readonly Series[], locale: Locale, region = ""): Html {
   const words = WORDS[locale].home;
   const series = all.find((entry) => entry.code === choice.place);
   if (!series) return html``;
-  const formats = formatsFor(locale);
+  const formats = formatsFor(locale, { country: region });
   const years = series.rates.map((rate, index) => ({ year: series.from + index, rate }));
   const high = Math.max(1, ...years.map(({ rate }) => rate));
   const low = Math.min(0, ...years.map(({ rate }) => rate));

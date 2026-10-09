@@ -1,12 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { EN, getI18n } from "@/i18n";
-import { priceHoldings } from "./auto-price";
 import { calculate, valueAt, type CalculatorPlan } from "./calculator";
 import { parseIsoDate } from "./dates";
 import { futureValueWithContributions, monthsToGoal } from "./finance";
 import {
   allFindings,
-  currencyFinding,
   doublingFinding,
   feesFinding,
   focusOf,
@@ -18,12 +16,12 @@ import {
   waitingFinding,
   type FindingContext,
 } from "./findings";
+import { countryByCode } from "./cost-of-living";
 import { INDEXES } from "./indexes";
-import { MARKET } from "./market-data";
-import { STANDARD_ASSUMPTIONS, type Goal, type Holding } from "./types";
+import { STANDARD_ASSUMPTIONS, type Goal } from "./types";
 
 const ES = getI18n("es");
-const formatEurRounded = EN.f.eurRounded;
+const formatEurRounded = EN.f.curRounded;
 const formatYears = EN.f.span;
 
 const today = parseIsoDate("2026-09-29");
@@ -36,48 +34,36 @@ const plan = (overrides: Partial<CalculatorPlan> = {}): CalculatorPlan => ({
   years: 20,
   withdrawalRate: 0.04,
   pricesOf: "NL",
+  currency: "EUR",
   assumptions: STANDARD_ASSUMPTIONS,
   goals: [],
   ...overrides,
 });
 
-const holding = (ticker: string, quantity: number, price: number, currency = "EUR"): Holding => ({
-  id: ticker,
-  ticker,
-  quantity,
-  costBasis: quantity * price,
-  currency,
-  currentPrice: price,
-  priceSource: "manual",
-  priceDate: null,
-});
-
-function context(overrides: Partial<CalculatorPlan> = {}, holdings: Holding[] = []): FindingContext {
-  const priced = priceHoldings(holdings);
-  return { calc: calculate(plan(overrides), priced, today), inflation: 0.02, today, holdings: priced, market: MARKET, i18n: EN };
+function context(overrides: Partial<CalculatorPlan> = {}): FindingContext {
+  return { calc: calculate(plan(overrides), today), inflation: 0.02, today, i18n: EN };
 }
 
-const india: Goal = { id: "a", kind: "live", country: "IN", housing: true };
-const ebike: Goal = { id: "b", kind: "buy", item: "e-bike" };
+const peru: Goal = { id: "a", kind: "live", country: "PE" };
+const ebike: Goal = { id: "b", kind: "buy-own", name: "An e-bike", amount: 2900 };
 
-/** The default: EUR 1,000 and EUR 200/month in the S&P 500 for 20 years, no goals. */
+/** The default: EUR 1,000 and EUR 200/month in US stocks for 20 years, no goals. */
 const byDefault = context();
 const total = futureValueWithContributions(1000, 200, r, 20);
-/** With a first goal: living in India with housing (EUR 330/month → EUR 99,000). */
-const small = context({ goals: [india] });
-const n = monthsToGoal(1000, 200, r, 99_000);
-/** 70% of the portfolio in ASML. */
-const concentrated = context({ monthlyContribution: 300 }, [holding("ASML", 9, 1601.2), holding("VWCE", 36, 169.4)]);
+/** With a first goal: living in Peru, housing included (about EUR 200 a month → about EUR 60,000), from the official data. */
+const small = context({ goals: [peru] });
+const peruTarget = ((countryByCode("PE")?.monthlyCostEur ?? NaN) * 12) / 0.04;
+const n = monthsToGoal(1000, 200, r, peruTarget);
 
 describe("the first goal", () => {
   it("is what findings about reaching something are about, when the plan gets there later", () => {
     expect(focusOf(byDefault)).toBeNull();
-    expect(focusOf(small)?.goal).toBe(india);
+    expect(focusOf(small)?.goal).toBe(peru);
     // Reached already, or past 60 years: findings speak about the result instead.
-    expect(focusOf(context({ invested: 200_000, goals: [india] }))).toBeNull();
-    expect(focusOf(context({ monthlyContribution: 1, goals: [india] }))).toBeNull();
+    expect(focusOf(context({ invested: 200_000, goals: [peru] }))).toBeNull();
+    expect(focusOf(context({ invested: 500, monthlyContribution: 0, goals: [peru] }))).toBeNull();
     // Only the first goal counts.
-    expect(focusOf(context({ goals: [ebike, india] }))?.goal).toBe(ebike);
+    expect(focusOf(context({ goals: [ebike, peru] }))?.goal).toBe(ebike);
   });
 });
 
@@ -92,9 +78,9 @@ describe("lever: +€100 a month vs +1% vs a year earlier", () => {
 
   it("speaks in years for the first goal", () => {
     const finding = leverFinding(small);
-    const gain = n - monthsToGoal(1000, 300, r, 99_000);
+    const gain = n - monthsToGoal(1000, 300, r, peruTarget);
     expect(finding).toMatchObject({ value: formatYears(gain), text: `€100 more a month reaches your first goal ${formatYears(gain)} sooner.` });
-    expect(finding?.calculation[0]).toMatch(/^Live in India: €99,000 needed, in \d+ years \(20\d\d\)\.$/);
+    expect(finding?.calculation[0]).toMatch(new RegExp(`^Live in Peru: ${formatEurRounded(peruTarget).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} needed, in \\d+ years \\(20\\d\\d\\)\\.$`));
   });
 
   it("is about the result when the first goal is less than two years away", () => {
@@ -116,8 +102,8 @@ describe("waiting a year", () => {
 });
 
 describe("far goals", () => {
-  // EUR 1,000 + EUR 1 a month, living in India: about 62 years.
-  const far = context({ monthlyContribution: 1, goals: [india] });
+  // EUR 500 and nothing added, living in Peru: about 67 years.
+  const far = context({ invested: 500, monthlyContribution: 0, goals: [peru] });
 
   it("never quote a date more than 60 years out", () => {
     expect(far.calc.goals[0].reachable).toBe(false);
@@ -133,13 +119,13 @@ describe("far goals", () => {
 });
 
 describe("inflation", () => {
-  it("gives what the account will show in euros of that year", () => {
+  it("gives what the account will show in money of that year", () => {
     const factor = Math.pow(1.02, 20);
     const finding = inflationFinding(byDefault);
     const shown = formatEurRounded(total * factor);
     expect(finding?.value).toBe(`~${shown}`);
     expect(finding?.text).toBe(`In 2046 your account will show ~${shown}. That is ${formatEurRounded(total)} of today's money.`);
-    expect(finding?.calculation[1]).toMatch(/^€[\d,]+ × 1\.49 = €[\d,]+ in euros of 2046\.$/);
+    expect(finding?.calculation[1]).toMatch(/^€[\d,]+ × 1\.49 = €[\d,]+ in money of 2046\.$/);
   });
 
   it("follows the chosen years", () => {
@@ -168,25 +154,13 @@ describe("fees", () => {
   });
 });
 
-describe("currency", () => {
-  it("says what is left out for being in another currency", () => {
-    const finding = currencyFinding(context({}, [holding("VWCE", 10, 169.4), holding("NVDA", 5, 228, "USD")]));
-    expect(finding).toMatchObject({ value: "$1,140", text: "Your $1,140 in US dollars is not counted. No currency conversion." });
-    expect(finding?.calculation.at(-1)).toBe("Counted: €1,694 in euros.");
-  });
-
-  it("is not shown when everything is in euros", () => {
-    expect(currencyFinding(concentrated)).toBeNull();
-  });
-});
-
 describe("a bad first decade", () => {
   it("shows how much less there is by the end after a real bad decade, the one “What if…?” applies", () => {
     const finding = sequenceFinding(byDefault);
     expect(finding?.value).toMatch(/^−€[\d,]+$/);
     expect(finding?.text).toMatch(/^First 10 years like 2000–2009: €[\d,]+ less by 2046\.$/);
     const base = byDefault.calc;
-    const decade = calculate(plan(), [], today, "bad-decade");
+    const decade = calculate(plan(), today, "bad-decade");
     expect(finding?.value).toBe(formatEurRounded(decade.result.total - base.result.total));
   });
 
@@ -215,9 +189,9 @@ describe("doubling time", () => {
 
 describe("where the growth comes from, in the assumptions", () => {
   it("names the asset and its years, or says the figure is the user's own", () => {
-    expect(doublingFinding(small)?.assumptions[0]).toMatch(/: S&P 500, 1988–2022 average\. Past, not a promise\.$/);
+    expect(doublingFinding(small)?.assumptions[0]).toMatch(/: US stocks, 1988–2022 average\. Past, not a promise\.$/);
     const bonds = doublingFinding(context({ investment: { kind: "asset", asset: "bonds" } }));
-    expect(bonds?.assumptions[0]).toMatch(/: Euro government bonds, 1988–2022 average\./);
+    expect(bonds?.assumptions[0]).toMatch(/: German government bonds, 1988–2022 average\./);
     const own = doublingFinding(context({ investment: { kind: "custom" }, assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.06 } }));
     expect(own?.assumptions[0]).toBe("Growth 6% a year after rising prices, +€125 the first year: your own number. Not a promise.");
     // Step 3's starting 5 % is not the user's own: it is the world's long-run average.
@@ -236,9 +210,8 @@ describe("the findings shown", () => {
     byDefault,
     small,
     large: context({ invested: 50_000, monthlyContribution: 1000 }),
-    concentrated,
     short: context({ years: 3 }),
-    goals: context({ goals: [ebike, india, { id: "c", kind: "amount", amount: 100_000 }] }),
+    goals: context({ goals: [ebike, peru, { id: "c", kind: "amount", amount: 100_000 }] }),
   };
 
   it("are at most 3, in the fixed order", () => {
@@ -258,10 +231,6 @@ describe("the findings shown", () => {
       const positions = ids.map((id) => ORDER.indexOf(id));
       expect([...positions].sort((a, b) => a - b)).toEqual(positions);
     }
-  });
-
-  it("leave one stock that weighs too much to Check your plan, which says it once", () => {
-    expect(allFindings(concentrated).map((finding) => finding.id)).not.toContain("concentration");
   });
 
   it("are short, concrete and never tell the user what to do, in English and in Spanish", () => {

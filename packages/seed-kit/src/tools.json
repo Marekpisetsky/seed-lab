@@ -1,7 +1,11 @@
 [
   {
     "id": "wealth-lens",
-    "name": "Wealth Lens",
+    "name": {
+      "en": "Horalis Growth",
+      "es": "Horalis Crecimiento",
+      "nl": "Horalis Groei"
+    },
     "status": "live",
     "listed": true,
     "category": "money",
@@ -12,53 +16,64 @@
     ],
     "tagline": {
       "en": "Plan your money without giving it away.",
-      "es": "Planifica tu dinero sin regalar tus datos."
+      "es": "Planifica tu dinero sin regalar tus datos.",
+      "nl": "Plan je geld zonder je gegevens weg te geven."
     },
     "description": {
       "en": "See when your money could pay for a trip, a home or living without working, and in which countries it is enough. It runs on your device: nothing is saved or sent.",
-      "es": "Mira cuándo podrías hacer un viaje, comprar una casa o vivir sin trabajar con tu dinero, y en qué países alcanza. Funciona en tu dispositivo: no se guarda ni se envía nada."
+      "es": "Mira cuándo podrías hacer un viaje, comprar una casa o vivir sin trabajar con tu dinero, y en qué países alcanza. Funciona en tu dispositivo: no se guarda ni se envía nada.",
+      "nl": "Zie wanneer je geld een reis, een huis of leven zonder werk kan betalen, en in welke landen het genoeg is. Het werkt op je apparaat: er wordt niets bewaard of verstuurd."
     },
     "principles": {
       "device": {
         "status": "meets",
         "note": {
           "en": "Worked out in your browser. Nothing is saved or sent.",
-          "es": "Se calcula en tu navegador. No se guarda ni se envía nada."
+          "es": "Se calcula en tu navegador. No se guarda ni se envía nada.",
+          "nl": "Berekend in je browser. Er wordt niets bewaard of verstuurd."
         }
       },
       "transparent": {
         "status": "partly",
         "note": {
           "en": "Free, with its method and sources public. Method changes are not listed yet.",
-          "es": "Gratis, con su método y sus fuentes públicos. Los cambios del método aún no se publican."
+          "es": "Gratis, con su método y sus fuentes públicos. Los cambios del método aún no se publican.",
+          "nl": "Gratis, met openbare methode en bronnen. Wijzigingen in de methode staan nog niet in een lijst."
         }
       },
       "europe": {
         "status": "pending",
         "note": {
           "en": "In English and Spanish, but hosted in the US. No audit by people yet.",
-          "es": "En inglés y español, pero alojado en EE. UU. Aún sin auditoría hecha por personas."
+          "es": "En inglés y español, pero alojado en EE. UU. Aún sin auditoría hecha por personas.",
+          "nl": "In het Engels en Spaans, maar gehost in de VS. Nog geen controle door mensen."
         }
       },
       "light": {
         "status": "meets",
         "note": {
           "en": "208 to 237 KB per page on a first visit, under the 350 KB limit.",
-          "es": "De 208 a 237 KB por página en la primera visita, por debajo del límite de 350 KB."
+          "es": "De 208 a 237 KB por página en la primera visita, por debajo del límite de 350 KB.",
+          "nl": "208 tot 237 KB per pagina bij een eerste bezoek, onder de grens van 350 KB."
         }
       },
       "everyone": {
         "status": "partly",
         "note": {
           "en": "Plain words, keyboard and 44 px targets. Not tested with real people yet.",
-          "es": "Palabras sencillas, teclado y objetivos de 44 px. Aún sin pruebas con personas reales."
+          "es": "Palabras sencillas, teclado y objetivos de 44 px. Aún sin pruebas con personas reales.",
+          "nl": "Eenvoudige woorden, toetsenbord en knoppen van 44 px. Nog niet getest met echte mensen."
         }
       }
     }
   },
   {
     "id": "cost-lens",
-    "name": "Cost Lens",
+    "name": {
+      "en": "Horalis Cost of Living",
+      "es": "Horalis Coste de vida",
+      "nl": "Horalis Kosten van levensonderhoud"
+    },
     "status": "beta",
     "listed": false,
     "category": "life",
@@ -69,53 +84,64 @@
     ],
     "tagline": {
       "en": "What your money is worth in another country.",
-      "es": "Lo que vale tu dinero en otro país."
+      "es": "Lo que vale tu dinero en otro país.",
+      "nl": "Wat je geld waard is in een ander land."
     },
     "description": {
-      "en": "Type what you earn and where you live. See what you would need in another country to live the same, and where your money goes furthest, with and without housing. Nothing is saved or sent.",
-      "es": "Escribe lo que ganas y dónde vives. Mira cuánto necesitarías en otro país para vivir igual, y dónde rinde más tu dinero, con y sin vivienda. No se guarda ni se envía nada."
+      "en": "Type what you earn and where you live. See what you would need in another country to live the same, and where your money goes furthest, housing included. Nothing is saved or sent.",
+      "es": "Escribe lo que ganas y dónde vives. Mira cuánto necesitarías en otro país para vivir igual, y dónde rinde más tu dinero, vivienda incluida. No se guarda ni se envía nada.",
+      "nl": "Typ wat je verdient en waar je woont. Zie wat je in een ander land nodig hebt om hetzelfde te leven, en waar je geld het verst reikt, wonen inbegrepen. Er wordt niets bewaard of verstuurd."
     },
     "principles": {
       "device": {
         "status": "meets",
         "note": {
           "en": "Worked out in your browser. Nothing is saved or sent.",
-          "es": "Se calcula en tu navegador. No se guarda ni se envía nada."
+          "es": "Se calcula en tu navegador. No se guarda ni se envía nada.",
+          "nl": "Berekend in je browser. Er wordt niets bewaard of verstuurd."
         }
       },
       "transparent": {
         "status": "partly",
         "note": {
           "en": "Free, with its sources and dates on the page. Method changes are not listed yet.",
-          "es": "Gratis, con sus fuentes y fechas en la página. Los cambios de método aún no se listan."
+          "es": "Gratis, con sus fuentes y fechas en la página. Los cambios de método aún no se listan.",
+          "nl": "Gratis, met bronnen en data op de pagina. Wijzigingen in de methode staan nog niet in een lijst."
         }
       },
       "europe": {
         "status": "pending",
         "note": {
           "en": "In English and Spanish, but hosted in the US. No audit by people yet.",
-          "es": "En inglés y español, pero alojado en EE. UU. Aún sin auditoría por personas."
+          "es": "En inglés y español, pero alojado en EE. UU. Aún sin auditoría por personas.",
+          "nl": "In het Engels en Spaans, maar gehost in de VS. Nog geen controle door mensen."
         }
       },
       "light": {
         "status": "meets",
         "note": {
           "en": "About 17 KB per page, compressed, under the 350 KB limit.",
-          "es": "Unos 17 KB por página, comprimida, por debajo del límite de 350 KB."
+          "es": "Unos 17 KB por página, comprimida, por debajo del límite de 350 KB.",
+          "nl": "Ongeveer 17 KB per pagina, gecomprimeerd, onder de grens van 350 KB."
         }
       },
       "everyone": {
         "status": "partly",
         "note": {
           "en": "Plain words, keyboard and 44 px targets. Not tested with real people yet.",
-          "es": "Palabras sencillas, teclado y objetivos de 44 px. Aún sin probar con personas reales."
+          "es": "Palabras sencillas, teclado y objetivos de 44 px. Aún sin probar con personas reales.",
+          "nl": "Eenvoudige woorden, toetsenbord en knoppen van 44 px. Nog niet getest met echte mensen."
         }
       }
     }
   },
   {
     "id": "inflation-lens",
-    "name": "Inflation Lens",
+    "name": {
+      "en": "Horalis Inflation",
+      "es": "Horalis Inflación",
+      "nl": "Horalis Inflatie"
+    },
     "status": "beta",
     "listed": false,
     "category": "money",
@@ -126,46 +152,53 @@
     ],
     "tagline": {
       "en": "What your euros from back then are worth today.",
-      "es": "Lo que valen hoy tus euros de entonces."
+      "es": "Lo que valen hoy tus euros de entonces.",
+      "nl": "Wat je euro's van toen vandaag waard zijn."
     },
     "description": {
       "en": "Pick an amount, a year and an EU country or the euro area. See what it is worth today, and the other way round, from Eurostat's figures. Nothing is saved or sent.",
-      "es": "Elige una cantidad, un año y un país de la UE o la zona euro. Mira lo que vale hoy, y al revés, con las cifras de Eurostat. No se guarda ni se envía nada."
+      "es": "Elige una cantidad, un año y un país de la UE o la zona euro. Mira lo que vale hoy, y al revés, con las cifras de Eurostat. No se guarda ni se envía nada.",
+      "nl": "Kies een bedrag, een jaar en een EU-land of de eurozone. Zie wat het vandaag waard is, en andersom, met de cijfers van Eurostat. Er wordt niets bewaard of verstuurd."
     },
     "principles": {
       "device": {
         "status": "meets",
         "note": {
           "en": "Worked out in your browser. Nothing is saved or sent.",
-          "es": "Se calcula en tu navegador. No se guarda ni se envía nada."
+          "es": "Se calcula en tu navegador. No se guarda ni se envía nada.",
+          "nl": "Berekend in je browser. Er wordt niets bewaard of verstuurd."
         }
       },
       "transparent": {
         "status": "partly",
         "note": {
           "en": "Free, with Eurostat as its source and licence on the page. Its figures are provisional for now.",
-          "es": "Gratis, con Eurostat como fuente y su licencia en la página. Por ahora sus cifras son provisionales."
+          "es": "Gratis, con Eurostat como fuente y su licencia en la página. Por ahora sus cifras son provisionales.",
+          "nl": "Gratis, met Eurostat als bron en licentie op de pagina. De cijfers zijn voorlopig."
         }
       },
       "europe": {
         "status": "pending",
         "note": {
           "en": "In English and Spanish, but hosted in the US. No audit by people yet.",
-          "es": "En inglés y español, pero alojado en EE. UU. Aún sin auditoría por personas."
+          "es": "En inglés y español, pero alojado en EE. UU. Aún sin auditoría por personas.",
+          "nl": "In het Engels en Spaans, maar gehost in de VS. Nog geen controle door mensen."
         }
       },
       "light": {
         "status": "meets",
         "note": {
           "en": "About 16 KB per page, compressed, under the 350 KB limit.",
-          "es": "Unos 16 KB por página, comprimida, por debajo del límite de 350 KB."
+          "es": "Unos 16 KB por página, comprimida, por debajo del límite de 350 KB.",
+          "nl": "Ongeveer 16 KB per pagina, gecomprimeerd, onder de grens van 350 KB."
         }
       },
       "everyone": {
         "status": "partly",
         "note": {
           "en": "Plain words, keyboard and 44 px targets. Not tested with real people yet.",
-          "es": "Palabras sencillas, teclado y objetivos de 44 px. Aún sin probar con personas reales."
+          "es": "Palabras sencillas, teclado y objetivos de 44 px. Aún sin probar con personas reales.",
+          "nl": "Eenvoudige woorden, toetsenbord en knoppen van 44 px. Nog niet getest met echte mensen."
         }
       }
     }

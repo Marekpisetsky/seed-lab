@@ -7,7 +7,7 @@ describe("seed-lab", () => {
   });
 
   it("is a live tool of seed-kit's list, shown in every launcher", () => {
-    expect(toolById("wealth-lens")).toMatchObject({ name: "Wealth Lens", status: "live", shown: true, category: "money" });
+    expect(toolById("wealth-lens")).toMatchObject({ name: { en: "Horalis Growth", es: "Horalis Crecimiento" }, status: "live", shown: true, category: "money" });
     expect(SHOWN_TOOLS.map((tool) => tool.id)).toContain("wealth-lens");
   });
 });

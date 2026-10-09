@@ -1,6 +1,6 @@
-# seed-lab Research
+# Horalis Research
 
-El departamento que **decide y valida los métodos** de seed-lab: qué
+El departamento que **decide y valida los métodos** de Horalis: qué
 modelo responde a cada pregunta, con qué supuestos y datos, cómo se
 comprueba y dónde deja de valer. Cada app tiene aquí sus fichas, y las
 fichas que no son de una sola app (lo educativo y lo legal) también.
@@ -47,7 +47,7 @@ diga con honestidad lo que no sabe.
 
 ## Fichas
 
-### Wealth Lens
+### Horalis Crecimiento
 
 Las rutas de código son de `projects/wealth-lens/` salvo que digan otra cosa.
 
@@ -56,25 +56,27 @@ Las rutas de código son de `projects/wealth-lens/` salvo que digan otra cosa.
 | [Crecimiento](wealth-lens/crecimiento.md) | El número grande: cuánto tendrás. | `src/lib/finance.ts`, `calculator.ts`, `investment.ts` |
 | [Futuros simulados](wealth-lens/futuros-simulados.md) | "Si va mal / si va bien", la franja de 8 de cada 10. | `src/lib/simulation.ts`, `normal.ts`, `projections.ts` |
 | [Tasa de retiro](wealth-lens/tasa-de-retiro.md) | "Te pagaría al mes" y "duró 30 años". | `src/lib/monte-carlo.ts`, `withdrawal.ts`, `success-table.ts` |
-| [Mezclas y volatilidad de acciones](wealth-lens/mezclas-y-acciones.md) | Una mezcla, Mi cartera y una acción dentro de ellas. | `src/lib/mix.ts`, `volatility.ts`, `portfolio.ts` |
-| [Coste de vida por países](wealth-lens/coste-de-vida.md) | "Alcanza para vivir en", la tabla de países y las metas de un país. | `packages/seed-kit/src/cost-of-living.ts`, `projects/wealth-lens/scripts/estimate-countries.mts` |
+| [Mezclas](wealth-lens/mezclas-y-acciones.md) | Una mezcla de tipos de activo; las acciones sueltas, como pieza futura. | `src/lib/mix.ts`, `volatility.ts` |
+| [Coste de vida por países](wealth-lens/coste-de-vida.md) | "Alcanza para vivir en", la tabla de países y las metas de un país (también Horalis Coste de vida). | `packages/seed-kit/src/official/living-costs.ts`, `cost-of-living.ts` |
 | [Inflación](wealth-lens/inflacion.md) | Todo en euros de hoy; el ahorro; "Subida de precios en". | `src/lib/investment.ts`, `assets.ts`, seed-kit `cost-of-living.ts` |
 | [Valor inicial del 5 %](wealth-lens/valor-inicial.md) | Con qué crecimiento empieza la calculadora. | `src/lib/validation.ts` (`STARTING_GROWTH`) |
 | [Década mala histórica](wealth-lens/decada-mala.md) | "Si tus primeros 10 años fueran como 2000–2009". | `src/lib/decade.ts`, `what-if.ts`, `findings.ts` |
-| [Chequeo de tu plan](wealth-lens/chequeo.md) | Las 0 a 3 observaciones: horizonte frente a riesgo, concentración y ahorro a largo plazo. | `src/lib/plan-check.ts`, `src/i18n/check-text.ts` |
-| [Deseos y precios por país](wealth-lens/deseos.md) | "Con esto podrías", "Cosas que podrías comprar" y "Precios de". | `src/data/connections.json`, `src/lib/wishes.ts`, `wish-country.ts`, `calculator.ts` |
+| [Chequeo de tu plan](wealth-lens/chequeo.md) | Las 0 a 2 observaciones: horizonte frente a riesgo y ahorro a largo plazo. | `src/lib/plan-check.ts`, `src/i18n/check-text.ts` |
+| [Deseos y precios por país](wealth-lens/deseos.md) | Retirada en la fase A2: historia del método. | — |
 
 ### Para todas las apps
 
 | Ficha | Qué es |
 | --- | --- |
-| [Por qué no simplemente maximizar el crecimiento (Kelly)](educacion/kelly.md) | Educativa: qué dice Kelly, qué saldría con nuestros datos y por qué seed-lab no recomienda pesos. |
+| [Por qué no simplemente maximizar el crecimiento (Kelly)](educacion/kelly.md) | Educativa: qué dice Kelly, qué saldría con nuestros datos y por qué Horalis no recomienda pesos. |
+| [Datos oficiales](datos-oficiales.md) | Las series que usan todas las herramientas (Banco Mundial, Eurostat, CLDR): fuentes, licencias, la descarga anual y sus comprobaciones. |
+| [Monedas](monedas.md) | La moneda de cada país, los tipos de cambio oficiales por año, cómo se convierte y se escribe una cantidad en cada herramienta, y el país de partida según el idioma del navegador. |
 | [Informar, no aconsejar](legal/informar-no-aconsejar.md) | Legal: el límite entre información general y asesoramiento personalizado (MiFID II) y las reglas de redacción de todas las apps. **No es asesoramiento legal.** |
 
 ## Estado
 
 Primera versión: 3 de octubre de 2026. Fichas escritas a partir del
-código tal como está en esa fecha (Wealth Lens tras las fases 1 a 3), sin
+código tal como está en esa fecha (Horalis Crecimiento tras las fases 1 a 3), sin
 cambiar ningún cálculo. Lo discutible queda anotado en cada ficha para
 decidirlo después, cada cosa con su propia ficha actualizada.
 
@@ -84,7 +86,7 @@ Lo único que cambió al escribirlas, sin tocar ningún resultado:
   (`investment.ts`, `monte-carlo.ts`, `simulation.ts`);
 - la regla 1 de la [ficha legal](legal/informar-no-aconsejar.md) es ahora
   un test de seed-kit para todas las apps, y el único texto que la
-  incumplía, el título "What you should know" de Wealth Lens, pasa a ser
+  incumplía, el título "What you should know" de Horalis Crecimiento, pasa a ser
   "Good to know" ("Para tener en cuenta").
 
 Fase 5 (7 de octubre de 2026): nueva ficha de [deseos y precios por
@@ -102,3 +104,17 @@ Las cifras que las fichas citan de los datos (medias, oscilaciones, tasas
 de éxito) salen de los mismos archivos que usa la app
 (`projects/wealth-lens/src/data/`, `src/lib/success-table.ts`); si los
 datos cambian, los tests fallan y la ficha se actualiza con ellos.
+
+Fase A2 del plan Horalis (9 de octubre de 2026): se quita todo lo que
+caduca o no se puede publicar. Fichas actualizadas en el mismo cambio:
+[coste de vida](wealth-lens/coste-de-vida.md) (método nuevo, solo datos
+oficiales), [crecimiento](wealth-lens/crecimiento.md) (sin Mundo ni
+Nasdaq-100; oro del Banco Mundial), [mezclas](wealth-lens/mezclas-y-acciones.md)
+(sin acciones sueltas ni Mi cartera, que quedan como pieza futura),
+[chequeo](wealth-lens/chequeo.md), [década mala](wealth-lens/decada-mala.md),
+[futuros simulados](wealth-lens/futuros-simulados.md),
+[tasa de retiro](wealth-lens/tasa-de-retiro.md),
+[valor inicial](wealth-lens/valor-inicial.md),
+[inflación](wealth-lens/inflacion.md),
+[metas personales](wealth-lens/metas-personales.md) y
+[deseos](wealth-lens/deseos.md) (retirada).

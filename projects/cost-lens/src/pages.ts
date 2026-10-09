@@ -3,17 +3,18 @@
  * countries it compares travel inside the page, as JSON), the privacy
  * and terms page (seed-kit's words), and one "not found" page for every
  * language. Each says its title, description, content and scripts; the
- * build puts seed-lab's header and footer around it.
+ * build puts Horalis's header and footer around it.
  */
 
 import { formatsFor } from "../../../packages/seed-kit/src/format.ts";
 import { html, raw, rich, type Html } from "../../../packages/seed-kit/src/html.ts";
 import { legalLink, legalPage } from "../../../packages/seed-kit/src/legal.ts";
-import { LOCALES, type Locale } from "../../../packages/seed-kit/src/locales.ts";
+import { SHOWN_LOCALES, type Locale } from "../../../packages/seed-kit/src/locales.ts";
 import { pagePath } from "../../../packages/seed-kit/src/page.ts";
-import { WORDS } from "./i18n.ts";
+import { WORDS } from "./i18n/index.ts";
 import { BASE_PATH, NAME } from "./site.ts";
-import { countriesFor, DATA, DEFAULTS } from "./countries.ts";
+import { countriesFor, DATA, defaultChoice } from "./countries.ts";
+import { byCode } from "./calc.ts";
 import { listsHtml, resultHtml } from "./view.ts";
 
 /** The pages, by their address without the language. */
@@ -41,17 +42,16 @@ export function home(locale: Locale): Page {
   const t = words.home;
   const formats = formatsFor(locale);
   const countries = countriesFor(locale);
-  const choice = { ...DEFAULTS };
+  const choice = defaultChoice(countries);
   const select = (name: "from" | "to") =>
     html`<div class="sk-field"><label for="${name}">${t[name]}</label><select class="sk-input" id="${name}" name="${name}">${countries.map(
-      (country) => html`<option value="${country.code}"${country.code === choice[name] ? raw(" selected") : ""}>${country.estimated ? "≈\u00a0" : ""}${country.name}</option>`,
+      (country) => html`<option value="${country.code}"${country.code === choice[name] ? raw(" selected") : ""}>${country.name}</option>`,
     )}</select></div>`;
   const facts = {
-    detailed: formats.number(DATA.detailed),
-    estimated: formats.number(DATA.estimated),
-    month: formats.monthYear(new Date(`${DATA.detailedMonth}-01T00:00:00Z`)),
+    surveys: `${DATA.surveyFrom}–${DATA.surveyTo}`,
     year: String(DATA.priceYear),
     compiled: formats.date(DATA.compiledOn),
+    provisional: DATA.provisional,
   };
   return {
     id: "home",
@@ -63,7 +63,7 @@ export function home(locale: Locale): Page {
 <p class="sk-lead">${t.lead(formats.number(countries.length))}</p>
 <div class="sk-layout">
 <form class="sk-card sk-form" id="calc" aria-label="${t.form}">
-<div class="sk-field"><label for="amount">${t.amount}</label><input class="sk-input" id="amount" name="amount" inputmode="decimal" autocomplete="off" value="${formats.grouped(choice.amount)}"></div>
+<div class="sk-field"><label for="amount">${t.amount(byCode(choice.from, countries)?.currency ?? "")}</label><input class="sk-input" id="amount" name="amount" inputmode="decimal" autocomplete="off" value="${formats.grouped(choice.amount)}"></div>
 ${select("from")}
 ${select("to")}
 </form>
@@ -83,12 +83,12 @@ ${select("to")}
 }
 
 export function privacy(locale: Locale): Page {
-  const page = legalPage(locale, NAME);
+  const page = legalPage(locale, NAME[locale]);
   const link = legalLink(locale);
   return {
     id: "privacy",
     locale,
-    title: `${page.title} · ${NAME}`,
+    title: `${page.title} · ${NAME[locale]}`,
     description: page.description,
     scripts: [],
     main: html`<div class="sk-prose">
@@ -98,16 +98,16 @@ ${page.sections.map((section) => html`<section><h2>${section.heading}</h2>${sect
   };
 }
 
-/** One page for every missing address, in every language (the host cannot know which one the visitor reads). */
+/** One page for every missing address, in every shown language (the host cannot know which one the visitor reads). */
 export function notFound(): Page {
-  const [first] = LOCALES;
+  const [first] = SHOWN_LOCALES;
   return {
     id: null,
     locale: first,
-    title: `${LOCALES.map((locale) => WORDS[locale].notFound.title).join(" · ")} · ${NAME}`,
+    title: `${SHOWN_LOCALES.map((locale) => WORDS[locale].notFound.title).join(" · ")} · ${NAME[first]}`,
     description: WORDS[first].notFound.text,
     scripts: [],
-    main: html`${LOCALES.map((locale, index) => {
+    main: html`${SHOWN_LOCALES.map((locale, index) => {
       const words = WORDS[locale].notFound;
       return html`<div class="sk-prose" lang="${locale}">
 ${index === 0 ? html`<h1>${words.title}</h1>` : html`<h2>${words.title}</h2>`}

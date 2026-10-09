@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
+import { BRAND_NAME } from "@seed-kit/site.ts";
 import { getI18n } from ".";
-import { LOCALE_SETTINGS, LOCALES, localePath, PAGES, type Locale, type PageId } from "./locales";
+import { isPendingReview, LOCALE_SETTINGS, localePath, PAGES, SHOWN_LOCALES, type Locale, type PageId } from "./locales";
 
 /** Where the site is published: absolute links for sharing cards and the other languages. */
 export const SITE_URL = "https://seed-lab-omega.vercel.app";
 
 /** The sharing picture (app/og.png/route.tsx), the same for every page and language. */
-const SHARE_IMAGE = { url: "/og.png", width: 1200, height: 630, alt: "Wealth Lens" };
+const SHARE_IMAGE = { url: "/og.png", width: 1200, height: 630 };
 
 /** A page's title, description, languages and sharing card, in `locale`. */
 export function pageMetadata(locale: Locale, page: PageId): Metadata {
@@ -17,19 +18,24 @@ export function pageMetadata(locale: Locale, page: PageId): Metadata {
   return {
     title: { absolute: fullTitle },
     description,
-    alternates: {
-      canonical: path,
-      languages: { ...Object.fromEntries(LOCALES.map((other) => [LOCALE_SETTINGS[other].intl, localePath(PAGES[page], other)])), "x-default": PAGES[page] },
-    },
+    // A language waiting for a native speaker's review is built, but neither linked nor indexed (locales.ts).
+    ...(isPendingReview(locale)
+      ? { robots: { index: false } }
+      : {
+          alternates: {
+            canonical: path,
+            languages: { ...Object.fromEntries(SHOWN_LOCALES.map((other) => [LOCALE_SETTINGS[other].intl, localePath(PAGES[page], other)])), "x-default": PAGES[page] },
+          },
+        }),
     openGraph: {
       type: "website",
-      siteName: m.site.name,
+      siteName: BRAND_NAME,
       title: fullTitle,
       description,
       url: path,
       locale: LOCALE_SETTINGS[locale].intl.replace("-", "_"),
-      images: [SHARE_IMAGE],
+      images: [{ ...SHARE_IMAGE, alt: m.site.name }],
     },
-    twitter: { card: "summary_large_image", title: fullTitle, description, images: [SHARE_IMAGE] },
+    twitter: { card: "summary_large_image", title: fullTitle, description, images: [{ ...SHARE_IMAGE, alt: m.site.name }] },
   };
 }

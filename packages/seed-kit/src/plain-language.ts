@@ -1,8 +1,8 @@
 /**
- * The plain-language check every seed-lab tool runs on its words (principle
+ * The plain-language check every Horalis tool runs on its words (principle
  * 5, "clear enough for a child and their grandparent"): short sentences,
  * no jargon outside the places that explain it, and no advice anywhere
- * (seed-lab informs, it does not advise). Pure functions, so any test
+ * (Horalis informs, it does not advise). Pure functions, so any test
  * runner can use them; an app's test passes its own texts and limits.
  */
 
@@ -18,6 +18,7 @@ export interface TextEntry {
 export const JARGON: Readonly<Record<Locale, RegExp>> = {
   en: /\b(real|nominal|volatility|volatile|swings?|swung|percentiles?|CPI|HICP|deflator|PPP)\b/i,
   es: /\b(real(es)?|nominal(es)?|volatilidad|vol[aá]til(es)?|percentil(es)?|oscilaci[oó]n(es)?|IPC|IPCA|deflactor|PPA)\b/i,
+  nl: /(?<![\p{L}])(re[eë]el|re[eë]le|nominaal|nominale|volatiliteit|volatiel|volatiele|percentiel(en)?|CPI|HICP|HICP's|deflator|KKP|koopkrachtpariteit)(?![\p{L}])/iu,
 };
 
 /**
@@ -28,6 +29,7 @@ export const JARGON: Readonly<Record<Locale, RegExp>> = {
 export const ADVICE: Readonly<Record<Locale, RegExp>> = {
   en: /\b(you should|you must|we (?:recommend|suggest|advise)|recommended|best (?:choice |option )?for you)\b/i,
   es: /\b(deber[ií]as|debes|tienes que|te (?:recomendamos|aconsejamos|sugerimos)|recomendad[oa]s?|lo mejor para ti|la mejor opci[oó]n para ti)\b/i,
+  nl: /(?<![\p{L}])(je moet|u moet|je zou moeten|u zou moeten|(?:wij|we) (?:raden|adviseren|bevelen)|raden (?:je|u) aan|aanbevolen|het beste voor (?:jou|u)|de beste keuze voor (?:jou|u))(?![\p{L}])/iu,
 };
 
 /** Plain phrases that happen to use one of those words. */
@@ -41,6 +43,7 @@ export const ALLOWED = [
   /\baños reales\b/i,
   /\breal crises\b/i,
   /\bcrisis reales\b/i,
+  /\bechte crises\b/i,
 ];
 
 /**

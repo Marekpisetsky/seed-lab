@@ -1,6 +1,6 @@
 # seed-kit
 
-La base común de todas las herramientas de seed-lab: lo que cada app
+La base común de todas las herramientas de Horalis: lo que cada app
 reconstruía por su cuenta (cabecera, pie, idiomas, colores, privacidad,
 tests) vive aquí una sola vez. Las apps lo **importan desde el código**,
 no lo copian: un cambio aquí llega a todas en su siguiente build.
@@ -15,20 +15,25 @@ el molde `web-tool` de [Forja](../../tools/forja/README.md) forma la
 
 ```
 src/
-  tokens.css         los colores y la fuente de seed-lab: el único archivo de colores, claro y oscuro
+  tokens.css         los colores y la fuente de Horalis: el único archivo de colores, claro y oscuro
   chrome.css         estilos de la cabecera y el pie (solo tokens; clases sk-*)
   base.css           la base de una herramienta web: página, formulario, resultado, prosa
   css.ts             lee esas hojas de estilo y las minimiza, para ponerlas en línea
   chrome.ts          el modelo de cabecera y pie: palabras EN/ES, enlaces, tema, lanzador
   chrome-html.ts     cabecera y pie en HTML estático (hub, herramientas de Forja)
-  react/chrome.tsx   cabecera y pie en React (Wealth Lens): el mismo marcado
+  react/chrome.tsx   cabecera y pie en React (Horalis Crecimiento): el mismo marcado
   react/trend.tsx    ▲/▼ junto a una ganancia o una pérdida, en React
   theme.ts           claro / oscuro / automático: el script de la cabecera y la elección de la pestaña
   tools.json         la lista de herramientas: la leen el hub y todos los lanzadores
   tools.ts           la lee, la valida y dice cuáles se muestran
-  locales.ts         EN y ES, sus formatos (Intl) y direcciones por idioma
+  locales.ts         EN, ES y NL (construido pero oculto: pendiente de revisión por un nativo),
+                     sus formatos (Intl) y direcciones por idioma
+  words/             las palabras de seed-kit, un archivo por idioma (en.ts, es.ts, nl.ts)
   detect.ts          el script de idioma y el país del idioma del navegador: no guardan nada
-  format.ts          números, dinero, porcentajes y fechas en cada idioma (con el signo menos −)
+  format.ts          números, dinero (cualquier moneda), porcentajes y fechas en cada idioma
+                     y región (con el signo menos −); roundMoney, el redondeo de un coste
+  money.ts           la moneda de cada país (ISO 4217) y los tipos de cambio oficiales por año:
+                     convert() siempre dice el año (data/currencies.json, data/exchange-rates.json)
   plain-language.ts  el test de lenguaje sencillo: frases cortas, sin jerga, sin consejos (research/legal)
   checks.ts          peso por página, peticiones a otros sitios, almacenamiento
   vision.ts          para las pruebas en navegador: daltonismo emulado, distancia de color, contraste AA
@@ -39,10 +44,21 @@ src/
   browser.ts         el código de una herramienta para el navegador, sin bundler
   icons.ts           la semilla, el favicon, el lanzador, el tema, ▲/▼ y los iconos de principios
   site.ts            la dirección del hub y el contacto
-  cost-of-living.ts  el coste de vida de 172 países (data/): precios, alquiler e inflación
+  cost-of-living.ts  lo que vive una persona media en cada país, vivienda incluida (data/living-costs.json,
+                     de los datos oficiales del Banco Mundial), con la inflación de referencia de cada país
+                     (data/inflation-reference.json)
   inflation-rates.ts solo la inflación de referencia de cada país (3 KB), para una primera pantalla ligera
-  country-names.ts   los nombres de los 172 países, EN/ES, en tabla y en frase
-scripts/             inflation-rates.ts escribe data/inflation-rates.json desde el coste de vida
+  country-names.ts   los nombres de los países, EN/ES (y NL, oculto), en tabla y en frase
+  official/          los datos oficiales: forma, lista de series y comprobaciones (series.ts),
+                     lectores del Banco Mundial, Eurostat y CLDR, el acceso en el build (data.ts)
+                     y el método del coste de vida (living-costs.ts; solo en el build)
+  data/official/     las series oficiales, cada una con fuente, URL, licencia, fecha de descarga
+                     y año de los datos, y REPORT.md (el informe de la última descarga)
+scripts/             official-data.ts descarga y comprueba los datos oficiales (una vez al año);
+                     official-data.workflow.yml es su workflow, para copiar a .github/workflows/;
+                     living-costs.ts escribe data/living-costs.json desde los datos oficiales;
+                     country-names.ts, data/country-names.json (CLDR de Node);
+                     inflation-rates.ts escribe data/inflation-rates.json desde la inflación de referencia
 test/                los tests del kit (node --test)
 ```
 
@@ -55,7 +71,7 @@ Reglas del kit:
   fuera de su carpeta. `react/chrome.tsx` importa solo `react`, que pone
   la app.
 - **Una cabecera, dos dibujos.** `chrome-html.ts` y `react/chrome.tsx`
-  pintan el mismo modelo con el mismo marcado; un test de Wealth Lens
+  pintan el mismo modelo con el mismo marcado; un test de Horalis Crecimiento
   compara los dos.
 - **Sin cookies ni almacenamiento, salvo el tema de la pestaña.** El
   script de idioma no guarda nada. El tema elegido en la cabecera (claro u
@@ -92,9 +108,72 @@ hub (`.theme-dark`, `.theme-light`), que vuelven a alternar en
   navegador siguen la elección, y los menús de la cabecera se cierran con
   Escape o al tocar fuera. En React lo hace `react/chrome.tsx`.
 - **En un móvil estrecho** (hasta 424 px) no cabe junto a EN/ES con el
-  nombre más largo (Inflation Lens): las opciones pasan al pie del panel
+  nombre más largo (Horalis Cost of Living): las opciones pasan al pie del panel
   del lanzador. Solo se ve una copia.
 - **Sin scripts** no hay menú, y la página sigue al dispositivo.
+
+## Los datos oficiales
+
+Todas las herramientas leen los datos de aquí: un solo módulo, nunca una
+copia. Cada serie es un archivo de `src/data/official/` con sus cifras
+por país y año y, junto a ellas, de dónde salen (`meta`: fuente, códigos,
+URL, licencia, fecha de descarga, año de los datos y, si lo es, por qué es
+provisional). `src/official/data.ts` las lee y las comprueba al compilar:
+un archivo que no pasa sus comprobaciones para el build.
+
+| Serie | Fuente | Para qué |
+| --- | --- | --- |
+| `wb-inflation` | Banco Mundial, FP.CPI.TOTL.ZG | inflación anual de cualquier país |
+| `eurostat-hicp` | Eurostat, prc_hicp_aind (IPCA) | inflación anual de la UE, la zona euro y sus 27 países |
+| `wb-fx` | Banco Mundial, PA.NUS.FCRF | tipo de cambio oficial, media del año (moneda local por dólar) |
+| `wb-ppp` | Banco Mundial, PA.NUS.PPP (PCI) | paridad de poder adquisitivo |
+| `wb-price-level` | Banco Mundial, PA.NUS.PPPC.RF (PCI) | nivel de precios (1 = EE. UU.) |
+| `wb-survey-mean` | Banco Mundial, SI.SPR.PCAP | gasto o ingreso medio por persona y día, de las encuestas de hogares |
+| `countries.json` | Banco Mundial y Unicode CLDR | los países, y la moneda de cada uno (ISO 4217) |
+
+**Licencias.**
+- Solo series que permiten uso comercial y redistribución. El Banco Mundial
+  publica estas series con CC BY 4.0, y la descarga lee la licencia de cada
+  una en sus metadatos.
+- De Eurostat solo se usan los países de la UE: sus cifras de otros países no
+  permiten uso comercial.
+- El FMI no se usa: pide permiso para el uso comercial y para descargas
+  automáticas.
+
+**Una vez al año.** `npm run official-data` lo descarga todo y lo comprueba
+antes de escribir nada:
+- valores en su rango;
+- suficientes países, y no menos que los que había;
+- un año de datos reciente, nunca más antiguo que el que había;
+- sin saltos absurdos de un año a otro (los cambios de moneda y la
+  hiperinflación que ya estaban se reconocen).
+
+Si algo falla, no cambia ningún dato y lo explica en `REPORT.md`. El
+workflow `scripts/official-data.workflow.yml` lo ejecuta el 1 de julio,
+pasa los tests y abre una pull request con el informe; hay que copiarlo
+una vez a `.github/workflows/` (ver su cabecera). Método y límites:
+[research/datos-oficiales.md](../../research/datos-oficiales.md).
+
+**Hoy los datos son provisionales.** La sesión que hizo este módulo no
+llegaba al Banco Mundial ni a Eurostat:
+- Las series del Banco Mundial salen de su espejo público
+  (github.com/datasets/world-development-indicators, actualización
+  automática del 1 de julio de 2026).
+- Las de Eurostat salen de las cifras tecleadas a mano de Inflation Lens.
+
+Cada archivo lo dice en `meta.provisional`, y las herramientas lo
+mostrarán junto a sus cifras cuando los usen. La primera ejecución del
+workflow los sustituye por los de la fuente.
+
+**Monedas.** `countries.json` da la moneda de hoy de cada país, pero
+`wb-fx` y `wb-ppp` cuentan cada año en la moneda que el país usaba
+entonces: España, en pesetas antes de 1999 y en euros después.
+
+**Regla de conversión.** Solo se convierte con cifras del mismo país y del
+mismo año, pasando por el dólar. Así la unidad siempre cuadra.
+
+**Sin caducidad.** Un build nunca falla porque los datos sean antiguos.
+Solo la descarga anual exige datos recientes.
 
 ## La lista de herramientas
 
@@ -117,7 +196,7 @@ publicarse.
   ponen en línea `tokens.css`, `chrome.css` y, las herramientas,
   `base.css` (`kitCss` y `minifyCss`). Las de Forja usan además
   `page.ts`, `legal.ts` y `browser.ts`.
-- **Wealth Lens** (Next.js): el alias `@seed-kit/*` de `tsconfig.json`,
+- **Horalis Crecimiento** (Next.js): el alias `@seed-kit/*` de `tsconfig.json`,
   `turbopack.root` en la raíz del repo, y `globals.css` importa
   `tokens.css` y `chrome.css`. Los tipos se comprueban con
   `tsconfig.typecheck.json` (`npm run typecheck`, parte de `npm run

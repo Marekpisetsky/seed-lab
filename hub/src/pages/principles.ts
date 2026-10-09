@@ -41,7 +41,7 @@ ${band(
 <thead><tr><th scope="col">${m.principles.product}</th>${PRINCIPLE_IDS.map((id) => html`<th scope="col">${byId.get(id)?.short ?? id}</th>`)}</tr></thead>
 <tbody>
 ${TOOLS.filter((tool) => tool.status === "live").map(
-  (tool) => html`<tr><th scope="row"><a href="${tool.url}">${tool.name}</a></th>${PRINCIPLE_IDS.map((id) => {
+  (tool) => html`<tr><th scope="row"><a href="${tool.url}">${tool.name[locale]}</a></th>${PRINCIPLE_IDS.map((id) => {
     const { status, note } = tool.principles[id];
     return html`<td><span class="state ${status}"><span aria-hidden="true">${MARK[status]}</span> ${m.principles.status[status]}</span><span class="note">${note[locale]}</span></td>`;
   })}</tr>`,

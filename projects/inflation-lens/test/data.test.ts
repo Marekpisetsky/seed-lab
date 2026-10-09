@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { TOOLS } from "../../../packages/seed-kit/src/tools.ts";
 import { fromJsonStat, HICP, parseHicp, seriesFor } from "../src/hicp.ts";
-import { WORDS } from "../src/i18n.ts";
+import { WORDS } from "../src/i18n/index.ts";
 import { ID } from "../src/site.ts";
 
 /**

@@ -4,14 +4,12 @@ import { Search } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n";
 import type { I18n } from "@/i18n";
-import { stockPartDetail } from "@/i18n/investment-text";
 import { ENGLISH_SEARCH_WORDS } from "@/i18n/messages/search-words";
 import { SAVINGS_RATE, type AssetId } from "@/lib/assets";
 import { INDEXES, INDEX_IDS, SERIES } from "@/lib/indexes";
-import { INDEX_TRACKERS, INSTRUMENTS } from "@/lib/market-data";
 
-/** What the picker can choose; a stock only as a part of a mix. */
-export type PickChoice = { kind: "asset"; asset: AssetId } | { kind: "stock"; stock: string } | { kind: "portfolio" } | { kind: "mix" } | { kind: "custom" };
+/** What the picker can choose: asset classes, never a product. */
+export type PickChoice = { kind: "asset"; asset: AssetId } | { kind: "mix" } | { kind: "custom" };
 
 type Group = keyof I18n["m"]["picker"]["groups"];
 
@@ -21,11 +19,10 @@ interface Option {
   choice: PickChoice;
   label: string;
   detail: string;
-  /** Lower-case text the search looks in: names and words in the page's language and in English, and fund tickers. */
+  /** Lower-case text the search looks in: names and words in the page's language and in English. */
   haystack: string;
 }
 
-const tickers = (asset: keyof typeof INDEX_TRACKERS) => INDEX_TRACKERS[asset].join(" ");
 /** Search words in the page's language and in English, so "gold" finds gold on the Spanish page too. */
 const words = ({ m }: I18n, key: keyof I18n["m"]["picker"]["words"]) => `${m.picker.words[key]} ${ENGLISH_SEARCH_WORDS[key]}`;
 
@@ -39,8 +36,8 @@ function assetOptions(i18n: I18n): Option[] {
       group: "indexes",
       choice: { kind: "asset", asset: index },
       label: m.assets.name[index],
-      detail: m.picker.index(f.rate(info.averageReturn), info.etf),
-      haystack: `${m.assets.name[index]} ${info.name} ${words(i18n, "index")} ${tickers(index)}`.toLowerCase(),
+      detail: m.picker.index(f.rate(info.averageReturn)),
+      haystack: `${m.assets.name[index]} ${info.name} ${words(i18n, "index")}`.toLowerCase(),
     };
   });
   return [
@@ -50,8 +47,8 @@ function assetOptions(i18n: I18n): Option[] {
       group: "bonds",
       choice: { kind: "asset", asset: "bonds" },
       label: m.assets.name.bonds,
-      detail: m.picker.bonds(f.rate(SERIES.bonds.averageReturn), SERIES.bonds.etf),
-      haystack: `${m.assets.name.bonds} ${words(i18n, "bonds")} ${tickers("bonds")}`.toLowerCase(),
+      detail: m.picker.bonds(f.rate(SERIES.bonds.averageReturn)),
+      haystack: `${m.assets.name.bonds} ${words(i18n, "bonds")}`.toLowerCase(),
     },
     {
       key: "asset:gold",
@@ -59,7 +56,7 @@ function assetOptions(i18n: I18n): Option[] {
       choice: { kind: "asset", asset: "gold" },
       label: m.assets.name.gold,
       detail: m.picker.gold(f.rate(SERIES.gold.averageReturn)),
-      haystack: `${m.assets.name.gold} ${words(i18n, "gold")} ${tickers("gold")}`.toLowerCase(),
+      haystack: `${m.assets.name.gold} ${words(i18n, "gold")}`.toLowerCase(),
     },
     {
       key: "asset:savings",
@@ -72,33 +69,18 @@ function assetOptions(i18n: I18n): Option[] {
   ];
 }
 
-/** The stocks of the list, for a mix: each grows like its index, with its own ups and downs. */
-function stockOptions(i18n: I18n): Option[] {
-  return INSTRUMENTS.filter((instrument) => instrument.kind === "stock").map((stock) => ({
-    key: `stock:${stock.id}`,
-    group: "stocks",
-    choice: { kind: "stock", stock: stock.id },
-    label: stock.name,
-    detail: stockPartDetail(stock, i18n),
-    haystack: `${stock.name} ${stock.id} ${stock.symbol} ${words(i18n, "stock")}`.toLowerCase(),
-  }));
-}
-
 /**
- * The list behind "Invested in": only what has a long history and a known
- * range (indexes, euro government bonds, gold), a savings account, Custom
- * growth (the user's own figures), the portfolio when there are holdings,
- * and "A mix…";
- * grouped, with a search by name or fund ticker. Single stocks are not on
- * it: they are never projected on their own. For a mix's parts (`onlyAssets`)
- * the assets and the stocks of the list, each stock growing like its index.
- * Opens under `top` (px from the calculator's top).
+ * The list behind "Invested in": only asset classes with a long history
+ * and a known range (US stocks, German government bonds, gold), a savings
+ * account, Custom growth (the user's own figures) and "A mix…"; grouped,
+ * with a search by name. No product, fund or single stock is on it: the
+ * tool informs, it does not point at anything to buy. For a mix's parts
+ * (`onlyAssets`), the assets only. Opens under `top` (px from the
+ * calculator's top).
  */
 export function InvestmentPicker({
   top,
   selected,
-  hasPortfolio,
-  holdingsCount,
   exclude = [],
   onlyAssets = false,
   label,
@@ -107,11 +89,9 @@ export function InvestmentPicker({
 }: {
   top: number;
   selected: string | null;
-  hasPortfolio: boolean;
-  holdingsCount: number;
   /** Options not offered (the parts a mix already has). */
   exclude?: readonly string[];
-  /** For a mix's parts: the assets and the stocks of the list. */
+  /** For a mix's parts: the assets only. */
   onlyAssets?: boolean;
   label: string;
   onPick: (choice: PickChoice) => void;
@@ -141,8 +121,7 @@ export function InvestmentPicker({
 
   const options = useMemo(() => {
     const all = assetOptions(i18n);
-    if (onlyAssets) all.push(...stockOptions(i18n));
-    else {
+    if (!onlyAssets) {
       all.push({
         key: "custom",
         group: "own",
@@ -151,16 +130,6 @@ export function InvestmentPicker({
         detail: m.picker.custom,
         haystack: `${m.invest.custom} ${words(i18n, "custom")}`.toLowerCase(),
       });
-      if (hasPortfolio) {
-        all.push({
-          key: "portfolio",
-          group: "portfolio",
-          choice: { kind: "portfolio" },
-          label: m.invest.portfolio,
-          detail: m.picker.portfolio(holdingsCount),
-          haystack: `${m.invest.portfolio} ${words(i18n, "portfolio")}`.toLowerCase(),
-        });
-      }
       all.push({
         key: "mix",
         group: "mix",
@@ -171,7 +140,7 @@ export function InvestmentPicker({
       });
     }
     return all.filter((option) => !exclude.includes(option.key));
-  }, [i18n, m, hasPortfolio, holdingsCount, onlyAssets, exclude]);
+  }, [i18n, m, onlyAssets, exclude]);
 
   const shown = useMemo(() => {
     const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);

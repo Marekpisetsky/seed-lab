@@ -1,24 +1,23 @@
 /**
  * A goal in words, in the page's language: its name ("Live in Peru"), the
- * detail beside it ("with housing") and how its status is worked out, one
+ * detail beside it ("housing included") and how its status is worked out, one
  * step per line. The status itself (lib/calculator.ts) holds only numbers.
  */
 
 import type { I18n } from ".";
 import { countryInSentence } from "./countries";
-import { itemName, itemSource } from "./item-text";
-import { dividendNote, growthSource } from "./investment-text";
+import { growthSource } from "./investment-text";
 import { MAX_YEARS, NEEDED_WITHIN_YEARS, type GoalStatus, type Scenario } from "@/lib/calculator";
 import { countryByCode } from "@/lib/cost-of-living";
 import type { ResolvedInvestment } from "@/lib/investment";
 
-/** Where a country's figures come from: its sources, or its price level for an estimate. */
-function liveSource(code: string, referenceDate: string | null, { m }: I18n): string {
-  const level = countryByCode(code)?.priceLevel;
-  return level ? m.countryTable.estimatedSource(level.year) : m.countryTable.detailedSource(referenceDate ?? "");
+/** Where a country's figure comes from: the World Bank's household survey and price level, with their years. */
+function liveSource(code: string, { m }: I18n): string {
+  const country = countryByCode(code);
+  return m.countryTable.source(String(country?.surveyYear ?? ""), country?.referenceDate ?? "");
 }
 
-/** "Live in Peru", "Live without working", "A used car", "Reach €100,000", "My rent" (a monthly amount's own label). */
+/** "Live in Peru", "Live without working", "Reach €100,000", "My rent" (a monthly amount's own label). */
 export function goalName(status: GoalStatus, i18n: I18n): string {
   const { m, f } = i18n;
   if (!status.known) return m.goals.unknown;
@@ -26,12 +25,10 @@ export function goalName(status: GoalStatus, i18n: I18n): string {
   switch (goal.kind) {
     case "live":
       return m.goals.live(countryInSentence(goal.country, i18n));
-    case "buy":
-      return m.things.items[goal.item] ? itemName(goal.item, i18n) : m.goals.unknown;
     case "buy-own":
       return goal.name;
     case "amount":
-      return goal.label ?? m.goals.reach(f.eur(goal.amount));
+      return goal.label ?? m.goals.reach(f.cur(goal.amount));
     case "freedom":
       return m.goals.freedom;
     case "monthly":
@@ -39,11 +36,9 @@ export function goalName(status: GoalStatus, i18n: I18n): string {
   }
 }
 
-/** "including rent", "prices of the Netherlands" (a thing priced elsewhere), or nothing. */
-export function goalDetail({ goal, otherCountry }: GoalStatus, i18n: I18n): string | null {
-  const { m } = i18n;
-  if (goal.kind === "live") return goal.housing ? m.goals.withHousing : m.goals.withoutHousing;
-  return otherCountry ? m.things.otherCountry(countryInSentence(otherCountry, i18n)) : null;
+/** "housing included" for a country, or nothing. */
+export function goalDetail({ goal }: GoalStatus, i18n: I18n): string | null {
+  return goal.kind === "live" ? i18n.m.goals.withHousing : null;
 }
 
 /** How the status is worked out: what is needed, when it gets there, and where the figures come from. */
@@ -52,26 +47,23 @@ export function goalExplain(status: GoalStatus, scenario: Scenario, investment: 
   const t = m.goals.explain;
   if (!status.known) return [m.goals.unknownExplain];
   const cost =
-    status.kind === "monthly" ? t.monthlyCost(f.eur(status.amount), f.rate(scenario.withdrawalRate), f.eur(status.target)) : t.onceCost(f.eur(status.target));
-  const dividends = dividendNote(investment, i18n);
-  const source = growthSource(investment, i18n) + (dividends ? `; ${dividends}` : "");
-  const start = t.start(f.eur(scenario.capital), f.eur(scenario.monthly), f.rate(scenario.realReturn), source);
+    status.kind === "monthly" ? t.monthlyCost(f.cur(status.amount), f.rate(scenario.withdrawalRate), f.cur(status.target)) : t.onceCost(f.cur(status.target));
+  const source = growthSource(investment, i18n);
+  const start = t.start(f.cur(scenario.capital), f.cur(scenario.monthly), f.rate(scenario.realReturn), source);
   const reach =
     status.months <= 1e-9
-      ? t.already(f.eur(scenario.capital))
+      ? t.already(f.cur(scenario.capital))
       : status.reachable && status.date
-        ? t.reaches(start, f.eur(status.target), f.duration(status.months), f.monthYear(status.date))
-        : t.tooFar(start, MAX_YEARS, f.eur(status.needed ?? 0), NEEDED_WITHIN_YEARS);
+        ? t.reaches(start, f.cur(status.target), f.duration(status.months), f.monthYear(status.date))
+        : t.tooFar(start, MAX_YEARS, f.cur(status.needed ?? 0), NEEDED_WITHIN_YEARS);
   const { goal } = status;
   const where =
     goal.kind === "freedom" && goal.country && goal.estimateDate
       ? m.goals.form.onePerson(countryInSentence(goal.country, i18n), goal.estimateDate)
       : goal.kind === "live"
-      ? t.liveSource(goal.housing, liveSource(goal.country, status.referenceDate, i18n))
-      : goal.kind === "buy" && status.item
-        ? t.itemSource(itemSource(status.item, i18n))
-        : goal.kind === "buy-own"
-          ? t.ownPrice
-          : t.ownAmount;
+      ? t.liveSource(liveSource(goal.country, i18n))
+      : goal.kind === "buy-own"
+        ? t.ownPrice
+        : t.ownAmount;
   return [cost, reach, where, ...(goal.kind === "freedom" ? [m.goals.freedomRisk] : [])];
 }

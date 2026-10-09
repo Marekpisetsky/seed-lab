@@ -9,7 +9,7 @@ import { html, raw, type Html } from "__KIT__/html.ts";
 import { TREND_ICONS, trendOf } from "__KIT__/icons.ts";
 import type { Locale } from "__KIT__/locales.ts";
 import { change } from "./calc.ts";
-import { WORDS } from "./i18n.ts";
+import { WORDS } from "./i18n/index.ts";
 
 /** ▲ before a rise, ▼ before a fall, next to its sign: never by colour alone. */
 function mark(amount: number): Html | string {

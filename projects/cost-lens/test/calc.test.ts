@@ -1,29 +1,30 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { byCode, equivalent, extremes, reach, type Country } from "../src/calc.ts";
+import { byCode, equivalent, exchangeRate, extremes, monthlyCost, reach, sameMoney, startingChoice, type Country } from "../src/calc.ts";
 import { countriesFor } from "../src/countries.ts";
-import { listsHtml, resultHtml } from "../src/view.ts";
+import { listsHtml, ratePair, resultHtml } from "../src/view.ts";
+import { costOfLiving } from "../../../packages/seed-kit/src/cost-of-living.ts";
 
-const country = (code: string, withoutRent: number, withRent: number, estimated = false): Country => ({ code, name: code, sentence: code, withoutRent, withRent, estimated });
-const HOME = country("NL", 1500, 2700);
-const CHEAP = country("PE", 500, 900);
-const DEAR = country("CH", 3000, 5400);
+const country = (code: string, cost: number, currency = "USD", perDollar = 1): Country => ({ code, name: code, sentence: code, cost, currency, ownCurrency: currency, perDollar, rateYear: 2024 });
+const HOME = country("NL", 2700);
+const CHEAP = country("PE", 900);
+const DEAR = country("CH", 5400);
 
 describe("what you would need elsewhere to live the same", () => {
-  it("scales the amount by how much living costs there, with housing and without", () => {
-    assert.deepEqual(equivalent(2500, HOME, CHEAP), { withRent: (2500 * 900) / 2700, withoutRent: (2500 * 500) / 1500 });
-    assert.deepEqual(equivalent(2700, HOME, DEAR), { withRent: 5400, withoutRent: 5400 });
+  it("scales the amount by how much living costs there", () => {
+    assert.equal(equivalent(2500, HOME, CHEAP), (2500 * 900) / 2700);
+    assert.equal(equivalent(2700, HOME, DEAR), 5400);
   });
 
   it("is the same amount in the same country", () => {
-    assert.deepEqual(equivalent(1234, HOME, HOME), { withRent: 1234, withoutRent: 1234 });
+    assert.equal(equivalent(1234, HOME, HOME), 1234);
   });
 
   it("goes back where it came from: there and back is the amount again", () => {
     const there = equivalent(2500, HOME, CHEAP);
     assert.ok(there);
-    const back = equivalent(there.withRent, CHEAP, HOME);
-    assert.ok(back && Math.abs(back.withRent - 2500) < 1e-9);
+    const back = equivalent(there, CHEAP, HOME);
+    assert.ok(back && Math.abs(back - 2500) < 1e-9);
   });
 
   it("refuses an amount that is not above zero, or not a number", () => {
@@ -31,19 +32,48 @@ describe("what you would need elsewhere to live the same", () => {
   });
 
   it("handles very large and very small amounts without rounding them away", () => {
-    assert.equal(equivalent(1e9, HOME, CHEAP)?.withRent, (1e9 * 900) / 2700);
-    assert.ok((equivalent(0.01, HOME, CHEAP)?.withRent ?? 0) > 0);
+    assert.equal(equivalent(1e9, HOME, CHEAP), (1e9 * 900) / 2700);
+    assert.ok((equivalent(0.01, HOME, CHEAP) ?? 0) > 0);
+  });
+});
+
+describe("amounts in each country's currency", () => {
+  const EURO = country("NL", 2000, "EUR", 0.9);
+  const SOL = country("PE", 250, "PEN", 3.75);
+
+  it("reads the amount in the currency of where you live, and answers in the other's", () => {
+    // 1800 € is 2000 $; there the same life costs 250 $, which is 937.50 soles.
+    assert.ok(Math.abs((equivalent(1800, EURO, SOL) ?? 0) - 937.5) < 1e-9);
+    assert.ok(Math.abs((equivalent(937.5, SOL, EURO) ?? 0) - 1800) < 1e-9);
+    assert.ok(Math.abs(exchangeRate(EURO, SOL) - 3.75 / 0.9) < 1e-12);
+  });
+
+  it("gives each country's cost in its currency, rounded as the data allow", () => {
+    assert.equal(monthlyCost(EURO), 1800);
+    assert.equal(monthlyCost(SOL), 940);
+  });
+
+  it("writes the rate from the currency worth more", () => {
+    assert.equal(ratePair(EURO, SOL, "en"), "€1 = PEN\u00a04.17");
+    assert.equal(ratePair(SOL, EURO, "en"), "€1 = PEN\u00a04.17");
+  });
+
+  it("starts from the country the browser's language names, with what living there costs", () => {
+    const list = [EURO, SOL, country("MX", 600, "MXN", 18)];
+    assert.deepEqual(startingChoice("es-MX", list, { from: "NL", to: "PE" }), { amount: 10_800, from: "MX", to: "PE" });
+    assert.deepEqual(startingChoice("es-PE", list, { from: "NL", to: "PE" }), { amount: 940, from: "PE", to: "NL" });
+    assert.deepEqual(startingChoice("pt-BR", list, { from: "NL", to: "PE" }), { amount: 1800, from: "NL", to: "PE" });
   });
 });
 
 describe("where money goes furthest and least far", () => {
-  it("says how many times as far it goes, with and without housing", () => {
-    assert.deepEqual(reach(HOME, CHEAP), { withRent: 3, withoutRent: 3 });
-    assert.deepEqual(reach(HOME, DEAR), { withRent: 0.5, withoutRent: 0.5 });
+  it("says how many times as far it goes", () => {
+    assert.equal(reach(HOME, CHEAP), 3);
+    assert.equal(reach(HOME, DEAR), 0.5);
   });
 
-  it("ranks by the cost with housing, leaves out where you live, and never shows a country in both lists", () => {
-    const list = [HOME, CHEAP, DEAR, country("PT", 900, 1600), country("IN", 300, 450, true), country("US", 2200, 4100)];
+  it("ranks by it, leaves out where you live, and never shows a country in both lists", () => {
+    const list = [HOME, CHEAP, DEAR, country("PT", 1600), country("IN", 450), country("US", 4100)];
     const { furthest, least } = extremes(HOME, list, 2);
     assert.deepEqual(furthest.map(({ country: c }) => c.code), ["IN", "PE"]);
     assert.deepEqual(least.map(({ country: c }) => c.code), ["CH", "US"]);
@@ -60,7 +90,7 @@ describe("where money goes furthest and least far", () => {
   });
 
   it("finds a country by its code, and nothing for an unknown one", () => {
-    assert.equal(byCode("PE", [HOME, CHEAP])?.withRent, 900);
+    assert.equal(byCode("PE", [HOME, CHEAP])?.cost, 900);
     assert.equal(byCode("XX", [HOME, CHEAP]), undefined);
   });
 });
@@ -69,9 +99,10 @@ describe("with the real data", () => {
   const en = countriesFor("en");
   const es = countriesFor("es");
 
-  it("has 172 countries in each language, named in that language and sorted by name", () => {
-    assert.equal(en.length, 172);
-    assert.equal(es.length, 172);
+  it("has every country of the official data in each language, named in that language and sorted by name", () => {
+    assert.equal(en.length, costOfLiving.countries.length);
+    assert.equal(es.length, costOfLiving.countries.length);
+    assert.ok(en.length >= 100);
     assert.equal(byCode("NL", es)?.name, "Países Bajos");
     assert.equal(byCode("NL", en)?.sentence, "the Netherlands");
     assert.equal(byCode("NL", es)?.sentence, "los Países Bajos");
@@ -79,24 +110,27 @@ describe("with the real data", () => {
     assert.deepEqual(names, [...names].sort(new Intl.Collator("es-ES").compare));
   });
 
-  it("keeps the ≈ of every estimated country", () => {
-    assert.equal(en.filter((c) => c.estimated).length, 142);
-    assert.equal(byCode("AF", en)?.estimated, true);
-    assert.equal(byCode("PE", en)?.estimated, false);
-    assert.equal(byCode("NL", en)?.estimated, false);
-  });
-
-  it("says the key sentence, with housing and without, in each language's way", () => {
+  it("says the key sentence in each language's way, in each country's currency, with the rates it used", () => {
     const choice = { amount: 2500, from: "NL", to: "PE" };
     const need = equivalent(2500, byCode("NL", en) as Country, byCode("PE", en) as Country);
     assert.ok(need);
     const english = resultHtml(choice, en, "en").value;
-    assert.match(english, /With €2,500 a month in the Netherlands, in Peru you would need ≈\u00a0€[\d,]+ to live the same\./);
-    assert.match(english, /Leaving housing out: ≈\u00a0€[\d,]+\./);
-    assert.doesNotMatch(english, /estimated from its price level/, "Peru and the Netherlands are both detailed");
-    assert.match(resultHtml({ ...choice, to: "AF" }, en, "en").value, /≈ This country(?:'|&#39;)s costs are estimated from its price level\./);
+    assert.match(english, /With €2,500 a month in the Netherlands, in Peru you would need ≈\u00a0PEN\u00a0[\d,]+ to live the same\./);
+    assert.match(english, /At the official rates of 20\d\d: €1 = PEN\u00a0\d\.\d\d\./);
     const spanish = resultHtml(choice, es, "es").value;
-    assert.match(spanish, /Con 2500\u00a0€ al mes en los Países Bajos, en Perú necesitarías ≈\u00a0[\d.]+\u00a0€ para vivir igual\./);
+    assert.match(spanish, /Con 2500\u00a0€ al mes en los Países Bajos, en Perú necesitarías ≈\u00a0[\d.]+\u00a0PEN para vivir igual\./);
+    // One currency, no rate to state.
+    assert.doesNotMatch(resultHtml({ amount: 2500, from: "NL", to: "ES" }, en, "en").value, /official rates/);
+  });
+
+  it("gives every country its own currency, at the official rate of the prices' year", () => {
+    assert.equal(byCode("NL", en)?.currency, "EUR");
+    assert.equal(byCode("PE", en)?.currency, "PEN");
+    assert.equal(byCode("US", en)?.perDollar, 1);
+    for (const c of en) assert.ok(c.perDollar > 0 && /^[A-Z]{3}$/.test(c.currency), c.code);
+    // Peru's cost in soles is its cost in dollars at Peru's official rate.
+    const peru = byCode("PE", en) as Country;
+    assert.equal(peru.cost, costOfLiving.countries.find((c) => c.code === "PE")?.monthlyCostUsd);
   });
 
   it("asks for an amount instead of showing nonsense", () => {
@@ -105,11 +139,35 @@ describe("with the real data", () => {
     assert.match(listsHtml({ amount: 0, from: "NL", to: "PE" }, es, "es").value, /Donde tu dinero rinde más/);
   });
 
-  it("lists five countries each way, marked ≈ when estimated, with both reaches", () => {
+  it("lists five countries each way, with how much further the money goes", () => {
     const lists = listsHtml({ amount: 2500, from: "NL", to: "PE" }, en, "en").value;
     assert.equal((lists.match(/<tr><th scope="row">/g) ?? []).length, 10);
     assert.match(lists, /Where €2,500 goes furthest/);
-    assert.match(lists, /<td>×\d+\.\d<\/td><td>×\d+\.\d<\/td>/);
-    assert.match(lists, /<abbr title="estimated">≈<\/abbr>/);
+    assert.match(lists, /<td>×\d+\.\d<\/td><\/tr>/);
+  });
+});
+
+describe("changing where you live", () => {
+  it("keeps the same money, in the new country's currency", () => {
+    const euro = { code: "NL", name: "NL", sentence: "NL", cost: 2000, currency: "EUR", ownCurrency: "EUR", perDollar: 0.9, rateYear: 2024 };
+    const yen = { ...euro, code: "JP", currency: "JPY", ownCurrency: "JPY", perDollar: 150 };
+    assert.ok(Math.abs(sameMoney(1800, euro, yen) - 300_000) < 1e-6);
+    assert.ok(Math.abs(sameMoney(sameMoney(1800, euro, yen), yen, euro) - 1800) < 1e-9);
+  });
+});
+
+describe("countries without an official rate for the prices' year", () => {
+  it("come out in US dollars, and the result says so beside it", () => {
+    const list = countriesFor("en");
+    const dollars = list.filter((c) => c.currency === "USD" && c.ownCurrency !== "USD").map((c) => c.code).sort();
+    assert.deepEqual(dollars, ["CD", "GN", "IR", "LK", "MM", "MR", "MW", "SL"]);
+    const html = resultHtml({ amount: 2000, from: "NL", to: "IR" }, list, "en").value;
+    assert.match(html, /in US dollars, with no official rate for 20\d\d\./);
+  });
+
+  it("write numbers the reader's way when asked: Mexico's on a Spanish page", () => {
+    const es = countriesFor("es");
+    const mx = resultHtml({ amount: 25_000, from: "MX", to: "PE" }, es, "es", "MX").value;
+    assert.match(mx, /Con \$25,000 al mes en México/);
   });
 });

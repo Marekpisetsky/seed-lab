@@ -10,8 +10,11 @@ import { addGoal } from "@/lib/app-store";
 import { featuredRows, type CountryCell, type CountryRow } from "@/lib/calculator";
 import { costOfLiving } from "@/lib/cost-of-living";
 
-/** The year of the price levels behind most estimates. */
-const ESTIMATES_YEAR = Math.max(...costOfLiving.countries.map((country) => country.priceLevel?.year ?? 0));
+/** The years of the household surveys behind the table: "2010–2025". */
+const SURVEYS = (() => {
+  const years = costOfLiving.countries.map((country) => country.surveyYear);
+  return `${Math.min(...years)}–${Math.max(...years)}`;
+})();
 
 /** The plan's years and today, to say when each cell is reached. */
 interface When {
@@ -30,7 +33,7 @@ function Cell({ cell, when }: { cell: CountryCell; when: When }) {
   const reach = f.reach(cell.months, when.horizonMonths, when.today);
   return (
     <td className="px-1.5 py-2 align-top tabular-nums">
-      <span className="block">{f.eur(cell.amount)}</span>
+      <span className="block">{f.cur(cell.amount)}</span>
       {/* Two short lines, so a narrow cell does not break them anywhere: "✓ from 2031" / "in 5 years". */}
       <span className={`block text-sm ${cell.covered ? "font-medium text-positive" : "text-muted"}`}>
         <span className="block">
@@ -48,18 +51,18 @@ function Cell({ cell, when }: { cell: CountryCell; when: When }) {
   );
 }
 
-/** Below a row: add living there to My goals, without or with housing, as the user says. */
+/** Below a row: living there was added to My goals. */
 function AddRow({ row, onClose }: { row: CountryRow; onClose: () => void }) {
   const i18n = useI18n();
   const t = i18n.m.countryTable;
   const name = countryInSentence(row.code, i18n);
   return (
     <tr>
-      <td colSpan={4} className="px-2 pb-3">
+      <td colSpan={3} className="px-2 pb-3">
         <div className="flex flex-wrap items-center gap-2 rounded-lg bg-background p-2 text-sm">
             <span role="status" className="flex-1 font-medium text-positive">
               <Check aria-hidden="true" className="mr-1 inline size-4 align-[-3px]" />
-              {t.added(name, true)}
+              {t.added(name)}
             </span>
           <button type="button" aria-label={t.close} onClick={onClose} className="ml-auto flex size-11 items-center justify-center rounded-md text-muted hover:bg-border/40">
             <X aria-hidden="true" className="size-4" />
@@ -72,7 +75,7 @@ function AddRow({ row, onClose }: { row: CountryRow; onClose: () => void }) {
 
 /**
  * "What €Y/month covers": every country of the list, cheapest first, with
- * the monthly cost for one person without and with housing side by side.
+ * what an average person there lives on a month, housing included.
  * Each cell says ✓ when the income after the chosen years pays it, or when
  * the plan gets there. Seven rows until "Show all"; a search finds any.
  */
@@ -86,13 +89,13 @@ export function CountriesSection({ income, rows, horizonMonths, today }: { incom
   const [adding, setAdding] = useState<string | null>(null);
   const searching = query.trim() !== "";
   const shown = searching ? rows.filter((row) => matchesCountry(row.code, query, i18n)) : all ? rows : featuredRows(rows);
-  const paid = m.result.perMonth(i18n.f.smallEur(income));
+  const paid = m.result.perMonth(i18n.f.smallCur(income));
   return (
     <section aria-labelledby="countries-title" className="space-y-2">
       <h3 id="countries-title" className="text-base font-bold">
         <Changed value={t.title(paid)} />
       </h3>
-      <p className="text-sm text-muted">{t.paidBy(i18n.f.smallEur(income))}</p>
+      <p className="text-sm text-muted">{t.paidBy(i18n.f.smallCur(income))}</p>
       <label className="relative block">
         <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
         <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} aria-label={t.search} placeholder={t.search} className={`${inputClass} pl-9 text-base`} />
@@ -102,13 +105,10 @@ export function CountriesSection({ income, rows, horizonMonths, today }: { incom
           <thead className="text-sm text-muted">
             <tr className="border-b border-border">
               <th scope="col" className="px-2 py-2 font-medium">
+                {t.country}
+              </th>
+              <th scope="col" className="px-1.5 py-2 font-medium">
                 {t.month}
-              </th>
-              <th scope="col" className="px-1.5 py-2 font-medium">
-                {t.without}
-              </th>
-              <th scope="col" className="px-1.5 py-2 font-medium">
-                {t.with}
               </th>
               <th scope="col" className="w-12 px-1 py-2">
                 <span className="sr-only">{t.addTitle}</span>
@@ -121,17 +121,8 @@ export function CountriesSection({ income, rows, horizonMonths, today }: { incom
                 <tr>
                   <th scope="row" className="px-2 py-2 align-top font-medium">
                     {countryName(row.code, i18n)}
-                    {row.estimated && (
-                      <>
-                        <span aria-hidden="true" className="ml-1 font-normal text-muted">
-                          ≈
-                        </span>
-                        <span className="sr-only">, {t.estimated}</span>
-                      </>
-                    )}
                   </th>
-                  <Cell cell={row.withoutHousing} when={when} />
-                  <Cell cell={row.withHousing} when={when} />
+                  <Cell cell={row.cost} when={when} />
                   <td className="px-1 py-1.5 align-top">
                     <button
                       type="button"
@@ -139,7 +130,7 @@ export function CountriesSection({ income, rows, horizonMonths, today }: { incom
                       aria-expanded={adding === row.code}
                       onClick={() => {
                         if (adding === row.code) { setAdding(null); return; }
-                        addGoal({ kind: "live", country: row.code, housing: true });
+                        addGoal({ kind: "live", country: row.code });
                         setAdding(row.code);
                       }}
                       className="flex size-11 items-center justify-center rounded-md text-accent hover:bg-accent/10"
@@ -153,7 +144,7 @@ export function CountriesSection({ income, rows, horizonMonths, today }: { incom
             ))}
             {shown.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-2 py-3 text-sm text-muted">
+                <td colSpan={3} className="px-2 py-3 text-sm text-muted">
                   {t.noMatch(query)}
                 </td>
               </tr>
@@ -172,9 +163,9 @@ export function CountriesSection({ income, rows, horizonMonths, today }: { incom
         )}
       </div>
       <p className="text-sm text-muted">
-        {t.note(costOfLiving.compiledOn.slice(0, 7))}
+        {t.note(SURVEYS, String(costOfLiving.priceYear))}
       </p>
-      {shown.some((row) => row.estimated) && <p className="text-sm text-muted">{t.estimatedNote(ESTIMATES_YEAR)}</p>}
+      {costOfLiving.provisional && <p className="text-sm text-muted">{t.provisional}</p>}
     </section>
   );
 }

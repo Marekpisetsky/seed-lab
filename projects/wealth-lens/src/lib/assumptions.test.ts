@@ -2,43 +2,32 @@ import { describe, expect, it } from "vitest";
 import { EN } from "@/i18n";
 import { assumptionsLine, assumptionsNote, quotedGrowth, upsAndDownsExample, upsAndDownsText } from "./assumptions";
 import { resolveInvestment } from "./investment";
-import { STANDARD_ASSUMPTIONS, type Holding } from "./types";
-
-const holding: Holding = {
-  id: "1",
-  ticker: "VWCE",
-  quantity: 1,
-  costBasis: 1000,
-  currency: "EUR",
-  currentPrice: 1000,
-  priceSource: "manual",
-  priceDate: null,
-};
+import { STANDARD_ASSUMPTIONS } from "./types";
 
 describe("the compact line in Good to know", () => {
   it("says in plain words how much it grows, how much it can move and the years of data", () => {
-    const sp500 = resolveInvestment({ kind: "asset", asset: "sp500" }, []);
+    const sp500 = resolveInvestment({ kind: "asset", asset: "sp500" });
     expect(assumptionsLine(sp500, EN)).toMatch(/^Grows 7\.5% a year after rising prices · can move ±1\d% in a year · data 1988–2022$/);
   });
 
   it("gives the growth as banks and news quote it, with the country's inflation", () => {
-    const sp500 = resolveInvestment({ kind: "asset", asset: "sp500" }, []);
+    const sp500 = resolveInvestment({ kind: "asset", asset: "sp500" });
     expect(quotedGrowth(sp500)).toBeCloseTo((1 + sp500.realReturn) * 1.02 - 1, 12);
     expect(EN.m.growth.before(EN.f.rate(quotedGrowth(sp500)))).toBe("≈ 9.7% before inflation");
-    const brazil = resolveInvestment({ kind: "asset", asset: "sp500" }, [], { pricesOf: "BR", assumptions: STANDARD_ASSUMPTIONS });
+    const brazil = resolveInvestment({ kind: "asset", asset: "sp500" }, { pricesOf: "BR", assumptions: STANDARD_ASSUMPTIONS });
     expect(quotedGrowth(brazil)).toBeCloseTo((1 + sp500.realReturn) * 1.03 - 1, 12);
   });
 
   it("gives a savings account its interest and rising prices, the same every year", () => {
-    const savings = resolveInvestment({ kind: "asset", asset: "savings" }, []);
+    const savings = resolveInvestment({ kind: "asset", asset: "savings" });
     expect(assumptionsLine(savings, EN)).toBe("Shrinks 0.5% a year after rising prices · the same every year · 1.5% interest, prices rise 2%");
     expect(quotedGrowth(savings)).toBeCloseTo(0.015, 12);
   });
 
   it("says when the figures are the user's", () => {
-    const changed = resolveInvestment({ kind: "asset", asset: "world" }, [], { pricesOf: "NL", assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.04 } });
+    const changed = resolveInvestment({ kind: "asset", asset: "bonds" }, { pricesOf: "NL", assumptions: { ...STANDARD_ASSUMPTIONS, growth: 0.04 } });
     expect(assumptionsLine(changed, EN)).toMatch(/^Grows 4% a year after rising prices · can move ±\d+% in a year · your numbers, not the data$/);
-    expect(assumptionsLine(resolveInvestment({ kind: "custom" }, []), EN)).toMatch(/ · your numbers$/);
+    expect(assumptionsLine(resolveInvestment({ kind: "custom" }), EN)).toMatch(/ · your numbers$/);
   });
 
   it("writes the ups and downs as how much it can move in a year", () => {
@@ -58,16 +47,10 @@ describe("the Edit panel's example", () => {
 
 describe("the note under it", () => {
   it("says gold holds its value rather than grows", () => {
-    expect(assumptionsNote(resolveInvestment({ kind: "asset", asset: "gold" }, []), EN)).toMatch(/^Gold holds its value but hardly grows\. Past, not a promise\./);
+    expect(assumptionsNote(resolveInvestment({ kind: "asset", asset: "gold" }), EN)).toMatch(/^Gold holds its value but hardly grows\. Past, not a promise\./);
   });
 
-  it("says My portfolio's figures come from the past", () => {
-    expect(assumptionsNote(resolveInvestment({ kind: "portfolio" }, [holding]), EN)).toBe("Past, not a promise. Amounts in today's euros.");
-  });
-
-  it("says when dividends are left out, and that amounts are in today's euros", () => {
-    expect(assumptionsNote(resolveInvestment({ kind: "asset", asset: "nasdaq100" }, []), EN)).toBe(
-      "Price only: dividends are not included. Past, not a promise. Amounts in today's euros.",
-    );
+  it("says that past figures are not a promise, and that amounts are in today's money", () => {
+    expect(assumptionsNote(resolveInvestment({ kind: "asset", asset: "sp500" }), EN)).toBe("Past, not a promise. Amounts in today's money.");
   });
 });

@@ -8,6 +8,7 @@
 
 import { countryInSentence, countryName } from "../../../packages/seed-kit/src/country-names.ts";
 import { LOCALE_SETTINGS, type Locale } from "../../../packages/seed-kit/src/locales.ts";
+import { currencyOf } from "../../../packages/seed-kit/src/money.ts";
 import type { Series } from "./calc.ts";
 import raw from "./data/hicp.json" with { type: "json" };
 
@@ -61,7 +62,7 @@ export function seriesFor(locale: Locale, groupNames: Readonly<Record<(typeof GR
   const collator = new Intl.Collator(LOCALE_SETTINGS[locale].intl);
   const all = Object.entries(dataset.series).map(([code, { from, rates }]) => {
     const group = (GROUPS as readonly string[]).includes(code) ? groupNames[code as (typeof GROUPS)[number]] : null;
-    return { code, name: group?.name ?? countryName(code, locale), sentence: group?.sentence ?? countryInSentence(code, locale), from, rates };
+    return { code, name: group?.name ?? countryName(code, locale), sentence: group?.sentence ?? countryInSentence(code, locale), currency: group ? "EUR" : (currencyOf(code) ?? "EUR"), from, rates };
   });
   const groups = GROUPS.flatMap((code) => all.filter((series) => series.code === code));
   return [...groups, ...all.filter((series) => !(GROUPS as readonly string[]).includes(series.code)).sort((a, b) => collator.compare(a.name, b.name))];

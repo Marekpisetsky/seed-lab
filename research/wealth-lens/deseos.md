@@ -1,6 +1,14 @@
-# Ficha: deseos y precios por país
+# Ficha: deseos y precios por país (retirada)
 
-- **App:** Wealth Lens · **Revisada:** 8 de octubre de 2026
+> **Retirada en la fase A2 (9 de octubre de 2026).** "Con esto podrías",
+> "Cosas que podrías comprar" y "Precios de" se quitaron de la app: su
+> tabla de precios por país había que mantenerla a mano y mezclaba fuentes
+> que no son oficiales. Las metas son ahora de la persona: escribe el
+> nombre y el precio de lo que quiere, con un ejemplo en gris. Un archivo
+> con una meta de esta lista la pierde, con un aviso. Esta ficha queda como
+> historia del método y de sus fuentes.
+
+- **App:** Horalis Crecimiento · **Revisada:** 8 de octubre de 2026
 - **Código** (en `projects/wealth-lens/`): `src/data/connections.json`
   (los precios), `src/lib/connections.ts` (los valida),
   `src/lib/calculator.ts` (`priceItem`, `pricedItems`, metas de una cosa),

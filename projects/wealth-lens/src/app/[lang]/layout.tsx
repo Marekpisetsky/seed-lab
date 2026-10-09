@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { SpanishWords } from "@/components/i18n-es";
+import { DutchWords } from "@/components/i18n-nl";
 import { PREFIXED_LOCALES, type Locale } from "@/i18n/locales";
 import { asLocale } from "@/i18n/route";
 
@@ -11,7 +12,7 @@ export function generateStaticParams() {
 export const dynamicParams = false;
 
 /** Each language's words, apart from English's: a page's code holds only its own. */
-const WORDS: Partial<Record<Locale, React.ComponentType<{ children: React.ReactNode }>>> = { es: SpanishWords };
+const WORDS: Partial<Record<Locale, React.ComponentType<{ children: React.ReactNode }>>> = { es: SpanishWords, nl: DutchWords };
 
 export default async function LanguageLayout({ children, params }: LayoutProps<"/[lang]">) {
   const Words = WORDS[asLocale((await params).lang)];

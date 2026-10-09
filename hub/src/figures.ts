@@ -7,7 +7,7 @@
  */
 
 import { costOfLiving } from "../../packages/seed-kit/src/cost-of-living.ts";
-import { LOCALES } from "../../packages/seed-kit/src/locales.ts";
+import { SHOWN_LOCALES } from "../../packages/seed-kit/src/locales.ts";
 import { TOOLS, type Tool } from "./content.ts";
 
 export interface Figures {
@@ -18,7 +18,7 @@ export interface Figures {
   /** The heaviest page of this site, compressed, in whole KB, rounded up. */
   maxKb: number;
   languages: number;
-  /** Countries in the cost-of-living data: the detailed ones and the estimated ones. */
+  /** Countries in the cost-of-living data: those the official data can price. */
   countries: number;
   /** Tools built on seed-kit that people can find and use: the shown ones, never a hidden beta. */
   tools: number;
@@ -34,7 +34,7 @@ const countries = costOfLiving.countries.length;
 export function figures(measured: Pick<Figures, "cookies" | "trackers" | "maxKb">): Figures {
   return {
     ...measured,
-    languages: LOCALES.length,
+    languages: SHOWN_LOCALES.length,
     countries,
     tools: publishedTools(TOOLS),
   };

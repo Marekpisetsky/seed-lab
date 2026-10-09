@@ -8,7 +8,7 @@
 
 import shotsJson from "../content/shots.json" with { type: "json" };
 import { html, type Html } from "../../packages/seed-kit/src/html.ts";
-import type { Locale } from "../../packages/seed-kit/src/locales.ts";
+import { DEFAULT_LOCALE, isPendingReview, type Locale } from "../../packages/seed-kit/src/locales.ts";
 
 /** The big picture in the first band, and the one on each tool's card: what is captured, and at which widths it is saved. */
 export const SHOT_KINDS = [
@@ -31,9 +31,10 @@ export interface Shots {
 
 export const SHOTS: Shots = shotsJson;
 
-/** The files of a screenshot, by their address on the site. */
+/** The files of a screenshot, by their address on the site; a language waiting for review shows the English ones. */
 export function shotFiles(id: string, kind: ShotKind, locale: Locale): string[] {
-  return (SHOTS.tools[id]?.[kind]?.widths ?? []).map((width) => `/shots/${id}-${kind}-${locale}-${width}.webp`);
+  const shown = isPendingReview(locale) ? DEFAULT_LOCALE : locale;
+  return (SHOTS.tools[id]?.[kind]?.widths ?? []).map((width) => `/shots/${id}-${kind}-${shown}-${width}.webp`);
 }
 
 /**

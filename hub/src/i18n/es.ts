@@ -4,7 +4,7 @@ import type { Messages } from "./en.ts";
 
 export const es: Messages = {
   site: {
-    name: "seed-lab",
+    name: "Horalis",
     nav: { principles: "Principios", about: "Acerca de" },
     roadmap: "Hoja de ruta",
     noTracking: "Sin cookies. Sin analítica. No se guarda nada sobre ti.",
@@ -12,22 +12,22 @@ export const es: Messages = {
   },
   meta: {
     home: {
-      title: "seed-lab: herramientas gratuitas y privadas para Europa",
-      description: "Herramientas digitales gratuitas que los europeos pueden usar sin renunciar a sus datos. La primera: Wealth Lens.",
+      title: "Horalis: herramientas gratuitas y privadas para cualquier país",
+      description: "Herramientas digitales gratuitas y privadas, útiles en cualquier país y hechas en Europa. Lo que escribes no sale de tu dispositivo. La primera: Horalis Crecimiento.",
     },
-    principles: { title: "Principios · seed-lab", description: "Cinco compromisos para cada producto de seed-lab, las reglas que hay detrás y cómo los cumple cada producto." },
-    about: { title: "Sobre seed-lab", description: "Qué es seed-lab, hacia dónde va, qué no es y quién lo hace." },
-    roadmap: { title: "Hoja de ruta · seed-lab", description: "Los peldaños que seed-lab quiere subir y lo que todavía falta hoy." },
+    principles: { title: "Principios · Horalis", description: "Cinco compromisos para cada producto de Horalis, las reglas que hay detrás y cómo los cumple cada producto." },
+    about: { title: "Sobre Horalis", description: "Qué es Horalis, hacia dónde va, qué no es y quién lo hace." },
+    roadmap: { title: "Hoja de ruta · Horalis", description: "Los peldaños que Horalis quiere subir y lo que todavía falta hoy." },
   },
-  og: { footer: "De uso gratuito. Tus datos nunca salen de tu dispositivo.", tool: "La primera herramienta: Wealth Lens" },
+  og: { footer: "De uso gratuito. Tus datos nunca salen de tu dispositivo.", tool: "La primera herramienta: Horalis Crecimiento" },
   home: {
-    title: "Herramientas digitales gratuitas y privadas para Europa.",
-    mission: "seed-lab crea herramientas digitales gratuitas y centradas en la privacidad que los europeos (ciudadanos, desarrolladores y organismos públicos) pueden usar sin renunciar a sus datos.",
-    cta: "Prueba Wealth Lens",
-    heroAlt: "Wealth Lens: en qué podrían convertirse 10.000 € y 300 € al mes en 20 años, con un gráfico.",
+    title: "Horalis. Tus horas, tuyas.",
+    mission: "Herramientas digitales gratuitas y privadas, útiles en cualquier país y hechas en Europa. Cada cálculo ocurre en tu dispositivo.",
+    cta: "Prueba Horalis Crecimiento",
+    heroAlt: "Horalis Crecimiento: en qué podrían convertirse 10.000 € y 300 € al mes en 20 años, con un gráfico.",
     principlesKicker: "Principios",
     principlesTitle: "Cinco principios, cada uno con una regla que puedes comprobar",
-    principlesIntro: "Cada producto de seed-lab se mide con ellos. Cada uno viene con reglas que cualquiera puede comprobar, y lo que falta es público.",
+    principlesIntro: "Cada producto de Horalis se mide con ellos. Cada uno viene con reglas que cualquiera puede comprobar, y lo que falta es público.",
     principlesLink: "Qué significan en la práctica",
     toolsKicker: "Herramientas",
     toolsTitle: (count: number) => (count === 1 ? "Una herramienta para el día a día" : "Herramientas para el día a día"),
@@ -58,7 +58,7 @@ export const es: Messages = {
     differentTitle: "Lo que te pide una app típica, y lo que te pedimos nosotros",
     differentIntro: "No nombramos a nadie. Son costumbres habituales en la web.",
     typical: "Una app típica",
-    ours: "seed-lab",
+    ours: "Horalis",
     rows: [
       { label: "Una cuenta", typical: "A menudo obligatoria", ours: "Nunca" },
       { label: "Rastreo", typical: "Analítica y rastreadores de anuncios", ours: "Ninguno" },
@@ -82,7 +82,7 @@ export const es: Messages = {
   },
   principles: {
     title: "Principios",
-    lead: "Cinco compromisos para cada producto de seed-lab. Cada uno viene con reglas que cualquiera puede comprobar.",
+    lead: "Cinco compromisos para cada producto de Horalis. Cada uno viene con reglas que cualquiera puede comprobar.",
     rulesLabel: "En la práctica",
     tableTitle: "Cómo lo cumple cada producto",
     tableIntro: "Comprobado con las reglas de arriba. Lo que falta está en la [hoja de ruta](/roadmap/).",
@@ -162,14 +162,14 @@ export const es: Messages = {
   },
   roadmap: {
     title: "Hoja de ruta",
-    lead: "Hacia dónde va seed-lab, peldaño a peldaño, y lo que todavía falta hoy.",
+    lead: "Hacia dónde va Horalis, peldaño a peldaño, y lo que todavía falta hoy.",
     ladderTitle: "Los peldaños",
     ladderIntro: "Cada peldaño empieza solo cuando el anterior cumple su condición.",
     here: "Estamos aquí",
     notYet: "Todavía no",
     next: "Siguiente peldaño cuando",
     steps: [
-      { what: "Herramientas que la gente usa. Hoy: Wealth Lens.", until: "la gente las siga usando, mes tras mes." },
+      { what: "Herramientas que la gente usa. Hoy: Horalis Crecimiento.", until: "la gente las siga usando, mes tras mes." },
       { what: "Herramientas gratuitas para desarrolladores que otros adoptan.", until: "otros construyan sobre ellas sin que se lo pidamos." },
       { what: "Una plataforma de la que dependen otros: alojamiento, datos e identidad europeos.", until: "" },
       { what: "Infraestructura a escala continental.", until: "" },
@@ -183,28 +183,27 @@ export const es: Messages = {
       "Una auditoría WCAG hecha por personas y una declaración de accesibilidad pública.",
       "Pruebas con personas reales, niños y mayores incluidos.",
       "Una lista pública de los cambios en cada método.",
-      "Sustituir las fuentes que no permiten compartir sus datos, como Yahoo Finance, Numbeo y MSCI.",
     ],
     blocksTitle: "Herramientas gratuitas para desarrolladores",
-    blocksIntro: "Wealth Lens está hecha de piezas que otras herramientas podrían reutilizar. Queremos publicarlas una a una. Todavía no hay ninguna publicada.",
+    blocksIntro: "Horalis Crecimiento está hecha de piezas que otras herramientas podrían reutilizar. Queremos publicarlas una a una. Todavía no hay ninguna publicada.",
     planned: "Previsto",
   },
   about: {
-    title: "Sobre seed-lab",
-    lead: "Qué es seed-lab, hacia dónde va y qué no es.",
+    title: "Sobre Horalis",
+    lead: "Qué es Horalis, hacia dónde va y qué no es.",
     sections: [
       {
-        heading: "Qué es seed-lab",
+        heading: "Qué es Horalis",
         body: [
-          "seed-lab crea herramientas digitales gratuitas y centradas en la privacidad para Europa.",
+          "Horalis crea herramientas digitales gratuitas y privadas, útiles en cualquier país. Se hacen en Europa.",
           "Publicamos herramientas gratuitas. Ciudadanos, desarrolladores e instituciones las adoptan por su cuenta.",
-          "[Wealth Lens](wealth-lens) es la primera herramienta y la prueba de nuestros [principios](/principles/).",
+          "[Horalis Crecimiento](wealth-lens) es la primera herramienta y la prueba de nuestros [principios](/principles/).",
         ],
       },
       {
         heading: "Hacia dónde va",
         body: [
-          "A largo plazo: que Europa tenga su propia pila tecnológica, para que sus ciudadanos, empresas y gobiernos no dependan de la de nadie más.",
+          "A largo plazo: que la información deje de estar centralizada y rastreada. Cada cálculo ocurre en tu propio dispositivo, y ninguna herramienta necesita un servidor central para funcionar.",
           "Es una dirección, no algo que exista. **Hoy estamos en el primer peldaño: herramientas que la gente usa.** La [hoja de ruta](/roadmap/) muestra los siguientes.",
         ],
       },
@@ -218,14 +217,14 @@ export const es: Messages = {
       },
       {
         heading: "Quién lo hace",
-        body: ["Lo hace Marek Pisetsky. Las herramientas son de uso gratuito. Su código es de seed-lab.", "¿Preguntas o ideas? Escribe a [email](email)."],
+        body: ["Lo hace Marek Pisetsky. Las herramientas son de uso gratuito. Su código es de Horalis.", "¿Preguntas o ideas? Escribe a [email](email)."],
       },
       {
         heading: "Esta web",
         body: [
           "Sin cookies, sin analítica, sin rastreo. Es HTML y CSS, más tres scripts mínimos.",
           "Uno elige tu idioma. Otro recuerda claro u oscuro solo en esta pestaña, hasta que la cierras. Otro convierte el correo en un enlace.",
-          "Por ahora está alojada en Vercel, en EE. UU., igual que Wealth Lens. Queremos llevar las dos a un alojamiento europeo.",
+          "Por ahora está alojada en Vercel, en EE. UU., igual que Horalis Crecimiento. Está prevista la migración a un alojamiento europeo.",
         ],
       },
     ],
@@ -233,6 +232,6 @@ export const es: Messages = {
   notFound: {
     title: "Esta página no existe",
     text: "Quizá la dirección tiene una errata, o la página se movió.",
-    home: "Ir a seed-lab",
+    home: "Ir a Horalis",
   },
 };

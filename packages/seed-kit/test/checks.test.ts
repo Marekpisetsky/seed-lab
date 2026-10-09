@@ -38,9 +38,9 @@ describe("the page checks", () => {
 
 describe("the formats", () => {
   it("write money and percents the way each language does", () => {
-    assert.equal(formatsFor("en").eur(2500), "€2,500");
-    assert.equal(formatsFor("es").eur(2500), "2500 €");
-    assert.equal(formatsFor("es").eur(25000), "25.000 €");
+    assert.equal(formatsFor("en").cur(2500), "€2,500");
+    assert.equal(formatsFor("es").cur(2500), "2500 €");
+    assert.equal(formatsFor("es").cur(25000), "25.000 €");
     assert.equal(formatsFor("en").percent(0.0914), "9.1%");
     assert.equal(formatsFor("es").rate(0.045), "4,5 %");
   });
@@ -58,6 +58,10 @@ describe("the formats", () => {
     assert.equal(parseNumber("-40", en), -40);
     assert.ok(Number.isNaN(parseNumber("", en)));
     assert.ok(Number.isNaN(parseNumber("12abc", en)));
+    // A currency before or after, as a person may copy it: symbol or code.
+    assert.equal(parseNumber("US$1,000", en), 1000);
+    assert.equal(parseNumber("1.000 PEN", es), 1000);
+    assert.equal(parseNumber("MX$ 2,500.5", en), 2500.5);
     assert.ok(Number.isNaN(parseNumber("1.2.3", en)));
   });
 });

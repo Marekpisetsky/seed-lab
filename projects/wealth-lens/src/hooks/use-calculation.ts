@@ -1,16 +1,11 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
 import { type AppState } from "@/lib/app-store";
-import { priceHoldings } from "@/lib/auto-price";
 import { calculate, type Calculation } from "@/lib/calculator";
 import { toIsoDate } from "@/lib/dates";
 import { planReady } from "@/lib/plan";
 import { planChecks, type PlanCheck } from "@/lib/plan-check";
 import { successRatesFor } from "@/lib/projections";
-import type { Holding } from "@/lib/types";
-import { wishCountryStore } from "@/lib/wish-country";
-import { wishesFor, type Wish } from "@/lib/wishes";
 import { offeredRates } from "@/lib/withdrawal";
 import { useAppState } from "./use-app";
 import { useToday } from "./use-plan";
@@ -18,7 +13,6 @@ import { useToday } from "./use-plan";
 export interface CalculationBundle {
   state: AppState;
   today: Date;
-  holdings: readonly Holding[];
   /** Both amounts are known: there is a result to show (lib/plan.ts). Until then the page only asks. */
   ready: boolean;
   /** What the page shows: the plan, with the "What if…?" applied if there is one. */
@@ -27,36 +21,30 @@ export interface CalculationBundle {
   base: Calculation;
   /** The withdrawal rates the slider offers, lowest first; how often the plan's lasted is in `calc.result.lasted`. */
   rates: number[];
-  /** "Prices of": the country whose prices wishes and goals use (lib/wish-country.ts). */
-  wishCountry: string;
-  /** "With this you could": two or three wishes, with what the page shows (lib/wishes.ts). */
-  wishes: Wish[];
   /** "Check your plan": what stands out in the plan as it is, without a "What if…?" (lib/plan-check.ts). */
   checks: PlanCheck[];
 }
 
-let last: { state: AppState; day: string; wishCountry: string; bundle: CalculationBundle } | null = null;
+let last: { state: AppState; day: string; bundle: CalculationBundle } | null = null;
 
-export { offeredRates, wishCountryStore };
+export { offeredRates };
 
 /**
  * Everything the page shows, worked out once per change of the shared state
  * and shared by every section. The time it takes is recorded as the
  * performance measure "wealth-lens:report".
  */
-export function calculationFor(state: AppState, today: Date, wishCountry: string = wishCountryStore.getServerSnapshot()): CalculationBundle {
+export function calculationFor(state: AppState, today: Date): CalculationBundle {
   const day = toIsoDate(today);
-  if (last && last.state === state && last.day === day && last.wishCountry === wishCountry) return last.bundle;
+  if (last && last.state === state && last.day === day) return last.bundle;
   const start = performance.now();
-  const holdings = priceHoldings(state.holdings, state.uploadedPrices);
-  const base = calculate(state.plan, holdings, today, null, wishCountry);
-  const calc = state.whatIf ? calculate(state.plan, holdings, today, state.whatIf, wishCountry) : base;
+  const base = calculate(state.plan, today, null);
+  const calc = state.whatIf ? calculate(state.plan, today, state.whatIf) : base;
   const rates = offeredRates(state.plan.withdrawalRate);
-  const wishes = wishesFor(calc.scenario, calc.result.years, calc.goals, wishCountry);
-  const ready = planReady(state.plan, holdings);
+  const ready = planReady(state.plan);
   // Simulated futures only once there is a result to show.
-  const checks = ready ? planChecks(base, state.plan, holdings) : [];
-  const bundle = { state, today, holdings, ready, calc, base, rates, wishCountry, wishes, checks };
+  const checks = ready ? planChecks(base, state.plan) : [];
+  const bundle = { state, today, ready, calc, base, rates, checks };
   try {
     performance.measure("wealth-lens:report", { start, end: performance.now() });
   } catch {
@@ -68,15 +56,10 @@ export function calculationFor(state: AppState, today: Date, wishCountry: string
     if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(ahead);
     else window.setTimeout(ahead, 30);
   }
-  last = { state, day, wishCountry, bundle };
+  last = { state, day, bundle };
   return bundle;
 }
 
-/** The country whose prices wishes and goals use; the static HTML has the Netherlands'. */
-export function useWishCountry(): string {
-  return useSyncExternalStore(wishCountryStore.subscribe, wishCountryStore.get, wishCountryStore.getServerSnapshot);
-}
-
 export function useCalculation(): CalculationBundle {
-  return calculationFor(useAppState(), useToday(), useWishCountry());
+  return calculationFor(useAppState(), useToday());
 }

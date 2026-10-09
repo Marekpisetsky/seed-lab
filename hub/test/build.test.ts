@@ -1,3 +1,4 @@
+import { costOfLiving } from "../../packages/seed-kit/src/cost-of-living.ts";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -8,13 +9,17 @@ import { themeScript } from "../../packages/seed-kit/src/theme.ts";
 import { escape } from "../../packages/seed-kit/src/html.ts";
 import { FAVICON } from "../../packages/seed-kit/src/icons.ts";
 import { plainLanguageProblems, textsOf } from "../../packages/seed-kit/src/plain-language.ts";
-import { BLOCKS, PRINCIPLE_IDS, SHOWN_TOOLS, TOOLS, parseBlocks } from "../src/content.ts";
+import { BLOCKS, PRINCIPLE_IDS, SHOWN_TOOLS, TOOLS, parseBlocks, toolById } from "../src/content.ts";
 import { publishedTools, TYPICAL_PAGE_KB } from "../src/figures.ts";
 import { SHOTS } from "../src/shots.ts";
 import { en } from "../src/i18n/en.ts";
 import { es } from "../src/i18n/es.ts";
-import { LOCALE_SETTINGS, LOCALES, PAGES, localePath } from "../src/i18n/index.ts";
+import { nl } from "../src/i18n/nl.ts";
+import { isPendingReview, LOCALE_SETTINGS, LOCALES, PAGES, SHOWN_LOCALES, localePath } from "../src/i18n/index.ts";
 import type { Locale } from "../src/i18n/index.ts";
+
+/** The language a built page is in. */
+const pageLocale = (text: string) => (text.match(/<html lang="(\w+)">/)?.[1] ?? "en") as Locale;
 
 const THEME_SCRIPT = themeScript({ menu: true });
 
@@ -26,7 +31,12 @@ function pages(dir = DIST): string[] {
     return entry.isDirectory() ? pages(path) : entry.name.endsWith(".html") ? [path] : [];
   });
 }
-const HTML = pages().map((file) => ({ file: file.slice(DIST.length), text: readFileSync(file, "utf8") }));
+const ALL_HTML = pages().map((file) => ({ file: file.slice(DIST.length), text: readFileSync(file, "utf8") }));
+/** A language waiting for a native speaker's review: built, but hidden (seed-kit locales.ts). */
+const PENDING = LOCALES.filter(isPendingReview);
+const isPending = (file: string) => PENDING.some((locale) => file.startsWith(`${locale}/`));
+/** The pages people are sent to: every shown language. */
+const HTML = ALL_HTML.filter(({ file }) => !isPending(file));
 
 describe("the build", () => {
   it("writes every page in every language, plus 404, icon, robots and sitemap", () => {
@@ -82,7 +92,7 @@ describe("the build", () => {
     for (const { file, text } of HTML) {
       assert.doesNotMatch(text, /\bMIT\b|open[ -]source|código abierto|LICENSE/i, file);
       const lang = text.match(/<html lang="(\w+)">/)?.[1];
-      assert.match(text, lang === "es" && file !== "404.html" ? /© 2026 seed-lab\. De uso gratuito\./ : /© 2026 seed-lab\. Free to use\./, file);
+      assert.match(text, lang === "es" && file !== "404.html" ? /© 2026 Horalis\. De uso gratuito\./ : /© 2026 Horalis\. Free to use\./, file);
     }
   });
 
@@ -106,7 +116,7 @@ describe("the build", () => {
         assert.match(text, /<meta name="robots" content="noindex">/);
         continue;
       }
-      for (const locale of [...LOCALES, "x-default"]) assert.match(text, new RegExp(`hreflang="${locale}"`), file);
+      for (const locale of [...SHOWN_LOCALES, "x-default"]) assert.match(text, new RegExp(`hreflang="${locale}"`), file);
       assert.match(text, /<link rel="canonical" href="https:\/\//, file);
     }
   });
@@ -128,15 +138,15 @@ describe("the build", () => {
 
 describe("the contact", () => {
   it("is the email address, on About in both languages", () => {
-    for (const locale of LOCALES) {
+    for (const locale of SHOWN_LOCALES) {
       const about = readFileSync(join(DIST, localePath(PAGES.about, locale), "index.html"), "utf8");
-      assert.match(about, /<span class="email" data-user="seedlab\.eu" data-domain="proton\.me"><\/span>/, locale);
+      assert.match(about, /<span class="email" data-user="horalis" data-domain="proton\.me"><\/span>/, locale);
     }
   });
 
   it("never holds the address whole, a mail link or a GitHub link in the HTML", () => {
     for (const { file, text } of HTML) {
-      assert.doesNotMatch(text, /seedlab\.eu@|@proton\.me|mailto/i, file);
+      assert.doesNotMatch(text, /horalis@|seedlab\.eu|@proton\.me|mailto/i, file);
       assert.doesNotMatch(text, /github\.com|Open an issue|Abre un issue/i, file);
     }
   });
@@ -148,7 +158,7 @@ describe("the contact", () => {
 
 describe("honesty", () => {
   it("shows only what exists on the front page: no Coming, Pending or Planned", () => {
-    for (const locale of LOCALES) {
+    for (const locale of SHOWN_LOCALES) {
       const home = readFileSync(join(DIST, localePath(PAGES.home, locale), "index.html"), "utf8");
       assert.doesNotMatch(home, /Coming|Pending|Planned|Próximamente|Pendiente|Previsto|class="state/, locale);
       for (const block of BLOCKS) assert.doesNotMatch(home, new RegExp(block.name[locale]), locale);
@@ -160,7 +170,7 @@ describe("honesty", () => {
       const footer = text.slice(text.indexOf("<footer"));
       assert.match(footer, /href="(\/es)?\/roadmap\/"/, file);
     }
-    for (const locale of LOCALES) {
+    for (const locale of SHOWN_LOCALES) {
       const roadmap = readFileSync(join(DIST, localePath(PAGES.roadmap, locale), "index.html"), "utf8");
       for (const block of BLOCKS) assert.match(roadmap, new RegExp(block.name[locale]), locale);
       assert.equal((roadmap.match(/class="state meets"/g) ?? []).length, 1, `${locale}: only step 1 exists`);
@@ -169,21 +179,21 @@ describe("honesty", () => {
   });
 
   it("refuses a block marked live without the address where it is published", () => {
-    const block = { id: "x", status: "live", name: { en: "X", es: "X" }, text: { en: "X", es: "X" } };
+    const block = { id: "x", status: "live", name: { en: "X", es: "X", nl: "X" }, text: { en: "X", es: "X", nl: "X" } };
     assert.throws(() => parseBlocks([block]), /can only be "live"/);
     assert.equal(parseBlocks([{ ...block, url: "https://example.org" }])[0].status, "live");
   });
 
   it("states every principle as a commitment, and puts each product's gaps in the table", () => {
     const live = TOOLS.filter((tool) => tool.status === "live");
-    for (const locale of LOCALES) {
+    for (const locale of SHOWN_LOCALES) {
       const page = readFileSync(join(DIST, localePath(PAGES.principles, locale), "index.html"), "utf8");
       const [commitments, table] = page.slice(page.indexOf("<main"), page.indexOf("</main>")).split('id="products"');
       assert.equal((commitments.match(/class="commitment"/g) ?? []).length, PRINCIPLE_IDS.length, locale);
-      assert.doesNotMatch(commitments, /Wealth Lens|Pending|Pendiente|Partly|En parte/, `${locale}: the principles name no product and no gap`);
+      assert.doesNotMatch(commitments, /Horalis Growth|Horalis Crecimiento|Pending|Pendiente|Partly|En parte/, `${locale}: the principles name no product and no gap`);
       assert.match(commitments, /350 KB/, `${locale}: the weight limit is published`);
       assert.equal((table.match(/<tr><th scope="row">/g) ?? []).length, live.length, locale);
-      assert.match(table, /<tr><th scope="row"><a href="[^"]+">Wealth Lens<\/a><\/th>/, `${locale}: Wealth Lens is the first row`);
+      assert.match(table, new RegExp(`<tr><th scope="row"><a href="[^"]+">${toolById("wealth-lens").name[locale]}</a></th>`), `${locale}: Horalis Growth is the first row`);
       assert.equal((table.match(/class="state (meets|partly|pending)"/g) ?? []).length, live.length * PRINCIPLE_IDS.length, locale);
     }
     for (const tool of live) assert.match(tool.principles.light.note.en, /350 KB/, `${tool.id}: weight against the limit`);
@@ -195,10 +205,10 @@ describe("honesty", () => {
   });
 
   it("puts the vision on About only, as a direction, and says which step we are on", () => {
-    for (const locale of LOCALES) {
+    for (const locale of SHOWN_LOCALES) {
       const about = readFileSync(join(DIST, localePath(PAGES.about, locale), "index.html"), "utf8");
       const home = readFileSync(join(DIST, localePath(PAGES.home, locale), "index.html"), "utf8");
-      const stack = locale === "en" ? /its own technology stack/ : /su propia pila tecnológica/;
+      const stack = locale === "en" ? /no longer centralised and tracked/ : /deje de estar centralizada y rastreada/;
       assert.match(about, stack);
       assert.doesNotMatch(home, stack);
       assert.match(about, locale === "en" ? /Today we are at the first step/ : /Hoy estamos en el primer peldaño/);
@@ -227,7 +237,7 @@ describe("the layout", () => {
       const sections = [...text.matchAll(/<section class="band theme-(dark|light)( ruled)?"/g)];
       sections.forEach(([, theme, ruled], index) => index > 0 && theme === "light" && sections[index - 1][1] === "light" && assert.ok(ruled, `${file}: two light bands in a row need a line between them`));
     }
-    for (const locale of LOCALES) {
+    for (const locale of SHOWN_LOCALES) {
       const home = readFileSync(join(DIST, localePath(PAGES.home, locale), "index.html"), "utf8");
       assert.deepEqual(bands(home), ["dark", "light", "light", "dark", "light", "dark"], `${locale}: opening, principles, tools, how we build, what is different, figures`);
     }
@@ -245,9 +255,9 @@ describe("the layout", () => {
     for (const { file, text } of HTML) {
       const header = text.slice(text.indexOf("<header"), text.indexOf("</header>"));
       assert.match(header, /<details class="sk-launcher">/, file);
-      for (const tool of TOOLS.filter((entry) => entry.shown)) assert.match(header, new RegExp(`<a href="${tool.url}"><span class="sk-tool">${tool.name}</span>`), file);
-      for (const tool of TOOLS.filter((entry) => !entry.shown)) assert.doesNotMatch(header, new RegExp(tool.name), file);
-      assert.doesNotMatch(text, /Part of seed-lab|Parte de seed-lab/, file);
+      for (const tool of TOOLS.filter((entry) => entry.shown)) assert.match(header, new RegExp(`<a href="${tool.url}"><span class="sk-tool">${tool.name[pageLocale(text)]}</span>`), file);
+      for (const tool of TOOLS.filter((entry) => !entry.shown)) for (const name of Object.values(tool.name)) assert.doesNotMatch(header, new RegExp(name), file);
+      assert.doesNotMatch(text, /Part of Horalis|Parte de Horalis/, file);
     }
   });
 
@@ -266,8 +276,8 @@ describe("the front page", () => {
     return text.slice(start, text.indexOf("</section>\n", start));
   };
 
-  it("opens with a real screenshot of Wealth Lens, in the page's language, loaded only when needed", () => {
-    for (const locale of LOCALES) {
+  it("opens with a real screenshot of Horalis Growth, in the page's language, loaded only when needed", () => {
+    for (const locale of SHOWN_LOCALES) {
       const opening = section(page(locale), "mission");
       const img = opening.match(/<img\b[^>]*>/)?.[0] ?? "";
       for (const width of SHOTS.tools["wealth-lens"].hero?.widths ?? []) assert.ok(img.includes(`/shots/wealth-lens-hero-${locale}-${width}.webp ${width}w`), `${locale}: ${width}`);
@@ -285,21 +295,21 @@ describe("the front page", () => {
   });
 
   it("shows the shown tools only, on their shelf, each with a screenshot, its status and a button", () => {
-    for (const locale of LOCALES) {
+    for (const locale of SHOWN_LOCALES) {
       const band = section(page(locale), "tools");
       for (const tool of SHOWN_TOOLS) {
         assert.match(band, new RegExp(`id="shelf-${tool.category}"`), `${locale}: ${tool.id} shelf`);
         assert.ok(band.includes(`/shots/${tool.id}-card-${locale}-`), `${locale}: ${tool.id} screenshot`);
-        assert.match(band, new RegExp(`<span>${tool.name}</span> <span class="badge ${tool.status}">`), `${locale}: ${tool.id} status`);
+        assert.match(band, new RegExp(`<span>${tool.name[locale]}</span> <span class="badge ${tool.status}">`), `${locale}: ${tool.id} status`);
         assert.ok(band.includes(`<a class="button-secondary" href="${tool.url}">`), `${locale}: ${tool.id} button`);
       }
-      for (const tool of TOOLS.filter((entry) => !entry.shown)) assert.ok(!band.includes(tool.name), `${locale}: ${tool.id} is not listed`);
+      for (const tool of TOOLS.filter((entry) => !entry.shown)) assert.ok(!band.includes(tool.name[locale]), `${locale}: ${tool.id} is not listed`);
       assert.equal((band.match(/class="shelf"/g) ?? []).length, new Set(SHOWN_TOOLS.map((tool) => tool.category)).size, `${locale}: no empty shelf`);
     }
   });
 
   it("explains how every tool is built: the factory, the pieces and the research, and the base they share", () => {
-    for (const locale of LOCALES) {
+    for (const locale of SHOWN_LOCALES) {
       const band = section(page(locale), "build");
       assert.equal((band.match(/<span class="step-number"/g) ?? []).length, 3, locale);
       assert.deepEqual([...band.matchAll(/<p class="build-name">([^<]+)<\/p>/g)].map(([, name]) => name), ["Forja", "seed-kit", "Research"], locale);
@@ -310,7 +320,7 @@ describe("the front page", () => {
 
   it("compares a typical app with seed-lab, with the weights measured or sourced", () => {
     const number = (value: number, locale: Locale) => new Intl.NumberFormat(LOCALE_SETTINGS[locale].intl).format(value);
-    for (const locale of LOCALES) {
+    for (const locale of SHOWN_LOCALES) {
       const band = section(page(locale), "different");
       assert.equal((band.match(/<tr><th scope="row">/g) ?? []).length, 5, locale);
       assert.ok(band.includes(`${number(TYPICAL_PAGE_KB, locale)} KB`), `${locale}: the typical weight`);
@@ -323,10 +333,10 @@ describe("the front page", () => {
     assert.equal(figures.cookies, 0);
     assert.equal(figures.trackers, 0);
     assert.ok(Math.max(...report.map(({ weight }) => weight.compressed)) <= figures.maxKb * 1000, "no page weighs more than the figure");
-    assert.equal(figures.languages, LOCALES.length);
-    assert.equal(figures.countries, 172);
+    assert.equal(figures.languages, SHOWN_LOCALES.length);
+    assert.equal(figures.countries, costOfLiving.countries.length);
     assert.equal(figures.tools, SHOWN_TOOLS.length);
-    for (const locale of LOCALES) {
+    for (const locale of SHOWN_LOCALES) {
       const shown = [...section(page(locale), "figures").matchAll(/<dd>([^<]+)<\/dd>/g)].map(([, value]) => value);
       const expected: number[] = [figures.cookies, figures.trackers, figures.maxKb, figures.languages, figures.countries, figures.tools];
       assert.deepEqual(shown, expected.map((value) => new Intl.NumberFormat(LOCALE_SETTINGS[locale].intl).format(value)), locale);
@@ -348,12 +358,12 @@ describe("honest figures", () => {
 
   it("never names a hidden tool on any page", () => {
     for (const hidden of TOOLS.filter((entry) => !entry.shown)) {
-      for (const { file, text } of HTML) assert.ok(!text.includes(hidden.name) && !text.includes(hidden.url), `${file} names ${hidden.name}`);
+      for (const { file, text } of HTML) assert.ok(!Object.values(hidden.name).some((name) => text.includes(name)) && !text.includes(hidden.url), `${file} names ${hidden.name.en}`);
     }
   });
 
   it("speaks of one tool as one", () => {
-    for (const locale of LOCALES) {
+    for (const locale of SHOWN_LOCALES) {
       const band = readFileSync(join(DIST, localePath(PAGES.home, locale), "index.html"), "utf8");
       const title = band.match(/<h2 id="tools">([^<]+)<\/h2>/)?.[1] ?? "";
       assert.equal(/^(A tool|Una herramienta) /.test(title), SHOWN_TOOLS.length === 1, `${locale}: ${title}`);
@@ -366,7 +376,7 @@ describe("the words", () => {
   const plain = (text: string) => text.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
 
   it("read plainly: no jargon, and sentences of 25 words at most (seed-kit's check)", () => {
-    for (const [locale, dictionary] of [["en", en], ["es", es]] as const) {
+    for (const [locale, dictionary] of [["en", en], ["es", es], ["nl", nl]] as const) {
       const entries = textsOf(dictionary).map((entry) => ({ ...entry, text: plain(entry.text) }));
       assert.deepEqual(plainLanguageProblems(entries, locale, { maxWords: 25 }), [], locale);
     }
@@ -376,5 +386,20 @@ describe("the words", () => {
     const shape = (value: unknown): unknown =>
       Array.isArray(value) ? value.map(shape) : value && typeof value === "object" ? Object.fromEntries(Object.entries(value).map(([key, inner]) => [key, shape(inner)])) : typeof value;
     assert.deepEqual(shape(es), shape(en));
+    assert.deepEqual(shape(nl), shape(en));
+  });
+});
+
+describe("Dutch, waiting for a native speaker's review", () => {
+  it("is built in full, but neither linked, nor offered, nor indexed", () => {
+    const dutch = ALL_HTML.filter(({ file }) => isPending(file));
+    assert.equal(dutch.length, PENDING.length * Object.keys(PAGES).length);
+    for (const { file, text } of dutch) {
+      assert.match(text, /<meta name="robots" content="noindex">/, file);
+      assert.doesNotMatch(text, /rel="canonical"|rel="alternate"/, file);
+      assert.match(text, /moedertaalspreker/, file);
+    }
+    for (const { file, text } of HTML) assert.doesNotMatch(text, /hreflang="nl"|href="\/nl\//, file);
+    assert.doesNotMatch(readFileSync(join(DIST, "sitemap.xml"), "utf8"), /\/nl\//);
   });
 });

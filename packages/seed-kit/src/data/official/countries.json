@@ -1,0 +1,1307 @@
+{
+ "meta": {
+  "id": "countries",
+  "title": "Economies of the World Bank, with their region, income group and currency",
+  "source": "Unicode CLDR (cldr-core 48.2.0): the economies in the World Bank's figures with an ISO code (supplemental/codeMappings.json) and their currency (supplemental/currencyData.json)",
+  "url": "https://cldr.unicode.org/",
+  "api": "https://registry.npmjs.org/cldr-core",
+  "license": "Unicode License v3",
+  "licenseUrl": "https://www.unicode.org/license.txt",
+  "currencyLicense": "Unicode License v3",
+  "currencyLicenseUrl": "https://www.unicode.org/license.txt",
+  "retrievedOn": "2026-10-09",
+  "provisional": "Economies taken from the CLDR's ISO codes, for figures read from the public mirror of the World Bank's data: no region or income group. The yearly download takes the World Bank's own list."
+ },
+ "countries": {
+  "AD": {
+   "iso3": "AND",
+   "currency": "EUR",
+   "currencySince": "1999-01-01",
+   "eu": false
+  },
+  "AE": {
+   "iso3": "ARE",
+   "currency": "AED",
+   "currencySince": "1973-05-19",
+   "eu": false
+  },
+  "AF": {
+   "iso3": "AFG",
+   "currency": "AFN",
+   "currencySince": "2002-10-07",
+   "eu": false
+  },
+  "AG": {
+   "iso3": "ATG",
+   "currency": "XCD",
+   "currencySince": "1965-10-06",
+   "eu": false
+  },
+  "AL": {
+   "iso3": "ALB",
+   "currency": "ALL",
+   "currencySince": "1965-08-16",
+   "eu": false
+  },
+  "AM": {
+   "iso3": "ARM",
+   "currency": "AMD",
+   "currencySince": "1993-11-22",
+   "eu": false
+  },
+  "AO": {
+   "iso3": "AGO",
+   "currency": "AOA",
+   "currencySince": "1999-12-13",
+   "eu": false
+  },
+  "AR": {
+   "iso3": "ARG",
+   "currency": "ARS",
+   "currencySince": "1992-01-01",
+   "eu": false
+  },
+  "AS": {
+   "iso3": "ASM",
+   "currency": "USD",
+   "currencySince": "1904-07-16",
+   "eu": false
+  },
+  "AT": {
+   "iso3": "AUT",
+   "currency": "EUR",
+   "currencySince": "1999-01-01",
+   "eu": true
+  },
+  "AU": {
+   "iso3": "AUS",
+   "currency": "AUD",
+   "currencySince": "1966-02-14",
+   "eu": false
+  },
+  "AW": {
+   "iso3": "ABW",
+   "currency": "AWG",
+   "currencySince": "1986-01-01",
+   "eu": false
+  },
+  "AZ": {
+   "iso3": "AZE",
+   "currency": "AZN",
+   "currencySince": "2006-01-01",
+   "eu": false
+  },
+  "BA": {
+   "iso3": "BIH",
+   "currency": "BAM",
+   "currencySince": "1995-01-01",
+   "eu": false
+  },
+  "BB": {
+   "iso3": "BRB",
+   "currency": "BBD",
+   "currencySince": "1973-12-03",
+   "eu": false
+  },
+  "BD": {
+   "iso3": "BGD",
+   "currency": "BDT",
+   "currencySince": "1972-01-01",
+   "eu": false
+  },
+  "BE": {
+   "iso3": "BEL",
+   "currency": "EUR",
+   "currencySince": "1999-01-01",
+   "eu": true
+  },
+  "BF": {
+   "iso3": "BFA",
+   "currency": "XOF",
+   "currencySince": "1984-08-04",
+   "eu": false
+  },
+  "BG": {
+   "iso3": "BGR",
+   "currency": "EUR",
+   "currencySince": "2026-01-01",
+   "eu": true
+  },
+  "BH": {
+   "iso3": "BHR",
+   "currency": "BHD",
+   "currencySince": "1965-10-16",
+   "eu": false
+  },
+  "BI": {
+   "iso3": "BDI",
+   "currency": "BIF",
+   "currencySince": "1964-05-19",
+   "eu": false
+  },
+  "BJ": {
+   "iso3": "BEN",
+   "currency": "XOF",
+   "currencySince": "1975-11-30",
+   "eu": false
+  },
+  "BM": {
+   "iso3": "BMU",
+   "currency": "BMD",
+   "currencySince": "1970-02-06",
+   "eu": false
+  },
+  "BN": {
+   "iso3": "BRN",
+   "currency": "BND",
+   "currencySince": "1967-06-12",
+   "eu": false
+  },
+  "BO": {
+   "iso3": "BOL",
+   "currency": "BOB",
+   "currencySince": "1987-01-01",
+   "eu": false
+  },
+  "BR": {
+   "iso3": "BRA",
+   "currency": "BRL",
+   "currencySince": "1994-07-01",
+   "eu": false
+  },
+  "BS": {
+   "iso3": "BHS",
+   "currency": "BSD",
+   "currencySince": "1966-05-25",
+   "eu": false
+  },
+  "BT": {
+   "iso3": "BTN",
+   "currency": "BTN",
+   "currencySince": "1974-04-16",
+   "eu": false
+  },
+  "BW": {
+   "iso3": "BWA",
+   "currency": "BWP",
+   "currencySince": "1976-08-23",
+   "eu": false
+  },
+  "BY": {
+   "iso3": "BLR",
+   "currency": "BYN",
+   "currencySince": "2016-07-01",
+   "eu": false
+  },
+  "BZ": {
+   "iso3": "BLZ",
+   "currency": "BZD",
+   "currencySince": "1974-01-01",
+   "eu": false
+  },
+  "CA": {
+   "iso3": "CAN",
+   "currency": "CAD",
+   "currencySince": "1858-01-01",
+   "eu": false
+  },
+  "CD": {
+   "iso3": "COD",
+   "currency": "CDF",
+   "currencySince": "1998-07-01",
+   "eu": false
+  },
+  "CF": {
+   "iso3": "CAF",
+   "currency": "XAF",
+   "currencySince": "1993-01-01",
+   "eu": false
+  },
+  "CG": {
+   "iso3": "COG",
+   "currency": "XAF",
+   "currencySince": "1993-01-01",
+   "eu": false
+  },
+  "CH": {
+   "iso3": "CHE",
+   "currency": "CHF",
+   "currencySince": "1799-03-17",
+   "eu": false
+  },
+  "CI": {
+   "iso3": "CIV",
+   "currency": "XOF",
+   "currencySince": "1958-12-04",
+   "eu": false
+  },
+  "CL": {
+   "iso3": "CHL",
+   "currency": "CLP",
+   "currencySince": "1975-09-29",
+   "eu": false
+  },
+  "CM": {
+   "iso3": "CMR",
+   "currency": "XAF",
+   "currencySince": "1973-04-01",
+   "eu": false
+  },
+  "CN": {
+   "iso3": "CHN",
+   "currency": "CNY",
+   "currencySince": "1953-03-01",
+   "eu": false
+  },
+  "CO": {
+   "iso3": "COL",
+   "currency": "COP",
+   "currencySince": "1905-01-01",
+   "eu": false
+  },
+  "CR": {
+   "iso3": "CRI",
+   "currency": "CRC",
+   "currencySince": "1896-10-26",
+   "eu": false
+  },
+  "CU": {
+   "iso3": "CUB",
+   "currency": "CUP",
+   "currencySince": "1859-01-01",
+   "eu": false
+  },
+  "CV": {
+   "iso3": "CPV",
+   "currency": "CVE",
+   "currencySince": "1914-01-01",
+   "eu": false
+  },
+  "CW": {
+   "iso3": "CUW",
+   "currency": "XCG",
+   "currencySince": "2025-03-31",
+   "eu": false
+  },
+  "CY": {
+   "iso3": "CYP",
+   "currency": "EUR",
+   "currencySince": "2008-01-01",
+   "eu": true
+  },
+  "CZ": {
+   "iso3": "CZE",
+   "currency": "CZK",
+   "currencySince": "1993-01-01",
+   "eu": true
+  },
+  "DE": {
+   "iso3": "DEU",
+   "currency": "EUR",
+   "currencySince": "1999-01-01",
+   "eu": true
+  },
+  "DJ": {
+   "iso3": "DJI",
+   "currency": "DJF",
+   "currencySince": "1977-06-27",
+   "eu": false
+  },
+  "DK": {
+   "iso3": "DNK",
+   "currency": "DKK",
+   "currencySince": "1873-05-27",
+   "eu": true
+  },
+  "DM": {
+   "iso3": "DMA",
+   "currency": "XCD",
+   "currencySince": "1965-10-06",
+   "eu": false
+  },
+  "DO": {
+   "iso3": "DOM",
+   "currency": "DOP",
+   "currencySince": "1947-10-01",
+   "eu": false
+  },
+  "DZ": {
+   "iso3": "DZA",
+   "currency": "DZD",
+   "currencySince": "1964-04-01",
+   "eu": false
+  },
+  "EC": {
+   "iso3": "ECU",
+   "currency": "USD",
+   "currencySince": "2000-10-02",
+   "eu": false
+  },
+  "EE": {
+   "iso3": "EST",
+   "currency": "EUR",
+   "currencySince": "2011-01-01",
+   "eu": true
+  },
+  "EG": {
+   "iso3": "EGY",
+   "currency": "EGP",
+   "currencySince": "1885-11-14",
+   "eu": false
+  },
+  "ER": {
+   "iso3": "ERI",
+   "currency": "ERN",
+   "currencySince": "1997-11-08",
+   "eu": false
+  },
+  "ES": {
+   "iso3": "ESP",
+   "currency": "EUR",
+   "currencySince": "1999-01-01",
+   "eu": true
+  },
+  "ET": {
+   "iso3": "ETH",
+   "currency": "ETB",
+   "currencySince": "1976-09-15",
+   "eu": false
+  },
+  "FI": {
+   "iso3": "FIN",
+   "currency": "EUR",
+   "currencySince": "1999-01-01",
+   "eu": true
+  },
+  "FJ": {
+   "iso3": "FJI",
+   "currency": "FJD",
+   "currencySince": "1969-01-13",
+   "eu": false
+  },
+  "FM": {
+   "iso3": "FSM",
+   "currency": "USD",
+   "currencySince": "1944-01-01",
+   "eu": false
+  },
+  "FO": {
+   "iso3": "FRO",
+   "currency": "DKK",
+   "currencySince": "1948-01-01",
+   "eu": false
+  },
+  "FR": {
+   "iso3": "FRA",
+   "currency": "EUR",
+   "currencySince": "1999-01-01",
+   "eu": true
+  },
+  "GA": {
+   "iso3": "GAB",
+   "currency": "XAF",
+   "currencySince": "1993-01-01",
+   "eu": false
+  },
+  "GB": {
+   "iso3": "GBR",
+   "currency": "GBP",
+   "currencySince": "1694-07-27",
+   "eu": false
+  },
+  "GD": {
+   "iso3": "GRD",
+   "currency": "XCD",
+   "currencySince": "1967-02-27",
+   "eu": false
+  },
+  "GE": {
+   "iso3": "GEO",
+   "currency": "GEL",
+   "currencySince": "1995-09-23",
+   "eu": false
+  },
+  "GH": {
+   "iso3": "GHA",
+   "currency": "GHS",
+   "currencySince": "2007-07-03",
+   "eu": false
+  },
+  "GI": {
+   "iso3": "GIB",
+   "currency": "GIP",
+   "currencySince": "1713-01-01",
+   "eu": false
+  },
+  "GL": {
+   "iso3": "GRL",
+   "currency": "DKK",
+   "currencySince": "1873-05-27",
+   "eu": false
+  },
+  "GM": {
+   "iso3": "GMB",
+   "currency": "GMD",
+   "currencySince": "1971-07-01",
+   "eu": false
+  },
+  "GN": {
+   "iso3": "GIN",
+   "currency": "GNF",
+   "currencySince": "1986-01-06",
+   "eu": false
+  },
+  "GQ": {
+   "iso3": "GNQ",
+   "currency": "XAF",
+   "currencySince": "1993-01-01",
+   "eu": false
+  },
+  "GR": {
+   "iso3": "GRC",
+   "currency": "EUR",
+   "currencySince": "2001-01-01",
+   "eu": true
+  },
+  "GT": {
+   "iso3": "GTM",
+   "currency": "GTQ",
+   "currencySince": "1925-05-27",
+   "eu": false
+  },
+  "GU": {
+   "iso3": "GUM",
+   "currency": "USD",
+   "currencySince": "1944-08-21",
+   "eu": false
+  },
+  "GW": {
+   "iso3": "GNB",
+   "currency": "XOF",
+   "currencySince": "1997-03-31",
+   "eu": false
+  },
+  "GY": {
+   "iso3": "GUY",
+   "currency": "GYD",
+   "currencySince": "1966-05-26",
+   "eu": false
+  },
+  "HK": {
+   "iso3": "HKG",
+   "currency": "HKD",
+   "currencySince": "1895-02-02",
+   "eu": false
+  },
+  "HN": {
+   "iso3": "HND",
+   "currency": "HNL",
+   "currencySince": "1926-04-03",
+   "eu": false
+  },
+  "HR": {
+   "iso3": "HRV",
+   "currency": "EUR",
+   "currencySince": "2023-01-01",
+   "eu": true
+  },
+  "HT": {
+   "iso3": "HTI",
+   "currency": "HTG",
+   "currencySince": "1872-08-26",
+   "eu": false
+  },
+  "HU": {
+   "iso3": "HUN",
+   "currency": "HUF",
+   "currencySince": "1946-07-23",
+   "eu": true
+  },
+  "ID": {
+   "iso3": "IDN",
+   "currency": "IDR",
+   "currencySince": "1965-12-13",
+   "eu": false
+  },
+  "IE": {
+   "iso3": "IRL",
+   "currency": "EUR",
+   "currencySince": "1999-01-01",
+   "eu": true
+  },
+  "IL": {
+   "iso3": "ISR",
+   "currency": "ILS",
+   "currencySince": "1985-09-04",
+   "eu": false
+  },
+  "IM": {
+   "iso3": "IMN",
+   "currency": "GBP",
+   "currencySince": "1840-01-03",
+   "eu": false
+  },
+  "IN": {
+   "iso3": "IND",
+   "currency": "INR",
+   "currencySince": "1835-08-17",
+   "eu": false
+  },
+  "IQ": {
+   "iso3": "IRQ",
+   "currency": "IQD",
+   "currencySince": "1931-04-19",
+   "eu": false
+  },
+  "IR": {
+   "iso3": "IRN",
+   "currency": "IRR",
+   "currencySince": "1932-05-13",
+   "eu": false
+  },
+  "IS": {
+   "iso3": "ISL",
+   "currency": "ISK",
+   "currencySince": "1981-01-01",
+   "eu": false
+  },
+  "IT": {
+   "iso3": "ITA",
+   "currency": "EUR",
+   "currencySince": "1999-01-01",
+   "eu": true
+  },
+  "JM": {
+   "iso3": "JAM",
+   "currency": "JMD",
+   "currencySince": "1969-09-08",
+   "eu": false
+  },
+  "JO": {
+   "iso3": "JOR",
+   "currency": "JOD",
+   "currencySince": "1950-07-01",
+   "eu": false
+  },
+  "JP": {
+   "iso3": "JPN",
+   "currency": "JPY",
+   "currencySince": "1871-06-01",
+   "eu": false
+  },
+  "KE": {
+   "iso3": "KEN",
+   "currency": "KES",
+   "currencySince": "1966-09-14",
+   "eu": false
+  },
+  "KG": {
+   "iso3": "KGZ",
+   "currency": "KGS",
+   "currencySince": "1993-05-10",
+   "eu": false
+  },
+  "KH": {
+   "iso3": "KHM",
+   "currency": "KHR",
+   "currencySince": "1980-03-20",
+   "eu": false
+  },
+  "KI": {
+   "iso3": "KIR",
+   "currency": "AUD",
+   "currencySince": "1966-02-14",
+   "eu": false
+  },
+  "KM": {
+   "iso3": "COM",
+   "currency": "KMF",
+   "currencySince": "1975-07-06",
+   "eu": false
+  },
+  "KN": {
+   "iso3": "KNA",
+   "currency": "XCD",
+   "currencySince": "1965-10-06",
+   "eu": false
+  },
+  "KR": {
+   "iso3": "KOR",
+   "currency": "KRW",
+   "currencySince": "1962-06-10",
+   "eu": false
+  },
+  "KW": {
+   "iso3": "KWT",
+   "currency": "KWD",
+   "currencySince": "1961-04-01",
+   "eu": false
+  },
+  "KY": {
+   "iso3": "CYM",
+   "currency": "KYD",
+   "currencySince": "1971-01-01",
+   "eu": false
+  },
+  "KZ": {
+   "iso3": "KAZ",
+   "currency": "KZT",
+   "currencySince": "1993-11-05",
+   "eu": false
+  },
+  "LA": {
+   "iso3": "LAO",
+   "currency": "LAK",
+   "currencySince": "1979-12-10",
+   "eu": false
+  },
+  "LB": {
+   "iso3": "LBN",
+   "currency": "LBP",
+   "currencySince": "1948-02-02",
+   "eu": false
+  },
+  "LC": {
+   "iso3": "LCA",
+   "currency": "XCD",
+   "currencySince": "1965-10-06",
+   "eu": false
+  },
+  "LI": {
+   "iso3": "LIE",
+   "currency": "CHF",
+   "currencySince": "1921-02-01",
+   "eu": false
+  },
+  "LK": {
+   "iso3": "LKA",
+   "currency": "LKR",
+   "currencySince": "1978-05-22",
+   "eu": false
+  },
+  "LR": {
+   "iso3": "LBR",
+   "currency": "LRD",
+   "currencySince": "1944-01-01",
+   "eu": false
+  },
+  "LS": {
+   "iso3": "LSO",
+   "currency": "LSL",
+   "currencySince": "1980-01-22",
+   "eu": false
+  },
+  "LT": {
+   "iso3": "LTU",
+   "currency": "EUR",
+   "currencySince": "2015-01-01",
+   "eu": true
+  },
+  "LU": {
+   "iso3": "LUX",
+   "currency": "EUR",
+   "currencySince": "1999-01-01",
+   "eu": true
+  },
+  "LV": {
+   "iso3": "LVA",
+   "currency": "EUR",
+   "currencySince": "2014-01-01",
+   "eu": true
+  },
+  "LY": {
+   "iso3": "LBY",
+   "currency": "LYD",
+   "currencySince": "1971-09-01",
+   "eu": false
+  },
+  "MA": {
+   "iso3": "MAR",
+   "currency": "MAD",
+   "currencySince": "1959-10-17",
+   "eu": false
+  },
+  "MC": {
+   "iso3": "MCO",
+   "currency": "EUR",
+   "currencySince": "1999-01-01",
+   "eu": false
+  },
+  "MD": {
+   "iso3": "MDA",
+   "currency": "MDL",
+   "currencySince": "1993-11-29",
+   "eu": false
+  },
+  "ME": {
+   "iso3": "MNE",
+   "currency": "EUR",
+   "currencySince": "2002-01-01",
+   "eu": false
+  },
+  "MF": {
+   "iso3": "MAF",
+   "currency": "EUR",
+   "currencySince": "1999-01-01",
+   "eu": false
+  },
+  "MG": {
+   "iso3": "MDG",
+   "currency": "MGA",
+   "currencySince": "1983-11-01",
+   "eu": false
+  },
+  "MH": {
+   "iso3": "MHL",
+   "currency": "USD",
+   "currencySince": "1944-01-01",
+   "eu": false
+  },
+  "MK": {
+   "iso3": "MKD",
+   "currency": "MKD",
+   "currencySince": "1993-05-20",
+   "eu": false
+  },
+  "ML": {
+   "iso3": "MLI",
+   "currency": "XOF",
+   "currencySince": "1984-06-01",
+   "eu": false
+  },
+  "MM": {
+   "iso3": "MMR",
+   "currency": "MMK",
+   "currencySince": "1989-06-18",
+   "eu": false
+  },
+  "MN": {
+   "iso3": "MNG",
+   "currency": "MNT",
+   "currencySince": "1915-03-01",
+   "eu": false
+  },
+  "MO": {
+   "iso3": "MAC",
+   "currency": "MOP",
+   "currencySince": "1901-01-01",
+   "eu": false
+  },
+  "MP": {
+   "iso3": "MNP",
+   "currency": "USD",
+   "currencySince": "1944-01-01",
+   "eu": false
+  },
+  "MR": {
+   "iso3": "MRT",
+   "currency": "MRU",
+   "currencySince": "2018-01-01",
+   "eu": false
+  },
+  "MT": {
+   "iso3": "MLT",
+   "currency": "EUR",
+   "currencySince": "2008-01-01",
+   "eu": true
+  },
+  "MU": {
+   "iso3": "MUS",
+   "currency": "MUR",
+   "currencySince": "1934-04-01",
+   "eu": false
+  },
+  "MV": {
+   "iso3": "MDV",
+   "currency": "MVR",
+   "currencySince": "1981-07-01",
+   "eu": false
+  },
+  "MW": {
+   "iso3": "MWI",
+   "currency": "MWK",
+   "currencySince": "1971-02-15",
+   "eu": false
+  },
+  "MX": {
+   "iso3": "MEX",
+   "currency": "MXN",
+   "currencySince": "1993-01-01",
+   "eu": false
+  },
+  "MY": {
+   "iso3": "MYS",
+   "currency": "MYR",
+   "currencySince": "1963-09-16",
+   "eu": false
+  },
+  "MZ": {
+   "iso3": "MOZ",
+   "currency": "MZN",
+   "currencySince": "2006-07-01",
+   "eu": false
+  },
+  "NA": {
+   "iso3": "NAM",
+   "currency": "NAD",
+   "currencySince": "1993-01-01",
+   "eu": false
+  },
+  "NC": {
+   "iso3": "NCL",
+   "currency": "XPF",
+   "currencySince": "1985-01-01",
+   "eu": false
+  },
+  "NE": {
+   "iso3": "NER",
+   "currency": "XOF",
+   "currencySince": "1958-12-19",
+   "eu": false
+  },
+  "NG": {
+   "iso3": "NGA",
+   "currency": "NGN",
+   "currencySince": "1973-01-01",
+   "eu": false
+  },
+  "NI": {
+   "iso3": "NIC",
+   "currency": "NIO",
+   "currencySince": "1991-04-30",
+   "eu": false
+  },
+  "NL": {
+   "iso3": "NLD",
+   "currency": "EUR",
+   "currencySince": "1999-01-01",
+   "eu": true
+  },
+  "NO": {
+   "iso3": "NOR",
+   "currency": "NOK",
+   "currencySince": "1905-06-07",
+   "eu": false
+  },
+  "NP": {
+   "iso3": "NPL",
+   "currency": "NPR",
+   "currencySince": "1933-01-01",
+   "eu": false
+  },
+  "NR": {
+   "iso3": "NRU",
+   "currency": "AUD",
+   "currencySince": "1966-02-14",
+   "eu": false
+  },
+  "NZ": {
+   "iso3": "NZL",
+   "currency": "NZD",
+   "currencySince": "1967-07-10",
+   "eu": false
+  },
+  "OM": {
+   "iso3": "OMN",
+   "currency": "OMR",
+   "currencySince": "1972-11-11",
+   "eu": false
+  },
+  "PA": {
+   "iso3": "PAN",
+   "currency": "PAB",
+   "currencySince": "1903-11-04",
+   "eu": false
+  },
+  "PE": {
+   "iso3": "PER",
+   "currency": "PEN",
+   "currencySince": "1991-07-01",
+   "eu": false
+  },
+  "PF": {
+   "iso3": "PYF",
+   "currency": "XPF",
+   "currencySince": "1945-12-26",
+   "eu": false
+  },
+  "PG": {
+   "iso3": "PNG",
+   "currency": "PGK",
+   "currencySince": "1975-09-16",
+   "eu": false
+  },
+  "PH": {
+   "iso3": "PHL",
+   "currency": "PHP",
+   "currencySince": "1946-07-04",
+   "eu": false
+  },
+  "PK": {
+   "iso3": "PAK",
+   "currency": "PKR",
+   "currencySince": "1948-04-01",
+   "eu": false
+  },
+  "PL": {
+   "iso3": "POL",
+   "currency": "PLN",
+   "currencySince": "1995-01-01",
+   "eu": true
+  },
+  "PR": {
+   "iso3": "PRI",
+   "currency": "USD",
+   "currencySince": "1898-12-10",
+   "eu": false
+  },
+  "PS": {
+   "iso3": "PSE",
+   "currency": "ILS",
+   "currencySince": "1985-09-04",
+   "eu": false
+  },
+  "PT": {
+   "iso3": "PRT",
+   "currency": "EUR",
+   "currencySince": "1999-01-01",
+   "eu": true
+  },
+  "PW": {
+   "iso3": "PLW",
+   "currency": "USD",
+   "currencySince": "1944-01-01",
+   "eu": false
+  },
+  "PY": {
+   "iso3": "PRY",
+   "currency": "PYG",
+   "currencySince": "1943-11-01",
+   "eu": false
+  },
+  "QA": {
+   "iso3": "QAT",
+   "currency": "QAR",
+   "currencySince": "1973-05-19",
+   "eu": false
+  },
+  "RO": {
+   "iso3": "ROU",
+   "currency": "RON",
+   "currencySince": "2005-07-01",
+   "eu": true
+  },
+  "RS": {
+   "iso3": "SRB",
+   "currency": "RSD",
+   "currencySince": "2006-10-25",
+   "eu": false
+  },
+  "RU": {
+   "iso3": "RUS",
+   "currency": "RUB",
+   "currencySince": "1999-01-01",
+   "eu": false
+  },
+  "RW": {
+   "iso3": "RWA",
+   "currency": "RWF",
+   "currencySince": "1964-05-19",
+   "eu": false
+  },
+  "SA": {
+   "iso3": "SAU",
+   "currency": "SAR",
+   "currencySince": "1952-10-22",
+   "eu": false
+  },
+  "SB": {
+   "iso3": "SLB",
+   "currency": "SBD",
+   "currencySince": "1977-10-24",
+   "eu": false
+  },
+  "SC": {
+   "iso3": "SYC",
+   "currency": "SCR",
+   "currencySince": "1903-11-01",
+   "eu": false
+  },
+  "SD": {
+   "iso3": "SDN",
+   "currency": "SDG",
+   "currencySince": "2007-01-10",
+   "eu": false
+  },
+  "SE": {
+   "iso3": "SWE",
+   "currency": "SEK",
+   "currencySince": "1873-05-27",
+   "eu": true
+  },
+  "SG": {
+   "iso3": "SGP",
+   "currency": "SGD",
+   "currencySince": "1967-06-12",
+   "eu": false
+  },
+  "SI": {
+   "iso3": "SVN",
+   "currency": "EUR",
+   "currencySince": "2007-01-01",
+   "eu": true
+  },
+  "SK": {
+   "iso3": "SVK",
+   "currency": "EUR",
+   "currencySince": "2009-01-01",
+   "eu": true
+  },
+  "SL": {
+   "iso3": "SLE",
+   "currency": "SLE",
+   "currencySince": "2022-07-01",
+   "eu": false
+  },
+  "SM": {
+   "iso3": "SMR",
+   "currency": "EUR",
+   "currencySince": "1999-01-01",
+   "eu": false
+  },
+  "SN": {
+   "iso3": "SEN",
+   "currency": "XOF",
+   "currencySince": "1959-04-04",
+   "eu": false
+  },
+  "SO": {
+   "iso3": "SOM",
+   "currency": "SOS",
+   "currencySince": "1960-07-01",
+   "eu": false
+  },
+  "SR": {
+   "iso3": "SUR",
+   "currency": "SRD",
+   "currencySince": "2004-01-01",
+   "eu": false
+  },
+  "SS": {
+   "iso3": "SSD",
+   "currency": "SSP",
+   "currencySince": "2011-07-18",
+   "eu": false
+  },
+  "ST": {
+   "iso3": "STP",
+   "currency": "STN",
+   "currencySince": "2018-01-01",
+   "eu": false
+  },
+  "SV": {
+   "iso3": "SLV",
+   "currency": "USD",
+   "currencySince": "2001-01-01",
+   "eu": false
+  },
+  "SX": {
+   "iso3": "SXM",
+   "currency": "XCG",
+   "currencySince": "2025-03-31",
+   "eu": false
+  },
+  "SY": {
+   "iso3": "SYR",
+   "currency": "SYP",
+   "currencySince": "1948-01-01",
+   "eu": false
+  },
+  "SZ": {
+   "iso3": "SWZ",
+   "currency": "SZL",
+   "currencySince": "1974-09-06",
+   "eu": false
+  },
+  "TC": {
+   "iso3": "TCA",
+   "currency": "USD",
+   "currencySince": "1969-09-08",
+   "eu": false
+  },
+  "TD": {
+   "iso3": "TCD",
+   "currency": "XAF",
+   "currencySince": "1993-01-01",
+   "eu": false
+  },
+  "TG": {
+   "iso3": "TGO",
+   "currency": "XOF",
+   "currencySince": "1958-11-28",
+   "eu": false
+  },
+  "TH": {
+   "iso3": "THA",
+   "currency": "THB",
+   "currencySince": "1928-04-15",
+   "eu": false
+  },
+  "TJ": {
+   "iso3": "TJK",
+   "currency": "TJS",
+   "currencySince": "2000-10-26",
+   "eu": false
+  },
+  "TL": {
+   "iso3": "TLS",
+   "currency": "USD",
+   "currencySince": "1999-10-20",
+   "eu": false
+  },
+  "TM": {
+   "iso3": "TKM",
+   "currency": "TMT",
+   "currencySince": "2009-01-01",
+   "eu": false
+  },
+  "TN": {
+   "iso3": "TUN",
+   "currency": "TND",
+   "currencySince": "1958-11-01",
+   "eu": false
+  },
+  "TO": {
+   "iso3": "TON",
+   "currency": "TOP",
+   "currencySince": "1966-02-14",
+   "eu": false
+  },
+  "TR": {
+   "iso3": "TUR",
+   "currency": "TRY",
+   "currencySince": "2005-01-01",
+   "eu": false
+  },
+  "TT": {
+   "iso3": "TTO",
+   "currency": "TTD",
+   "currencySince": "1964-01-01",
+   "eu": false
+  },
+  "TV": {
+   "iso3": "TUV",
+   "currency": "AUD",
+   "currencySince": "1966-02-14",
+   "eu": false
+  },
+  "TZ": {
+   "iso3": "TZA",
+   "currency": "TZS",
+   "currencySince": "1966-06-14",
+   "eu": false
+  },
+  "UA": {
+   "iso3": "UKR",
+   "currency": "UAH",
+   "currencySince": "1996-09-02",
+   "eu": false
+  },
+  "UG": {
+   "iso3": "UGA",
+   "currency": "UGX",
+   "currencySince": "1987-05-15",
+   "eu": false
+  },
+  "US": {
+   "iso3": "USA",
+   "currency": "USD",
+   "currencySince": "1792-01-01",
+   "eu": false
+  },
+  "UY": {
+   "iso3": "URY",
+   "currency": "UYU",
+   "currencySince": "1993-03-01",
+   "eu": false
+  },
+  "UZ": {
+   "iso3": "UZB",
+   "currency": "UZS",
+   "currencySince": "1994-07-01",
+   "eu": false
+  },
+  "VC": {
+   "iso3": "VCT",
+   "currency": "XCD",
+   "currencySince": "1965-10-06",
+   "eu": false
+  },
+  "VE": {
+   "iso3": "VEN",
+   "currency": "VES",
+   "currencySince": "2018-08-20",
+   "eu": false
+  },
+  "VG": {
+   "iso3": "VGB",
+   "currency": "USD",
+   "currencySince": "1833-01-01",
+   "eu": false
+  },
+  "VI": {
+   "iso3": "VIR",
+   "currency": "USD",
+   "currencySince": "1837-01-01",
+   "eu": false
+  },
+  "VN": {
+   "iso3": "VNM",
+   "currency": "VND",
+   "currencySince": "1985-09-14",
+   "eu": false
+  },
+  "VU": {
+   "iso3": "VUT",
+   "currency": "VUV",
+   "currencySince": "1981-01-01",
+   "eu": false
+  },
+  "WS": {
+   "iso3": "WSM",
+   "currency": "WST",
+   "currencySince": "1967-07-10",
+   "eu": false
+  },
+  "XK": {
+   "iso3": "XKX",
+   "currency": "EUR",
+   "currencySince": "2002-01-01",
+   "eu": false
+  },
+  "YE": {
+   "iso3": "YEM",
+   "currency": "YER",
+   "currencySince": "1990-05-22",
+   "eu": false
+  },
+  "ZA": {
+   "iso3": "ZAF",
+   "currency": "ZAR",
+   "currencySince": "1961-02-14",
+   "eu": false
+  },
+  "ZM": {
+   "iso3": "ZMB",
+   "currency": "ZMW",
+   "currencySince": "2013-01-01",
+   "eu": false
+  },
+  "ZW": {
+   "iso3": "ZWE",
+   "currency": "ZWG",
+   "currencySince": "2024-06-25",
+   "eu": false
+  }
+ }
+}

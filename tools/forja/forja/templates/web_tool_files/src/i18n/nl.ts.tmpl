@@ -1,0 +1,40 @@
+/**
+ * Every word of __NAME__ in Dutch (the shape of en.ts).
+ *
+ * PENDING REVIEW BY A NATIVE SPEAKER ("pendiente de revisión por un
+ * nativo"): built, but hidden from the language switch, the sitemap and
+ * search engines until Marek approves it (seed-kit locales.ts).
+ */
+
+import type { Words } from "./en.ts";
+
+export const nl: Words = {
+  meta: {
+    title: "__NAME__: hoeveel is het veranderd?",
+    description: "Typ een getal van voor en na. Zie de verandering, als bedrag en als percentage.",
+  },
+  home: {
+    title: "Hoeveel is het veranderd?",
+    lead: "Een prijs, een loon of een rekening: typ hem van voor en na.",
+    form: "Je getallen",
+    before: "Voor",
+    after: "Na",
+    result: "De verandering",
+    up: (percent: string) => `Het steeg ${percent}.`,
+    down: (percent: string) => `Het daalde ${percent}.`,
+    same: "Het veranderde niet.",
+    fromZero: "Het begon bij nul, dus er is geen percentage.",
+    difference: (amount: string) => `Verschil: ${amount}.`,
+    invalid: "Typ twee getallen om de verandering te zien.",
+    private: "Berekend in je browser. Er wordt niets bewaard of verstuurd.",
+  },
+  footer: {
+    note: "Er wordt niets bewaard of verstuurd. Gratis te gebruiken.",
+    weight: (kb: string) => `Deze pagina weegt ${kb} kB gecomprimeerd, gemeten bij het bouwen.`,
+  },
+  notFound: {
+    title: "Deze pagina bestaat niet",
+    text: "Misschien is het adres fout, of is de pagina verhuisd.",
+    home: "Naar __NAME__",
+  },
+};

@@ -51,5 +51,5 @@ export function timesPutInText(point: Pick<YearPoint, "total" | "putIn">, i18n: 
 
 /** A year of the chart under the finger or the mouse: "2036: €48,200". */
 export function yearTooltip(point: YearPoint, startYear: number, { m, f }: I18n): string {
-  return m.chart.tooltip(startYear + point.year, f.eur(point.total));
+  return m.chart.tooltip(startYear + point.year, f.cur(point.total));
 }

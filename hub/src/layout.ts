@@ -5,7 +5,7 @@ import { languageScript } from "../../packages/seed-kit/src/detect.ts";
 import { themeScript } from "../../packages/seed-kit/src/theme.ts";
 import { html, raw } from "../../packages/seed-kit/src/html.ts";
 import type { Html } from "../../packages/seed-kit/src/html.ts";
-import { DEFAULT_LOCALE, LOCALE_SETTINGS, LOCALES, PAGES, localePath, messages } from "./i18n/index.ts";
+import { DEFAULT_LOCALE, isPendingReview, LOCALE_SETTINGS, LOCALES, PAGES, SHOWN_LOCALES, localePath, messages } from "./i18n/index.ts";
 import type { Locale, PageId } from "./i18n/index.ts";
 import { STYLES } from "./styles.ts";
 import { EMAIL, EMAIL_SCRIPT, hasEmail } from "./email.ts";
@@ -71,7 +71,8 @@ export function layout(page: PageInput, weight: Weight): string {
   const m = messages(locale);
   const path = id === null ? "/" : PAGES[id];
   const here = localePath(path, locale);
-  const indexed = id !== null;
+  // Dutch waits for a native speaker: built, but neither linked nor indexed.
+  const indexed = id !== null && !isPendingReview(locale);
   const nav: { id: PageId; label: string }[] = [
     { id: "principles", label: m.site.nav.principles },
     { id: "about", label: m.site.nav.about },
@@ -90,7 +91,7 @@ export function layout(page: PageInput, weight: Weight): string {
   const footer = footerModel({
     locale,
     links: [
-      ...SHOWN_TOOLS.map((tool) => ({ label: tool.name, href: tool.url })),
+      ...SHOWN_TOOLS.map((tool) => ({ label: tool.name[locale], href: tool.url })),
       { label: m.site.nav.principles, href: localePath(PAGES.principles, locale) },
       { label: m.site.nav.about, href: localePath(PAGES.about, locale) },
       { label: m.site.roadmap, href: localePath(PAGES.roadmap, locale), current: id === "roadmap" },
@@ -111,14 +112,14 @@ ${indexed && locale === DEFAULT_LOCALE ? html`<script>${raw(LANGUAGE_SCRIPT)}</s
 ${
   indexed
     ? html`<link rel="canonical" href="${SITE_URL + here}">
-${LOCALES.map((other) => html`<link rel="alternate" hreflang="${other}" href="${SITE_URL + localePath(path, other)}">\n`)}<link rel="alternate" hreflang="x-default" href="${SITE_URL + path}">
+${SHOWN_LOCALES.map((other) => html`<link rel="alternate" hreflang="${other}" href="${SITE_URL + localePath(path, other)}">\n`)}<link rel="alternate" hreflang="x-default" href="${SITE_URL + path}">
 <meta property="og:url" content="${SITE_URL + here}">`
     : html`<meta name="robots" content="noindex">`
 }
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#0a0a0a">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="seed-lab">
+<meta property="og:site_name" content="Horalis">
 <meta property="og:title" content="${page.title}">
 <meta property="og:description" content="${page.description}">
 <meta property="og:locale" content="${LOCALE_SETTINGS[locale].intl.replace("-", "_")}">

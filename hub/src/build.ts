@@ -9,7 +9,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { externalRequests, inlineScripts, renderWithWeight, storageUse } from "../../packages/seed-kit/src/checks.ts";
 import { FAVICON } from "../../packages/seed-kit/src/icons.ts";
-import { LOCALES, PAGES, localePath } from "./i18n/index.ts";
+import { LOCALES, PAGES, SHOWN_LOCALES, localePath } from "./i18n/index.ts";
 import type { Locale, PageId } from "./i18n/index.ts";
 import { layout } from "./layout.ts";
 import type { PageInput, Weight } from "./layout.ts";
@@ -35,8 +35,8 @@ function write(path: string, content: string): void {
 
 function sitemap(): string {
   const urls = (Object.keys(PAGES) as PageId[]).flatMap((id) =>
-    LOCALES.map((locale) => {
-      const alternates = LOCALES.map((other) => `<xhtml:link rel="alternate" hreflang="${other}" href="${SITE_URL + localePath(PAGES[id], other)}"/>`).join("");
+    SHOWN_LOCALES.map((locale) => {
+      const alternates = SHOWN_LOCALES.map((other) => `<xhtml:link rel="alternate" hreflang="${other}" href="${SITE_URL + localePath(PAGES[id], other)}"/>`).join("");
       return `<url><loc>${SITE_URL + localePath(PAGES[id], locale)}</loc>${alternates}</url>`;
     }),
   );

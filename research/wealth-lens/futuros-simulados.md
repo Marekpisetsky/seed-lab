@@ -1,6 +1,6 @@
 # Ficha: futuros simulados
 
-- **App:** Wealth Lens · **Revisada:** 3 de octubre de 2026
+- **App:** Horalis Crecimiento · **Revisada:** 3 de octubre de 2026
 - **Código** (en `projects/wealth-lens/`): `src/lib/simulation.ts`
   (`wealthPercentiles`, `wealthSamples`), `src/lib/normal.ts`
   (`normalReturns`), `src/lib/projections.ts` (`bandsFor`, `samplesFor`,
@@ -33,8 +33,8 @@ Exacta:
 - Percentiles 10, 50 y 90 de los 1000 saldos de cada año, interpolando
   entre vecinos.
 - Qué se sortea:
-  - **un índice**: sus 35 años reales;
-  - **una mezcla o Mi cartera**: un mismo año para todas sus partes a la
+  - **un activo**: sus 35 años reales;
+  - **una mezcla**: un mismo año para todas sus partes a la
     vez, así que se mueven juntas como lo hicieron (ver
     [mezclas](mezclas-y-acciones.md));
   - **un crecimiento o unas oscilaciones propias**: no hay historia, así
@@ -42,8 +42,8 @@ Exacta:
     log(1 + r) ~ Normal(log(1 + g), σ²), representada por 2000 cuantiles
     equiespaciados (del 0,025 % al 99,975 %, ±3,5 σ). El año mediano crece
     exactamente g;
-  - **el crecimiento propio de partida**: g = 5 % y σ = 17,82 % (la
-    oscilación de las acciones del mundo de 1988 a 2022).
+  - **el crecimiento propio de partida**: g = 5 % y σ = 16,39 % (la
+    oscilación de las acciones de EE. UU. de 1988 a 2022).
 - La vista de futuros dibuja 50 de esos 1000 caminos, repartidos por igual
   entre ellos.
 
@@ -52,10 +52,10 @@ Exacta:
 - Cada año es independiente del anterior: no hay rachas, ni rebotes tras
   una caída, ni ciclos.
 - Los 35 años de 1988 a 2022 contienen todo lo que puede pasar: nunca sale
-  un año peor que el peor de los datos (Mundo: −40,8 % en 2008).
+  un año peor que el peor de los datos (acciones de EE. UU.: −35,7 % en 2008).
 - La media y la oscilación se conocen sin error.
 - Para lo propio: rendimientos lognormales (colas finas), con la
-  oscilación de las acciones del mundo si no se escribe otra.
+  oscilación de las acciones de EE. UU. si no se escribe otra.
 
 ## Fuentes (con fecha)
 
@@ -132,3 +132,6 @@ Exacta:
 - 2026-10-05: leyenda y explicación EN/ES distinguen la década mala de
   los futuros no condicionados. Tests de renderizado en ambos idiomas;
   ningún cambio en las simulaciones ni en sus probabilidades.
+- 2026-10-09 (fase A2): el crecimiento propio de partida usa la
+  oscilación de las acciones de EE. UU. (16,39 %) en lugar de la del Mundo
+  (17,82 %), retirado porque sus datos no son abiertos. Sin Mi cartera.
