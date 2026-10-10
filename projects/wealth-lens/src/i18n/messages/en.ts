@@ -28,12 +28,12 @@ export const en = {
     nav: { money: "My money", test: "Test my plan" },
     /** The footer's pages, by their titles (the pages themselves are in en-pages.ts). */
     footer: { about: "About", howItWorks: "How it works", privacy: "Privacy", terms: "Terms" },
-    footerNote: "Nothing you type is saved or sent. Not financial advice.",
+    footerNote: "Nothing you type is sent. Not financial advice.",
   },
   money: {
     headline: "What could you do with your money?",
     support: "A trip, a home, living without working: see when you get there.",
-    trust: { noAccount: "No accounts", nothingSaved: "Nothing is saved", data: (years: string) => `Data from ${years}` },
+    trust: { noAccount: "No accounts", nothingSaved: "Only in this tab", data: (years: string) => `Data from ${years}` },
   },
   test: {
     title: "Test my plan",

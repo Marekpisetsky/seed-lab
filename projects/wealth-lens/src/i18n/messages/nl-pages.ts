@@ -17,7 +17,7 @@ export const nlPages: PageMessages = {
     test: { title: "Test mijn plan", description: "Je plan door de beurscrises uit de geschiedenis, van 1929 tot 2022." },
     about: { title: "Over", description: "Wat Horalis Groei is, wie het maakt en waarom het gratis is." },
     howItWorks: { title: "Hoe het werkt", description: "De methode en elke bron, met links en data." },
-    privacy: { title: "Privacy", description: "Niets wat je typt wordt bewaard of verstuurd. Geen cookies. Wat de hosting vastlegt." },
+    privacy: { title: "Privacy", description: "Niets wat je typt wordt verstuurd. Het blijft alleen in dit tabblad. Geen cookies. Wat de hosting vastlegt." },
     terms: { title: "Voorwaarden", description: "Geen financieel advies. Geen garantie. Gebruik op eigen risico." },
   },
   about: {
@@ -220,13 +220,14 @@ export const nlPages: PageMessages = {
   },
   privacy: {
     title: nl.site.footer.privacy,
-    updated: "Bijgewerkt op 7 oktober 2026.",
+    updated: "Bijgewerkt op 10 oktober 2026.",
     sections: [
-      { heading: "In het kort", body: ["**Niets wat je typt wordt bewaard of verstuurd.** Geen cookies. Geen tracking."] },
+      { heading: "In het kort", body: ["**Niets wat je typt wordt verstuurd.** Het blijft alleen in dit tabblad, tot je het sluit. Geen cookies. Geen tracking."] },
       {
         heading: "Je getallen",
         body: [
-          "Wat je typt blijft op deze pagina, in het geheugen van je browser. Sluit of herlaad het tabblad en het is weg.",
+          "Wat je typt blijft in dit tabblad, in de sessieopslag, zodat het niet verdwijnt als je van pagina wisselt of herlaadt.",
+          "Het wordt nooit verstuurd, andere tabbladen zien het niet, en sluit je het tabblad, dan is het weg.",
           "Horalis Groei heeft geen accounts, geen database en geen eigen server. Je getallen verlaten je apparaat nooit.",
           "**Mijn gegevens downloaden** bewaart een bestand op je apparaat. **Mijn gegevens laden** leest dat bestand op je apparaat. Er wordt niets geüpload.",
         ],

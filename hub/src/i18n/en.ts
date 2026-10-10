@@ -36,7 +36,7 @@ export const en = {
     principlesLink: "What they mean in practice",
     toolsKicker: "Tools",
     toolsTitle: (count: number): string => (count === 1 ? "A tool for everyday life" : "Tools for everyday life"),
-    toolsIntro: "Free, in your browser, and nothing is saved.",
+    toolsIntro: "Free, in your browser, and nothing is sent.",
     status: { live: "Live", beta: "Beta" },
     open: (name: string) => `Open ${name}`,
     cardAlt: (name: string) => `${name}, as it looks on a computer.`,
@@ -104,7 +104,7 @@ export const en = {
         rules: [
           "No app sends personal data to a server. Everything is worked out on your device.",
           "No accounts, no cookies, no analytics, no tracking.",
-          "Nothing you type is stored. To keep your work, you save a file yourself.",
+          "Nothing you type leaves your device, or outlives its tab. To keep your work, you save a file yourself.",
           "While you use a page, it asks no other service for anything.",
         ],
       },

@@ -38,7 +38,7 @@ export const nl: Messages = {
     principlesLink: "Wat ze in de praktijk betekenen",
     toolsKicker: "Tools",
     toolsTitle: (count: number): string => (count === 1 ? "Een tool voor elke dag" : "Tools voor elke dag"),
-    toolsIntro: "Gratis, in je browser, en er wordt niets bewaard.",
+    toolsIntro: "Gratis, in je browser, en er wordt niets verstuurd.",
     status: { live: "Online", beta: "Beta" },
     open: (name: string) => `${name} openen`,
     cardAlt: (name: string) => `${name}, zoals het eruitziet op een computer.`,
@@ -105,7 +105,7 @@ export const nl: Messages = {
         rules: [
           "Geen app stuurt persoonlijke gegevens naar een server. Alles wordt op je apparaat berekend.",
           "Geen accounts, geen cookies, geen analytics, geen volgen.",
-          "Niets wat je typt wordt bewaard. Om je werk te houden, sla je zelf een bestand op.",
+          "Niets wat je typt verlaat je apparaat of blijft langer dan het tabblad. Om je werk te houden, sla je zelf een bestand op.",
           "Terwijl je een pagina gebruikt, vraagt ze niets aan een andere dienst.",
         ],
       },

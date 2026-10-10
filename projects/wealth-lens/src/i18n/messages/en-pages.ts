@@ -17,7 +17,7 @@ export const enPages = {
     test: { title: "Test my plan", description: "Your plan through the market crises of history, from 1929 to 2022." },
     about: { title: "About", description: "What Horalis Growth is, who makes it, and why it is free." },
     howItWorks: { title: "How it works", description: "The method and every source, with links and dates." },
-    privacy: { title: "Privacy", description: "Nothing you type is saved or sent. No cookies. What the hosting logs." },
+    privacy: { title: "Privacy", description: "Nothing you type is sent. It stays in this tab only. No cookies. What the hosting logs." },
     terms: { title: "Terms", description: "Not financial advice. No guarantee. Use it at your own risk." },
   },
   about: {
@@ -220,13 +220,14 @@ export const enPages = {
   },
   privacy: {
     title: en.site.footer.privacy,
-    updated: "Updated on 7 October 2026.",
+    updated: "Updated on 10 October 2026.",
     sections: [
-      { heading: "In short", body: ["**Nothing you type is saved or sent.** No cookies. No tracking."] },
+      { heading: "In short", body: ["**Nothing you type is sent.** It stays in this tab only, until you close it. No cookies. No tracking."] },
       {
         heading: "Your numbers",
         body: [
-          "What you type stays on this page, in your browser's memory. Close or reload the tab and it is gone.",
+          "What you type stays in this tab, in its session storage, so changing page or reloading does not lose it.",
+          "It is never sent, other tabs do not see it, and closing the tab deletes it.",
           "Horalis Growth has no accounts, no database and no server of its own. Your numbers never leave your device.",
           "**Download my data** saves a file on your device. **Load my data** reads that file on your device. Nothing is uploaded.",
         ],

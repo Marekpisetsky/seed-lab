@@ -31,7 +31,7 @@ export const es: Messages = {
     principlesLink: "Qué significan en la práctica",
     toolsKicker: "Herramientas",
     toolsTitle: (count: number) => (count === 1 ? "Una herramienta para el día a día" : "Herramientas para el día a día"),
-    toolsIntro: "Gratis, en tu navegador, y no se guarda nada.",
+    toolsIntro: "Gratis, en tu navegador, y no se envía nada.",
     status: { live: "Disponible", beta: "Beta" },
     open: (name: string) => `Abrir ${name}`,
     cardAlt: (name: string) => `${name}, tal como se ve en un ordenador.`,
@@ -99,7 +99,7 @@ export const es: Messages = {
         rules: [
           "Ninguna app envía datos personales a un servidor. Todo se calcula en tu dispositivo.",
           "Sin cuentas, sin cookies, sin analítica, sin rastreo.",
-          "No se guarda nada de lo que escribes. Para conservar tu trabajo, guardas tú un archivo.",
+          "Nada de lo que escribes sale de tu dispositivo ni dura más que su pestaña. Para conservar tu trabajo, guardas tú un archivo.",
           "Mientras usas una página, no pide nada a ningún otro servicio.",
         ],
       },

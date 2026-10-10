@@ -26,12 +26,12 @@ export const nl: Messages = {
     tagline: "Wat je geld kan doen, in gewone woorden.",
     nav: { money: "Mijn geld", test: "Test mijn plan" },
     footer: { about: "Over", howItWorks: "Hoe het werkt", privacy: "Privacy", terms: "Voorwaarden" },
-    footerNote: "Niets wat je typt wordt bewaard of verstuurd. Geen financieel advies.",
+    footerNote: "Niets wat je typt wordt verstuurd. Geen financieel advies.",
   },
   money: {
     headline: "Wat zou je met je geld kunnen doen?",
     support: "Een reis, een huis, leven zonder te werken: zie wanneer je er bent.",
-    trust: { noAccount: "Geen accounts", nothingSaved: "Er wordt niets bewaard", data: (years: string) => `Gegevens van ${years}` },
+    trust: { noAccount: "Geen accounts", nothingSaved: "Alleen in dit tabblad", data: (years: string) => `Gegevens van ${years}` },
   },
   test: {
     title: "Test mijn plan",

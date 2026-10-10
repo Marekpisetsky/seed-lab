@@ -564,8 +564,8 @@ describe("My goals", () => {
       await price.fill("20000");
       await goals.getByRole("button", { name: lang === "en" ? "Add" : "Añadir", exact: true }).click();
       assert.match(await goals.innerText(), lang === "en" ? /A car[\s\S]*€20,000/ : /Un coche[\s\S]*20\.000\s€/);
-      // Kept in memory only.
-      assert.deepEqual(await page.evaluate(() => [localStorage.length, sessionStorage.length]), [0, 0]);
+      // Kept in this tab only: nothing in the browser's lasting storage.
+      assert.deepEqual(await page.evaluate(() => [localStorage.length, Object.keys(sessionStorage)]), [0, ["horalis-growth:plan"]]);
       await page.close();
     }
   });
@@ -767,5 +767,28 @@ describe("“Where do these futures come from?”", () => {
       assert.equal(await page.evaluate(() => document.body.style.position), "", `${width}: page free again`);
       await page.close();
     }
+  });
+});
+
+describe("what you type", () => {
+  it("is never lost on the way to Test my plan, even when the page loads afresh (a new version, a tap before the code came, a reload)", async () => {
+    const context = await browser.newContext({ viewport: { width: 360, height: 800 }, locale: "en-IE" });
+    const page = await context.newPage();
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(base + "/", { waitUntil: "networkidle" });
+    await firstResult(page, "en");
+    // A full load of Test my plan, as after a new deployment or a tap before the page's code arrived.
+    await page.goto(base + "/test", { waitUntil: "networkidle" });
+    assert.equal(await page.getByText("First, enter your numbers in My money.").count(), 0, "the plan is still there");
+    assert.match((await page.locator("main").innerText()).replace(/\s+/g, " "), /€20,000/);
+    // A reload of My money.
+    await page.goto(base + "/", { waitUntil: "networkidle" });
+    await page.reload({ waitUntil: "networkidle" });
+    assert.match(await bigNumber(page), /^€[\d,]+/);
+    // Another tab starts afresh: it lives in this tab only.
+    const other = await page.context().newPage();
+    await other.goto(base + "/", { waitUntil: "networkidle" });
+    assert.equal(await other.getByLabel(WORDS.en.have, { exact: true }).inputValue(), "");
+    await context.close();
   });
 });

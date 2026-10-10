@@ -9,7 +9,10 @@ import { useI18n } from "@/components/i18n";
 import { LegacyDataNotice } from "@/components/legacy-data-notice";
 import { IntentLink } from "@/components/ui/intent-link";
 import { LOCALES, localePath, PAGES, splitPath } from "@/i18n/locales";
-import { startFromLanguage } from "@/lib/app-store";
+import { appStore, startFromLanguage } from "@/lib/app-store";
+import { planReady } from "@/lib/plan";
+import { firstResult } from "@/components/money/first-result";
+import { keepInTab, restoreFromTab } from "@/lib/tab-memory";
 import type { Locale } from "@/i18n/locales";
 
 /** The pages in the header, and the ones in the footer. */
@@ -30,8 +33,15 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     document.documentElement.lang = locale;
   }, [locale]);
-  // A first visit: the country and currency the browser's language names (lib/app-store.ts).
-  useEffect(() => startFromLanguage(navigator.language), []);
+  // The plan typed in this tab before the page loaded afresh, or, on a first visit, the country and
+  // currency the browser's language names (lib/tab-memory.ts, lib/app-store.ts); then every change is kept in the tab.
+  useEffect(() => {
+    // A plan with both amounts was already a result: it comes back as one.
+    if (restoreFromTab()) {
+      if (planReady(appStore.get().plan)) firstResult.set(true);
+    } else startFromLanguage(navigator.language);
+    return keepInTab();
+  }, []);
   const header = headerModel({
     locale,
     name: m.site.name,

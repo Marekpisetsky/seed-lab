@@ -13,7 +13,7 @@ export const esPages: PageMessages = {
     test: { title: "Probar mi plan", description: "Tu plan en las crisis de la bolsa, de 1929 a 2022." },
     about: { title: "Acerca de", description: "Qué es Horalis Crecimiento, quién lo hace y por qué es gratis." },
     howItWorks: { title: "Cómo funciona", description: "El método, las cifras y todas las fuentes, con enlaces y fechas." },
-    privacy: { title: "Privacidad", description: "No se guarda ni se envía nada de lo que escribes. Sin cookies. Qué registra el alojamiento." },
+    privacy: { title: "Privacidad", description: "No se envía nada de lo que escribes. Se queda solo en esta pestaña. Sin cookies. Qué registra el alojamiento." },
     terms: { title: "Condiciones", description: "No es consejo financiero. Sin garantía. Úsalo bajo tu responsabilidad." },
   },
   about: {
@@ -216,13 +216,14 @@ export const esPages: PageMessages = {
   },
   privacy: {
     title: es.site.footer.privacy,
-    updated: "Actualizado el 7 de octubre de 2026.",
+    updated: "Actualizado el 10 de octubre de 2026.",
     sections: [
-      { heading: "En resumen", body: ["**No se guarda ni se envía nada de lo que escribes.** Sin cookies. Sin seguimiento."] },
+      { heading: "En resumen", body: ["**No se envía nada de lo que escribes.** Se queda solo en esta pestaña, hasta que la cierres. Sin cookies. Sin seguimiento."] },
       {
         heading: "Tus números",
         body: [
-          "Lo que escribes se queda en esta página, en la memoria de tu navegador. Si cierras o recargas la pestaña, desaparece.",
+          "Lo que escribes se queda en esta pestaña, en su almacenamiento de sesión, para no perderlo al cambiar de página o recargar.",
+          "Nunca se envía, otras pestañas no lo ven, y al cerrar la pestaña se borra.",
           "Horalis Crecimiento no tiene cuentas, ni base de datos, ni servidor propio. Tus números nunca salen de tu dispositivo.",
           "**Descargar mis datos** guarda un archivo en tu dispositivo. **Cargar mis datos** lee ese archivo en tu dispositivo. No se sube nada.",
         ],

@@ -20,12 +20,12 @@ export const es: Messages = {
     tagline: "Lo que tu dinero puede hacer, en palabras simples.",
     nav: { money: "Mi dinero", test: "Probar mi plan" },
     footer: { about: "Acerca de", howItWorks: "Cómo funciona", privacy: "Privacidad", terms: "Condiciones" },
-    footerNote: "No se guarda ni se envía nada de lo que escribes. No es consejo financiero.",
+    footerNote: "No se envía nada de lo que escribes. No es consejo financiero.",
   },
   money: {
     headline: "¿Qué podrías hacer con tu dinero?",
     support: "Un viaje, una casa, vivir sin trabajar: mira cuándo llegas.",
-    trust: { noAccount: "Sin cuentas", nothingSaved: "No se guarda nada", data: (years: string) => `Datos de ${years}` },
+    trust: { noAccount: "Sin cuentas", nothingSaved: "Solo en esta pestaña", data: (years: string) => `Datos de ${years}` },
   },
   test: {
     title: "Probar mi plan",
