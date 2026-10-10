@@ -709,3 +709,63 @@ describe("“What if…?” amounts", () => {
     }
   });
 });
+
+describe("the chart on a phone", () => {
+  it("shows a year where the finger taps, and lets it go on a tap outside, on a scroll and after a few seconds", async () => {
+    const context = await browser.newContext({ viewport: { width: 360, height: 800 }, locale: "en-IE", hasTouch: true, isMobile: true });
+    const page = await context.newPage();
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(base + "/", { waitUntil: "networkidle" });
+    await firstResult(page, "en");
+    const chart = page.locator('svg[role="img"]').first();
+    await chart.scrollIntoViewIfNeeded();
+    const tip = page.locator(".chart-tip");
+    const tapChart = async () => {
+      const box = (await chart.boundingBox())!;
+      await page.touchscreen.tap(box.x + box.width * 0.6, box.y + box.height / 2);
+      await tip.waitFor();
+    };
+    // A tap outside the chart.
+    await tapChart();
+    await page.touchscreen.tap(20, 20);
+    await tip.waitFor({ state: "detached" });
+    // A scroll.
+    await tapChart();
+    await page.mouse.wheel(0, 200);
+    await page.evaluate(() => window.scrollBy(0, 100));
+    await tip.waitFor({ state: "detached" });
+    // A few seconds.
+    await chart.scrollIntoViewIfNeeded();
+    await tapChart();
+    await page.waitForTimeout(4500);
+    assert.equal(await tip.count(), 0);
+    await context.close();
+  });
+});
+
+describe("“Where do these futures come from?”", () => {
+  it("keeps the page behind still while open, and puts it back where it was on closing", async () => {
+    for (const width of [360, 1366]) {
+      const page = await open("en", width);
+      await firstResult(page, "en");
+      const link = page.getByRole("button", { name: "Where do these futures come from?" });
+      await link.scrollIntoViewIfNeeded();
+      const before = await page.evaluate(() => window.scrollY);
+      await link.click();
+      const dialog = page.getByRole("dialog");
+      await dialog.waitFor();
+      // A wheel over the backdrop and a scroll of the page do not move what is behind.
+      await page.mouse.move(5, 5);
+      await page.mouse.wheel(0, 600);
+      await page.waitForTimeout(200);
+      const locked = await page.evaluate(() => ({ overflow: getComputedStyle(document.documentElement).overflow, top: document.body.style.top }));
+      assert.equal(locked.overflow, "hidden", `${width}`);
+      assert.equal(locked.top, `-${before}px`, `${width}`);
+      await dialog.getByRole("button", { name: "Close" }).click();
+      await dialog.waitFor({ state: "detached" });
+      assert.ok(Math.abs((await page.evaluate(() => window.scrollY)) - before) <= 1, `${width}: back where it was`);
+      assert.equal(await page.evaluate(() => document.body.style.position), "", `${width}: page free again`);
+      await page.close();
+    }
+  });
+});

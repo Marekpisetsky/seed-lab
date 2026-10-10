@@ -5,6 +5,7 @@ import { useEffect, useId, useMemo, useRef } from "react";
 import { useI18n } from "@/components/i18n";
 import { IntentLink } from "@/components/ui/intent-link";
 import type { CalculationBundle } from "@/hooks/use-calculation";
+import { useScrollLock } from "@/hooks/use-scroll-lock";
 import { useWidth } from "@/hooks/use-width";
 import type { I18n } from "@/i18n";
 import { localePath, PAGES } from "@/i18n/locales";
@@ -120,6 +121,8 @@ export function FuturesView({ bundle, onClose }: { bundle: CalculationBundle; on
   const { m, f, locale } = i18n;
   const dialog = useRef<HTMLDialogElement>(null);
   const heading = useId();
+  // The page behind stays put, and is back where it was on closing.
+  useScrollLock();
   const { calc, today } = bundle;
   const { scenario, investment, result } = calc;
   const years = result.years;

@@ -5,6 +5,7 @@ import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n";
 import { RadioGroup } from "@/components/ui/radio-group";
 import type { CalculationBundle } from "@/hooks/use-calculation";
+import { useTouchTip } from "@/hooks/use-touch-tip";
 import { useWidth } from "@/hooks/use-width";
 import { assumptionsNote } from "@/lib/assumptions";
 import { yearlyPath, type YearPoint } from "@/lib/calculator";
@@ -29,8 +30,8 @@ function Swatch({ color }: { color: string }) {
 function Plot({ points, startYear }: { points: YearPoint[]; startYear: number }) {
   const i18n = useI18n();
   const { m, f } = i18n;
-  const [hover, setHover] = useState<number | null>(null);
   const [frame, width] = useWidth<HTMLDivElement>(320);
+  const [hover, setHover] = useTouchTip(frame);
   const height = width >= WIDE_FROM ? CHART_HEIGHT.wide : CHART_HEIGHT.narrow;
   const years = points.length - 1;
   const end = points[years];
@@ -62,7 +63,7 @@ function Plot({ points, startYear }: { points: YearPoint[]; startYear: number })
   const showYearAt = (event: React.PointerEvent<SVGSVGElement>) => {
     const box = event.currentTarget.getBoundingClientRect();
     const year = Math.round(((event.clientX - box.left - PAD.left) / (plotRight - PAD.left)) * years);
-    setHover(Math.min(years, Math.max(0, year)));
+    setHover(Math.min(years, Math.max(0, year)), event.pointerType);
   };
   // The tooltip sits beside the hovered year, on the side with more room, and never leaves the chart.
   const tip = useRef<HTMLDivElement>(null);
@@ -94,7 +95,7 @@ function Plot({ points, startYear }: { points: YearPoint[]; startYear: number })
         aria-label={m.chart.aria(startYear + years, f.cur(end.putIn), f.cur(growthEnd))}
         onPointerDown={showYearAt}
         onPointerMove={showYearAt}
-        // A finger lifted leaves the year shown; a mouse that leaves hides it.
+        // A finger lifted leaves the year shown (until a tap outside, a scroll or a few seconds); a mouse that leaves hides it.
         onPointerLeave={(event) => event.pointerType === "mouse" && setHover(null)}
       >
         {ticks(top / 1.04).map((value) => (
@@ -142,7 +143,7 @@ function Plot({ points, startYear }: { points: YearPoint[]; startYear: number })
         )}
       </svg>
       {shown && (
-        <div ref={tip} className="pointer-events-none absolute top-0 left-0 z-10 whitespace-nowrap rounded-md border border-border bg-card px-2 py-1 text-sm shadow-sm tabular-nums">
+        <div ref={tip} className="chart-tip pointer-events-none absolute top-0 left-0 z-10 whitespace-nowrap rounded-md border border-border bg-card px-2 py-1 text-sm shadow-sm tabular-nums">
           <p className="font-medium">{yearTooltip(shown, startYear, i18n)}</p>
           <p>
             <Swatch color="var(--chart-put-in)" /> {m.chart.putIn} {f.cur(shown.putIn)}
