@@ -71,8 +71,8 @@ export function WhatIfRow({ bundle, layout = "grid" }: { bundle: CalculationBund
   return (
     <div className="space-y-2">
       {!list && <p className="text-base text-muted">{m.help.whatIf}</p>}
-      {/* As many across as fit at 11rem each (two on a phone, one with text doubled), so an amount never has to break. */}
-      <div role="group" aria-label={m.whatIf.title} className={list ? "flex flex-col gap-2" : "grid grid-cols-[repeat(auto-fit,minmax(min(100%,11rem),1fr))] gap-2"}>
+      {/* As many across as fit at 9rem each (two on a phone, one with text doubled), so an amount never has to break. */}
+      <div role="group" aria-label={m.whatIf.title} className={list ? "flex flex-col gap-2" : "grid grid-cols-[repeat(auto-fit,minmax(min(100%,9rem),1fr))] gap-2"}>
         {effects.map((effect) => {
           const pressed = applied === effect.id;
           // As shown: rounded to the euro or more, so €0 has no colour and no mark.

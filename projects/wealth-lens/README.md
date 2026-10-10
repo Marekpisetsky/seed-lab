@@ -262,13 +262,17 @@ El PR #17 de migración no forma parte de esta continuación.
 - Next.js (App Router) + TypeScript con `output: "export"`: `next build`
   genera HTML/CSS/JS estático en `out/`, servido por la CDN de Vercel sin
   funciones ni rutas de servidor.
-- **Sin backend, sin base de datos, sin almacenamiento.** El estado (el
-  plan y el *What if…?* puesto) vive en memoria
-  (`src/lib/app-store.ts`): nada va a `localStorage`, cookies ni a un
-  servidor, y recargar vuelve a la calculadora vacía. Lo único que se
-  guarda es el tema elegido en la cabecera (claro u oscuro), solo para la
-  pestaña: una clave en `sessionStorage` que el navegador borra al
-  cerrarla (seed-kit, `theme.ts`; lo explica la página de privacidad). "Download my data"
+- **Sin backend, sin base de datos, nada que dure más que la pestaña.** El
+  estado (el plan y el *What if…?* puesto) vive en memoria
+  (`src/lib/app-store.ts`), y el plan se guarda además **solo en la
+  pestaña** (`sessionStorage`, clave `horalis-growth:plan`,
+  `src/lib/tab-memory.ts`, fase B1): una carga nueva de la página (una
+  versión nueva del sitio, un toque antes de que llegue el código, una
+  recarga, un móvil que durmió la pestaña) lo recupera, otras pestañas no
+  lo ven y el navegador lo borra al cerrarla. Nada va a `localStorage`,
+  cookies ni a un servidor. El tema elegido en la cabecera (claro u
+  oscuro) también dura lo que la pestaña (seed-kit, `theme.ts`). Lo
+  explica la página de privacidad. "Download my data"
   genera un JSON local y "Load my data" lo lee en el navegador, sin
   subirlo. Si una versión anterior dejó datos en `localStorage`, la app
   ofrece una vez cargarlos o borrarlos, y los borra en ambos casos.
@@ -462,7 +466,7 @@ hacer con tu dinero?") y una frase de apoyo ("Un viaje, una casa, vivir sin
 trabajar: mira cuándo llegas.")
 (`money.headline` y `money.support`). Debajo del aviso "Write your
 numbers to see your result", tres puntos de confianza en línea, con su
-icono: sin cuentas, no se guarda nada y los años de los datos ("Data
+icono: sin cuentas, solo en esta pestaña y los años de los datos ("Data
 from 1988–2022", sacados de `COMMON_PERIOD`, así que no se desactualizan).
 Se ven mientras no hay resultado; con el resultado, su sitio lo ocupa él.
 Los cálculos y el flujo por niveles no cambian.

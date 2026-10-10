@@ -40,6 +40,16 @@ describe.each(["en", "es"] as const)("Test my plan (%s)", (locale) => {
   const t = m.test;
   const page = render(locale, sp500, createElement(TestPage, { locale }));
 
+  it("shows a crisis before the data as a plain card, not a button, saying when the data start", () => {
+    const gold: Plan = { ...sp500, investment: { kind: "asset", asset: "gold" } };
+    const html = decode(render(locale, gold, createElement(TestPage, { locale })));
+    const depression = html.slice(html.indexOf(t.crises.depression) - 300, html.indexOf(t.crises.depression) + 400);
+    expect(depression).not.toMatch(/<button/);
+    expect(depression).not.toContain("cursor-not-allowed");
+    expect(text(depression)).toContain(t.noData(1988));
+    expect(html.split('aria-pressed="false"').length - 1).toBeLessThan(CRISES.length);
+  });
+
   it("opens with a one-line headline and says it is real history", () => {
     expect(decode(page)).toMatch(/<h1[^>]*>[^<]+<\/h1>/);
     expect(decode(page)).toContain(`>${t.headline}</h1>`);
@@ -56,7 +66,7 @@ describe.each(["en", "es"] as const)("Test my plan (%s)", (locale) => {
       expect(text(card)).toContain(t.crises[crisis.id]);
       expect(text(card)).toContain(String(crisis.year));
       const result = source && crisisResult(source, { start: 1_100, monthly: 100 }, calc.result.years, crisis.id);
-      if (!result) return expect(text(card)).toContain(t.noData);
+      if (!result) return expect(text(card)).toContain(t.noData(1988));
       expect(card).toContain("<polyline");
       if (!result.fall) return expect(text(card)).toContain(t.card.noFall);
       // Only euros: no percent on a card.

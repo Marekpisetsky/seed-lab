@@ -66,7 +66,7 @@ export const nl: Messages = {
       covid: "Covid",
       inflation: "Inflatieschok",
     },
-    noData: "geen gegevens hiervoor",
+    noData: (from: number) => `Onze gegevens beginnen in ${from}.`,
     noHistory: "Dit heeft geen geschiedenis van ups en downs om te testen.",
     noHistoryHint: "Kies aandelen, obligaties, goud of een mix om het te testen.",
     started: (year: number) => `Als je in ${year} was begonnen:`,

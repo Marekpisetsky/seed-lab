@@ -72,7 +72,8 @@ export const en = {
       covid: "Covid",
       inflation: "Inflation shock",
     },
-    noData: "no data for this",
+    /** A crisis before the data: "Our data start in 1988." */
+    noData: (from: number) => `Our data start in ${from}.`,
     noHistory: "This has no history of ups and downs to test.",
     noHistoryHint: "To test it, pick stocks, bonds, gold or a mix.",
     started: (year: number) => `If you had started in ${year}:`,

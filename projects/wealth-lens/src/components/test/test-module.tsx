@@ -27,6 +27,7 @@ import {
   type CrisisId,
   type CrisisResult,
   type HistorySource,
+  yearsCovered,
 } from "@/lib/history-test";
 import { sparklinePoints } from "@/lib/sparkline";
 import { PathChart, StartYearsChart } from "./history-charts";
@@ -188,6 +189,7 @@ export function TestModule() {
   const { scenario } = base;
   const planYears = base.result.years;
   const source = useMemo(() => historySource(base.investment), [base.investment]);
+  const covered = useMemo(() => (source ? yearsCovered(source) : null), [source]);
   const amounts = useMemo(() => ({ start: scenario.capital, monthly: scenario.monthly }), [scenario.capital, scenario.monthly]);
   const results = useMemo(() => crisisResults(source, amounts, planYears), [source, amounts, planYears]);
   const [selected, setSelected] = useState<CrisisId | null>(null);
@@ -239,36 +241,37 @@ export function TestModule() {
           {CRISES.map((crisis) => {
             const result = results[crisis.id];
             const active = selected === crisis.id;
+            const title = (
+              <span className="flex w-full items-baseline justify-between gap-2">
+                <span className="text-lg font-semibold leading-tight">{t.crises[crisis.id]}</span>
+                <span className={`text-base tabular-nums ${active ? "" : "text-muted"}`}>{crisis.year}</span>
+              </span>
+            );
+            // A crisis before the data is not a button: nothing to press, no cursor to get stuck, and the reason in plain sight.
+            if (!result) {
+              return (
+                <li key={crisis.id} className="flex w-full flex-col gap-2 rounded-xl border border-dashed border-border bg-background p-4 text-muted">
+                  {title}
+                  <span className="text-sm">{t.noData(covered?.[0] ?? crisis.year)}</span>
+                </li>
+              );
+            }
             return (
               <li key={crisis.id}>
                 <button
                   type="button"
                   aria-pressed={active}
-                  disabled={!result}
                   onClick={() => choose(crisis.id)}
-                  className={`flex w-full flex-col gap-2 rounded-xl border p-4 text-left transition-colors ${result ? "min-h-36" : ""} ${
-                    active
-                      ? "border-foreground bg-foreground text-background"
-                      : result
-                        ? "border-border bg-card hover:border-accent"
-                        : "cursor-not-allowed border-dashed border-border bg-background text-muted"
+                  className={`flex min-h-36 w-full flex-col gap-2 rounded-xl border p-4 text-left transition-colors ${
+                    active ? "border-foreground bg-foreground text-background" : "border-border bg-card hover:border-accent"
                   }`}
                 >
-                  <span className="flex w-full items-baseline justify-between gap-2">
-                    <span className="text-lg font-semibold leading-tight">{t.crises[crisis.id]}</span>
-                    <span className={`text-base tabular-nums ${active ? "" : "text-muted"}`}>{crisis.year}</span>
+                  {title}
+                  <MiniPath path={source ? historyPath(source, { start: 1, monthly: 0 }, result.startYear, cardYears(result)) : []} falling={result.fall !== null} active={active} />
+                  <span className="text-base font-semibold tabular-nums">
+                    <TrendIcon change={result.fall ? -1 : null} />
+                    {cardFigure(result, i18n)}
                   </span>
-                  {result ? (
-                    <>
-                      <MiniPath path={source ? historyPath(source, { start: 1, monthly: 0 }, result.startYear, cardYears(result)) : []} falling={result.fall !== null} active={active} />
-                      <span className="text-base font-semibold tabular-nums">
-                        <TrendIcon change={result.fall ? -1 : null} />
-                        {cardFigure(result, i18n)}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-sm">{t.noData}</span>
-                  )}
                 </button>
               </li>
             );

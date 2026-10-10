@@ -60,7 +60,7 @@ export const es: Messages = {
       covid: "Covid",
       inflation: "Golpe de inflación",
     },
-    noData: "sin datos para esto",
+    noData: (from: number) => `Nuestros datos empiezan en ${from}.`,
     noHistory: "Esto no tiene historia de altibajos que probar.",
     noHistoryHint: "Para probarlo, elige acciones, bonos, oro o una mezcla.",
     started: (year: number) => `Si hubieras empezado en ${year}:`,
