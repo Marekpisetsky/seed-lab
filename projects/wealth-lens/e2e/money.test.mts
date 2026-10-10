@@ -102,7 +102,9 @@ describe("personal goals", () => {
       await page.getByRole("button", { name: lang === "en" ? "Add" : "Añadir", exact: true }).click();
       await page.getByRole("heading", { name: lang === "en" ? "My priorities" : "Mis prioridades" }).waitFor();
       const progress = page.getByRole("progressbar");
-      assert.equal(await progress.getAttribute("max"), "360000");
+      // 1200 a month × 12 ÷ the data's rate (about 3.8 % for growth like US stocks'): no longer the old fixed 4 %.
+      const target = Number(await progress.getAttribute("max"));
+      assert.ok(target > 14_400 / 0.04 && target < 14_400 / 0.035, String(target));
       assert.equal(await progress.getAttribute("value"), "20000");
       assert.ok(await page.getByText(lang === "en" ? /30-year model, not a guarantee/ : /modelo de 30 años, sin garantía/).count());
       await page.getByRole("button", { name: lang === "en" ? "Most important to me" : "Lo más importante para mí" }).click();

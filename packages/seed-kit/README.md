@@ -32,6 +32,9 @@ src/
   detect.ts          el script de idioma y el país del idioma del navegador: no guardan nada
   format.ts          números, dinero (cualquier moneda), porcentajes y fechas en cada idioma
                      y región (con el signo menos −); roundMoney, el redondeo de un coste
+  withdrawal-rate.ts la tasa de retiro que respaldan los datos: la mayor tasa fija real que aguantó
+                     N años desde cada comienzo de una serie, el peor incluido; los periodos detrás
+                     (research/wealth-lens/tasa-de-retiro.md)
   money.ts           la moneda de cada país (ISO 4217) y los tipos de cambio oficiales por año:
                      convert() siempre dice el año (data/currencies.json, data/exchange-rates.json)
   plain-language.ts  el test de lenguaje sencillo: frases cortas, sin jerga, sin consejos (research/legal)

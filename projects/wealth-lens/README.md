@@ -210,6 +210,18 @@ idiomas y con planes de todo tipo (`percentWithoutMoney` de seed-kit).
   mostraba productos concretos. Su dirección da la página 404, como
   `/charts` y `/fire` de versiones anteriores.
 
+**La tasa de retiro que respaldan los datos (fase A4).** «Te pagaría al
+mes» empieza en la mayor tasa fija, después de la subida de precios, que
+duró 30 años desde cualquier comienzo de los datos de la inversión, el
+peor incluido (Bengen): acciones de EE. UU. 3,78 % (1928–2022, peor
+comienzo 1929, 66 periodos); bonos y oro, con solo 8 periodos, «guía
+aproximada». El ahorro, una sola respuesta; «Mi %», la tasa de la persona
+y qué haría una caída como el peor año del activo más parecido. Motor en
+`packages/seed-kit/src/withdrawal-rate.ts`, uso en `src/lib/safe-rate.ts`;
+archivo de datos versión 13 (un 4 % de archivos anteriores, el viejo valor
+por defecto, pasa a la tasa de los datos). Método:
+[research/wealth-lens/tasa-de-retiro.md](../../research/wealth-lens/tasa-de-retiro.md).
+
 **Cualquier país y moneda (fase A3).** El plan tiene moneda (Más
 opciones, «Tus importes están en»), cualquiera con tipo oficial del Banco
 Mundial en el año de precios de los países. Los importes escritos están en
