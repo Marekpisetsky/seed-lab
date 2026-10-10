@@ -1,5 +1,5 @@
 /**
- * The document around a page of a static seed-lab tool (the ones Forja
+ * The document around a page of a static Horalis tool (the ones Forja
  * makes): the head (language, title, description, addresses in every
  * language, the share tags, the icon, the styles inline, the theme script,
  * the language script on English pages) and the body (the kit's header, the page, the
@@ -63,7 +63,7 @@ ${LOCALES.map((other) => html`<link rel="alternate" hreflang="${other}" href="${
 }
 <meta name="color-scheme" content="light dark">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="seed-lab">
+<meta property="og:site_name" content="Horalis">
 <meta property="og:title" content="${page.title}">
 <meta property="og:description" content="${page.description}">
 <meta property="og:locale" content="${LOCALE_SETTINGS[locale].intl.replace("-", "_")}">

@@ -1,6 +1,6 @@
 # Ficha: metas personales y vivir sin trabajar
 
-- **App:** Wealth Lens · **Revisada:** 5 de octubre de 2026.
+- **App:** Horalis Crecimiento · **Revisada:** 5 de octubre de 2026.
 - **Código:** `src/lib/calculator.ts`, `src/lib/types.ts`,
   `src/components/money/goals-section.tsx`, `src/i18n/goal-text.ts`.
 

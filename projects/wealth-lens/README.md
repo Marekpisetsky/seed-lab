@@ -1,9 +1,9 @@
-# wealth-lens
+# Horalis Crecimiento (carpeta `wealth-lens`)
 
-**Misión:** que cualquier persona en Europa vea, en palabras sencillas, qué
+**Misión:** que cualquier persona, en cualquier país, vea, en palabras sencillas, qué
 puede hacer su dinero —cuánto podría crecer, cuánto podría pagarle cada
 mes y en qué lugares del mundo alcanza— sin darle sus datos a nadie. Es
-la primera herramienta de seed-lab: gratuita y centrada en la privacidad.
+la primera herramienta de Horalis: gratuita y centrada en la privacidad.
 
 **Qué NO es:**
 - No da consejo financiero ni recomienda qué comprar o vender: solo
@@ -18,7 +18,7 @@ la primera herramienta de seed-lab: gratuita y centrada en la privacidad.
 - No guarda ni envía nada: no hay cuentas, ni servidor propio, ni
   analítica.
 
-**Cómo cumple los cinco principios de seed-lab** (la misma fila que la
+**Cómo cumple los cinco principios de Horalis** (la misma fila que la
 tabla de *Principles* del hub, `packages/seed-kit/src/tools.json`):
 
 | Principio | Estado | Por qué |
@@ -39,7 +39,7 @@ supone nada sobre la vida del usuario: no pregunta país, ni si alquila o
 es propietario, ni qué quiere hacer con su dinero. Nada se guarda ni se
 envía, y la app no llama a ningún servicio mientras se usa. La lógica
 vive en funciones puras con 841 tests unitarios (Vitest). El uso real
-sostenido (la condición del peldaño 1 de seed-lab) todavía no está
+sostenido (la condición del peldaño 1 de Horalis) todavía no está
 demostrado. Solo se proyecta lo que tiene una
 historia larga y un rango conocido; nada se presenta como predecible, y
 todo supuesto viene relleno con un valor estándar documentado y se puede
@@ -202,7 +202,7 @@ idiomas y con planes de todo tipo (`percentWithoutMoney` de seed-kit).
        quede encima, cambiando en vivo mientras se edita.
      - Los pasos son siempre el mismo elemento y se deslizan a su sitio
        (FLIP, ver arriba); sin animación con *prefers-reduced-motion*.
-     - La cabecera de seed-lab (seed-kit) queda fija arriba en todas las
+     - La cabecera de Horalis (seed-kit) queda fija arriba en todas las
        páginas y se compacta al desplazar, solo con CSS: sube lo que mide
        su margen (en el móvil, su primera fila, y queda la de las
        páginas); las columnas fijas del resultado van justo debajo.
@@ -514,7 +514,7 @@ El PR #17 de migración no forma parte de esta continuación.
   Con el CSS en línea (`experimental.inlineCss`) no mejora (96, 98, 98) y
   cada página pesa unos 17 KB más. Recálculo, máximo 11 ms.
 - Sin credenciales de bróker ni APIs de pago — respeta la regla de
-  costo cero de seed-lab.
+  costo cero de Horalis.
 
 ## Resultados: metas, países, hallazgos
 
@@ -538,7 +538,7 @@ la meta "vivir en…") encuentra cualquiera por su nombre en el idioma de
 la página o en inglés, sin importar tildes.
 
 Los datos de países son de seed-kit (`packages/seed-kit/src/data/` y
-`cost-of-living.ts`), la única fuente que comparten Wealth Lens y Cost Lens:
+`cost-of-living.ts`), la única fuente que comparten Horalis Crecimiento y Horalis Coste de vida:
 
 - **30 detallados** (`cost-of-living.json`), compilados a mano:
   Numbeo (sin alquiler) + Wise (1 dormitorio fuera del centro),
@@ -629,16 +629,16 @@ idiomas (`src/app/not-found.tsx`, HTML sin código propio). Sus textos viven en 
 (`about`, `howItWorks`, `privacy`, `terms`, `notFound`), con frases de hasta
 unas 22 palabras; *How it works* cita cifras sacadas de los datos (países,
 errores de la estimación, países excluidos, inflación alta), así que no se
-desactualiza. El pie enlaza las cuatro y "Part of seed-lab", y termina con
-"© 2026 seed-lab. Free to use." Contacto: seedlab.eu (arroba) proton.me,
+desactualiza. El pie enlaza las cuatro y "Part of Horalis", y termina con
+"© 2026 Horalis. Free to use." Contacto: horalis (arroba) proton.me,
 en About y Privacy. `[email](email)` en los diccionarios lo inserta
 (`src/components/ui/email.tsx`): el HTML estático solo lleva sus dos partes
 (`CONTACT` en `src/lib/site.ts`), que el CSS muestra como una dirección, y
 el navegador la convierte en un enlace de correo; ni la dirección entera
 ni `mailto` aparecen en el HTML, para que no la recojan los bots. Sin
 enlaces a GitHub en la web. Código propietario: ver `LICENSE` y `TRADEMARKS.md` en la raíz
-del repositorio. Icono de la familia de seed-lab: la semilla con brote
-del hub permanece en seed-lab; Wealth Lens tiene una lente con barras propias (`src/app/icon.svg`;
+del repositorio. Icono: la semilla verde de Horalis, la misma en toda la familia
+(`src/app/icon.svg`;
 `favicon.ico` y `apple-icon.png` los dibuja `npm run images` a
 partir de él). La imagen para compartir, de 1200×630, se genera en el
 build (`src/app/og.png/route.tsx`, estática, la misma para todas las
@@ -648,7 +648,7 @@ páginas y los dos idiomas): fondo casi negro, el icono y el lema.
 
 Los colores viven en el `tokens.css` de seed-kit
 (`packages/seed-kit/src/tokens.css`), el único archivo de colores de todas
-las apps de seed-lab, para que se vean como una familia: blanco puro o casi negro (#0A0A0A), grises neutros sin tinte
+las apps de Horalis, para que se vean como una familia: blanco puro o casi negro (#0A0A0A), grises neutros sin tinte
 cálido y un único color de marca, el verde de la semilla. `--brand`
 (#00A36C; #1FCB86 sobre oscuro) rellena lo grande: logo, iconos y el área
 de crecimiento del gráfico; `--accent` (#00774C; #3DDC97 sobre oscuro) es
@@ -678,21 +678,27 @@ sistema (sin fuentes descargadas), títulos en extra-negrita.
 `src/app/tokens.test.ts` comprueba que el icono y la imagen para compartir
 usan sus valores (el contraste lo comprueban los tests de seed-kit).
 
-## Cabecera y pie de seed-lab
+**Marca Horalis (2026-10-09).** La herramienta se llama Horalis Crecimiento
+(EN: Horalis Growth; antes Wealth Lens). Su icono, su imagen para compartir
+y su cabecera llevan la semilla verde de Horalis, como el resto de la
+familia (antes, una lupa con tres barras). En la cabecera se lee «Horalis»
+y, después, «Crecimiento»; en el móvil, debajo.
+
+## Cabecera y pie de Horalis
 
 La cabecera y el pie son los de seed-kit (`packages/seed-kit`), los mismos
-que llevan el hub y cada herramienta: la semilla con "Wealth Lens", las
-páginas, EN/ES y el lanzador de seed-lab; en el pie, los controles de
-datos, los enlaces, "Parte de seed-lab", la nota y el copyright.
+que llevan el hub y cada herramienta: la semilla con "Horalis Crecimiento", las
+páginas, EN/ES y el lanzador de Horalis; en el pie, los controles de
+datos, los enlaces, "Parte de Horalis", la nota y el copyright.
 Junto a EN/ES está el menú de tema de seed-kit (en un móvil de hasta 424
 px, al pie del panel del lanzador).
-`src/components/site/site-shell.tsx` solo dice lo propio de Wealth Lens
+`src/components/site/site-shell.tsx` solo dice lo propio de Horalis Crecimiento
 (su nombre, páginas, enlaces y nota) y pasa `IntentLink`, para que
 cambiar de página o de idioma no pierda lo escrito.
 
 El lanzador es un botón de rejilla junto a EN/ES que abre un panel
-pequeño: "seed-lab" (enlace al hub) y las herramientas visibles de la
-lista común (`packages/seed-kit/src/tools.json`), con Wealth Lens marcado
+pequeño: "Horalis" (enlace al hub) y las herramientas visibles de la
+lista común (`packages/seed-kit/src/tools.json`), con Horalis Crecimiento marcado
 como actual. Se cierra con Escape (el foco vuelve al botón), tocando fuera
 o al elegir una herramienta. La URL del hub es una constante del kit
 (`HUB_URL` en `packages/seed-kit/src/site.ts`, hoy

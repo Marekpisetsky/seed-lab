@@ -1,11 +1,11 @@
-# seed-lab hub
+# Horalis hub
 
-La web de seed-lab, en inglés y en español. La portada, en franjas
+La web de Horalis, en inglés y en español. La portada, en franjas
 negras y blancas como la web de un fabricante, muestra solo lo que
 existe:
 
 1. **Apertura oscura:** el titular, la misión en una frase, un botón verde
-   y una captura grande y real de Wealth Lens.
+   y una captura grande y real de Horalis Crecimiento.
 2. **Principios**, en blanco: cada uno con su icono, su título y una regla
    que cualquiera puede comprobar.
 3. **Herramientas**, en blanco, por estantes ("Dinero", "Vida y países"):
@@ -15,7 +15,7 @@ existe:
 4. **Cómo construimos**, en oscuro: la plataforma (seed-kit y Forja) en
    tres pasos y un esquema.
 5. **Qué nos hace distintos**, en blanco: una app típica frente a
-   seed-lab (cuenta, rastreo, datos, anuncios y peso), sin nombrar a nadie.
+   Horalis (cuenta, rastreo, datos, anuncios y peso), sin nombrar a nadie.
 6. **En cifras**, en oscuro, calculadas al construir: 0 cookies, 0
    rastreadores, los KB de la página más pesada, idiomas, países en los
    datos y herramientas hechas sobre la plataforma que se pueden usar (solo
@@ -23,10 +23,10 @@ existe:
 7. **Pie claro.**
 
 *Principles*
-describe los compromisos de seed-lab con reglas comprobables y una tabla
+describe los compromisos de Horalis con reglas comprobables y una tabla
 de cómo los cumple cada producto. *Roadmap* (enlazada desde el pie)
 guarda la escalera de peldaños y todo lo pendiente. *About* cuenta qué es
-seed-lab y quién lo hace.
+Horalis y quién lo hace.
 
 - Dirección, escalera y principios: [`../docs/direction.md`](../docs/direction.md).
 - Plan para alojarlo en Europa: [`../docs/hosting.md`](../docs/hosting.md).
@@ -42,7 +42,7 @@ lint, tipos y tests.
 Lo que comparte con las demás herramientas viene de **seed-kit**
 ([`../packages/seed-kit`](../packages/seed-kit/README.md)), importado
 desde el código, no copiado: los colores (`tokens.css`), la cabecera y el
-pie de seed-lab (con el lanzador de herramientas y EN/ES), la lista de
+pie de Horalis (con el lanzador de herramientas y EN/ES), la lista de
 herramientas (`tools.json`), el script de idioma, los iconos, la medida
 del peso y las comprobaciones de privacidad y de lenguaje sencillo.
 
@@ -57,7 +57,7 @@ del peso y las comprobaciones de privacidad y de lenguaje sencillo.
     llega desde fuera con un navegador en español va a la página en
     español; el selector EN/ES siempre gana; no guarda nada;
   - solo donde aparece el correo (About), el del contacto (`src/email.ts`).
-- **Contacto:** seedlab.eu (arroba) proton.me. En las páginas va en dos
+- **Contacto:** horalis (arroba) proton.me. En las páginas va en dos
   partes (`data-user` y `data-domain`, en `src/site.ts`): el CSS las
   muestra como una dirección y el script la convierte en un enlace de
   correo. El HTML nunca contiene la dirección entera ni un enlace
@@ -75,8 +75,8 @@ del peso y las comprobaciones de privacidad y de lenguaje sencillo.
   los mismos que lleva cada herramienta: la semilla y el nombre, las
   páginas, EN/ES, el menú de tema y el lanzador (un `<details>`) con las
   herramientas visibles. Aquí la cabecera es oscura y el pie claro
-  (salvo con un modo elegido), y el pie no dice "Parte de seed-lab" (es
-  seed-lab).
+  (salvo con un modo elegido), y el pie no dice "Parte de Horalis" (es
+  Horalis).
 - **Colores:** el `tokens.css` de seed-kit, el único archivo de colores
   de todas las apps: blanco o #0A0A0A, grises
   neutros y un solo verde de marca, el de la semilla: `--brand` #00A36C
@@ -88,13 +88,13 @@ del peso y las comprobaciones de privacidad y de lenguaje sencillo.
 - **Iconos:** la semilla con brote (`icons.ts` de seed-kit), en formas rellenas
   para que se lea a 16 px. `npm run images` dibuja
   `static/apple-touch-icon.png`, `static/og.png` y los iconos raster de
-  Wealth Lens a partir de los SVG, con el Chromium de Playwright
+  Horalis Crecimiento a partir de los SVG, con el Chromium de Playwright
   (dependencia de desarrollo, fijada en 1.56.1: la versión cuyo navegador
   ya traen los entornos en la nube de Claude Code; en otra máquina el
   comando lo instala primero si falta).
 - **Capturas:** `npm run shots` fotografía cada herramienta visible desde
   su build real (`projects/<id>/out` o `dist`, servido en local), en
-  inglés y en español, con datos escritos (y, en Wealth Lens, "See my
+  inglés y en español, con datos escritos (y, en Horalis Crecimiento, "See my
   result" pulsado) para que se vea un resultado;
   las guarda en WebP a varios anchos en `static/shots/` y las anota en
   `content/shots.json`. Se cargan solo al acercarse a la pantalla
@@ -137,7 +137,7 @@ npm run typecheck
 npm test            # construye y comprueba el resultado
 npm run check       # los tres
 npm run shots       # vuelve a tomar las capturas (antes: npm run build en cada herramienta)
-npm run test:browser  # tras compilar el hub, Cost Lens e Inflation Lens: el menú de tema,
+npm run test:browser  # tras compilar el hub, Horalis Coste de vida y Horalis Inflación: el menú de tema,
                       # el contraste AA en claro y oscuro y el daltonismo emulado (e2e/)
 ```
 
@@ -172,7 +172,7 @@ publica como un segundo proyecto de Vercel sobre este mismo repositorio:
 1. Vercel → **Add New… → Project** → importar `Marekpisetsky/seed-lab`.
 2. **Project Name:** `seed-lab-hub` (así queda en
    `https://seed-lab-hub.vercel.app`, la dirección que usan `src/site.ts`
-   y el menú de Wealth Lens).
+   y el menú de Horalis Crecimiento).
 3. **Root Directory:** `hub`.
 4. **Framework Preset:** Other.
 5. **Build Command:** `npm run build` · **Output Directory:** `dist` ·
@@ -185,7 +185,7 @@ publica como un segundo proyecto de Vercel sobre este mismo repositorio:
    `404.html`.
 
 Si el proyecto acaba con otro nombre, cambiar `SITE_URL` en `src/site.ts`
-(canónicas, hreflang y sitemap) y `SEED_LAB_HUB_URL` en Wealth Lens.
+(canónicas, hreflang y sitemap) y `SEED_LAB_HUB_URL` en Horalis Crecimiento.
 
 ## Licencia
 

@@ -1,4 +1,4 @@
-# Cost Lens
+# Horalis Coste de vida
 
 **Misión:** que cualquiera vea, en un momento y sin dar ningún dato, lo
 que vale su dinero en otro país: "Con 2.500 € al mes en Países Bajos, en
@@ -32,7 +32,7 @@ el hub ni los lanzadores la muestran hasta que pase a `"listed": true`.
 ## Datos
 
 Los 172 países de seed-kit (`packages/seed-kit/src/cost-of-living.ts` y
-`data/`), los mismos que usa Wealth Lens: una sola fuente.
+`data/`), los mismos que usa Horalis Crecimiento: una sola fuente.
 
 - 30 detallados: Numbeo (gastos sin alquiler) y Wise (alquiler de un piso
   de un dormitorio fuera del centro), en euros, redondeados a 10.
@@ -41,7 +41,7 @@ Los 172 países de seed-kit (`packages/seed-kit/src/cost-of-living.ts` y
   ese número al cuadrado.
 
 Solo viajan a la página las cifras derivadas y redondeadas que ya publica
-Wealth Lens (ver "Licencias de los datos" en su README). La página las
+Horalis Crecimiento (ver "Licencias de los datos" en su README). La página las
 lleva dentro, en JSON: el navegador no pide nada a nadie.
 
 ## Cómo cumple los cinco principios
@@ -59,7 +59,7 @@ lleva dentro, en JSON: el navegador no pide nada a nadie.
 Nació con [Forja](../../tools/forja/README.md) (molde `web-tool`) sobre
 [seed-kit](../../packages/seed-kit/README.md): páginas estáticas, sin
 framework, que Node 22 genera desde TypeScript. De seed-kit vienen los
-colores, la cabecera y el pie de seed-lab, la página de privacidad y
+colores, la cabecera y el pie de Horalis, la página de privacidad y
 condiciones, el documento HTML, el script de idioma, los formatos de
 números, los datos de países y sus nombres, el código para el navegador,
 la medida del peso y las comprobaciones.

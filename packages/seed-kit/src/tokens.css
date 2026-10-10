@@ -1,5 +1,5 @@
 /*
- * seed-lab design tokens, the one copy: every app imports this file from
+ * Horalis design tokens, the one copy: every app imports this file from
  * seed-kit (packages/seed-kit/src/tokens.css) instead of keeping its own,
  * so all of them look like one family. The kit's tests check the contrast.
  *

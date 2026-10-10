@@ -1,6 +1,6 @@
 # Ficha: deseos y precios por país
 
-- **App:** Wealth Lens · **Revisada:** 8 de octubre de 2026
+- **App:** Horalis Crecimiento · **Revisada:** 8 de octubre de 2026
 - **Código** (en `projects/wealth-lens/`): `src/data/connections.json`
   (los precios), `src/lib/connections.ts` (los valida),
   `src/lib/calculator.ts` (`priceItem`, `pricedItems`, metas de una cosa),

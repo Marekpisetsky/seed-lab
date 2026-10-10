@@ -1,6 +1,6 @@
 /**
  * Light, dark or automatic (the device's own mode, the default), for every
- * seed-lab app, chosen in the header (chrome.ts). The choice is the one
+ * Horalis app, chosen in the header (chrome.ts). The choice is the one
  * thing an app keeps in the browser, and only for the tab: one key in
  * sessionStorage, which the browser deletes when the tab is closed. It is
  * never sent, and "Automatic" deletes it at once. The privacy pages say so

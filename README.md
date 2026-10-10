@@ -1,14 +1,23 @@
-# seed-lab
+# Horalis
 
-seed-lab builds free, privacy-first digital tools that Europeans —
-citizens, developers and public bodies — can use without giving up their
-data.
+**Horalis. Own your hours. / Tus horas, tuyas.**
 
-seed-lab construye herramientas digitales gratuitas y centradas en la
-privacidad para Europa. No vende a gobiernos: publica herramientas
-gratuitas que ciudadanos, desarrolladores e instituciones adoptan por su
-cuenta. **Wealth Lens** (`projects/wealth-lens/`) es la primera
-herramienta y la prueba de los principios.
+Horalis (antes seed-lab) hace herramientas digitales gratuitas y privadas,
+útiles en cualquier país, construidas en Europa y sin depender de
+servidores de EE. UU. Deben funcionar durante años sin que nadie las
+toque, como un programa de escritorio: cada cálculo ocurre en el
+dispositivo de la persona y ninguna herramienta depende de un servidor
+central para funcionar.
+
+El repositorio, sus carpetas (`projects/wealth-lens/`…) y los proyectos de
+Vercel conservan el nombre antiguo; solo cambia lo que ve la gente y la
+documentación. Las herramientas:
+
+| Herramienta (en inglés) | Antes | Carpeta | Pregunta |
+| --- | --- | --- | --- |
+| Horalis Crecimiento (Growth) | Wealth Lens | `projects/wealth-lens/` | ¿Cuánto crecerá mi dinero? ¿Cuánto me genera hoy al mes? |
+| Horalis Coste de vida (Cost of Living) | Cost Lens | `projects/cost-lens/` | ¿Cuánto necesito para vivir en un país? |
+| Horalis Inflación (Inflation) | Inflation Lens | `projects/inflation-lens/` | ¿Cuánto vale hoy un importe de otro año? |
 
 - **Dirección:** visión, modelo, escalera, misión, los cinco principios
   (con *Transparent*), ODS y "Qué NO somos", en
@@ -19,7 +28,7 @@ herramienta y la prueba de los principios.
 - **Dónde estamos:** peldaño 1 de la escalera, herramientas que la gente
   usa. Los peldaños siguientes todavía no existen; la web los muestra solo
   en su página *Roadmap*.
-- **Web de seed-lab:** [`hub/`](hub/README.md), estática, en EN y ES, sin
+- **Web de Horalis:** [`hub/`](hub/README.md), estática, en EN y ES, sin
   cookies.
 - **Cómo construimos:** [Forja](tools/forja/README.md) fabrica (su
   molde `web-tool`), [seed-kit](packages/seed-kit/README.md) son las
@@ -32,7 +41,7 @@ herramienta y la prueba de los principios.
   derechos reservados ([`LICENSE`](LICENSE)). Las aplicaciones publicadas
   son de uso gratuito. Nombres y logotipos:
   [`TRADEMARKS.md`](TRADEMARKS.md).
-- **Contacto:** seedlab.eu (arroba) proton.me.
+- **Contacto:** horalis (arroba) proton.me.
 
 ## Reglas de trabajo
 
@@ -54,7 +63,7 @@ herramienta y la prueba de los principios.
 
 ## Estructura
 
-- `hub/` — la web de seed-lab: misión, principios, productos y hoja de
+- `hub/` — la web de Horalis: misión, principios, productos y hoja de
   ruta. Ver `hub/README.md`.
 - `projects/` — los productos. Publicado, uno: `projects/wealth-lens/`.
   Betas ocultas hechas con Forja: `projects/cost-lens/` y
@@ -65,13 +74,13 @@ herramienta y la prueba de los principios.
   privacidad y comprobaciones. Interna, no es un producto. Ver
   `packages/seed-kit/README.md`.
 - `docs/` — dirección (`direction.md`), plan de alojamiento
-  (`hosting.md`), historia (`history.md`: cómo se definía seed-lab antes
+  (`hosting.md`), historia (`history.md`: cómo se definía Horalis antes
   de septiembre de 2026) y capturas.
-- `research/` — seed-lab Research: una ficha por modelo y supuesto de
+- `research/` — Horalis Research: una ficha por modelo y supuesto de
   cada app (pregunta, fórmula, supuestos, fuentes con fecha, tests,
   límites, lo discutible), más las fichas educativas y legales comunes.
 - `tools/forja/` — herramienta interna: genera herramientas web de
-  seed-lab sobre seed-kit (molde `web-tool`) y proyectos de Python, todos
+  Horalis sobre seed-kit (molde `web-tool`) y proyectos de Python, todos
   con tests que pasan al nacer. No es un producto.
 - `cells/`, `core/` y `seed.py` — banco de pruebas: ideas rápidas en un
   archivo de Python cada una, que `seed.py` descubre y ejecuta.

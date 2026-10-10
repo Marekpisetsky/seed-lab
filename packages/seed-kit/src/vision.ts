@@ -1,5 +1,5 @@
 /**
- * Colour checks for the browser tests of every seed-lab app: what a page
+ * Colour checks for the browser tests of every Horalis app: what a page
  * looks like to people with the common colour blindnesses (the browser's
  * own emulation, read back from a screenshot), how far apart two colours
  * are for the eye (CIEDE2000), and the WCAG contrast of every piece of

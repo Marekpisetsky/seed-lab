@@ -26,7 +26,7 @@ const IN_SENTENCE = {
 
 export const en = {
   site: {
-    name: "Wealth Lens",
+    name: "Horalis Growth",
     tagline: "What your money can do, in plain words.",
     nav: { money: "My money", test: "Test my plan", stocks: "My stocks" },
     /** The footer's pages, by their titles (the pages themselves are in en-pages.ts). */
@@ -222,7 +222,7 @@ export const en = {
   data: {
     download: "Download my data",
     load: "Load my data",
-    loadLabel: "Load a Wealth Lens data file",
+    loadLabel: "Load a Horalis Growth data file",
     legacy: "An older version saved your data in this browser. The app no longer saves anything.",
     useIt: "Use it and delete it",
     deleteIt: "Delete it",
@@ -247,9 +247,9 @@ export const en = {
     oversold: ({ ticker, shares, held }) => `${ticker}: sells ${shares} shares, but only ${held} were held. Are older trades missing?`,
     "prices-no-columns": () => "The file needs a date column and a price column.",
     "prices-no-rows": () => "No rows with a date and a price above 0.",
-    "data-not-json": () => "This is not a Wealth Lens data file.",
-    "data-not-ours": () => "This is not a Wealth Lens data file.",
-    "data-newer": () => "A newer Wealth Lens made this file.",
+    "data-not-json": () => "This is not a Horalis Growth data file.",
+    "data-not-ours": () => "This is not a Horalis Growth data file.",
+    "data-newer": () => "A newer Horalis Growth made this file.",
     "stock-now-portfolio": ({ name }) => `Your file projected ${name} alone. One stock is no longer projected alone. It now uses My portfolio.`,
     "stock-now-index": ({ name, index }) => `Your file projected ${name} alone. One stock is no longer projected alone. It now grows like ${IN_SENTENCE[index]}.`,
     "mix-had-stocks": () => "Your mix had single stocks. Each one now counts as its index.",
@@ -855,7 +855,7 @@ export const en = {
       text: (year: number, shown: string, today: string) => `In ${year} your account will show ~${shown}. That is ${today} of today's money.`,
       factor: (rate: string, years: number, factor: string, then: string) => `Prices rising ${rate} a year for ${years} years: × ${factor}, so €1 becomes ${then}.`,
       times: (today: string, factor: string, shown: string, year: number) => `${today} × ${factor} = ${shown} in euros of ${year}.`,
-      todays: (year: number) => `Wealth Lens shows today's euros. Your bank will show euros of ${year}.`,
+      todays: (year: number) => `Horalis Growth shows today's euros. Your bank will show euros of ${year}.`,
       assumption: (rate: string, example: string) => `Prices rise ${rate} a year: €100 today costs ${example} next year.`,
       afterPrices: "Growth here is after rising prices, so it allows for them.",
     },
@@ -871,7 +871,7 @@ export const en = {
       value: (count: number) => `${count} currencies`,
       line: (money: string, code: string) => `${money} in ${code}: not counted.`,
       counted: (amount: string) => `Counted: ${amount} in euros.`,
-      assumption: "Wealth Lens does not convert currencies. It only uses your euro holdings.",
+      assumption: "Horalis Growth does not convert currencies. It only uses your euro holdings.",
       and: " and ",
       names: { USD: "US dollars", GBP: "pounds", GBX: "pence", CHF: "Swiss francs", JPY: "yen", PLN: "złoty", SEK: "Swedish kronor", NOK: "Norwegian kroner", DKK: "Danish kroner", CAD: "Canadian dollars" } as Record<string, string>,
     },

@@ -1,0 +1,78 @@
+# Horalis's official data, once a year (packages/seed-kit/scripts/official-data.ts).
+#
+# GitHub only runs workflows from .github/workflows/ at the root of the
+# repository, and the session that wrote this could not add one there.
+# Copy this file once to .github/workflows/official-data.yml, and allow
+# "GitHub Actions to create and approve pull requests" (Settings → Actions →
+# General → Workflow permissions). Start the first run from Actions →
+# "Official data" → "Run workflow": it replaces the provisional start.
+#
+# What it does: downloads every series from its source (World Bank,
+# Eurostat, CLDR), checks it on its own and against the files in use, runs
+# seed-kit's tests on it, and opens a pull request. If anything fails, the
+# data stays as it was and the pull request only carries the report that
+# says what failed. Nothing is merged without a person.
+
+name: Official data
+
+on:
+  schedule:
+    - cron: "23 5 1 7 *" # 1 July, 05:23 UTC: most countries' figures for the year before are out by then
+  workflow_dispatch: # "Run workflow" button
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: official-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: packages/seed-kit
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Download and check
+        id: data
+        run: |
+          set +e
+          node --experimental-strip-types scripts/official-data.ts --report "$RUNNER_TEMP/REPORT.md"
+          echo "status=$?" >> "$GITHUB_OUTPUT"
+          cp "$RUNNER_TEMP/REPORT.md" src/data/official/REPORT.md || printf '# Official data\n\nThe download crashed before writing its report. See the run: %s\n' "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > src/data/official/REPORT.md
+
+      - name: Test seed-kit with the new data
+        id: tests
+        if: steps.data.outputs.status == '0'
+        continue-on-error: true
+        run: npm ci && npm test
+
+      - name: Keep the old data if the tests failed
+        if: steps.data.outputs.status == '0' && steps.tests.outcome == 'failure'
+        run: |
+          git checkout -- src/data/official/*.json
+          printf '\n## The tests failed with the new data\n\nThe data was put back as it was. See the run: %s\n' "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> src/data/official/REPORT.md
+
+      - name: Open a pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PASSED: ${{ steps.data.outputs.status == '0' && steps.tests.outcome == 'success' }}
+        run: |
+          branch="data/official-$(date -u +%F)-$GITHUB_RUN_ID"
+          if [ "$PASSED" = "true" ]; then title="Official data $(date -u +%F): checked, ready to review"; else title="Official data $(date -u +%F): checks failed, no data changed"; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add src/data/official
+          git commit -m "$title"
+          git push origin "$branch"
+          gh pr create --head "$branch" --title "$title" --body-file src/data/official/REPORT.md

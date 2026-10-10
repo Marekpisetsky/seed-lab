@@ -23,12 +23,13 @@ export function GET() {
     (
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: 72, background: COLORS.background, color: COLORS.foreground }}>
         <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
-          {/* The product's own mark, matching src/app/icon.svg. */}
+          {/* The Horalis seed, matching src/app/icon.svg. */}
           <svg width="120" height="120" viewBox="0 0 32 32">
             <g fill={COLORS.brand}>
-              <circle cx="13" cy="13" r="10" fill="none" stroke={COLORS.brand} strokeWidth="4" />
-              <path d="M21 21l8 8" fill="none" stroke={COLORS.brand} strokeWidth="5" strokeLinecap="round" />
-              <path d="M7 18v-4h3v4zm5 0v-7h3v7zm5 0V8h3v10z" />
+              <ellipse cx="16" cy="23.5" rx="10" ry="6.5" />
+              <rect x="14.7" y="11" width="2.6" height="8" rx="1.3" />
+              <path d="M15.6 13.2C15 8.6 11.4 5.6 6.2 5.8c.4 5 4.2 8 9.4 7.4z" />
+              <path d="M16.4 11.6c.8-4.8 4.6-7.8 9.6-7.4-.6 5-4.6 7.8-9.6 7.4z" />
             </g>
           </svg>
           <div style={{ fontSize: 84, fontWeight: 800, letterSpacing: -3 }}>{EN.site.name}</div>

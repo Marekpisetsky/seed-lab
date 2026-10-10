@@ -1,6 +1,6 @@
 /**
  * Numbers, money, percents and dates, in the formats of each language
- * ("€112,288" in English, "112.288 €" in Spanish), for every seed-lab
+ * ("€112,288" in English, "112.288 €" in Spanish), for every Horalis
  * tool (it began in Wealth Lens). The words around them ("3 years", "in 2
  * months") belong to each app's dictionaries.
  *
@@ -237,7 +237,7 @@ export function numberFormats(intl: string): NumberFormats {
   return formats;
 }
 
-/** The formats of a seed-lab language, with the kit's default Intl tag (locales.ts). */
+/** The formats of a Horalis language, with the kit's default Intl tag (locales.ts). */
 export function formatsFor(locale: Locale): NumberFormats {
   return numberFormats(LOCALE_SETTINGS[locale].intl);
 }

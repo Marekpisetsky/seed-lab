@@ -1,6 +1,6 @@
 # Ficha: década mala histórica
 
-- **App:** Wealth Lens · **Revisada:** 3 de octubre de 2026
+- **App:** Horalis Crecimiento · **Revisada:** 3 de octubre de 2026
 - **Código** (en `projects/wealth-lens/`): `src/lib/decade.ts`
   (`historicalDecade`, `decadeYears`, `FAMOUS_DECADE`, `DECADE_YEARS`),
   `src/lib/what-if.ts` (`badStartHead`), `src/lib/findings.ts`

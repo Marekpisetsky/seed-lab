@@ -1,4 +1,4 @@
-# Inflation Lens
+# Horalis Inflación
 
 **Misión:** que cualquiera vea, sin dar ningún dato, lo que valen hoy
 sus euros de otro año en su país de la UE o en la zona euro, y al revés:
@@ -76,7 +76,7 @@ provisional, y `npm test` lo vuelve a comprobar. Después se puede pasar a
 Nació con [Forja](../../tools/forja/README.md) (molde `web-tool`) sobre
 [seed-kit](../../packages/seed-kit/README.md): páginas estáticas, sin
 framework, que Node 22 genera desde TypeScript. De seed-kit vienen los
-colores, la cabecera y el pie de seed-lab, la página de privacidad y
+colores, la cabecera y el pie de Horalis, la página de privacidad y
 condiciones, el documento HTML, el script de idioma, los formatos de
 números, los nombres de los países, el código para el navegador, la
 medida del peso y las comprobaciones.

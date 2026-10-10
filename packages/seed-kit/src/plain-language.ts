@@ -1,8 +1,8 @@
 /**
- * The plain-language check every seed-lab tool runs on its words (principle
+ * The plain-language check every Horalis tool runs on its words (principle
  * 5, "clear enough for a child and their grandparent"): short sentences,
  * no jargon outside the places that explain it, and no advice anywhere
- * (seed-lab informs, it does not advise). Pure functions, so any test
+ * (Horalis informs, it does not advise). Pure functions, so any test
  * runner can use them; an app's test passes its own texts and limits.
  */
 

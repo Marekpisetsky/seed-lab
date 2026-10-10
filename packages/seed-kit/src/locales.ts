@@ -1,5 +1,5 @@
 /**
- * The languages every seed-lab tool speaks: English at the root of its
+ * The languages every Horalis tool speaks: English at the root of its
  * site, every other language under its own prefix ("/es/…"). Adding one
  * takes an entry here and its words in each dictionary.
  */

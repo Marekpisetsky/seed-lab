@@ -1,5 +1,5 @@
 /**
- * seed-lab, the family Wealth Lens belongs to: the hub's address, its
+ * Horalis, the family this tool (Horalis Growth) belongs to: the hub's address, its
  * research sheets and the tools, from seed-kit (packages/seed-kit), the one place every app reads
  * them from.
  */
