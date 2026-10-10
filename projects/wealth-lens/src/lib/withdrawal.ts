@@ -12,9 +12,18 @@ export const WITHDRAWAL_STEPS: readonly number[] = Array.from(
   (_, index) => Math.round((WITHDRAWAL_MIN + index * WITHDRAWAL_STEP) * 1000) / 1000,
 );
 
-/** The rates the slider offers, 2 % to 7 %, lowest first (the plan's own is always one of them: lib/validation.ts). */
-export function offeredRates(withdrawalRate: number): number[] {
-  return [...new Set([...WITHDRAWAL_STEPS, withdrawalRate])].sort((a, b) => a - b);
+/**
+ * The slider's steps: 2 % to 7 % every 0.5 %, and the rate the data back
+ * wherever it falls (lib/safe-rate.ts); a step within a hundredth of a
+ * percent of it gives way, so the thumb never has two stops in one place.
+ */
+export function sliderSteps(dataRate: number): number[] {
+  return [...WITHDRAWAL_STEPS.filter((step) => Math.abs(step - dataRate) > 1e-4 + 1e-9), dataRate].sort((a, b) => a - b);
+}
+
+/** The rates worked out ahead: the slider's steps and the plan's own, lowest first. */
+export function offeredRates(withdrawalRate: number, dataRate: number = withdrawalRate): number[] {
+  return [...new Set([...sliderSteps(dataRate), withdrawalRate])].sort((a, b) => a - b);
 }
 
 /** A rate on the slider: within 2–7 %, on a step of 0.5 % (a file could hold any). */

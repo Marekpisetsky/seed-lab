@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import { maxRate, safeRate } from "@seed-kit/withdrawal-rate.ts";
 import { SERIES } from "./indexes";
 import { resolveInvestment, STANDARD_SETTINGS } from "./investment";
-import { assetSafeRate, earlyFall, RETIREMENT_YEARS, safeRateFor, similarAsset, worstFall } from "./safe-rate";
+import { assetSafeRate, earlyFall, floorRate, RETIREMENT_YEARS, safeRateFor, similarAsset, worstFall } from "./safe-rate";
 import { STANDARD_ASSUMPTIONS } from "./types";
 
 const resolve = (investment: Parameters<typeof resolveInvestment>[0], assumptions = STANDARD_ASSUMPTIONS) => resolveInvestment(investment, { ...STANDARD_SETTINGS, assumptions });
 
-describe("the rate the data back, for each investment", () => {
+describe("the most that lasted 30 years, for each investment", () => {
   it("US stocks: their whole history from 1928, 30 years from every start, the worst in 1929", () => {
     const info = safeRateFor(resolve({ kind: "asset", asset: "sp500" }));
     expect(info.kind).toBe("history");
@@ -17,7 +17,7 @@ describe("the rate the data back, for each investment", () => {
     expect(info.periods).toBe(SERIES.sp500.dataset.years.length - RETIREMENT_YEARS + 1);
     expect(info.few).toBe(false);
     expect(info.worstStart).toBe(1929);
-    // Bengen's "about 4 %": a little under it with these data.
+    // For 100 % US stocks with Shiller's data: a little under the "about 4 %" Bengen found for 50–75 % stocks.
     expect(info.rate).toBeGreaterThan(0.035);
     expect(info.rate).toBeLessThan(0.04);
   });
@@ -40,7 +40,7 @@ describe("the rate the data back, for each investment", () => {
   it("a savings account: the same growth every year, one answer", () => {
     const savings = resolve({ kind: "asset", asset: "savings" });
     const info = safeRateFor(savings);
-    expect(info).toEqual({ kind: "steady", rate: maxRate(Array(RETIREMENT_YEARS).fill(savings.realReturn)), years: RETIREMENT_YEARS });
+    expect(info).toEqual({ kind: "steady", rate: floorRate(maxRate(Array(RETIREMENT_YEARS).fill(savings.realReturn))), years: RETIREMENT_YEARS });
   });
 
   it("a mix: its parts back to their weights each year, over the years they share", () => {
@@ -53,7 +53,7 @@ describe("the rate the data back, for each investment", () => {
     const bonds = new Map(SERIES.bonds.dataset.years.map((entry) => [entry.year, entry.realReturn]));
     const years = [...bonds.keys()].filter((year) => sp.has(year));
     const expected = safeRate(years.map((year) => ({ year, realReturn: 0.6 * sp.get(year)! + 0.4 * bonds.get(year)! })), RETIREMENT_YEARS);
-    expect(info.rate).toBeCloseTo(expected.rate, 12);
+    expect(info.rate).toBe(floorRate(expected.rate));
   });
 
   it("my own growth: no history; the most similar asset's rate as a start, and its worst year", () => {
@@ -62,7 +62,8 @@ describe("the rate the data back, for each investment", () => {
     expect(info.kind).toBe("own");
     if (info.kind !== "own") return;
     expect(info.similar).toBe("sp500");
-    expect(info.rate).toBe(assetSafeRate("sp500").rate);
+    expect(info.rate).toBe(floorRate(assetSafeRate("sp500").rate));
+    expect(info.start).toBe("sp500");
     expect(info.fall).toEqual(worstFall("sp500"));
     expect(info.fall.change).toBeLessThan(-0.3);
   });
@@ -97,11 +98,31 @@ describe("the plan's withdrawal rate", () => {
     const { SP500_PLAN } = await import("./sp500-plan");
     const today = new Date(Date.UTC(2026, 9, 9));
     const stocks = { ...SP500_PLAN, withdrawalRate: null };
-    expect(planWithdrawalRate(stocks)).toBe(assetSafeRate("sp500").rate);
-    expect(calculate(stocks, today).scenario.withdrawalRate).toBe(assetSafeRate("sp500").rate);
-    expect(calculate({ ...stocks, investment: { kind: "asset", asset: "gold" } }, today).scenario.withdrawalRate).toBe(assetSafeRate("gold").rate);
+    expect(planWithdrawalRate(stocks)).toBe(floorRate(assetSafeRate("sp500").rate));
+    expect(calculate(stocks, today).scenario.withdrawalRate).toBe(floorRate(assetSafeRate("sp500").rate));
+    expect(calculate({ ...stocks, investment: { kind: "asset", asset: "gold" } }, today).scenario.withdrawalRate).toBe(floorRate(assetSafeRate("gold").rate));
     expect(calculate({ ...stocks, withdrawalRate: 0.05 }, today).scenario.withdrawalRate).toBe(0.05);
     // A "What if…?" changes the look, not the data's rate.
-    expect(calculate(stocks, today, "grow-more").scenario.withdrawalRate).toBe(assetSafeRate("sp500").rate);
+    expect(calculate(stocks, today, "grow-more").scenario.withdrawalRate).toBe(floorRate(assetSafeRate("sp500").rate));
+  });
+});
+
+describe("the figures research/wealth-lens/tasa-de-retiro.md quotes (a data update that moves them must update the sheet)", () => {
+  it("US stocks, bonds, gold, 60/40 and savings", () => {
+    const pct = (rate: number) => Math.round(rate * 10_000) / 100;
+    expect([pct(assetSafeRate("sp500").rate), assetSafeRate("sp500").worstStart, assetSafeRate("sp500").periods]).toEqual([3.78, 1929, 66]);
+    expect([pct(assetSafeRate("bonds").rate), assetSafeRate("bonds").worstStart, assetSafeRate("bonds").periods]).toEqual([5.56, 1994, 8]);
+    expect([pct(assetSafeRate("gold").rate), assetSafeRate("gold").worstStart, assetSafeRate("gold").periods]).toEqual([2.22, 1988, 8]);
+    const mix = safeRateFor(resolve({ kind: "mix", parts: [{ asset: "sp500", weight: 60 }, { asset: "bonds", weight: 40 }], rebalance: true }));
+    expect(mix.kind === "history" ? [pct(mix.rate), mix.worstStart, mix.periods] : null).toEqual([7.58, 1990, 6]);
+    expect(pct(safeRateFor(resolve({ kind: "asset", asset: "savings" })).rate)).toBe(3.1);
+  });
+
+  it("rounds a rate down to a hundredth of a percent", () => {
+    expect(floorRate(0.037819)).toBe(0.0378);
+    expect(floorRate(0.05)).toBe(0.05);
+    // Noise a float leaves below a round rate is not a hundredth of a percent less.
+    expect(floorRate(0.0499999999999999)).toBe(0.05);
+    expect(floorRate(0.04989)).toBe(0.0498);
   });
 });

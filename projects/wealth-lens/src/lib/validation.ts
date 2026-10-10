@@ -406,10 +406,11 @@ function goalsFromEarlierVersions(value: Record<string, unknown>, notices: Notic
  * data's rate; any other rate was the user's and stays, on the slider's
  * steps (2–7 %, every 0.5 %; earlier versions offered 3, 4 and 5 %).
  */
-function withdrawalOf(value: unknown, version: number): number | null {
+export function withdrawalOf(value: unknown, version: number): number | null {
   if (!isRate(value) || !(value > 0)) return null;
-  const rate = snapWithdrawal(value);
-  return version < DATA_RATE_SINCE && Math.abs(rate - OLD_DEFAULT_WITHDRAWAL) < 1e-9 ? null : rate;
+  // The old default itself, not a rate that snaps to it (4.2 % was chosen).
+  if (version < DATA_RATE_SINCE && Math.abs(value - OLD_DEFAULT_WITHDRAWAL) < 1e-9) return null;
+  return snapWithdrawal(value);
 }
 
 /** The version that first took the data's withdrawal rate (A4), and the fixed rate before it. */

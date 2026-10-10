@@ -51,6 +51,13 @@ describe("data saved by earlier versions", () => {
     });
   });
 
+  it("turns their 4 % default into the data's rate, and puts any other rate on the slider's steps", () => {
+    const rate = (withdrawalRate: number) => readLegacyData(new MemoryStorage({ "wealth-lens:v1:assumptions": { withdrawalRate, monthlyContribution: 100 } }))?.plan.withdrawalRate;
+    expect(rate(0.04)).toBeNull();
+    expect(rate(0.042)).toBe(0.04);
+    expect(rate(0.035)).toBe(0.035);
+  });
+
   it("keeps what those versions started on, the S&P 500, when the old default growth (7 %) was used", () => {
     const storage = new MemoryStorage({
       "wealth-lens:v1:invested": 20_000,

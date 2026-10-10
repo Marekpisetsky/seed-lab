@@ -82,7 +82,7 @@ export const enPages = {
         heading: "What it can pay you",
         body: [
           "Each month you could take out part of your money: your money × the rate ÷ 12.",
-          "The rate starts at the one the data back: the most that lasted 30 years from every start in the investment's history, the worst included (Bengen, 1994). Few starts in the data make it a rough guide, and the page says so.",
+          "The rate starts at the most that lasted 30 years from every start in the investment's past, the worst included (Bengen, 1994). Few starts in the data make it a rough guide, and the page says so. The past is not a promise.",
           "Your own growth has no history, so the rate is yours. The page shows what a fall like the worst year of the most similar asset would do at the start.",
           "The slider goes from 2% to 7%, plus the data's rate.",
           "“It lasted 30 years” says in how many of 100 possible futures that amount lasted 30 years.",

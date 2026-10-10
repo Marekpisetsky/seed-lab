@@ -9,7 +9,7 @@
 
 import type { AppState } from "./app-store";
 import { STANDARD_ASSUMPTIONS, type Plan } from "./types";
-import { DEFAULT_PLAN, FORMER_CUSTOM_VOLATILITY, isRecord, parseGoal } from "./validation";
+import { DEFAULT_PLAN, FORMER_CUSTOM_VOLATILITY, isRecord, parseGoal, withdrawalOf } from "./validation";
 
 const PREFIX = "wealth-lens:v1:";
 
@@ -79,7 +79,8 @@ export function readLegacyData(storage: LegacyStorage | null): AppState | null {
   if (isRecord(assumptions)) {
     const { monthlyContribution, withdrawalRate, inflation, realReturn } = assumptions;
     if (typeof monthlyContribution === "number" && monthlyContribution >= 0) plan.monthlyContribution = monthlyContribution;
-    if (typeof withdrawalRate === "number" && withdrawalRate > 0 && withdrawalRate < 1) plan.withdrawalRate = withdrawalRate;
+    // The old 4 % default becomes the data's rate; any other, on the slider's steps (as for files).
+    if (typeof withdrawalRate === "number" && withdrawalRate > 0 && withdrawalRate < 1) plan.withdrawalRate = withdrawalOf(withdrawalRate, 0);
     // Inflation or a growth rate other than the old defaults (2 %, 7 %) was chosen on purpose.
     if (typeof inflation === "number" && inflation > -1 && inflation < 1 && Math.abs(inflation - 0.02) > 1e-9) {
       plan.assumptions = { ...plan.assumptions, inflation };

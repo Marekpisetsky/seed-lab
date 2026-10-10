@@ -82,7 +82,7 @@ export const nlPages: PageMessages = {
         heading: "Wat het je kan uitbetalen",
         body: [
           "Elke maand kun je een deel van je geld opnemen: je geld × het percentage ÷ 12.",
-          "Het percentage begint bij wat de gegevens onderbouwen: het hoogste dat 30 jaar standhield vanaf elk startjaar in de geschiedenis van de belegging, het slechtste inbegrepen (Bengen, 1994). Met weinig startjaren is het een ruwe richtlijn, en de pagina zegt dat.",
+          "Het percentage begint bij het hoogste dat 30 jaar standhield vanaf elk startjaar in het verleden (Bengen, 1994). Met weinig startjaren is het een ruwe richtlijn, en de pagina zegt dat. Het verleden is geen belofte.",
           "Je eigen groei heeft geen geschiedenis, dus het percentage kies je zelf. De pagina toont wat een daling zoals het slechtste jaar van de meest gelijkende belegging bij de start doet.",
           "De schuifregelaar gaat van 2% tot 7%, plus het percentage uit de gegevens.",
           "“Het hield 30 jaar stand” zegt in hoeveel van de 100 mogelijke toekomsten dat bedrag 30 jaar meeging.",

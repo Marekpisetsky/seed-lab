@@ -68,10 +68,44 @@ describe("the safe rate of a history", () => {
     assert.ok(Math.abs(result.rate - steadyRate(0.02, 35)) < 1e-12);
   });
 
-  it(`says when fewer than ${FEW_PERIODS} periods are behind it`, () => {
-    const data = history(1988, Array(35).fill(0.02));
-    assert.deepEqual([safeRate(data, 30).periods, safeRate(data, 30).few], [6, true]);
-    assert.deepEqual([safeRate(data, 26).periods, safeRate(data, 26).few], [10, false]);
+  it(`says it is a rough guide with fewer than ${FEW_PERIODS} periods, or data shorter than twice the years`, () => {
+    const years = (count: number) => history(1988, Array(count).fill(0.02));
+    // 35 years: 6 runs of 30.
+    assert.deepEqual([safeRate(years(35), 30).periods, safeRate(years(35), 30).few], [6, true]);
+    // Ten runs of 30 that share 21 years are still one era: few until the data hold 60 years.
+    assert.deepEqual([safeRate(years(39), 30).periods, safeRate(years(39), 30).few], [10, true]);
+    assert.equal(safeRate(years(59), 30).few, true);
+    assert.equal(safeRate(years(60), 30).few, false);
+    // Short runs: 9 periods is few, 10 is not, once the data are twice as long.
+    assert.equal(safeRate(years(28), 20).few, true);
+    assert.deepEqual([safeRate(years(40), 10).periods, safeRate(years(40), 10).few], [31, false]);
+    assert.deepEqual([safeRate(years(18), 9).periods, safeRate(years(18), 9).few], [10, false]);
+    assert.deepEqual([safeRate(years(17), 9).periods, safeRate(years(17), 9).few], [9, true]);
+    assert.equal(safeRate(years(35), 30).lastStart, 1993);
+  });
+
+  it("names a worst start that is not the first year when the fall comes later", () => {
+    const data = history(2000, [0.1, 0.1, 0.1, -0.5, 0.1, 0.1, 0.1, 0.1]);
+    assert.equal(safeRate(data, 4).worstStart, 2003);
+  });
+
+  it("agrees with playing every run year by year, on random histories (brute force)", () => {
+    let seed = 7;
+    const random = () => ((seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31);
+    for (let trial = 0; trial < 300; trial += 1) {
+      const length = 1 + Math.floor(random() * 40);
+      const returns = Array.from({ length }, () => (random() < 0.03 ? -1 : (random() - 0.4) * 0.8));
+      const rate = maxRate(returns);
+      // The largest rate that lasts, found by halving: the closed form must be it.
+      let low = 0;
+      let high = 1;
+      for (let step = 0; step < 60; step += 1) {
+        const middle = (low + high) / 2;
+        if (lasts(middle, returns)) low = middle;
+        else high = middle;
+      }
+      assert.ok(Math.abs(rate - low) < 1e-9, `${returns.join(",")}: ${rate} vs ${low}`);
+    }
   });
 
   it("is lower the more years it must last", () => {
@@ -101,6 +135,25 @@ describe("a fall at the start, for growth with no history", () => {
     const none = withEarlyCrash(0.06, 0.05, 0.05, 40);
     assert.equal(fall.lastsAll, false);
     assert.ok(fall.lasted < none.lasted || (none.lastsAll && !fall.lastsAll));
+  });
+
+  it("is the same as the run [fall, growth, growth…]: lasts exactly at that run's largest rate", () => {
+    const run = [-0.38, ...Array(29).fill(0.05)];
+    const edge = maxRate(run);
+    assert.equal(withEarlyCrash(edge * (1 - 1e-9), 0.05, -0.38, 30).lastsAll, true);
+    assert.equal(withEarlyCrash(edge * 1.001, 0.05, -0.38, 30).lastsAll, false);
+  });
+
+  it("with nothing taken out, keeps everything, fall included", () => {
+    const outcome = withEarlyCrash(0, 0, -0.5, 10);
+    assert.deepEqual([outcome.lastsAll, outcome.lasted], [true, 10]);
+    assert.ok(Math.abs(outcome.left - 0.5) < 1e-12);
+  });
+
+  it("refuses a return that is not a number, and a loss of everything mid-way pays only what came before", () => {
+    assert.throws(() => maxRate([0.1, Number.NaN, 0.1]), RangeError);
+    assert.equal(maxRate([0.1, 0.1, -1, 0.1]), 0);
+    assert.ok(!lasts(0.01, [0.1, 0.1, -1, 0.1]));
   });
 
   it("pays nothing more after the money is gone, and handles a total loss", () => {

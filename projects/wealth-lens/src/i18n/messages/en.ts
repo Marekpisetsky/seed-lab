@@ -390,19 +390,24 @@ export const en = {
     livesNone: (country: string, cost: string, paid: string) => `The cheapest, ${country}: ${cost} a month. Your plan could pay ${paid}.`,
   },
   safe: {
-    /** "For US stocks, the data back 3.8%: €356 a month." */
-    data: (asset: string, rate: string, monthly: string) => `For ${asset}, the data back ${rate}: ${monthly} a month.`,
-    mix: (rate: string, monthly: string) => `For this mix, the data back ${rate}: ${monthly} a month.`,
-    history: (years: number, from: number, worst: number) => `It lasted ${years} years from every start since ${from}. The worst start: ${worst}.`,
+    /** "For US stocks, the most that lasted 30 years in the past: 3.8%, €356 a month." */
+    data: (asset: string, years: number, rate: string, monthly: string) => `For ${asset}, the most that lasted ${years} years: ${rate}, ${monthly} a month.`,
+    mix: (years: number, rate: string, monthly: string) => `For this mix, the most that lasted ${years} years: ${rate}, ${monthly} a month.`,
+    /** The same, when few runs are behind it: the warning first. */
+    dataFew: (asset: string, periods: number, rate: string, monthly: string) => `Only ${periods} runs for ${asset}: a rough guide. ${rate}, ${monthly} a month.`,
+    mixFew: (periods: number, rate: string, monthly: string) => `Only ${periods} runs for this mix: a rough guide. ${rate}, ${monthly} a month.`,
+    history: (from: number, last: number, worst: number) => `It held from every start from ${from} to ${last}. The worst start: ${worst}.`,
     periods: (count: number, years: number) => (count === 1 ? `1 run of ${years} years in the data.` : `${count} runs of ${years} years in the data.`),
-    few: "Few runs: take it as a rough guide.",
     shorter: (years: number, asked: number) => `The data hold only ${years} years, not ${asked}.`,
+    past: "What lasted in the past is not a promise.",
     steady: (rate: string, monthly: string, years: number) => `The same growth every year: ${rate}, ${monthly} a month, lasts ${years} years.`,
     own: "Your own growth has no history. The rate is yours.",
-    /** One line: the fall, then what it does. */
-    fall: (asset: string, change: string, year: number) => `First, a fall like the worst year of ${asset} (${change}, ${year}):`,
-    lasts: (rate: string, monthly: string, years: number) => `${rate}, ${monthly} a month, still lasts ${years} years.`,
-    runsOut: (rate: string, monthly: string, years: string) => `${rate}, ${monthly} a month, runs out after ${years}.`,
+    ownStart: (asset: string, rate: string, monthly: string) => `It starts at the rate of ${asset}: ${rate}, ${monthly} a month.`,
+    /** "First, a fall like the worst year of US stocks (−38%, 1931)." */
+    fall: (asset: string, change: string, year: number) => `First, a fall like the worst year of ${asset} (${change}, ${year}).`,
+    becomes: (before: string, after: string) => `${before} would become ${after}.`,
+    lasts: (rate: string, monthly: string, years: number) => `Then ${rate}, ${monthly} a month, still lasts ${years} years.`,
+    runsOut: (rate: string, monthly: string, years: string) => `Then ${rate}, ${monthly} a month, runs out after ${years}.`,
     yours: (rate: string) => `You chose ${rate}.`,
     useData: "Use the data's rate",
   },

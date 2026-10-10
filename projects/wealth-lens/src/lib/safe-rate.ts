@@ -42,8 +42,25 @@ export type SafeRateInfo =
   | ({ kind: "history" } & SafeRate)
   /** The same growth every year: the one rate it pays for the years. */
   | { kind: "steady"; rate: number; years: number }
-  /** The user's own growth: no history. `rate` is the most similar asset's, a starting point only. */
-  | { kind: "own"; similar: SeriesId; rate: number; fall: WorstFall };
+  /**
+   * The user's own growth: no history. `rate` is a starting point only: the
+   * most similar asset's, never above the rate of the asset with the
+   * longest history (`start` says whose, `few` whether few runs are behind it).
+   */
+  | { kind: "own"; similar: SeriesId; start: SeriesId; few: boolean; rate: number; fall: WorstFall };
+
+/**
+ * A data rate as the plan uses it: rounded down to a hundredth of a percent,
+ * so it is a step the slider can hold and it lasts every year it should
+ * (the exact rate empties the money with the last withdrawal, and
+ * rounding errors could make it fall a cent short).
+ */
+export function floorRate(rate: number): number {
+  return Math.floor(rate * 10_000 + 1e-9) / 10_000;
+}
+
+/** The asset with the longest history: the one whose rate a growth of one's own never starts above. */
+const LONGEST: SeriesId = [...SERIES_IDS].sort((a, b) => SERIES[b].dataset.years.length - SERIES[a].dataset.years.length)[0];
 
 /** A mix's yearly returns back to its weights each year, over the years every part has data. */
 function mixHistory(model: MixModel): YearReturn[] {
@@ -85,18 +102,28 @@ export function similarAsset(investment: Pick<ResolvedInvestment, "realReturn" |
 
 /** The rate the data back for a resolved investment, over `years` years. */
 export function safeRateFor(investment: ResolvedInvestment, years: number = RETIREMENT_YEARS): SafeRateInfo {
-  if (investment.volatility <= 0) return { kind: "steady", rate: steadyRate(investment.realReturn, years), years };
+  const steady = (): SafeRateInfo => ({ kind: "steady", rate: floorRate(steadyRate(investment.realReturn, years)), years });
+  if (investment.volatility <= 0) return steady();
   if (investment.custom || investment.investment.kind === "custom") {
     const similar = similarAsset(investment);
-    return { kind: "own", similar, rate: assetSafeRate(similar, years).rate, fall: worstFall(similar) };
+    const own = assetSafeRate(similar, years);
+    const longest = assetSafeRate(LONGEST, years);
+    const start = longest.rate < own.rate ? LONGEST : similar;
+    return { kind: "own", similar, start, few: assetSafeRate(start, years).few, rate: floorRate(Math.min(own.rate, longest.rate)), fall: worstFall(similar) };
   }
   const plan = investment.investment;
-  if (plan.kind === "asset" && isSeriesAsset(plan.asset)) return { kind: "history", ...assetSafeRate(plan.asset, years) };
+  if (plan.kind === "asset" && isSeriesAsset(plan.asset)) {
+    const found = assetSafeRate(plan.asset, years);
+    return { kind: "history", ...found, rate: floorRate(found.rate) };
+  }
   if (investment.model) {
     const history = mixHistory(investment.model);
-    if (history.length > 0) return { kind: "history", ...safeRate(history, years) };
+    if (history.length > 0) {
+      const found = safeRate(history, years);
+      return { kind: "history", ...found, rate: floorRate(found.rate) };
+    }
   }
-  return { kind: "steady", rate: steadyRate(investment.realReturn, years), years };
+  return steady();
 }
 
 /** "My %": what a fall like the similar asset's worst year, at the start, does to `rate` with the user's growth after it. */

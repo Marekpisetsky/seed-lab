@@ -8,11 +8,13 @@ import { Help } from "@/components/ui/help";
 import type { CalculationBundle } from "@/hooks/use-calculation";
 import type { I18n } from "@/i18n";
 import { updatePlan } from "@/lib/app-store";
-import { KIT_WORDS } from "@seed-kit/words/index.ts";
+import { WITHDRAWAL_WHY } from "@seed-kit/words/withdrawal.ts";
 import type { Calculation } from "@/lib/calculator";
 import { yearsLasting } from "@/lib/monte-carlo";
-import { earlyFall, RETIREMENT_YEARS } from "@/lib/safe-rate";
-import { withdrawalZone, WITHDRAWAL_STEPS, type WithdrawalZone } from "@/lib/withdrawal";
+import { assetSafeRate, earlyFall, RETIREMENT_YEARS } from "@/lib/safe-rate";
+import { sliderSteps, withdrawalZone, type WithdrawalZone } from "@/lib/withdrawal";
+
+export { sliderSteps };
 
 /** With no ups and downs the answer is certain: whether the withdrawals last, and when they run out. */
 function sameEveryYearText(rate: number, realReturn: number, { m }: I18n): string {
@@ -38,18 +40,27 @@ function Zone({ zone }: { zone: WithdrawalZone }) {
   );
 }
 
-/** The slider's steps: 2 % to 7 % every 0.5 %, and the data's rate, wherever it falls. */
-export function sliderSteps(dataRate: number): number[] {
-  const rounded = Math.round(dataRate * 10_000) / 10_000;
-  return [...new Set([...WITHDRAWAL_STEPS, rounded])].sort((a, b) => a - b);
+/** Where the thumb sits: on the data's step while the plan follows the data, else on the user's. */
+export function sliderIndex(steps: readonly number[], rate: number, followsData: boolean, dataRate: number): number {
+  const target = followsData ? dataRate : rate;
+  const exact = steps.findIndex((step) => Math.abs(step - target) < 1e-9);
+  if (exact >= 0) return exact;
+  // A rate off the steps (an old file): the nearest one.
+  return steps.reduce((best, step, index) => (Math.abs(step - target) < Math.abs(steps[best] - target) ? index : best), 0);
+}
+
+/** A rate as the page writes it: tiny ones with two decimals, so 0.03 % never reads "0 %". */
+function rateText(rate: number, { f }: I18n): string {
+  return rate > 0 && rate < 0.01 ? f.percent(rate, { decimals: 2 }) : f.rate(rate);
 }
 
 /**
- * Under the slider: the rate the data back for this investment and why
- * (A4, lib/safe-rate.ts): from every start in its history, the worst
- * included, with how many runs are behind it; the same every year for
- * savings; for growth of one's own, what a fall like the most similar
- * asset's worst year would do at the start. Every rate with what it pays.
+ * Under the slider: the most that lasted the years in this investment's
+ * past (A4, lib/safe-rate.ts), from every start in its history, the worst
+ * included, with the runs behind it, a rough guide first when they are few;
+ * the same every year for savings; for growth of one's own, where the rate
+ * starts and what a fall like the most similar asset's worst year would do
+ * at the start. Every rate with what it pays; the past, never a promise.
  */
 function DataRate({ calc, rate, chosen }: { calc: Calculation; rate: number; chosen: boolean }) {
   const i18n = useI18n();
@@ -58,22 +69,37 @@ function DataRate({ calc, rate, chosen }: { calc: Calculation; rate: number; cho
   const { safe, result, investment } = calc;
   // What a rate pays a month on the same total as the slider's.
   const pays = (share: number) => f.smallCur(rate > 0 ? (result.income * share) / rate : 0);
+  const name = (asset: keyof typeof m.assets.inSentence) => m.assets.inSentence[asset];
   const lines: string[] = [];
   if (safe.kind === "history") {
     const plan = investment.investment;
-    lines.push(plan.kind === "asset" ? t.data(m.assets.inSentence[plan.asset], f.rate(safe.rate), pays(safe.rate)) : t.mix(f.rate(safe.rate), pays(safe.rate)));
-    lines.push(`${t.history(safe.years, safe.from, safe.worstStart)} ${t.periods(safe.periods, safe.years)}`);
+    const asset = plan.kind === "asset" ? name(plan.asset) : null;
+    const shown = rateText(safe.rate, i18n);
+    if (safe.few) lines.push(asset ? t.dataFew(asset, safe.periods, shown, pays(safe.rate)) : t.mixFew(safe.periods, shown, pays(safe.rate)));
+    else lines.push(asset ? t.data(asset, safe.years, shown, pays(safe.rate)) : t.mix(safe.years, shown, pays(safe.rate)));
+    lines.push(`${t.history(safe.from, safe.lastStart, safe.worstStart)} ${t.periods(safe.periods, safe.years)}`);
     if (safe.years < safe.askedYears) lines.push(t.shorter(safe.years, safe.askedYears));
-    if (safe.few) lines.push(t.few);
+    lines.push(t.past);
   } else if (safe.kind === "steady") {
-    lines.push(t.steady(f.rate(safe.rate), pays(safe.rate), safe.years));
+    lines.push(t.steady(rateText(safe.rate, i18n), pays(safe.rate), safe.years));
   } else {
-    const fall = earlyFall(safe, rate, investment.realReturn);
-    const outcome = fall.lastsAll
-      ? t.lasts(f.rate(rate), pays(rate), RETIREMENT_YEARS)
-      : t.runsOut(f.rate(rate), pays(rate), m.units.years(Math.max(1, fall.lasted)));
     lines.push(t.own);
-    lines.push(`${t.fall(m.assets.inSentence[safe.fall.asset], f.percent(safe.fall.change, { decimals: 0 }), safe.fall.year)} ${outcome}`);
+    if (!chosen) {
+      // Where the rate starts, and whose it is: few runs behind it come first.
+      lines.push(
+        safe.few
+          ? t.dataFew(name(safe.start), assetSafeRate(safe.start).periods, rateText(safe.rate, i18n), pays(safe.rate))
+          : t.ownStart(name(safe.start), rateText(safe.rate, i18n), pays(safe.rate)),
+      );
+    }
+    const fall = earlyFall(safe, rate, investment.realReturn);
+    const before = result.total;
+    const outcome = fall.lastsAll
+      ? t.lasts(rateText(rate, i18n), pays(rate), RETIREMENT_YEARS)
+      : t.runsOut(rateText(rate, i18n), pays(rate), m.units.years(Math.max(1, fall.lasted)));
+    lines.push(
+      `${t.fall(name(safe.fall.asset), f.percent(safe.fall.change, { decimals: 0 }), safe.fall.year)} ${t.becomes(f.cur(before), f.cur(before * (1 + safe.fall.change)))} ${outcome}`,
+    );
   }
   return (
     <div className="space-y-1 text-sm">
@@ -84,13 +110,14 @@ function DataRate({ calc, rate, chosen }: { calc: Calculation; rate: number; cho
       ))}
       {chosen && safe.kind !== "own" && (
         <p className="flex flex-wrap items-center gap-x-2">
-          <span>{t.yours(f.rate(rate))}</span>
+          <span>{t.yours(rateText(rate, i18n))}</span>
           <button type="button" onClick={() => updatePlan({ withdrawalRate: null })} className="inline-flex min-h-11 items-center font-medium text-accent underline-offset-2 hover:underline">
             {t.useData}
           </button>
         </p>
       )}
-      <p className="text-muted">{KIT_WORDS[locale].withdrawal.why}</p>
+      {/* Why the rate does not follow the growth: only where there are falls. */}
+      {safe.kind !== "steady" && <p className="text-muted">{WITHDRAWAL_WHY[locale]}</p>}
     </div>
   );
 }
@@ -111,12 +138,13 @@ export function PayDetails({ bundle }: { bundle: CalculationBundle }) {
   const { calc, state } = bundle;
   const { result, investment } = calc;
   const rate = calc.scenario.withdrawalRate;
+  const followsData = state.plan.withdrawalRate === null;
   const steps = sliderSteps(calc.safe.rate);
-  const step = Math.max(0, steps.findIndex((value) => Math.abs(value - rate) < 1e-4));
+  const step = sliderIndex(steps, rate, followsData, calc.safe.rate);
   const steady = investment.volatility <= 0;
   const lasted = steady ? sameEveryYearText(rate, investment.realReturn, i18n) : m.result.lastedOf(Math.round(result.lasted * 100));
   const zone = withdrawalZone(result.lasted);
-  const value = m.result.takenOutValue(f.rate(rate), f.smallCur(result.income));
+  const value = m.result.takenOutValue(rateText(rate, i18n), f.smallCur(result.income));
   return (
     <div className="space-y-2">
       <p className="text-sm text-muted">{m.help.income}</p>
@@ -136,9 +164,9 @@ export function PayDetails({ bundle }: { bundle: CalculationBundle }) {
         onChange={(event) => {
           const picked = steps[Number(event.target.value)];
           // The data's own step follows the investment; any other is the user's.
-          updatePlan({ withdrawalRate: Math.abs(picked - calc.safe.rate) < 1e-4 ? null : picked });
+          updatePlan({ withdrawalRate: picked === calc.safe.rate ? null : picked });
         }}
-        aria-valuetext={m.result.takenOutAria(f.rate(rate), f.smallCur(result.income), lasted, m.result.zone[zone])}
+        aria-valuetext={m.result.takenOutAria(rateText(rate, i18n), f.smallCur(result.income), lasted, m.result.zone[zone])}
         className="block h-11 w-full cursor-pointer accent-(--accent)"
       />
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
@@ -148,7 +176,7 @@ export function PayDetails({ bundle }: { bundle: CalculationBundle }) {
         </span>
         {!steady && <Help what={m.result.takenOut} text={`${m.help.lasted} ${m.result.zoneHelp}`} align="end" />}
       </div>
-      <DataRate calc={calc} rate={rate} chosen={state.plan.withdrawalRate !== null} />
+      <DataRate calc={calc} rate={rate} chosen={!followsData} />
     </div>
   );
 }

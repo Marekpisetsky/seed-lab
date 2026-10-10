@@ -60,10 +60,24 @@ Cada inversión:
   (1988–2022): para buscar el peor comienzo, más años solo pueden
   encontrar uno peor. Por eso las acciones de EE. UU. incluyen 1929 y
   1966.
-- **Pocos periodos.** Con menos de 10 comienzos (`FEW_PERIODS`), o si los
-  datos tienen menos años de los pedidos (entonces se usan todos sus años:
-  un solo periodo), la página dice «Pocos periodos: tómalo como una guía
-  aproximada» (y, si hace falta, «Los datos solo tienen N años, no 30»).
+- **Pocos periodos.** Con menos de 10 comienzos (`FEW_PERIODS`), con datos
+  de menos del doble de años (menos de dos periodos sin solaparse: diez
+  periodos de 30 años que comparten 21 siguen siendo una sola época, y
+  esta regla no se apaga sola al añadir un año cada actualización), o si
+  los datos tienen menos años de los pedidos (entonces se usan todos sus
+  años: un solo periodo), la página lo dice **en la misma frase que la
+  tasa**: «Solo 8 periodos de los bonos alemanes: una guía aproximada. Un
+  5,56 %, … € al mes.» (y, si hace falta, «Los datos solo tienen N años,
+  no 30»).
+- **Redondeo.** La tasa que usa la app se redondea hacia abajo a la
+  centésima de punto (`floorRate`): la exacta vacía el dinero justo con el
+  último retiro, y un error de redondeo podía dejarlo a un céntimo de
+  durar (la pantalla decía a la vez «dura 30 años» y «se acaba a los 29»).
+- **Palabras.** «Lo más que duró 30 años», «aguantó», y siempre «Lo que
+  aguantó en el pasado no es una promesa» ([informar, no
+  aconsejar](../legal/informar-no-aconsejar.md), reglas 5 y 8). La frase del
+  encargo dice «tasa segura»: se mantiene porque es la del dueño, que debe
+  decidir si pasa a «la tasa que aguantó».
   Los bonos y la mezcla 60/40 salen altos precisamente por eso: sus datos
   solo cubren un periodo de tipos de interés bajando.
 - **Una mezcla** usa los años que tienen todas sus partes, al peso de cada
@@ -73,12 +87,16 @@ Cada inversión:
   hay una sola respuesta (`steadyRate`).
 - **«Mi %» (crecimiento propio):** no tiene historia. La tasa la elige la
   persona; la de partida es la del activo más parecido (el de oscilación
-  más cercana; empate: el de crecimiento más cercano). La página muestra
+  más cercana; empate: el de crecimiento más cercano), **nunca por encima
+  de la del activo con la historia más larga** (las acciones de EE. UU.,
+  66 periodos), y la página dice de quién es («Empieza en la tasa de las
+  acciones de EE. UU.: un 3,78 %…»; con pocos periodos, el aviso). La página muestra
   qué pasaría con **una caída como el peor año de ese activo al
   empezar** y luego su propio crecimiento cada año (`withEarlyCrash`):
   «Primero, una caída como el peor año de las acciones de EE. UU. (−38 %,
-  1931): un 5 %, … € al mes, se acaba a los 17 años» (con un 5 % de
-  crecimiento propio).
+  1931). 100 000 € pasarían a ser 62 000 €. Luego un 5 %, … € al mes, se
+  acaba a los 17 años» (con un 5 % de crecimiento propio): la caída, con su
+  dinero.
 - **Debajo, siempre, la frase de una línea** (reutilizable por cualquier
   herramienta): «Más rentabilidad suele traer caídas más fuertes. Una
   caída al principio del retiro obliga a vender barato. Por eso la tasa
@@ -113,9 +131,11 @@ Cada inversión:
 
 - Bengen, W. P. (1994), "Determining Withdrawal Rates Using Historical
   Data", *Journal of Financial Planning* 7(4): la mayor tasa fija real que
-  aguantó 30 años desde cada comienzo de 1926–1976 en EE. UU., unos 4 %
-  (el peor, 1966). Con los datos de Shiller hasta 2022 sale 3,78 % (el
-  peor, 1929, que Bengen no tenía en su muestra de comienzos).
+  aguantó unos 30 años desde cada comienzo de 1926–1976 en EE. UU., unos
+  4 %, para carteras de un 50–75 % en acciones y el resto en bonos del
+  Tesoro (datos SBBI). La app da 3,78 % para un 100 % en acciones de EE.
+  UU. con los datos de Shiller (1928–2022; peor comienzo, 1929): la
+  diferencia viene de la cartera y de los datos, no de los años.
 - Cooley, Hubbard y Walz (1998), "Retirement Savings: Choosing a Withdrawal
   Rate That Is Sustainable", *AAII Journal* 20(2) (*Trinity study*):
   periodos solapados de EE. UU. 1926–1995; con 50 % o más en acciones, el
@@ -154,7 +174,9 @@ Lo que dan los datos (duró 30 años en N de cada 100, según la tasa):
 | Oro | 91,5 | 44,3 | 4,9 |
 | Plan de partida (5 %, oscilación de las acciones de EE. UU.) | 98,6 | 81,8 | 36,2 |
 
-Con el plan de partida, el 4 % cae en "arriesgado".
+Con el plan de partida, el 4 % caía en "arriesgado"; desde A4 empieza en
+3,78 % (la tasa de las acciones de EE. UU.), que dura en 84,8 de cada 100
+futuros: sigue en "arriesgado".
 
 ## Supuestos
 
@@ -253,6 +275,12 @@ Con el plan de partida, el 4 % cae en "arriesgado".
 
 ## Historial
 
+- 2026-10-10 (A4, tras la revisión independiente): regla de pocos periodos
+  que no se apaga sola; aviso en la frase de la tasa; redondeo hacia abajo
+  a la centésima; «Mi %» nunca empieza por encima de la tasa de las
+  acciones de EE. UU. y dice de quién es; la caída con su dinero; «lo que
+  aguantó en el pasado no es una promesa»; Bengen corregido; la tasa de los
+  datos entra en la tabla precalculada.
 - 2026-10-09 (fase A4): **la tasa de partida deja de ser un 4 % fijo**:
   es la que respaldan los datos de cada inversión (ver arriba), con el
   peor comienzo, los periodos y la advertencia si son pocos; «Mi %» muestra

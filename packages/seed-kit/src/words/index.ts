@@ -12,7 +12,6 @@ import * as nl from "./nl.ts";
 export interface KitWords {
   chrome: { [K in keyof typeof en.chrome]: (typeof en.chrome)[K] extends string ? string : { [T in keyof (typeof en.chrome)[K]]: string } };
   legal: (name: string) => LegalPage;
-  withdrawal: { why: string };
 }
 
 export const KIT_WORDS: Readonly<Record<Locale, KitWords>> = { en, es, nl };

@@ -16,7 +16,13 @@
  * balance is then above zero too: the sum only grows).
  */
 
-/** Fewer starts than this behind a rate: the page says it is a rough guide. */
+/**
+ * Fewer starts than this behind a rate, or data shorter than twice the
+ * years asked (fewer than two runs that do not overlap), and the page says
+ * it is a rough guide. The second rule keeps holding as yearly updates add
+ * a year at a time: ten runs of 30 years that share 21 of them are still
+ * one era.
+ */
 export const FEW_PERIODS = 10;
 
 /** One year of a history: its return after inflation (0.07 = 7 %). */
@@ -32,9 +38,10 @@ export function maxRate(returns: readonly number[]): number {
   let discount = 1;
   for (let index = 0; index < returns.length; index += 1) {
     sum += discount;
+    if (!Number.isFinite(returns[index])) throw new RangeError(`return ${index} is not a number`);
     const factor = 1 + returns[index];
-    if (!(factor > 0) || !Number.isFinite(factor)) {
-      // Everything lost in a year (or a broken figure): only the withdrawals before it were paid.
+    if (!(factor > 0)) {
+      // Everything lost in a year: only the withdrawals until then were paid.
       return index === returns.length - 1 ? 1 / sum : 0;
     }
     discount /= factor;
@@ -51,8 +58,10 @@ export interface SafeRate {
   askedYears: number;
   /** How many starts of `years` years the data have: the periods behind the rate. */
   periods: number;
-  /** Fewer than FEW_PERIODS, or fewer years than asked: a rough guide, and the page says so. */
+  /** A rough guide, and the page says so: fewer than FEW_PERIODS starts, data shorter than twice the years, or fewer years than asked. */
   few: boolean;
+  /** The last start with all its years in the data. */
+  lastStart: number;
   /** The worst start: the year whose run allowed the lowest rate. */
   worstStart: number;
   /** The years the data cover. */
@@ -89,7 +98,8 @@ export function safeRate(history: readonly YearReturn[], years: number): SafeRat
     years: span,
     askedYears: years,
     periods,
-    few: periods < FEW_PERIODS || span < years,
+    few: periods < FEW_PERIODS || history.length < 2 * years || span < years,
+    lastStart: history[history.length - span].year,
     worstStart,
     from: history[0].year,
     to: history[history.length - 1].year,
@@ -118,6 +128,7 @@ export interface CrashOutcome {
  * `rate` of the start, every year, for up to `years` years.
  */
 export function withEarlyCrash(rate: number, growth: number, crash: number, years: number): CrashOutcome {
+  if (!(rate > 0)) return { lasted: years, lastsAll: true, left: (1 + crash) * (1 + growth) ** (years - 1) };
   let balance = 1;
   for (let year = 1; year <= years; year += 1) {
     if (balance < rate - 1e-12) return { lasted: year - 1, lastsAll: false, left: 0 };
