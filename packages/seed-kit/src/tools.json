@@ -1,7 +1,10 @@
 [
   {
     "id": "wealth-lens",
-    "name": "Wealth Lens",
+    "name": {
+      "en": "Horalis Growth",
+      "es": "Horalis Crecimiento"
+    },
     "status": "live",
     "listed": true,
     "category": "money",
@@ -58,7 +61,10 @@
   },
   {
     "id": "cost-lens",
-    "name": "Cost Lens",
+    "name": {
+      "en": "Horalis Cost of Living",
+      "es": "Horalis Coste de vida"
+    },
     "status": "beta",
     "listed": false,
     "category": "life",
@@ -115,7 +121,10 @@
   },
   {
     "id": "inflation-lens",
-    "name": "Inflation Lens",
+    "name": {
+      "en": "Horalis Inflation",
+      "es": "Horalis Inflación"
+    },
     "status": "beta",
     "listed": false,
     "category": "money",

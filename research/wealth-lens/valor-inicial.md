@@ -1,6 +1,6 @@
 # Ficha: valor inicial del 5 %
 
-- **App:** Wealth Lens · **Revisada:** 3 de octubre de 2026
+- **App:** Horalis Crecimiento · **Revisada:** 3 de octubre de 2026
 - **Código** (en `projects/wealth-lens/`): `src/lib/validation.ts`
   (`STARTING_GROWTH = 0.05`, el plan vacío), `src/lib/investment.ts`
   (`CUSTOM_BASE = "world"`), `src/i18n/investment-text.ts`

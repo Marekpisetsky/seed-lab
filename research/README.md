@@ -1,6 +1,6 @@
-# seed-lab Research
+# Horalis Research
 
-El departamento que **decide y valida los métodos** de seed-lab: qué
+El departamento que **decide y valida los métodos** de Horalis: qué
 modelo responde a cada pregunta, con qué supuestos y datos, cómo se
 comprueba y dónde deja de valer. Cada app tiene aquí sus fichas, y las
 fichas que no son de una sola app (lo educativo y lo legal) también.
@@ -47,7 +47,7 @@ diga con honestidad lo que no sabe.
 
 ## Fichas
 
-### Wealth Lens
+### Horalis Crecimiento
 
 Las rutas de código son de `projects/wealth-lens/` salvo que digan otra cosa.
 
@@ -68,13 +68,13 @@ Las rutas de código son de `projects/wealth-lens/` salvo que digan otra cosa.
 
 | Ficha | Qué es |
 | --- | --- |
-| [Por qué no simplemente maximizar el crecimiento (Kelly)](educacion/kelly.md) | Educativa: qué dice Kelly, qué saldría con nuestros datos y por qué seed-lab no recomienda pesos. |
+| [Por qué no simplemente maximizar el crecimiento (Kelly)](educacion/kelly.md) | Educativa: qué dice Kelly, qué saldría con nuestros datos y por qué Horalis no recomienda pesos. |
 | [Informar, no aconsejar](legal/informar-no-aconsejar.md) | Legal: el límite entre información general y asesoramiento personalizado (MiFID II) y las reglas de redacción de todas las apps. **No es asesoramiento legal.** |
 
 ## Estado
 
 Primera versión: 3 de octubre de 2026. Fichas escritas a partir del
-código tal como está en esa fecha (Wealth Lens tras las fases 1 a 3), sin
+código tal como está en esa fecha (Horalis Crecimiento tras las fases 1 a 3), sin
 cambiar ningún cálculo. Lo discutible queda anotado en cada ficha para
 decidirlo después, cada cosa con su propia ficha actualizada.
 
@@ -84,7 +84,7 @@ Lo único que cambió al escribirlas, sin tocar ningún resultado:
   (`investment.ts`, `monte-carlo.ts`, `simulation.ts`);
 - la regla 1 de la [ficha legal](legal/informar-no-aconsejar.md) es ahora
   un test de seed-kit para todas las apps, y el único texto que la
-  incumplía, el título "What you should know" de Wealth Lens, pasa a ser
+  incumplía, el título "What you should know" de Horalis Crecimiento, pasa a ser
   "Good to know" ("Para tener en cuenta").
 
 Fase 5 (7 de octubre de 2026): nueva ficha de [deseos y precios por

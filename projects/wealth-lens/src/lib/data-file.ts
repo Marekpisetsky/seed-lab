@@ -13,7 +13,7 @@ export const DATA_FILE_KIND = "wealth-lens-data";
 export const DATA_FILE_VERSION = 10;
 
 export function dataFileName(savedAt: Date): string {
-  return `wealth-lens-${toIsoDate(savedAt)}.json`;
+  return `horalis-growth-${toIsoDate(savedAt)}.json`;
 }
 
 export function serializeState(state: AppState, savedAt: Date): string {

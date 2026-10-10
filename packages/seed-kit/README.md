@@ -1,6 +1,6 @@
 # seed-kit
 
-La base común de todas las herramientas de seed-lab: lo que cada app
+La base común de todas las herramientas de Horalis: lo que cada app
 reconstruía por su cuenta (cabecera, pie, idiomas, colores, privacidad,
 tests) vive aquí una sola vez. Las apps lo **importan desde el código**,
 no lo copian: un cambio aquí llega a todas en su siguiente build.
@@ -15,13 +15,13 @@ el molde `web-tool` de [Forja](../../tools/forja/README.md) forma la
 
 ```
 src/
-  tokens.css         los colores y la fuente de seed-lab: el único archivo de colores, claro y oscuro
+  tokens.css         los colores y la fuente de Horalis: el único archivo de colores, claro y oscuro
   chrome.css         estilos de la cabecera y el pie (solo tokens; clases sk-*)
   base.css           la base de una herramienta web: página, formulario, resultado, prosa
   css.ts             lee esas hojas de estilo y las minimiza, para ponerlas en línea
   chrome.ts          el modelo de cabecera y pie: palabras EN/ES, enlaces, tema, lanzador
   chrome-html.ts     cabecera y pie en HTML estático (hub, herramientas de Forja)
-  react/chrome.tsx   cabecera y pie en React (Wealth Lens): el mismo marcado
+  react/chrome.tsx   cabecera y pie en React (Horalis Crecimiento): el mismo marcado
   react/trend.tsx    ▲/▼ junto a una ganancia o una pérdida, en React
   theme.ts           claro / oscuro / automático: el script de la cabecera y la elección de la pestaña
   tools.json         la lista de herramientas: la leen el hub y todos los lanzadores
@@ -55,7 +55,7 @@ Reglas del kit:
   fuera de su carpeta. `react/chrome.tsx` importa solo `react`, que pone
   la app.
 - **Una cabecera, dos dibujos.** `chrome-html.ts` y `react/chrome.tsx`
-  pintan el mismo modelo con el mismo marcado; un test de Wealth Lens
+  pintan el mismo modelo con el mismo marcado; un test de Horalis Crecimiento
   compara los dos.
 - **Sin cookies ni almacenamiento, salvo el tema de la pestaña.** El
   script de idioma no guarda nada. El tema elegido en la cabecera (claro u
@@ -92,7 +92,7 @@ hub (`.theme-dark`, `.theme-light`), que vuelven a alternar en
   navegador siguen la elección, y los menús de la cabecera se cierran con
   Escape o al tocar fuera. En React lo hace `react/chrome.tsx`.
 - **En un móvil estrecho** (hasta 424 px) no cabe junto a EN/ES con el
-  nombre más largo (Inflation Lens): las opciones pasan al pie del panel
+  nombre más largo (Horalis Cost of Living): las opciones pasan al pie del panel
   del lanzador. Solo se ve una copia.
 - **Sin scripts** no hay menú, y la página sigue al dispositivo.
 
@@ -117,7 +117,7 @@ publicarse.
   ponen en línea `tokens.css`, `chrome.css` y, las herramientas,
   `base.css` (`kitCss` y `minifyCss`). Las de Forja usan además
   `page.ts`, `legal.ts` y `browser.ts`.
-- **Wealth Lens** (Next.js): el alias `@seed-kit/*` de `tsconfig.json`,
+- **Horalis Crecimiento** (Next.js): el alias `@seed-kit/*` de `tsconfig.json`,
   `turbopack.root` en la raíz del repo, y `globals.css` importa
   `tokens.css` y `chrome.css`. Los tipos se comprueban con
   `tsconfig.typecheck.json` (`npm run typecheck`, parte de `npm run

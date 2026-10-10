@@ -1,6 +1,6 @@
 # Ficha: crecimiento
 
-- **App:** Wealth Lens · **Revisada:** 3 de octubre de 2026
+- **App:** Horalis Crecimiento · **Revisada:** 3 de octubre de 2026
 - **Código** (en `projects/wealth-lens/`): `src/lib/finance.ts`
   (`futureValueWithContributions`, `monthlyRate`), `src/lib/calculator.ts`
   (`valueAt`, `resultOf`, `yearlyPath`), `src/lib/investment.ts`

@@ -14,7 +14,7 @@
 
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type ComponentType, type ReactNode, type SyntheticEvent } from "react";
 import type { ChromeLink, ChromeWords, FooterModel, HeaderModel } from "../chrome.ts";
-import { brandSvg, CHECK_ICON, GRID_ICON, THEME_ICONS } from "../icons.ts";
+import { seedSvg, CHECK_ICON, GRID_ICON, THEME_ICONS } from "../icons.ts";
 import { applyTheme, currentTheme, subscribeTheme, THEMES, type Theme } from "../theme.ts";
 
 export interface LinkProps {
@@ -186,8 +186,11 @@ export function SiteHeader({ model, Link = PlainLink }: { model: HeaderModel; Li
       <header className={`sk-header${model.theme ? ` theme-${model.theme}` : ""}`}>
         <div className="sk-wrap sk-bar">
           <To Link={Link} className="sk-brand" href={model.home.href} aria-current={model.home.current ? "page" : undefined}>
-            <span className="sk-seed" dangerouslySetInnerHTML={{ __html: brandSvg(model.mark) }} />
-            <span>{model.home.label}</span>
+            <span className="sk-seed" dangerouslySetInnerHTML={{ __html: seedSvg() }} />
+            <span className="sk-name">
+              {model.home.label}
+              {model.home.product && <span className="sk-product"> {model.home.product}</span>}
+            </span>
           </To>
           {model.nav.length > 0 && (
             <nav className="sk-nav" aria-label={words.pages}>

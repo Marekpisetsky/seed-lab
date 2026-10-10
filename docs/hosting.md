@@ -1,6 +1,6 @@
 # Alojamiento europeo: plan de migración
 
-Hoy Wealth Lens (`seed-lab-omega.vercel.app`) y el hub (`seed-lab-hub.vercel.app`,
+Hoy Horalis Crecimiento (`seed-lab-omega.vercel.app`) y el hub (`seed-lab-hub.vercel.app`,
 provisional) se sirven desde **Vercel, una empresa de EE. UU.**, y el
 código y la tarea diaria de precios viven en **GitHub**, también de
 EE. UU. Eso incumple el principio 3 ("Truly European: hosted in Europe"),
@@ -19,7 +19,7 @@ estáticos gratis o casi gratis y termina con **una** recomendación.
 ## Qué hay que alojar
 
 - **Dos sitios 100 % estáticos**, sin funciones de servidor:
-  - Wealth Lens: `next build` con `output: "export"` escribe `out/`
+  - Horalis Crecimiento: `next build` con `output: "export"` escribe `out/`
     (HTML, CSS, JS y los datos en `public/data/`). Pocos MB.
   - Hub: `npm run build` escribe `hub/dist/`. Unos 100 KB.
 - **Un repositorio privado.** El código es propietario (ver
@@ -27,13 +27,13 @@ estáticos gratis o casi gratis y termina con **una** recomendación.
   repositorio privado, o recibir el sitio ya construido.
 - **Una tarea diaria** (`.github/workflows/update-prices.yml`): descarga
   precios, hace commit en `master` y ese push provoca el despliegue de
-  Wealth Lens. Necesita un CI con salida a internet.
+  Horalis Crecimiento. Necesita un CI con salida a internet.
 - Tráfico: bajo. No hay cifras porque no medimos visitas (principio 1).
-- Regla de seed-lab: **cero coste** para existir.
+- Regla de Horalis: **cero coste** para existir.
 
 ## Lo que hoy da Vercel (y habrá que suplir o aceptar perder)
 
-| Hoy en Vercel | Importa para seed-lab |
+| Hoy en Vercel | Importa para Horalis |
 | --- | --- |
 | Despliegue automático en cada push a `master` | Sí: la tarea diaria depende de ello. |
 | Vista previa por cada PR | Útil, no imprescindible: las capturas de cada PR se hacen en local. |
@@ -62,7 +62,7 @@ push, como Vercel. También sirve HTML ya construido, sin paso de build
   tráfico y 100 minutos de build al mes. Starter: 9 €/mes (sitios
   ilimitados, 500 GB).
 - **Límites:** dos sitios separados exigen el plan de pago. Una build
-  diaria de Wealth Lens en su servidor (`npm ci` + `next build`, unos
+  diaria de Horalis Crecimiento en su servidor (`npm ci` + `next build`, unos
   minutos) se acerca a los 100 minutos al mes.
 - **Dirección gratuita:** subdominio de `statichost.page`; dominio propio
   con HTTPS incluido también en el plan gratuito.
@@ -126,7 +126,7 @@ privacidad del repositorio no le afecta.
 Es la única opción que cumple a la vez **cero coste**, **Europa**, **sin
 tarjeta** y **repositorio privado**. Para que los dos sitios quepan en el
 plan gratuito, se publican **juntos en un solo sitio**: el hub en la
-raíz y Wealth Lens en `/wealth-lens/`. Para no gastar sus minutos de
+raíz y Horalis Crecimiento en `/wealth-lens/`. Para no gastar sus minutos de
 build, el sitio se construye en GitHub Actions y statichost.eu solo sirve
 el resultado.
 
@@ -138,12 +138,12 @@ sirve tal cual.
 
 ### Pasos (cuando se decida migrar)
 
-1. **Ruta de Wealth Lens.** Añadir `basePath: "/wealth-lens"` en
+1. **Ruta de Horalis Crecimiento.** Añadir `basePath: "/wealth-lens"` en
    `next.config.ts` (hoy asume la raíz) y revisar sus enlaces absolutos
    propios. El hub ya genera rutas desde la raíz, así que no cambia.
 2. **Rama de publicación.** Un workflow de GitHub Actions construye el hub
-   y Wealth Lens y deja el resultado en una rama `site` (hub en la raíz,
-   Wealth Lens en `wealth-lens/`), con un `statichost.yml` sin paso de
+   y Horalis Crecimiento y deja el resultado en una rama `site` (hub en la raíz,
+   Horalis Crecimiento en `wealth-lens/`), con un `statichost.yml` sin paso de
    build. Los minutos salen del cupo gratuito de GitHub Actions para
    repositorios privados (verificar el cupo del plan).
 3. **Sitio en statichost.eu.** Crear el sitio Hobby apuntando a la rama
@@ -153,11 +153,11 @@ sirve tal cual.
    paso 2 vuelve a construir y actualiza la rama `site`.
 5. **Comprobar** en la nueva dirección: las páginas en EN y ES, `404.html`,
    que no hay peticiones a terceros, Lighthouse ≥ 95 y los enlaces
-   cruzados (`SEED_LAB_HUB_URL` en Wealth Lens y `SITE_URL`, `tools.json`
+   cruzados (`SEED_LAB_HUB_URL` en Horalis Crecimiento y `SITE_URL`, `tools.json`
    en el hub).
 6. **Transición.** Dejar las direcciones `*.vercel.app` un tiempo con un
    aviso de la nueva dirección; después, borrar los proyectos de Vercel.
-7. **Textos.** Actualizar la página *Privacy* de Wealth Lens (quién
+7. **Textos.** Actualizar la página *Privacy* de Horalis Crecimiento (quién
    aloja y qué registra, con enlace a la política de statichost.eu), la
    página *Principles* del hub (quitar el pendiente) y este documento.
 
@@ -172,7 +172,7 @@ propio en un servidor de Hetzner. Queda como pendiente aparte.
 - **CDN global.** Un único origen europeo. Para Europa no se nota; para
   visitantes lejanos, algo más de latencia en páginas pequeñas.
 - **Dos direcciones separadas.** Los dos sitios comparten dirección
-  (Wealth Lens bajo `/wealth-lens/`) mientras se use un solo sitio gratis.
+  (Horalis Crecimiento bajo `/wealth-lens/`) mientras se use un solo sitio gratis.
 - **Direcciones actuales.** Cambian; por eso el paso 6.
 - **Comodidad.** Vercel construye y despliega solo; aquí hay que mantener
   el workflow que construye y publica la rama `site`.

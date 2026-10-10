@@ -19,5 +19,5 @@ ${heading}
     );
   })}`;
   const titles = LOCALES.map((locale) => messages(locale).notFound.title).join(" · ");
-  return { locale: first, id: null, title: `${titles} · seed-lab`, description: messages(first).notFound.text, body };
+  return { locale: first, id: null, title: `${titles} · Horalis`, description: messages(first).notFound.text, body };
 }

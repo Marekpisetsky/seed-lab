@@ -1,6 +1,6 @@
 # Ficha: futuros simulados
 
-- **App:** Wealth Lens · **Revisada:** 3 de octubre de 2026
+- **App:** Horalis Crecimiento · **Revisada:** 3 de octubre de 2026
 - **Código** (en `projects/wealth-lens/`): `src/lib/simulation.ts`
   (`wealthPercentiles`, `wealthSamples`), `src/lib/normal.ts`
   (`normalReturns`), `src/lib/projections.ts` (`bandsFor`, `samplesFor`,

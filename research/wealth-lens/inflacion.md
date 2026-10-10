@@ -1,6 +1,6 @@
 # Ficha: inflación
 
-- **App:** Wealth Lens · **Revisada:** 3 de octubre de 2026
+- **App:** Horalis Crecimiento · **Revisada:** 3 de octubre de 2026
 - **Código** (en `projects/wealth-lens/`): `src/lib/investment.ts`
   (`inflationFor`, `toNominal`, `toReal`), `src/lib/assets.ts`
   (`SAVINGS_RATE`, `savingsRealReturn`), `src/lib/assumptions.ts`

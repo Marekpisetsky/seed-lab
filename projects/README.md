@@ -1,10 +1,10 @@
 # projects/
 
-Los productos de seed-lab: herramientas digitales gratuitas y centradas en
-la privacidad para Europa. Hoy hay uno publicado, [Wealth Lens](wealth-lens/).
-[Cost Lens](cost-lens/) e [Inflation Lens](inflation-lens/) son betas
+Los productos de Horalis: herramientas digitales gratuitas y privadas,
+útiles en cualquier país y hechas en Europa. Hoy hay uno publicado, [Horalis Crecimiento](wealth-lens/).
+[Horalis Coste de vida](cost-lens/) y [Horalis Inflación](inflation-lens/) son betas
 ocultas, hechas con Forja: funcionan, pero aún no están publicadas ni se
-muestran en el hub (las cifras de Inflation Lens son, además,
+muestran en el hub (las cifras de Horalis Inflación son, además,
 provisionales).
 
 ## Qué pide cada producto
@@ -19,9 +19,9 @@ Un producto entra aquí cuando cumple estas cuatro cosas:
    `packages/seed-kit/src/tools.json` dice, principio a principio, si cumple, si
    cumple en parte o si está pendiente, y por qué. Lo pendiente va a la
    hoja de ruta del hub, no se esconde.
-4. **Nace de la plataforma de seed-lab.** Se construye sobre seed-kit
+4. **Nace de la plataforma de Horalis.** Se construye sobre seed-kit
    (`packages/seed-kit`), importado desde el código y no copiado: sus
-   colores, la cabecera y el pie de seed-lab (con EN/ES y el lanzador),
+   colores, la cabecera y el pie de Horalis (con EN/ES y el lanzador),
    la lista de herramientas y las comprobaciones de peso, privacidad y
    lenguaje sencillo.
 
@@ -36,7 +36,7 @@ un cálculo real, privacidad y condiciones, tests que pasan, un límite de
 si fallan, y la añade a la lista de herramientas como beta oculta. Ver
 [`../tools/forja/README.md`](../tools/forja/README.md).
 
-Un producto puede necesitar más (Wealth Lens usa Next.js); entonces
+Un producto puede necesitar más (Horalis Crecimiento usa Next.js); entonces
 importa seed-kit igual: sus colores, su cabecera y su pie (componente de
 React) y su lista.
 
