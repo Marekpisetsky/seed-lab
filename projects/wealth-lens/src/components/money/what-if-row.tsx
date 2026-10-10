@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { Trend } from "@seed-kit/react/trend.tsx";
+import { TrendIcon } from "@seed-kit/react/trend.tsx";
 import { X } from "lucide-react";
 import { useId } from "react";
 import { useI18n } from "@/components/i18n";
@@ -68,20 +68,17 @@ export function WhatIfRow({ bundle, layout = "grid" }: { bundle: CalculationBund
   const effects = whatIfsFor(bundle);
   const applied = bundle.calc.whatIf;
   const list = layout === "list";
-  // A huge figure ("−7,98 × 10⁴⁸ €") does not fit half a phone, nor beside its name in a narrow column: one across, under its name.
-  const long = effects.some((effect) => {
-    const text = effectText(effect, i18n);
-    return effect.available && (text.includes("×") || text.length > 13);
-  });
   return (
     <div className="space-y-2">
       {!list && <p className="text-base text-muted">{m.help.whatIf}</p>}
-      <div role="group" aria-label={m.whatIf.title} className={list ? "flex flex-col gap-2" : `grid gap-2 sm:grid-cols-3 ${long ? "grid-cols-1" : "grid-cols-2"}`}>
+      {/* As many across as fit at 11rem each (two on a phone, one with text doubled), so an amount never has to break. */}
+      <div role="group" aria-label={m.whatIf.title} className={list ? "flex flex-col gap-2" : "grid grid-cols-[repeat(auto-fit,minmax(min(100%,11rem),1fr))] gap-2"}>
         {effects.map((effect) => {
           const pressed = applied === effect.id;
           // As shown: rounded to the euro or more, so €0 has no colour and no mark.
           const shown = effect.available ? Math.round(effect.change) : 0;
           const tone = shown > 0 ? "text-positive" : shown < 0 ? "text-negative" : "text-muted";
+          const text = effectText(effect, i18n);
           return (
             <button
               key={effect.id}
@@ -89,20 +86,25 @@ export function WhatIfRow({ bundle, layout = "grid" }: { bundle: CalculationBund
               aria-pressed={pressed}
               disabled={!effect.available}
               onClick={() => toggleWhatIf(effect.id)}
-              className={`flex min-h-14 w-full rounded-lg border px-3 py-2 text-left ${list && !long ? "items-center justify-between gap-2" : "flex-col items-start justify-center gap-0.5"} ${
+              // A fixed grid in every chip: the name, then the amount and its arrow on one line, never broken.
+              className={`grid min-h-14 w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-1 gap-y-0.5 rounded-lg border px-3 py-2 text-left ${
                 pressed ? "border-accent bg-accent/10 ring-1 ring-accent" : "border-border bg-card hover:bg-border/30"
               } disabled:opacity-60`}
             >
-              <span className="text-base font-medium">{whatIfChip(effect.id, bundle.base.investment, bundle.base.result.years, i18n)}</span>
-              <span className={`max-w-full text-sm font-semibold tabular-nums [overflow-wrap:anywhere] what-if-value ${tone}`}>
-                {effect.available ? (
-                  <Trend change={shown}>
-                    <Changed value={effectText(effect, i18n)} />
-                  </Trend>
-                ) : (
-                  <Changed value={effectText(effect, i18n)} />
-                )}
-              </span>
+              <span className={`text-base font-medium ${list ? "" : "col-span-3"}`}>{whatIfChip(effect.id, bundle.base.investment, bundle.base.result.years, i18n)}</span>
+              {effect.available ? (
+                // Beside the name on a wide screen (name | amount | arrow); under it, together, on a phone.
+                <span className={`what-if-value inline-flex items-center gap-1 whitespace-nowrap text-sm font-semibold tabular-nums ${tone} ${list ? "col-span-2 justify-self-end" : "col-span-3"}`}>
+                  <Changed value={text} />
+                  <span className="inline-flex" aria-hidden="true">
+                    <TrendIcon change={shown} />
+                  </span>
+                </span>
+              ) : (
+                <span className={`text-sm text-muted ${list ? "col-span-2 text-right" : "col-span-3"}`}>
+                  <Changed value={text} />
+                </span>
+              )}
             </button>
           );
         })}

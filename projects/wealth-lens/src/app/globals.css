@@ -110,6 +110,4 @@ h2 {
   letter-spacing: -0.02em;
 }
 
-/* Allow signed amounts to wrap when text is enlarged. */
-.what-if-value > span { white-space: normal !important; }
 

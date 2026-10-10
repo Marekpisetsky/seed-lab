@@ -673,3 +673,39 @@ describe("any country, any currency", () => {
     await page.close();
   });
 });
+
+describe("“What if…?” amounts", () => {
+  it("keep each amount and its arrow on one line, beside each other, from €1 to €10,000,000, at 360 px", async () => {
+    for (const lang of ["en", "es"] as const) {
+      for (const [have, monthly] of [[1, 0], [10, 1], [1_000, 50], [100_000, 1_000], [10_000_000, 10_000]] as const) {
+        const page = await open(lang, 360);
+        await page.getByLabel(WORDS[lang].have, { exact: true }).fill(String(have));
+        await page.getByLabel(WORDS[lang].monthly, { exact: true }).fill(String(monthly));
+        await page.getByRole("button", { name: WORDS[lang].see }).click();
+        await page.locator(".what-if-value:visible").first().waitFor();
+        await page.waitForTimeout(300);
+        const values = await page.locator(".what-if-value").evaluateAll((elements) =>
+          elements.filter((element) => element.getClientRects().length > 0).map((element) => {
+            const box = element.getBoundingClientRect();
+            const line = parseFloat(getComputedStyle(element).lineHeight) || 20;
+            const arrow = element.querySelector("svg")?.getBoundingClientRect();
+            const button = element.closest("button")!.getBoundingClientRect();
+            return {
+              text: element.textContent,
+              oneLine: box.height < line * 1.6,
+              arrowBeside: !arrow || (arrow.left >= box.left && Math.abs(arrow.top + arrow.height / 2 - (box.top + box.height / 2)) < line / 2),
+              inside: box.right <= button.right + 0.5 && box.left >= button.left - 0.5,
+            };
+          }),
+        );
+        for (const value of values) {
+          assert.ok(value.oneLine, `${lang} ${have}/${monthly}: ${value.text} breaks`);
+          assert.ok(value.arrowBeside, `${lang} ${have}/${monthly}: ${value.text} arrow not beside`);
+          assert.ok(value.inside, `${lang} ${have}/${monthly}: ${value.text} overflows its chip`);
+        }
+        assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `${lang} ${have}: page overflow`);
+        await page.close();
+      }
+    }
+  });
+});
