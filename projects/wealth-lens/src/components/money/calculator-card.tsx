@@ -13,6 +13,7 @@ import { resolveInvestment } from "@/lib/investment";
 import { planReady } from "@/lib/plan";
 import { MONTHLY_STEP, stepValue, YEARS_STEP } from "@/lib/step";
 import { exampleIn } from "@/lib/money";
+import { planWithdrawalRate } from "@/lib/safe-rate";
 import { EXAMPLE_AMOUNTS, MAX_AMOUNT, MAX_YEARS_AHEAD, MIN_YEARS } from "@/lib/validation";
 import { offeredRates } from "@/lib/withdrawal";
 import { GrowthField } from "./growth-field";
@@ -104,17 +105,18 @@ export function CalculatorCard({ onSee, compact = false }: { onSee?: () => void;
   const ids = { have: useId(), monthly: useId(), growth: useId(), years: useId(), see: useId() };
   const seeButton = useRef<HTMLButtonElement>(null);
   const ready = planReady(plan);
+  const withdrawal = planWithdrawalRate(plan);
   // Once the user starts using the page, the calculation's code comes, and idle moments work out ahead
   // what the next choice will need (not before: a page only looked at loads and does no extra work).
   useEffect(() => {
     const start = () => {
       void loadCalculation();
-      void import("@/lib/warm").then(({ warmUp }) => warmUp(offeredRates(plan.withdrawalRate)));
+      void import("@/lib/warm").then(({ warmUp }) => warmUp(offeredRates(withdrawal)));
     };
     const events = ["pointerdown", "keydown", "focusin"] as const;
     events.forEach((name) => window.addEventListener(name, start, { once: true, passive: true }));
     return () => events.forEach((name) => window.removeEventListener(name, start));
-  }, [plan.withdrawalRate]);
+  }, [withdrawal]);
   const monthly = plan.monthlyContribution;
   // The plan's currency at its side of the field, with room for it ("€", "MX$", "PEN").
   const before = f.symbolFirst;

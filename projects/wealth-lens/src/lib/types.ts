@@ -91,8 +91,12 @@ export interface Plan {
   investment: Investment;
   /** How many years ahead the result looks: 1 to 60. */
   years: number;
-  /** Share of the money taken out per year for "It could pay you". */
-  withdrawalRate: number;
+  /**
+   * Share of the money taken out per year for "It could pay you": the
+   * user's, or `null` for the rate the data back for what the plan invests
+   * in (lib/safe-rate.ts).
+   */
+  withdrawalRate: number | null;
   /**
    * "Rising prices in" (More options): the country (a code of the
    * cost-of-living list) whose reference inflation turns growth before

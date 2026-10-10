@@ -114,6 +114,17 @@ describe("parsePlan", () => {
     expect(parsePlan(full)).toEqual(full);
   });
 
+  it("keeps a withdrawal rate the user chose, and turns the old 4 % default into the data's rate", () => {
+    expect(DEFAULT_PLAN.withdrawalRate).toBeNull();
+    expect(parsePlan({ ...full, withdrawalRate: 0.035 }, [], 13)?.withdrawalRate).toBe(0.035);
+    expect(parsePlan({ ...full, withdrawalRate: 0.04 }, [], 13)?.withdrawalRate).toBe(0.04);
+    // Before version 13 every plan started at 4 %: nobody could tell it from a choice.
+    expect(parsePlan({ ...full, withdrawalRate: 0.04 }, [], 12)?.withdrawalRate).toBeNull();
+    expect(parsePlan({ ...full, withdrawalRate: 0.045 }, [], 12)?.withdrawalRate).toBe(0.045);
+    expect(parsePlan({ ...full, withdrawalRate: null }, [], 13)?.withdrawalRate).toBeNull();
+    expect(parsePlan({ ...full, withdrawalRate: -1 }, [], 13)?.withdrawalRate).toBeNull();
+  });
+
   it("keeps the plan's currency, or takes euros: files before version 12, and a currency without official rates", () => {
     expect(parsePlan({ ...full, currency: "JPY" })?.currency).toBe("JPY");
     expect(parsePlan({ ...full, currency: undefined })?.currency).toBe("EUR");

@@ -28,6 +28,11 @@ export const chrome = {
   reviewNote: "This translation is waiting for a native speaker's review.",
 };
 
+/** Why a higher return does not raise the withdrawal rate the data back as much: one line any tool can use (withdrawal-rate.ts). */
+export const withdrawal = {
+  why: "More return usually brings bigger falls. A fall early in retirement forces you to sell low. So the safe rate does not rise as much.",
+};
+
 export const legal = (name: string): LegalPage => ({
   title: "Privacy and terms",
   description: `${name} keeps nothing you type and sends nothing. No cookies. What the hosting sees, and the terms.`,

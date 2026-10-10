@@ -77,7 +77,10 @@ export const esPages: PageMessages = {
       {
         heading: "Lo que puede pagarte",
         body: [
-          "Cada mes podrías sacar una parte de tu dinero: tu dinero × 4 % ÷ 12. El deslizador va del 2 % al 7 %.",
+          "Cada mes podrías sacar una parte de tu dinero: tu dinero × la tasa ÷ 12.",
+          "La tasa empieza en la que respaldan los datos: la mayor que duró 30 años empezando en cualquier año de la historia de la inversión, el peor incluido (Bengen, 1994). Con pocos comienzos en los datos es una guía aproximada, y la página lo dice.",
+          "Tu propio crecimiento no tiene historia, así que la tasa la eliges tú. La página muestra qué haría al empezar una caída como el peor año del activo más parecido.",
+          "El deslizador va del 2 % al 7 %, más la tasa de los datos.",
           "«Duró 30 años» dice en cuántos de cada 100 futuros posibles esa cantidad duró 30 años.",
           "Prudente: en 90 o más. Arriesgado: en 75 o más. Muy arriesgado: en menos.",
         ],

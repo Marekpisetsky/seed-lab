@@ -17,6 +17,7 @@ import { futureValueWithContributions, monthlyWithdrawal, monthsToGoal, required
 import { resolveInvestment, shiftGrowth, type ResolvedInvestment } from "./investment";
 import { countriesIn, DEFAULT_CURRENCY, moneyStep, type LocalCost } from "./money";
 import { startingCapital, type StartingCapital } from "./plan";
+import { safeRateFor, type SafeRateInfo } from "./safe-rate";
 import { successRatesFor } from "./projections";
 import type { AssumptionOverrides, Goal, Investment } from "./types";
 import { WHAT_IF_IDS, whatIfAvailable, whatIfInputs, withBadStart, type WhatIfEffect, type WhatIfId } from "./what-if";
@@ -29,7 +30,8 @@ export interface CalculatorPlan {
   investment: Investment;
   /** How many years ahead the result looks (1-60). */
   years: number;
-  withdrawalRate: number;
+  /** The user's, or `null` for the rate the data back (lib/safe-rate.ts). */
+  withdrawalRate: number | null;
   pricesOf: string;
   /** The currency of every amount (ISO 4217, lib/money.ts). */
   currency: string;
@@ -356,6 +358,8 @@ export interface Calculation {
   whatIf: WhatIfId | null;
   /** The "+€50 a month" step in the plan's currency (lib/money.ts). */
   step: number;
+  /** The rate the data back for what the plan invests in, and how (lib/safe-rate.ts). */
+  safe: SafeRateInfo;
   result: Result;
   goals: GoalStatus[];
   countries: CountryRow[];
@@ -369,6 +373,8 @@ export interface Calculation {
 export function calculate(plan: CalculatorPlan, today: Date, whatIf: WhatIfId | null = null): Calculation {
   const capital = startingCapital(plan.invested);
   const resolved = resolveInvestment(plan.investment, plan);
+  // The data's rate is the investment's own, not that of a "What if…?" look at it.
+  const safe = safeRateFor(resolved);
   const applied = whatIf !== null && whatIfAvailable(whatIf, plan.years, resolved) ? whatIf : null;
   const step = moneyStep(plan.currency);
   const inputs = whatIfInputs(applied, plan.monthlyContribution ?? 0, plan.years, step);
@@ -378,7 +384,7 @@ export function calculate(plan: CalculatorPlan, today: Date, whatIf: WhatIfId | 
     capital: capital.amount,
     monthly: inputs.monthly,
     realReturn: investment.realReturn,
-    withdrawalRate: plan.withdrawalRate,
+    withdrawalRate: plan.withdrawalRate ?? safe.rate,
   };
   const scenario = inputs.badStart ? withBadStart(plain, investment, inputs.years) : plain;
   return {
@@ -387,6 +393,7 @@ export function calculate(plan: CalculatorPlan, today: Date, whatIf: WhatIfId | 
     scenario,
     whatIf: applied,
     step,
+    safe,
     result: resultOf(scenario, investment, inputs.years),
     goals: goalStatuses(plan.goals, scenario, today, countries),
     countries: countryRows(scenario, inputs.years * 12, countries),

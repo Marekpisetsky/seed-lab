@@ -40,7 +40,7 @@ export function calculationFor(state: AppState, today: Date): CalculationBundle 
   const start = performance.now();
   const base = calculate(state.plan, today, null);
   const calc = state.whatIf ? calculate(state.plan, today, state.whatIf) : base;
-  const rates = offeredRates(state.plan.withdrawalRate);
+  const rates = offeredRates(base.scenario.withdrawalRate);
   const ready = planReady(state.plan);
   // Simulated futures only once there is a result to show.
   const checks = ready ? planChecks(base, state.plan) : [];

@@ -266,7 +266,7 @@ describe("found by these properties, kept as plain examples", () => {
 
   it("does not mark ✓ a country the money pays today but not after the chosen years", () => {
     // €75,000 in savings shrinks 0.5% a year: after a year it pays a little less than today.
-    const calc = calculate(planOf({ invested: 75_000, monthlyContribution: 0, years: 1, investment: { kind: "asset", asset: "savings" } }), today);
+    const calc = calculate(planOf({ invested: 75_000, monthlyContribution: 0, years: 1, withdrawalRate: 0.04, investment: { kind: "asset", asset: "savings" } }), today);
     const between = calc.countries.map((row) => row.cost).filter((cell) => cell.target <= 75_000 && cell.target > calc.result.total);
     expect(between.length).toBeGreaterThan(0);
     for (const cell of between) {

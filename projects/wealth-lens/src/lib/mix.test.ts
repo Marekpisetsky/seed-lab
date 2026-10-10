@@ -61,7 +61,8 @@ describe("weights", () => {
     const plan = { ...SP500_PLAN, investment: { kind: "mix" as const, parts: [{ asset: "sp500" as const, weight: 50 }, { asset: "bonds" as const, weight: 30 }, { asset: "gold" as const, weight: 20 }], rebalance: false } };
     const { investment, result } = calculate(plan, today);
     expect(investment.realReturn).toBeCloseTo(0.5 * SERIES.sp500.averageReturn + 0.3 * SERIES.bonds.averageReturn + 0.2 * SERIES.gold.averageReturn, 12);
-    expect(result.lasted).toBe(mixSuccessRates(investment.model ?? model([]), [0.04])[0]);
+    const { scenario } = calculate(plan, today);
+    expect(result.lasted).toBe(mixSuccessRates(investment.model ?? model([]), [scenario.withdrawalRate])[0]);
   });
 });
 

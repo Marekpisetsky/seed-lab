@@ -389,6 +389,23 @@ export const en = {
     livesFrom: (country: string, cost: string, paid: string) => `An average person in ${country} lives on ${cost} a month. Your plan could pay ${paid}.`,
     livesNone: (country: string, cost: string, paid: string) => `The cheapest, ${country}: ${cost} a month. Your plan could pay ${paid}.`,
   },
+  safe: {
+    /** "For US stocks, the data back 3.8%: €356 a month." */
+    data: (asset: string, rate: string, monthly: string) => `For ${asset}, the data back ${rate}: ${monthly} a month.`,
+    mix: (rate: string, monthly: string) => `For this mix, the data back ${rate}: ${monthly} a month.`,
+    history: (years: number, from: number, worst: number) => `It lasted ${years} years from every start since ${from}. The worst start: ${worst}.`,
+    periods: (count: number, years: number) => (count === 1 ? `1 run of ${years} years in the data.` : `${count} runs of ${years} years in the data.`),
+    few: "Few runs: take it as a rough guide.",
+    shorter: (years: number, asked: number) => `The data hold only ${years} years, not ${asked}.`,
+    steady: (rate: string, monthly: string, years: number) => `The same growth every year: ${rate}, ${monthly} a month, lasts ${years} years.`,
+    own: "Your own growth has no history. The rate is yours.",
+    /** One line: the fall, then what it does. */
+    fall: (asset: string, change: string, year: number) => `First, a fall like the worst year of ${asset} (${change}, ${year}):`,
+    lasts: (rate: string, monthly: string, years: number) => `${rate}, ${monthly} a month, still lasts ${years} years.`,
+    runsOut: (rate: string, monthly: string, years: string) => `${rate}, ${monthly} a month, runs out after ${years}.`,
+    yours: (rate: string) => `You chose ${rate}.`,
+    useData: "Use the data's rate",
+  },
   whatIf: {
     title: "What if…?",
     chips: { "grow-more": "Grows 1% more", "grow-less": "Grows 1% less", "years-5": "5 more years", "bad-decade": "A bad first decade" },

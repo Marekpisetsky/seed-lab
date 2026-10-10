@@ -32,6 +32,11 @@ export const chrome = {
   reviewNote: "Deze vertaling wacht nog op controle door een moedertaalspreker.",
 } satisfies KitWords["chrome"];
 
+/** Why a higher return does not raise the withdrawal rate the data back as much: one line any tool can use (withdrawal-rate.ts). */
+export const withdrawal = {
+  why: "Meer rendement brengt meestal grotere dalingen. Een daling vroeg in je pensioen dwingt je goedkoop te verkopen. Daarom stijgt het veilige percentage niet even hard.",
+} satisfies KitWords["withdrawal"];
+
 export const legal = (name: string): LegalPage => ({
   title: "Privacy en voorwaarden",
   description: `${name} bewaart niets van wat je typt en verstuurt niets. Geen cookies. Wat de hosting ziet, en de voorwaarden.`,

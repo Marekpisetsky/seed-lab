@@ -28,6 +28,11 @@ export const chrome = {
   reviewNote: "Esta traducción espera la revisión de un hablante nativo.",
 } satisfies KitWords["chrome"];
 
+/** Why a higher return does not raise the withdrawal rate the data back as much: one line any tool can use (withdrawal-rate.ts). */
+export const withdrawal = {
+  why: "Más rentabilidad suele traer caídas más fuertes. Una caída al principio del retiro obliga a vender barato. Por eso la tasa segura no sube igual.",
+} satisfies KitWords["withdrawal"];
+
 export const legal = (name: string): LegalPage => ({
   title: "Privacidad y condiciones",
   description: `${name} no guarda nada de lo que escribes ni envía nada. Sin cookies. Qué ve el alojamiento, y las condiciones.`,

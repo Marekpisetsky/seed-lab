@@ -58,7 +58,7 @@ export const DEFAULT_PLAN: Plan = {
   monthlyContribution: null,
   investment: { kind: "custom" },
   years: 20,
-  withdrawalRate: 0.04,
+  withdrawalRate: null,
   pricesOf: DEFAULT_PRICES_OF,
   currency: DEFAULT_CURRENCY,
   assumptions: { ...STANDARD_ASSUMPTIONS, growth: STARTING_GROWTH },
@@ -400,6 +400,23 @@ function goalsFromEarlierVersions(value: Record<string, unknown>, notices: Notic
 }
 
 /**
+ * The plan's withdrawal rate: `null` for the rate the data back (version
+ * 13 on). Before version 13 every plan started at 4 %, the old default,
+ * which nobody could tell from a choice: a 4 % from those files becomes the
+ * data's rate; any other rate was the user's and stays, on the slider's
+ * steps (2–7 %, every 0.5 %; earlier versions offered 3, 4 and 5 %).
+ */
+function withdrawalOf(value: unknown, version: number): number | null {
+  if (!isRate(value) || !(value > 0)) return null;
+  const rate = snapWithdrawal(value);
+  return version < DATA_RATE_SINCE && Math.abs(rate - OLD_DEFAULT_WITHDRAWAL) < 1e-9 ? null : rate;
+}
+
+/** The version that first took the data's withdrawal rate (A4), and the fixed rate before it. */
+const DATA_RATE_SINCE = 13;
+const OLD_DEFAULT_WITHDRAWAL = 0.04;
+
+/**
  * The plan's currency: any with an official rate in some year (lib/money.ts).
  * Before version 12 every amount was in euros; a currency the data no
  * longer know is read as euros, and said.
@@ -420,8 +437,6 @@ function currencyOf(value: Record<string, unknown>, notices: Notices): string {
  */
 export function parsePlan(value: unknown, notices: Notices = [], version: number = CUSTOM_LIKE_WORLD_SINCE): Plan | null {
   if (!isRecord(value)) return null;
-  const pick = <K extends keyof Plan>(key: K, parse: (v: unknown) => Plan[K] | null | undefined): Plan[K] =>
-    parse(value[key]) ?? DEFAULT_PLAN[key];
   // Saved before it was typed (version 8): still to type. Missing or bad: 0, never the examples.
   const amount = (v: unknown) => (v === null && version >= GROWTH_AFTER_PRICES_SINCE ? null : isNonNegativeNumber(v) && v <= MAX_AMOUNT ? v : 0);
   const pricesOf = typeof value.pricesOf === "string" && isPriceCountry(value.pricesOf) ? value.pricesOf : DEFAULT_PRICES_OF;
@@ -447,8 +462,7 @@ export function parsePlan(value: unknown, notices: Notices = [], version: number
     investment: chosen.investment,
     // Versions 2 and 3 called it horizonYears.
     years: [value.years, value.horizonYears].find(isYears) ?? DEFAULT_PLAN.years,
-    // On the slider's steps: 2–7 %, every 0.5 % (earlier versions offered 3, 4 and 5 %).
-    withdrawalRate: pick("withdrawalRate", (v) => (isRate(v) && v > 0 ? snapWithdrawal(v) : null)),
+    withdrawalRate: withdrawalOf(value.withdrawalRate, version),
     pricesOf,
     currency: currencyOf(value, notices),
     assumptions: chosen.assumptions,
